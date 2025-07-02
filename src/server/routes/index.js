@@ -3,21 +3,30 @@ import JWTAuth from '../verify/JWTAuth.js'
 import Authentication from './authentication.js'
 import Tokens from './tokens.js'
 import Teams from './teams.js'
+import Users from './users.js'
 
 const {
   getUserIDAndEmailByName,
-  oAuthentication, oAuthenticationRegister,
-  localRegister, localLogin,
+  oAuthentication,
+  oAuthenticationRegister,
+  localRegister,
+  localLogin,
 } = Authentication
 
 const { authenticateAccessToken } = JWTAuth
 
 const { addRefreshToken, renewAccessToken } = Tokens
 
-const { 
-  addTeamPro, getParentsTeam,
+const {
+  addTeamPro,
+  getParentsTeam,
   getTeamNameThatUserIsAdmin,
-  getRoles, getCategories, getAllUsers } = Teams
+  getRoles,
+  getCategories,
+  getAllUsers,
+} = Teams
+
+const { addUsersToTeam } = Users
 
 const router = express.Router()
 
@@ -58,6 +67,9 @@ router.post('/api/account/local/login', localLogin)
 // Login an account that is locally registered
 
 router.post('/api/teams', addTeamPro)
+// Add a new team with Pro features: categorize subteam or team
+
+router.post('/api/teams/add/members', addUsersToTeam)
 
 // ------------------------ Token Handling ------------------------
 
@@ -68,10 +80,10 @@ router.get('/api/tokens/access', renewAccessToken)
 
 router.get('/api/protected', authenticateAccessToken, (req, res) => {
   console.log('Access token is valid')
-  res.status(200).json({ 
+  res.status(200).json({
     success: 'Access token is valid',
     user: req.user,
-   })
+  })
 })
 
 // ************************* DELETE DATA *********************************

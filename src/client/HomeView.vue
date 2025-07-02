@@ -235,10 +235,9 @@ const addComment = () => {
       v-model:dialog="isCreatingNewTeam" 
       :userProps="user"
     />
-    <NewMembers v-if="isAddingNewMember" 
+    <NewMembers v-if="userLoaded" 
       v-model:dialog="isAddingNewMember" 
       :userProps="user"
-      @close="isAddingNewMember = false" 
     />
 
     <v-row>
