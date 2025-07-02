@@ -1,0 +1,12 @@
+body{
+    background-color: rgb(30, 30, 30);
+}
+
+.w-100{
+    width: 100%;
+}
+
+.oauth-button{
+    background-color: white;
+    overflow: hidden;
+}
