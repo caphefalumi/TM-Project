@@ -19,11 +19,11 @@ const { addRefreshToken, renewAccessToken } = Tokens
 
 const {
   addTeamPro,
-  getParentsTeam,
   getTeamNameThatUserIsAdmin,
   getRoles,
   getCategories,
   getAllUsers,
+  deleteATeam
 } = Teams
 
 const { addUsersToTeam } = Users
@@ -70,6 +70,8 @@ router.post('/api/teams', addTeamPro)
 // Add a new team with Pro features: categorize subteam or team
 
 router.post('/api/teams/add/members', addUsersToTeam)
+
+router.post('/api/teams/delete', deleteATeam)
 
 // ------------------------ Token Handling ------------------------
 
