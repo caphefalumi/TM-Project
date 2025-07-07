@@ -1,17 +1,18 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, toDisplayString } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from './scripts/authStore.js'
 import NewTeams from './components/NewTeams.vue'
 import NewMembers from './components/NewMembers.vue'
+import DeleteTeams from './components/DeleteTeams.vue'
 
 const { getUserByAccessToken } = AuthStore
 
 // --- Router Instance ---
 const router = useRouter()
 
-const userLoaded=ref(false)
-
+const userLoaded = ref(false)
+const teamsThatUserIsAdmin = ref([])
 const user = ref({
   userId: '',
   username: '',
@@ -19,10 +20,33 @@ const user = ref({
 })
 
 const setUserToUserToken = (userToken) => {
-  console.log("User Token:", userToken)
+  console.log('User Token:', userToken)
   user.value.userId = userToken.userId
   user.value.username = userToken.username
   user.value.email = userToken.email
+}
+
+const getTeamThatUserIsAdmin = async () => {
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(
+      `http://localhost:${PORT}/api/teams/user/${user.value.userId}/admin`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    teamsThatUserIsAdmin.value = await response.json()
+    console.log('Fetched teams that user is admin of:', teamsThatUserIsAdmin.value)
+  } catch (error) {
+    console.error('Failed to fetch teams:', error)
+  }
 }
 
 onMounted(async () => {
@@ -30,6 +54,7 @@ onMounted(async () => {
   const userFromToken = await getUserByAccessToken()
   if (userFromToken) {
     setUserToUserToken(userFromToken)
+    await getTeamThatUserIsAdmin()
     userLoaded.value = true
   } else {
     user.value.username = 'Guest'
@@ -39,13 +64,37 @@ onMounted(async () => {
 // --- Reactive State ---
 const isCreatingNewTeam = ref(false)
 const isAddingNewMember = ref(false)
+const isDeletingTeam = ref(false)
 
 const isLoggedIn = ref(false)
 const commentDialog = ref(false)
 const selectedProject = ref(null)
 const newCommentText = ref('')
 
+
+const userTeams = ref([])
+const fetchTeams = async () => {
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(`http://localhost:${PORT}/api/projects`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    userTeams.value = await response.json()
+    console.log('Fetched projects:', userTeams.value)
+  } catch (error) {
+    console.error('Failed to fetch projects:', error)
+  }
+}
 // --- Sample Data ---
+
+
 // Added a 'comments' array to each project object
 const projects = ref([
   {
@@ -149,9 +198,6 @@ const projects = ref([
 /**
  * Redirects the user to the login page using Vue Router.
  */
-const redirectToLogin = () => {
-  router.push('/')
-}
 
 /**
  * Opens the comments dialog for a selected project.
@@ -210,12 +256,14 @@ const addComment = () => {
           class="mb-4 project-card rounded-lg"
           flat
           @click="isCreatingNewTeam = !isCreatingNewTeam"
-          color="light-blue lighten-4"
+          color="blue-darken-2"
         >
           <v-card-item class="text-center">
-            <v-card-title class="font-weight-bold">Create New Team</v-card-title>
+            <v-card-title 
+              class="font-weight-bold text-h5"
+              v-tooltip:bottom="'Click to create new team'"
+            >Create New Team</v-card-title>
           </v-card-item>
-
         </v-card>
       </v-col>
       <v-col cols="12" md="4">
@@ -223,21 +271,50 @@ const addComment = () => {
           class="mb-4 project-card rounded-lg"
           flat
           @click="isAddingNewMember = !isAddingNewMember"
-          color="light-blue lighten-4"
+          color="purple-lighten-2"
         >
           <v-card-item class="text-center">
-            <v-card-title class="font-weight-bold">Add New Member</v-card-title>
+            <v-card-title class="font-weight-bold text-h5" 
+            v-tooltip:bottom="'Click to add new members'"
+          >Add New Members
+          </v-card-title>
+          </v-card-item>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="4">
+        <v-card
+          class="mb-4 project-card rounded-lg"
+          flat
+          @click="isDeletingTeam = !isDeletingTeam"
+          color="red-lighten-2"
+        >
+          <v-card-item class="text-center">
+            <v-card-title 
+              class="font-weight-bold text-h5"
+              v-tooltip:bottom="'Click to delete a team'"
+            >Delete A Team</v-card-title>
           </v-card-item>
         </v-card>
       </v-col>
     </v-row>
-    <NewTeams v-if="userLoaded" 
-      v-model:dialog="isCreatingNewTeam" 
+    <NewTeams
+      v-if="userLoaded"
+      v-model:dialog="isCreatingNewTeam"
       :userProps="user"
+      v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
     />
-    <NewMembers v-if="userLoaded" 
-      v-model:dialog="isAddingNewMember" 
+    <NewMembers
+      v-if="userLoaded"
+      v-model:dialog="isAddingNewMember"
       :userProps="user"
+      v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
+    />
+    <DeleteTeams
+      v-if="userLoaded"
+      v-model:dialog="isDeletingTeam"
+      :userProps="user"
+      v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
+      @teams-deleted="getTeamThatUserIsAdmin"
     />
 
     <v-row>
@@ -266,24 +343,6 @@ const addComment = () => {
             </div>
           </v-card-text>
           <v-divider></v-divider>
-          <v-card-actions class="pa-4">
-            <v-avatar v-for="member in project.team" :key="member.id" size="32">
-              <v-img
-                :src="member.avatar"
-                :alt="member.name"
-                onerror="this.onerror=null;this.src='https://placehold.co/32x32/EFEFEF/333333?text=M';"
-              ></v-img>
-            </v-avatar>
-            <v-spacer></v-spacer>
-            <!-- Comments Button -->
-            <v-btn variant="text" size="small" @click="openCommentsDialog(project)">
-              <v-icon start>mdi-comment-outline</v-icon>
-              {{ project.comments.length }}
-            </v-btn>
-            <v-btn icon size="small">
-              <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
-          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>

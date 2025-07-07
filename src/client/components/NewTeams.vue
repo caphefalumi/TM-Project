@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import '../styles/buttonStyling.css'
 
 const router = useRouter()
 
@@ -10,8 +11,11 @@ const user = ref({
   email: '',
 })
 
-const teamThatUserIsAdmin = ref([])
 const categories = ref([])
+const emit = defineEmits([
+  'update:dialog',
+  'team-created', // or 'members-added' for NewMembers
+])
 
 const newTeam = ref({
   title: '',
@@ -22,29 +26,13 @@ const newTeam = ref({
   username: '', // Automatically set username from user token through props
 })
 
-
-const getTeamThatUserIsAdmin = async () => {
-  try {
-    const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams/user/${user.value.userId}/admin`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
-    }
-    teamThatUserIsAdmin.value = await response.json()
-    console.log('Fetched teams that user is admin of:', teamThatUserIsAdmin.value)
-  } catch (error) {
-    console.error('Failed to fetch teams:', error)
-  }
-}
+const success = ref(false)
+const error = ref(false)
+const message = ref('')
+const loading = ref(false)
 
 const setUserFromProps = (userProps) => {
-  console.log("User Props:", userProps)
+  console.log('User Props:', userProps)
   user.value.userId = userProps.userId
   user.value.username = userProps.username
   user.value.email = userProps.email
@@ -56,31 +44,28 @@ onMounted(async () => {
   newTeam.value.userId = user.value.userId
   newTeam.value.username = user.value.username
   await fetchCategories()
-  await getTeamThatUserIsAdmin()
-  
-  console.log('Team that user is admin:', teamThatUserIsAdmin.value)
+  console.log('Team that user is admin:', props.teamsThatUserIsAdmin.value)
   if (user) {
-
   } else {
     user.value.username = 'Guest'
     user.value.email = ''
   }
 })
 
-
-
 const props = defineProps({
   dialog: {
     type: Boolean,
     required: true,
   },
-  userProps:{
+  userProps: {
     type: Object,
     required: true,
-  }
+  },
+  teamsThatUserIsAdmin: {
+    type: Array,
+    required: true,
+  },
 })
-
-
 
 const fetchCategories = async () => {
   try {
@@ -103,8 +88,6 @@ const fetchCategories = async () => {
   }
 }
 
-const emit = defineEmits(['update:dialog'])
-
 watch(
   () => props.dialog,
   (newVal) => {
@@ -112,8 +95,25 @@ watch(
   },
 )
 
+// watch for changes in teamsThatUserIsAdmin prop
+watch(
+  () => props.teamsThatUserIsAdmin,
+  (newVal) => {
+    console.log('Teams that user is admin changed:', newVal)
+    props.teamsThatUserIsAdmin.value = newVal
+  },
+)
+
 const closeDialog = () => {
-  emit('update:dialog', false)
+  setTimeout(() => {
+    clearTeamData() // Clear the form when dialog is closed
+    success.value = false // Reset success state
+    error.value = false // Reset error state
+    message.value = '' // Clear message
+    loading.value = false // Reset loading state
+    emit('update:dialog', false)
+    emit('team-created')
+  }, 1500) // Optional delay for better UX
 }
 
 const clearTeamData = () => {
@@ -123,32 +123,55 @@ const clearTeamData = () => {
   newTeam.value.parentTeamId = ''
 }
 
-const createProject = async () => {
+const createTeam = async () => {
+  if (newTeam.value.title.trim() === '') {
+    error.value = true
+    message.value = 'Project title is required'
+    return
+  } else if (newTeam.value.category.trim() === '') {
+    error.value = true
+    message.value = 'Category is required'
+    return
+  } else if (newTeam.value.description.trim().length < 10) {
+    error.value = true
+    message.value = 'Description requires at least 10 characters'
+    return
+  }
+
+  loading.value = true // Set loading state
   console.log('Creating project with data:', newTeam.value)
   try {
-      const PORT = import.meta.env.VITE_API_PORT
-      const response = await fetch(`http://localhost:${PORT}/api/teams`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(
-            newTeam.value
-          ),
-      })
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(`http://localhost:${PORT}/api/teams`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newTeam.value),
+    })
 
-      if (!response.ok) {
-          throw new Error('Network response was not ok')
-      }
-      const data = await response.json()
-      console.log('Project created:', data)
-      clearTeamData() // Clear the form after successful creation
-      // Perform Redirect when finished creating project
-
+    if (!response.ok) {
+      error.value = true
+      success.value = false
+      message.value = response.json().message || 'Failed to create project'
+      loading.value = false // Reset loading state on error
+      throw new Error('Network response was not ok')
+    }
+    const data = await response.json()
+    success.value = true
+    error.value = false
+    message.value = 'Project created successfully!'
+    console.log('Project created:', data)
+    const newTeamToPushToProps = {
+      title: data.title,
+      teamId: data.teamId,
+    }
+    props.teamsThatUserIsAdmin.push(newTeamToPushToProps) // Add the new team to the list of teams that user is admin
+    closeDialog()
   } catch (error) {
-      console.error('Failed to create project:', error)
+    loading.value = false // Reset loading state on error
+    console.error('Failed to create project:', error)
   }
-  emit('update:dialog', false)
 }
 </script>
 
@@ -165,7 +188,7 @@ const createProject = async () => {
         <v-expand-transition>
           <v-select
             v-model="newTeam.parentTeamId"
-            :items="teamThatUserIsAdmin"
+            :items="props.teamsThatUserIsAdmin"
             item-title="title"
             item-value="teamId"
             label="Parent Team ID (optional)"
@@ -173,12 +196,7 @@ const createProject = async () => {
             placeholder="Enter parent team ID if applicable"
           ></v-select>
         </v-expand-transition>
-        <v-text-field
-          v-model="newTeam.title"
-          label="Project Title"
-          variant="outlined"
-          required
-        ></v-text-field>
+
         <v-expand-transition>
           <v-select
             v-model="newTeam.category"
@@ -188,7 +206,12 @@ const createProject = async () => {
             required
           ></v-select>
         </v-expand-transition>
-        
+        <v-text-field
+          v-model="newTeam.title"
+          label="Project Title"
+          variant="outlined"
+          required
+        ></v-text-field>
         <v-textarea
           v-model="newTeam.description"
           label="Description"
@@ -196,11 +219,41 @@ const createProject = async () => {
           variant="outlined"
         ></v-textarea>
       </v-card-text>
+      <!-- Display success/errors here -->
+      <v-card-text>
+        <v-alert v-if="success" type="success">{{ message }}</v-alert>
+        <v-alert v-if="error" type="error">{{ message }}</v-alert>
+      </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="createProject" variant="outlined">Create</v-btn>
-        <v-btn text @click="closeDialog" variant="outlined">Cancel</v-btn>
+        <v-btn @click="emit('update:dialog', false)" variant="outlined" :disabled="loading"
+          >Cancel</v-btn
+        >
+        <v-btn
+          color="primary"
+          @click="createTeam"
+          variant="outlined"
+          :disabled="loading"
+          :loading="loading"
+        >
+          Create
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
+
+<style scoped>
+.black-actions {
+  background-color: black !important;
+  color: white !important;
+}
+
+.black-actions .v-btn {
+  color: white !important;
+}
+
+.black-actions .v-btn--outlined {
+  border-color: white !important;
+}
+</style>

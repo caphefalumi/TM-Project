@@ -1,5 +1,4 @@
 import connectDB from '../config/db.js'
-import mongoose from 'mongoose'
 
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
@@ -13,24 +12,35 @@ const addUsersToTeam = async (req, res) => {
   }
 
   try {
-    const userPromises = users.map((user) => {
+    const userPromises = users.map(async (user) => {
       const { teamId, userId, username, role } = user
       if (!teamId || !userId || !username || !role) {
         throw new Error('TeamId, User ID, username, and role are required for each user')
       }
+
       // Check that no duplicate userId is added to the same team
-      const existingUser = UsersOfTeam.findOne({ userId, teamId })
+      const existingUser = await UsersOfTeam.findOne({ userId, teamId })
       if (existingUser) {
-        throw new Error(`User with ID ${userId} is already added to team ${teamId}`)
+        console.log(`User with ID ${userId} is already added to team ${teamId}`)
+        return null
       }
+
+      // Check there is a team with the given teamId
+      const teamExists = await UsersOfTeam.exists({ teamId })
+      if (!teamExists) {
+        console.log(`Team with ID ${teamId} does not exist`)
+        return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
+      }
+      console.log("Creating user in team:", { userId, username, teamId, role })
       return UsersOfTeam.create({ userId, username, teamId, role })
     })
 
     await Promise.all(userPromises)
-    return res.status(200).json({ success: 'Users added to team successfully' })
+    console.log('Users added to team successfully')
+    return res.status(200).json({ message: 'Users added to team successfully' })
   } catch (error) {
     console.error('Error adding users to team:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ message: 'Internal server error' })
   }
 }
 

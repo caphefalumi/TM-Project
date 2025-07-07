@@ -12,7 +12,6 @@ const { getUserByAccessToken } = AuthStore
 
 const username = ref('')
 const email = ref('')
-
 const drawer = ref(null)
 
 
@@ -29,6 +28,8 @@ onMounted(async () => {
 
 const logout = () => {
   drawer.value = false // Close the drawer after redirecting
+  // Clear Refresh Token
+
   router.push('/')
 }
 
@@ -68,11 +69,11 @@ const items = ref([
       </v-btn>
 
       <v-btn icon>
-        <v-icon>mdi-bell</v-icon>
+        <v-icon v-tooltip:bottom="'Notifications'">mdi-bell</v-icon>
       </v-btn>
 
       <v-btn icon @click="logout">
-        <v-icon>mdi-logout</v-icon>
+        <v-icon v-tooltip:bottom="'Log out'">mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
 
@@ -101,6 +102,7 @@ const items = ref([
           :to="item.to"
           :prepend-icon="item.icon"
           :title="item.title"
+          class="text-h5"
           link
         ></v-list-item>
       </v-list>
