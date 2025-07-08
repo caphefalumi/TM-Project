@@ -208,7 +208,7 @@ const createTeam = async () => {
         </v-expand-transition>
         <v-text-field
           v-model="newTeam.title"
-          label="Project Title"
+          label="Team Title"
           variant="outlined"
           required
         ></v-text-field>

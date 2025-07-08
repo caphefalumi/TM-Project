@@ -1,5 +1,11 @@
+// src/server/routes/users.js
+// This file handles responsibilities related to users in the application
+// 1. Adding users to a team
+// 2. Retrieving user's team data
+
 import connectDB from '../config/db.js'
 
+import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
 const addUsersToTeam = async (req, res) => {

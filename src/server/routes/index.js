@@ -43,13 +43,20 @@ router.get('/api/users', authenticateAccessToken, (req, res) => {
 })
 
 router.get('/api/allusers', getAllUsers)
+// Get all users in the database
 
 router.get('/api/categories', getCategories)
+// Get categories of teams
 
 router.get('/api/roles', getRoles)
+// Get roles of users in the team
 
 router.get('/api/teams/user/:userId/admin', getTeamNameThatUserIsAdmin)
 // Get user data from access token
+
+router.get('/api/user/teams', (req, res) => {
+  
+})
 
 // *************************** POST DATA *********************************
 router.post('/api/account/oauth', oAuthentication)

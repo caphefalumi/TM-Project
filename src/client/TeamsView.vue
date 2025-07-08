@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, toDisplayString } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from './scripts/authStore.js'
 import NewTeams from './components/NewTeams.vue'
@@ -93,7 +93,6 @@ const fetchTeams = async () => {
   }
 }
 // --- Sample Data ---
-
 
 // Added a 'comments' array to each project object
 const projects = ref([
@@ -238,7 +237,7 @@ const addComment = () => {
     <v-row class="align-center mb-6">
       <v-col justify="center" cols="12">
         <h1 class="text-h4 welcome-header">Welcome Back, {{ user.username }}!</h1>
-        <p class="text-grey">Here's a look at your current projects.</p>
+        <p class="text-grey">Here's a look at your current teams.</p>
       </v-col>
     </v-row>
 
@@ -359,48 +358,6 @@ const addComment = () => {
     class="mb-16"
     color="primary"
   ></v-fab>
-
-  <!-- Comments Dialog -->
-  <!-- <v-dialog v-model="commentDialog" max-width="600px" scrollable>
-        <v-card v-if="selectedProject">
-            <v-card-title class="d-flex align-center">
-                <span class="headline">Comments for "{{ selectedProject.title }}"</span>
-                <v-spacer></v-spacer>
-                <v-btn icon @click="commentDialog = false"><v-icon>mdi-close</v-icon></v-btn>
-            </v-card-title>
-            <v-divider></v-divider>
-            <v-card-text style="height: 400px;"> -->
-
-  <!-- List of existing comments -->
-
-  <!-- <v-list lines="two">
-                    <v-list-item v-for="comment in selectedProject.comments" :key="comment.id" :prepend-avatar="comment.avatar">
-                        <v-list-item-title class="font-weight-bold">{{ comment.author }}</v-list-item-title>
-                        <v-list-item-subtitle>{{ comment.text }}</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item v-if="selectedProject.comments.length === 0">
-                        <v-list-item-title>No comments yet.</v-list-item-title>
-                    </v-list-item>
-                </v-list>
-            </v-card-text>
-            <v-divider></v-divider> -->
-
-  <!-- Form to add a new comment -->
-
-  <!-- <v-card-actions class="pa-4">
-                 <v-textarea
-                    v-model="newCommentText"
-                    label="Add a comment..."
-                    rows="2"
-                    variant="outlined"
-                    auto-grow
-                    hide-details
-                    class="mr-2"
-                ></v-textarea>
-                <v-btn color="primary" @click="addComment" :disabled="!newCommentText.trim()">Post</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog> -->
 </template>
 
 <style scoped>

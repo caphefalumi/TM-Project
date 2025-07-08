@@ -87,9 +87,7 @@ const deleteTeams = async (teamId) => {
         teamId: teamId,
       }),
     })
-
-    // Emit an event to notify parent component that teams have been deleted
-    emit('teams-deleted', props.teamsThatUserIsAdmin)
+    
     const result = await response.json()
     if (!response.ok) {
       error.value = true
@@ -98,6 +96,9 @@ const deleteTeams = async (teamId) => {
       loading.value = false // Reset loading state on error
       throw new Error('Network response was not ok')
     }
+    // Emit an event to notify parent component that teams have been deleted
+    teamIdOfTeamsToDelete.value = '' // Reset the selected team ID
+    emit('teams-deleted', props.teamsThatUserIsAdmin)
     console.log('Team deleted successfully:', result)
     success.value = true
     error.value = false
