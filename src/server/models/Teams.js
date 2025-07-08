@@ -45,6 +45,11 @@ const teamsSchema = new mongoose.Schema({
             message: 'parentTeamId cannot be set to "none" explicitly.'
         }
     },
+    createdAt: {
+        type: Date,
+        default: () => Date.now(),
+        immutable: true, // Prevent modification after creation
+    }
 })
 
 const Teams = mongoose.model("Teams", teamsSchema);

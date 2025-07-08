@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Login from '../client/auth/Login.vue'
 import Register from '../client/auth/Register.vue'
-import HomeView from '../client/HomeView.vue'
+import TeamsView from '../client/TeamsView.vue'
 import SideBar from '../client/components/Sidebar.vue'
 import NewTeams from '../client/components/NewTeams.vue'
 
@@ -10,10 +10,10 @@ const router = createRouter({
   routes: [
     { path: '/', component: Login, meta: { requiresAuth: false } },
     { path: '/register', component: Register, meta: { requiresAuth: false } },
-    { path: '/home', component: HomeView, meta: { requiresAuth: true } },
-    { path: '/teams', component: HomeView, meta: { requiresAuth: true } },
-    { path: '/inbox', component: HomeView, meta: { requiresAuth: true } },
-    { path: '/about', component: HomeView, meta: { requiresAuth: true } },
+    { path: '/home', component: TeamsView, meta: { requiresAuth: true } },
+    { path: '/teams', component: TeamsView, meta: { requiresAuth: true } },
+    { path: '/inbox', component: TeamsView, meta: { requiresAuth: true } },
+    { path: '/about', component: TeamsView, meta: { requiresAuth: true } },
   ]
 })
 

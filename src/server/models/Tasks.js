@@ -21,7 +21,7 @@ const taskSchema = new mongoose.Schema({
     // category of task, e.g., "development", "design", "marketing"
     type: String,
     required: true,
-    enum: ['Development', 'Design', 'Media', 'Workshop', 'HR', 'Other'],
+    enum: ['Report', 'Development', 'Design', 'Marketing', 'Other'],
   },
   priority: {
     // urgent, high, medium, low, optional
@@ -32,6 +32,10 @@ const taskSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: () => Date.now(),
+  },
+  weighted: {
+    type: Number,
+    required: true,
   },
   dueDate: {
     // If admin wants to create weekly tasks,
