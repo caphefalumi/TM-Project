@@ -37,29 +37,52 @@ const getTasksOfAUser = async (req, res) => {
   }
 }
 
-const addTaskToAUser = async (req, res) => {
-  // Add a new task
+const addTaskToUsers = async (req, res) => {
+  // Add a new task to every user being assigned in the request body
   await connectDB()
   try {
-    const { userId, teamId, title, description, category, priority, dueDate, weighted } = req.body
+    const { assignedUsers, teamId, title, description, category, priority, dueDate, weighted, design } = req.body
 
-    if (!userId || !teamId || !title || !category || !priority || !dueDate || !weighted) {
-      return res.status(400).json({ error: 'Missing required fields' })
+    if (!assignedUsers || !teamId || !title || !category || !priority || !dueDate || !weighted || !design) {
+      console.log('Missing required fields:', {
+        assignedUsers, teamId, title, category, priority, dueDate, weighted, design
+      })
+      return res.status(400).json({ message: 'Missing required fields' })
     }
-
-    const newTask = new Tasks({
+    // assignedUsers is an array of user IDs
+    // design is an array of fields
+    if (!Array.isArray(assignedUsers) || assignedUsers.length === 0) {
+      return res.status(400).json({ message: 'Assigned users must be a non-empty array' })
+    }
+    // Check if the team exists
+    const teamExists = await Teams.exists({ _id: teamId })
+    if (!teamExists) {
+      return res.status(404).json({ message: 'Team not found' })
+    }
+    // Check if all assigned users are part of the team
+    const usersOfTeam = await UsersOfTeam.find({ teamId, userId: { $in: assignedUsers } })
+    if (usersOfTeam.length !== assignedUsers.length) {
+      return res.status(404).json({ message: 'Some assigned users are not part of the team' })
+    }
+    // Create tasks for each assigned user
+    const tasks = assignedUsers.map((userId) => ({
       userId,
       teamId,
       title,
       description,
+      design,
       category,
       priority,
       weighted,
       dueDate: new Date(dueDate),
-    })
-
-    await newTask.save()
-    return res.status(201).json({ message: 'Task added successfully', task: newTask })
+    }))
+    // Insert all tasks into the database
+    const newTasks = await Tasks.insertMany(tasks)
+    if (newTasks.length === 0) {
+      return res.status(500).json({ message: 'Failed to add tasks' })
+    }
+    console.log('Tasks added successfully:', newTasks)
+    return res.status(201).json({ message: 'Tasks added successfully'})
   } catch (error) {
     console.error('Error adding task:', error)
     return res.status(500).json({ error: 'Internal server error' })
@@ -152,4 +175,8 @@ const calculateTotalTaskWeightedOfAUser = async (req, res) => {
     console.error('Error calculating total weighted tasks:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
+}
+
+export default {
+  addTaskToUsers,
 }

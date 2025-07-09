@@ -44,7 +44,7 @@ onMounted(async () => {
   newTeam.value.userId = user.value.userId
   newTeam.value.username = user.value.username
   await fetchCategories()
-  console.log('Team that user is admin:', props.teamsThatUserIsAdmin.value)
+  console.log('Team that user is admin:', props.teamsThatUserIsAdmin)
   if (user) {
   } else {
     user.value.username = 'Guest'

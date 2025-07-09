@@ -50,6 +50,33 @@ const addUsersToTeam = async (req, res) => {
   }
 }
 
+const getUsersOfTeam = async (req, res) => {
+  // Get all users of a team by team ID
+  // Returns an array of users with their userId, username, and email
+  await connectDB()
+  const { teamId } = req.params
+  if (!teamId) {
+    return res.status(400).json({ message: 'Team ID is required' })
+  }
+  try {
+    const teamExists = await Teams.exists({ _id: teamId })
+    if (!teamExists) {
+      return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
+    }
+
+    const users = await UsersOfTeam.find({ teamId }).select('userId username role')
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'No users found for this team' })
+    }
+
+    return res.status(200).json(users)
+  } catch (error) {
+    console.error('Error fetching users of team:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 export default {
-    addUsersToTeam
+    addUsersToTeam,
+    getUsersOfTeam,
 }

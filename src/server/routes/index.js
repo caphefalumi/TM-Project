@@ -4,6 +4,7 @@ import Authentication from './authentication.js'
 import Tokens from './tokens.js'
 import Teams from './teams.js'
 import Users from './users.js'
+import Tasks from './tasks.js'
 
 const {
   getUserIDAndEmailByName,
@@ -20,13 +21,16 @@ const { addRefreshToken, renewAccessToken } = Tokens
 const {
   addTeamPro,
   getTeamNameThatUserIsAdmin,
+  getTeamThatUserIsMember,
   getRoles,
   getCategories,
   getAllUsers,
   deleteATeam
 } = Teams
 
-const { addUsersToTeam } = Users
+const { addUsersToTeam, getUsersOfTeam } = Users
+
+const { addTaskToUsers } = Tasks
 
 const router = express.Router()
 
@@ -54,9 +58,11 @@ router.get('/api/roles', getRoles)
 router.get('/api/teams/user/:userId/admin', getTeamNameThatUserIsAdmin)
 // Get user data from access token
 
-router.get('/api/user/teams', (req, res) => {
-  
-})
+router.get('/api/teams/user/:userId', getTeamThatUserIsMember)
+// Get all teams that the user is a member of
+
+router.get('/api/teams/:teamId/members', getUsersOfTeam)
+// Get all members of a team by team ID
 
 // *************************** POST DATA *********************************
 router.post('/api/account/oauth', oAuthentication)
@@ -79,6 +85,9 @@ router.post('/api/teams', addTeamPro)
 router.post('/api/teams/add/members', addUsersToTeam)
 
 router.post('/api/teams/delete', deleteATeam)
+
+router.post('/api/tasks/create', addTaskToUsers)
+// Create a new task
 
 // ------------------------ Token Handling ------------------------
 

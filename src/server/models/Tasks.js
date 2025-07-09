@@ -1,5 +1,123 @@
 import mongoose from 'mongoose'
 
+const fieldSchema = new mongoose.Schema({
+  label: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ['Short text', 'Long text', 'Number', 'Date', 'Select', 'URLs', 'Image', 'Phone'],
+  },
+  // Additional configuration for specific field types
+  config: {
+    // For 'select' type: options array
+    options: {
+      type: [String],
+      required: function () {
+        return this.type === 'Select'
+      },
+    },
+    // For 'number' type: min and max values
+    min: {
+      type: Number,
+      required: function () {
+        return this.type === 'Number'
+      },
+    },
+    max: {
+      type: Number,
+      required: function () {
+        return this.type === 'Number'
+      },
+    },
+    // For validation purposes
+    required: {
+      type: Boolean,
+      default: false,
+    },
+  },
+})
+
+// Schema for dynamic field submissions
+const submissionFieldSchema = new mongoose.Schema(
+  {
+    fieldId: {
+      type: String, // Reference to the field in design.fields
+      required: true,
+    },
+    label: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      required: true,
+      enum: ['Short text', 'Long text', 'Number', 'Date', 'Select', 'URLs', 'Image', 'Phone'],
+    },
+    value: {
+      type: mongoose.Schema.Types.Mixed, // Can be String, Number, Date, or Array
+      required: true,
+    },
+  },
+  { _id: false },
+)
+
+// Schema for task submissions
+const taskSubmissionSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    required: true,
+  },
+  taskId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tasks',
+    required: true,
+  },
+  submissionData: {
+    type: [submissionFieldSchema],
+    required: true,
+    validate: {
+      validator: function (fields) {
+        return fields && fields.length > 0
+      },
+      message: 'At least one field must be submitted',
+    },
+  },
+  submittedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  status: {
+    type: String,
+    enum: ['Pending', 'Approved', 'Rejected'],
+    default: 'Pending',
+  },
+})
+
+const designSchema = new mongoose.Schema({
+  numberOfFields: {
+    type: Number,
+    required: true,
+    validate: {
+      // equal or greater than 1
+      validator: (v) => v >= 1,
+      message: 'Number of fields must be at least 1',
+    },
+  },
+  fields: {
+    type: [fieldSchema],
+    required: true,
+    validate: {
+      validator: function (fields) {
+        return fields && fields.length === this.numberOfFields
+      },
+      message: 'Number of fields must match numberOfFields',
+    },
+  },
+})
+
 const taskSchema = new mongoose.Schema({
   userId: {
     type: String,
@@ -7,15 +125,16 @@ const taskSchema = new mongoose.Schema({
   },
   teamId: {
     type: String,
+    ref: 'Teams',
+    required: true,
+  },
+  design: {
+    type: designSchema,
     required: true,
   },
   title: {
     type: String,
     required: true,
-  },
-  description: {
-    type: String,
-    default: () => '',
   },
   category: {
     // category of task, e.g., "development", "design", "marketing"
@@ -23,11 +142,15 @@ const taskSchema = new mongoose.Schema({
     required: true,
     enum: ['Report', 'Development', 'Design', 'Marketing', 'Other'],
   },
+  description: {
+    type: String,
+    default: () => '',
+  },
   priority: {
     // urgent, high, medium, low, optional
     type: String,
     required: true,
-    enum: ['urgent', 'high', 'medium', 'low', 'optional'],
+    enum: ['Urgent', 'High', 'Medium', 'Low', 'Optional'],
   },
   createdAt: {
     type: Date,
@@ -44,11 +167,24 @@ const taskSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  submitted: {
-    type: Boolean,
-    default: () => false,
+  // Track submissions for this task
+  submissions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TaskSubmissions',
+    },
+  ],
+  // Task status
+  status: {
+    type: String,
+    enum: ['active', 'completed', 'cancelled'],
+    default: 'active',
   },
 })
 
+// Create models
 const Tasks = mongoose.model('Tasks', taskSchema)
+const TaskSubmissions = mongoose.model('TaskSubmissions', taskSubmissionSchema)
+
+export { Tasks, TaskSubmissions }
 export default Tasks

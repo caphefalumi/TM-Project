@@ -13,11 +13,39 @@ const router = useRouter()
 
 const userLoaded = ref(false)
 const teamsThatUserIsAdmin = ref([])
+const userTeams = ref([])
+
+// --- User State ---
 const user = ref({
   userId: '',
   username: '',
   email: '',
 })
+
+onMounted(async () => {
+  userLoaded.value = false
+  const userFromToken = await getUserByAccessToken()
+  if (userFromToken) {
+    setUserToUserToken(userFromToken)
+    await getTeamThatUserIsAdmin()
+    await fetchUserTeams()
+    userLoaded.value = true
+  } else {
+    user.value.username = 'Guest'
+  }
+})
+
+// --- Reactive State ---
+const isCreatingNewTeam = ref(false)
+const isAddingNewMember = ref(false)
+const isDeletingTeam = ref(false)
+
+const isLoggedIn = ref(false)
+const commentDialog = ref(false)
+const selectedProject = ref(null)
+const newCommentText = ref('')
+
+// --- Methods ---
 
 const setUserToUserToken = (userToken) => {
   console.log('User Token:', userToken)
@@ -49,34 +77,10 @@ const getTeamThatUserIsAdmin = async () => {
   }
 }
 
-onMounted(async () => {
-  userLoaded.value = false
-  const userFromToken = await getUserByAccessToken()
-  if (userFromToken) {
-    setUserToUserToken(userFromToken)
-    await getTeamThatUserIsAdmin()
-    userLoaded.value = true
-  } else {
-    user.value.username = 'Guest'
-  }
-})
-
-// --- Reactive State ---
-const isCreatingNewTeam = ref(false)
-const isAddingNewMember = ref(false)
-const isDeletingTeam = ref(false)
-
-const isLoggedIn = ref(false)
-const commentDialog = ref(false)
-const selectedProject = ref(null)
-const newCommentText = ref('')
-
-
-const userTeams = ref([])
-const fetchTeams = async () => {
+const fetchUserTeams = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/projects`, {
+    const response = await fetch(`http://localhost:${PORT}/api/teams/user/${user.value.userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -87,146 +91,14 @@ const fetchTeams = async () => {
       throw new Error('Network response was not ok')
     }
     userTeams.value = await response.json()
-    console.log('Fetched projects:', userTeams.value)
+    console.log('Fetched User Teams:', userTeams.value)
   } catch (error) {
-    console.error('Failed to fetch projects:', error)
+    console.error('Failed to fetch User Teams:', error)
   }
 }
-// --- Sample Data ---
 
-// Added a 'comments' array to each project object
-const projects = ref([
-  {
-    id: 1,
-    title: 'Website Redesign',
-    category: 'Web Development',
-    description: 'Complete redesign of the corporate website.',
-    progress: 75,
-    color: 'blue',
-    team: [
-      { id: 1, name: 'Alice', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=A' },
-      { id: 2, name: 'Bob', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=B' },
-    ],
-    comments: [
-      {
-        id: 1,
-        author: 'Bob',
-        avatar: 'https://placehold.co/40x40/EFEFEF/333333?text=B',
-        text: 'Great progress so far!',
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: 'Mobile App Launch',
-    category: 'Marketing',
-    description: 'Coordinate the launch campaign for the new apps.',
-    progress: 40,
-    color: 'green',
-    team: [
-      { id: 3, name: 'Charlie', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=C' },
-      { id: 4, name: 'Diana', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=D' },
-    ],
-    comments: [],
-  },
-  {
-    id: 3,
-    title: 'API Integration',
-    category: 'Backend Development',
-    description: 'Integrate third-party payment gateway API.',
-    progress: 90,
-    color: 'orange',
-    team: [
-      { id: 1, name: 'Alice', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=A' },
-      { id: 5, name: 'Eve', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=E' },
-    ],
-    comments: [
-      {
-        id: 2,
-        author: 'Alice',
-        avatar: 'https://placehold.co/40x40/EFEFEF/333333?text=A',
-        text: "Let's double check the security protocols.",
-      },
-      {
-        id: 3,
-        author: 'Eve',
-        avatar: 'https://placehold.co/40x40/EFEFEF/333333?text=E',
-        text: 'Agreed. I will run a security audit.',
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: 'Q3 Content Strategy',
-    category: 'Content',
-    description: 'Plan and schedule all blog and social media content.',
-    progress: 25,
-    color: 'purple',
-    team: [
-      { id: 2, name: 'Bob', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=B' },
-      { id: 3, name: 'Charlie', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=C' },
-    ],
-    comments: [],
-  },
-  {
-    id: 5,
-    title: 'User Onboarding Flow',
-    category: 'UX/UI Design',
-    description: 'Design and prototype a new user onboarding.',
-    progress: 60,
-    color: 'teal',
-    team: [
-      { id: 4, name: 'Diana', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=D' },
-      { id: 5, name: 'Eve', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=E' },
-    ],
-    comments: [],
-  },
-  {
-    id: 6,
-    title: 'Server Migration',
-    category: 'DevOps',
-    description: 'Migrate all production services to new cloud infra.',
-    progress: 95,
-    color: 'red',
-    team: [{ id: 1, name: 'Alice', avatar: 'https://placehold.co/32x32/EFEFEF/333333?text=A' }],
-    comments: [],
-  },
-])
-
-// --- Methods ---
-/**
- * Redirects the user to the login page using Vue Router.
- */
-
-/**
- * Opens the comments dialog for a selected project.
- * @param {object} project - The project to show comments for.
- */
-const openCommentsDialog = (project) => {
-  selectedProject.value = project
-  commentDialog.value = true
-}
-
-/**
- * Adds a new comment to the selected project.
- */
-const addComment = () => {
-  // Exit if there's no text or no project selected
-  if (!newCommentText.value.trim() || !selectedProject.value) return
-
-  // Create a new comment object
-  const newComment = {
-    id: Date.now(), // Use a simple unique ID for this example
-    author: 'Current User', // In a real app, this would be the logged-in user's name
-    avatar: 'https://placehold.co/40x40/EFEFEF/333333?text=Me', // Placeholder for current user
-    text: newCommentText.value.trim(),
-  }
-
-  // Add the new comment to the project's comment list
-  selectedProject.value.comments.push(newComment)
-
-  // Reset the input field
-  newCommentText.value = ''
+const navigateToTeam = (teamId) => {
+  router.push(`/teams/${teamId}`)
 }
 </script>
 
@@ -258,10 +130,11 @@ const addComment = () => {
           color="blue-darken-2"
         >
           <v-card-item class="text-center">
-            <v-card-title 
+            <v-card-title
               class="font-weight-bold text-h5"
               v-tooltip:bottom="'Click to create new team'"
-            >Create New Team</v-card-title>
+              >Create New Team</v-card-title
+            >
           </v-card-item>
         </v-card>
       </v-col>
@@ -273,10 +146,11 @@ const addComment = () => {
           color="purple-lighten-2"
         >
           <v-card-item class="text-center">
-            <v-card-title class="font-weight-bold text-h5" 
-            v-tooltip:bottom="'Click to add new members'"
-          >Add New Members
-          </v-card-title>
+            <v-card-title
+              class="font-weight-bold text-h5"
+              v-tooltip:bottom="'Click to add new members'"
+              >Add New Members
+            </v-card-title>
           </v-card-item>
         </v-card>
       </v-col>
@@ -288,10 +162,11 @@ const addComment = () => {
           color="red-lighten-2"
         >
           <v-card-item class="text-center">
-            <v-card-title 
+            <v-card-title
               class="font-weight-bold text-h5"
               v-tooltip:bottom="'Click to delete a team'"
-            >Delete A Team</v-card-title>
+              >Delete A Team</v-card-title
+            >
           </v-card-item>
         </v-card>
       </v-col>
@@ -321,29 +196,45 @@ const addComment = () => {
         <h2 class="text-h5 font-weight-bold mb-4 text-center">Your Teams</h2>
       </v-col>
 
-      <v-col v-for="project in projects" :key="project.id" cols="12" sm="6" md="4">
-        <v-card class="project-card rounded-lg" flat>
-          <v-card-item>
-            <v-card-title class="font-weight-bold">{{ project.title }}</v-card-title>
-            <v-card-subtitle>{{ project.category }}</v-card-subtitle>
-          </v-card-item>
-          <v-card-text>
-            {{ project.description }}
-            <v-progress-linear
-              v-model="project.progress"
-              :color="project.color"
-              height="8"
-              rounded
-              class="mt-4 mb-2"
-            ></v-progress-linear>
-            <div class="d-flex justify-space-between text-caption text-grey">
-              <span>Progress</span>
-              <span>{{ project.progress }}%</span>
-            </div>
-          </v-card-text>
-          <v-divider></v-divider>
-        </v-card>
-      </v-col>
+      <transition-group name="scroll-x" tag="div" class="d-flex flex-wrap" appear>
+        <v-col
+          v-for="(team, index) in userTeams"
+          :key="team.teamId"
+          cols="12"
+          sm="6"
+          md="4"
+          :style="{ 'transition-delay': `${index * 100}ms` }"
+        >
+          <v-card
+            class="project-card rounded-lg"
+            flat
+            @click="navigateToTeam(team.teamId)"
+            style="cursor: pointer"
+          >
+            <v-card-item>
+              <v-card-title class="font-weight-bold">{{ team.title }}</v-card-title>
+              <v-card-subtitle>{{ team.category }}</v-card-subtitle>
+            </v-card-item>
+            <v-card-text>
+              {{ team.description }}
+              <!-- ...existing code... -->
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions class="pa-4">
+              <v-chip v-if="team.role === 'Member'" color="primary" size="small">
+                {{ team.role }}
+              </v-chip>
+              <v-chip v-else-if="team.role === 'Admin'" color="red-lighten-2" size="small">
+                {{ team.role }}
+              </v-chip>
+              <v-spacer></v-spacer>
+              <v-btn icon size="small">
+                <v-icon>mdi-arrow-right</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </transition-group>
     </v-row>
   </v-container>
 
@@ -375,5 +266,32 @@ const addComment = () => {
 .welcome-header {
   font-weight: 700;
   color: #333;
+}
+
+/* Scroll-X Transition Styles */
+.scroll-x-enter-active,
+.scroll-x-leave-active {
+  transition: all 0.6s ease;
+}
+
+.scroll-x-enter-from {
+  opacity: 0;
+  transform: translateX(-100px);
+}
+
+.scroll-x-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+.scroll-x-enter-to,
+.scroll-x-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Staggered animation for multiple items */
+.scroll-x-move {
+  transition: transform 0.6s ease;
 }
 </style>

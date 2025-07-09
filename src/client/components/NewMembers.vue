@@ -145,7 +145,6 @@ onMounted(async () => {
   console.log('Teams that user is admin:', props.teamsThatUserIsAdmin)
   await fetchRoles()
   await fetchUsers()
-  console.log('Team that user is admin:', props.teamThatUserIsAdmin.value)
   if (user) {
   } else {
     user.value.username = 'Guest'
@@ -282,7 +281,7 @@ const addUsers = async () => {
         <v-list
           v-if="searchUsernameField && filteredUsers.length > 0"
           max-height="200"
-          style="overflow-y: auto"
+          class="filtered-users-list"
         >
           <v-list-item
             v-for="user in filteredUsers"
@@ -315,3 +314,9 @@ const addUsers = async () => {
     </v-card>
   </v-dialog>
 </template>
+
+<style scoped>
+.filtered-users-list {
+  overflow-y: auto;
+}
+</style>

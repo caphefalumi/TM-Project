@@ -14,10 +14,9 @@ const username = ref('')
 const email = ref('')
 const drawer = ref(null)
 
-
 onMounted(async () => {
   const user = await getUserByAccessToken()
-  if(user) {
+  if (user) {
     username.value = user.username
     email.value = user.email
   } else {
@@ -48,9 +47,7 @@ const items = ref([
     <!-- App Bar at the top -->
     <v-app-bar app color="primary" dark>
       <!-- The `d-lg-none` class hides drawer icon for large screens and up -->
-      <v-app-bar-nav-icon 
-        @click="drawer = !drawer" 
-      ></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
       <v-toolbar-title>Teams Management</v-toolbar-title>
 
@@ -61,7 +58,7 @@ const items = ref([
         density="compact"
         hide-details
         variant="outlined"
-        style="margin-right: 8px;"
+        class="search-field"
         ref="searchField"
       ></v-text-field>
       <v-btn icon @click="() => $refs.searchField.focus()">
@@ -78,11 +75,7 @@ const items = ref([
     </v-app-bar>
 
     <!-- Navigation Drawer (Sidebar) -->
-    <v-navigation-drawer
-      v-model="drawer"
-      :permanent="$vuetify.display.lgAndUp"
-      app
-    >
+    <v-navigation-drawer v-model="drawer" :permanent="$vuetify.display.lgAndUp" app>
       <!-- User profile section at the top of the drawer -->
       <v-list>
         <v-list-item
@@ -110,13 +103,15 @@ const items = ref([
   </div>
 </template>
 
-
-
 <style scoped>
 /* Scoped styles for this component */
 .v-list-item--active {
   background-color: #5ee4ff;
   color: black;
   transition: 0.5s ease-in-out;
+}
+
+.search-field {
+  margin-right: 8px;
 }
 </style>
