@@ -47,8 +47,8 @@ const emit = defineEmits([
 onMounted(async () => {
   // const userToken = await getUserByAccessToken()
   setUserFromProps(props.userProps)
-  console.log('Team that user is admin:', props.teamsThatUserIsAdmin.value)
   if (user) {
+    
   } else {
     user.value.username = 'Guest'
     user.value.email = ''

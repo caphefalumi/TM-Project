@@ -198,9 +198,10 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
 
   try {
     // Find all teams where the user is an admin
+    // Sort teams by title in ascending order
     const teams = await UsersOfTeam.find({ userId, role: 'Admin' })
       .populate('teamId', 'title _id parentTeamId')
-      .exec() 
+      .exec()
 
     if (teams.length === 0) {
       console.log(`No teams found for user with ID ${userId} where they are an Admin`)
@@ -230,6 +231,49 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+const getTeamThatUserIsMember = async (req, res) => {
+  // Get all teams that the user is a member of, include admins
+  // Return an array of team objects with teamId, title, category, and description, full breadcrumps
+  const { userId } = req.params
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' })
+  }
+  await connectDB()
+  try {
+    const teams = await UsersOfTeam.find({ userId })
+      .populate('teamId', 'title category description _id parentTeamId role')
+      .exec()
+    if (teams.length === 0) {
+      console.log(`No teams found for user with ID ${userId}`)
+      return res.status(200).json([])
+    }
+    // Filter out teams where teamId is null (orphaned records)
+    const validTeams = teams.filter((team) => team.teamId !== null)
+    if (validTeams.length === 0) {
+      console.log(`No valid teams found for user with ID ${userId}`)
+      return res.status(200).json([])
+    }
+
+    // Use Promise.all to wait for all async operations to complete
+    const teamsData = await Promise.all(
+      validTeams.map(async (team) => ({
+        teamId: team.teamId._id,
+        title: team.teamId.title,
+        fullBreadCrump: await getParentsTeam(team.teamId.parentTeamId) + ' ' + team.teamId.title,
+        category: team.teamId.category,
+        description: team.teamId.description,
+        role: team.role
+      })),
+    )
+    console.log('Resolved teams data:', teamsData)
+    return res.status(200).json(teamsData)
+  } catch (error) {
+    console.error('Error fetching teams for user:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
 
 const deleteAUserFromATeam = async (req, res) => {
   // Delete a user from a team
@@ -308,6 +352,7 @@ export default {
   addTeamPro,
   getParentsTeam,
   getTeamNameThatUserIsAdmin,
+  getTeamThatUserIsMember,
   getCategories,
   getRoles,
   getAllUsers,
