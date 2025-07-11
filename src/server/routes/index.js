@@ -5,6 +5,7 @@ import Tokens from './tokens.js'
 import Teams from './teams.js'
 import Users from './users.js'
 import Tasks from './tasks.js'
+import Announcements from './announcements.js'
 
 const {
   getUserIDAndEmailByName,
@@ -25,12 +26,15 @@ const {
   getRoles,
   getCategories,
   getAllUsers,
-  deleteATeam
+  deleteATeam,
 } = Teams
 
-const { addUsersToTeam, getUsersOfTeam } = Users
+const { addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam } = Users
 
-const { addTaskToUsers } = Tasks
+const { addTaskToUsers, getTasksOfAUser, submitATask } = Tasks
+
+const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement,
+       toggleLikeAnnouncement } = Announcements
 
 const router = express.Router()
 
@@ -64,6 +68,12 @@ router.get('/api/teams/user/:userId', getTeamThatUserIsMember)
 router.get('/api/teams/:teamId/members', getUsersOfTeam)
 // Get all members of a team by team ID
 
+router.get('/api/teams/:teamId/:userId/tasks', getTasksOfAUser)
+// Get all tasks of a user in a team by user ID and team ID
+
+router.get('/api/teams/:teamId/announcements', getAnnouncementsOfTeam)
+// Get all announcements of a team by team ID
+
 // *************************** POST DATA *********************************
 router.post('/api/account/oauth', oAuthentication)
 // Check OAuth whether account is registered or not.
@@ -83,11 +93,21 @@ router.post('/api/teams', addTeamPro)
 // Add a new team with Pro features: categorize subteam or team
 
 router.post('/api/teams/add/members', addUsersToTeam)
+// Add users to a team
 
 router.post('/api/teams/delete', deleteATeam)
+// Delete a team by team ID
 
 router.post('/api/tasks/create', addTaskToUsers)
 // Create a new task
+
+router.post('/api/tasks/submit', submitATask)
+// Submit a task with filled form data
+
+router.post('/api/teams/:teamId/create/announcements', addAnnouncement)
+// Create a new announcement for a team
+
+router.post('/api/announcements/:announcementId/like', toggleLikeAnnouncement)
 
 // ------------------------ Token Handling ------------------------
 
@@ -116,4 +136,13 @@ router.delete('/api/tokens/refresh', (req, res) => {
   res.status(200).json({ success: 'Refresh token deleted' })
 })
 
+router.delete('/api/teams/remove/members', deleteUsersFromTeam)
+// Delete users from a team by user ID and team ID
+
+router.delete('/api/announcements/:announcementId', deleteAnnouncement)
+
+// **************************** UPDATE DATA *********************************
+
+
+router.put('/api/teams/:teamId/update/announcements', updateAnnouncement)
 export default router

@@ -53,18 +53,6 @@ const items = ref([
 
       <v-spacer></v-spacer>
 
-      <v-text-field
-        label="Search"
-        density="compact"
-        hide-details
-        variant="outlined"
-        class="search-field"
-        ref="searchField"
-      ></v-text-field>
-      <v-btn icon @click="() => $refs.searchField.focus()">
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
-
       <v-btn icon>
         <v-icon v-tooltip:bottom="'Notifications'">mdi-bell</v-icon>
       </v-btn>

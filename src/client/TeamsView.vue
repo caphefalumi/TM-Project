@@ -133,7 +133,8 @@ const navigateToTeam = (teamId) => {
             <v-card-title
               class="font-weight-bold text-h5"
               v-tooltip:bottom="'Click to create new team'"
-              >Create New Team</v-card-title
+              ><v-icon start>mdi-plus</v-icon>
+              Create New Team</v-card-title
             >
           </v-card-item>
         </v-card>
@@ -143,13 +144,14 @@ const navigateToTeam = (teamId) => {
           class="mb-4 project-card rounded-lg"
           flat
           @click="isAddingNewMember = !isAddingNewMember"
-          color="purple-lighten-2"
+          color="success"
         >
           <v-card-item class="text-center">
             <v-card-title
               class="font-weight-bold text-h5"
               v-tooltip:bottom="'Click to add new members'"
-              >Add New Members
+              ><v-icon start>mdi-account-plus</v-icon>
+              Add New Members
             </v-card-title>
           </v-card-item>
         </v-card>
@@ -165,7 +167,8 @@ const navigateToTeam = (teamId) => {
             <v-card-title
               class="font-weight-bold text-h5"
               v-tooltip:bottom="'Click to delete a team'"
-              >Delete A Team</v-card-title
+              ><v-icon start>mdi-delete</v-icon>
+              Delete A Team</v-card-title
             >
           </v-card-item>
         </v-card>
@@ -195,8 +198,10 @@ const navigateToTeam = (teamId) => {
       <v-col cols="12">
         <h2 class="text-h5 font-weight-bold mb-4 text-center">Your Teams</h2>
       </v-col>
+    </v-row>
 
-      <transition-group name="scroll-x" tag="div" class="d-flex flex-wrap" appear>
+    <v-row>
+      <transition-group name="scroll-x" tag="div" class="w-100 d-flex flex-wrap" appear>
         <v-col
           v-for="(team, index) in userTeams"
           :key="team.teamId"
@@ -206,18 +211,16 @@ const navigateToTeam = (teamId) => {
           :style="{ 'transition-delay': `${index * 100}ms` }"
         >
           <v-card
-            class="project-card rounded-lg"
+            class="project-card rounded-lg elevation-1"
             flat
             @click="navigateToTeam(team.teamId)"
-            style="cursor: pointer"
           >
             <v-card-item>
-              <v-card-title class="font-weight-bold">{{ team.title }}</v-card-title>
+              <v-card-title class="font-weight-bold text-wrap">{{ team.title }}</v-card-title>
               <v-card-subtitle>{{ team.category }}</v-card-subtitle>
             </v-card-item>
             <v-card-text>
               {{ team.description }}
-              <!-- ...existing code... -->
             </v-card-text>
             <v-divider></v-divider>
             <v-card-actions class="pa-4">

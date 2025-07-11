@@ -5,6 +5,7 @@
 
 import connectDB from '../config/db.js'
 
+import Tasks, { TaskSubmissions} from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
@@ -28,7 +29,7 @@ const addUsersToTeam = async (req, res) => {
       const existingUser = await UsersOfTeam.findOne({ userId, teamId })
       if (existingUser) {
         console.log(`User with ID ${userId} is already added to team ${teamId}`)
-        return null
+        return res.status(400).json({ message: `Some user(s) is already in a team` })
       }
 
       // Check there is a team with the given teamId
@@ -76,7 +77,49 @@ const getUsersOfTeam = async (req, res) => {
   }
 }
 
+const deleteUsersFromTeam = async (req, res) => {
+  // Delete users from a team by user ID and team ID
+  // Also delete all tasks and submissions associated with the user in the team
+  // Returns a success message if users are deleted successfully
+  // Requires an array of userID and teamID in the request body
+  await connectDB()
+  const membersToRemove = req.body
+  if (!membersToRemove || !Array.isArray(membersToRemove)) {
+    console.log('Users array is required', membersToRemove)
+    return res.status(400).json({ error: 'Users array is required' })
+  }
+  try {
+    const deletePromises = membersToRemove.map(async (user) => {
+      const { userId, teamId } = user
+      if (!userId || !teamId) {
+        throw new Error('User ID and team ID are required for each user')
+      }
+
+      // Check if the user exists in the team
+      const existingUser = await UsersOfTeam.findOne({ userId, teamId })
+      if (!existingUser) {
+        console.log(`User with ID ${userId} not found in team ${teamId}`)
+        return res.status(404).json({ message: `User with ID ${userId} not found in team ${teamId}` })
+      }
+      // Delete all tasks and submissions associated with the user in the team
+      await Tasks.deleteMany({ userId, teamId })
+      await TaskSubmissions.deleteMany({ userId, teamId })
+
+      return UsersOfTeam.deleteOne({ userId, teamId })
+    })
+    // If any delete operation fails, it will throw an error
+    await Promise.all(deletePromises)
+    console.log('Users deleted from team successfully')
+    return res.status(200).json({ message: 'Users deleted from team successfully' })
+  } catch (error) {
+    console.error('Error deleting users from team:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+
 export default {
     addUsersToTeam,
     getUsersOfTeam,
+    deleteUsersFromTeam,
 }

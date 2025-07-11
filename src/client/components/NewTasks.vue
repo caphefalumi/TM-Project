@@ -201,16 +201,16 @@ const createTask = async () => {
   console.log('Submitting task:', submittedData)
   try {
     const PORT = import.meta.env.VITE_API_PORT
+    // Ensure description exists even if empty
+    if (taskForm.value.description === undefined) {
+      taskForm.value.description = ''
+    }
     const response = await fetch(`http://localhost:${PORT}/api/tasks/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        ...taskForm.value,
-        userId: user.value.userId,
-        assignedUsers: selectedUsers.value, // Include selected users
-      }),
+      body: JSON.stringify(submittedData),
     })
 
     if (response.ok) {
@@ -271,7 +271,7 @@ const getPriorityColor = (priority) => {
     Low: 'blue-darken-1',
     Optional: 'grey-darken-3',
   }
-  return colors[priority] || 'grey-darken-1'
+  return colors[priority] || 'grey-darken-3'
 }
 
 const getFieldPreviewValue = (field) => {

@@ -43,10 +43,6 @@ const fieldSchema = new mongoose.Schema({
 // Schema for dynamic field submissions
 const submissionFieldSchema = new mongoose.Schema(
   {
-    fieldId: {
-      type: String, // Reference to the field in design.fields
-      required: true,
-    },
     label: {
       type: String,
       required: true,
@@ -68,6 +64,11 @@ const submissionFieldSchema = new mongoose.Schema(
 const taskSubmissionSchema = new mongoose.Schema({
   userId: {
     type: String,
+    required: true,
+  },
+  teamId: {
+    type: String,
+    ref: 'Teams',
     required: true,
   },
   taskId: {
@@ -179,6 +180,11 @@ const taskSchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'completed', 'cancelled'],
     default: 'active',
+  },
+  // Task submission status
+  submitted: {
+    type: Boolean,
+    default: false,
   },
 })
 

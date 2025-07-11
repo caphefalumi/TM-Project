@@ -71,6 +71,7 @@ const fetchUsers = async () => {
     })
 
     if (!response.ok) {
+
       throw new Error('Network response was not ok')
     }
     const res = await response.json()
@@ -115,14 +116,15 @@ const sendMembersToServer = async () => {
       body: JSON.stringify(selectedUsers.value),
     })
 
+    
+    const result = await response.json()
     if (!response.ok) {
       error.value = true
       success.value = false
-      message.value = response.message || 'Failed to add users to team'
+      message.value = result.message || 'Failed to add users to team'
       loading.value = false // Reset loading state on error
       throw new Error('Network response was not ok')
     }
-    const result = await response.json()
     success.value = true
     error.value = false
     message.value = 'Members added successfully!'
@@ -222,7 +224,9 @@ const addUsers = async () => {
   console.log('Adding these users:', JSON.stringify(selectedUsers.value, null, 2))
   try {
     await sendMembersToServer()
-    closeDialog()
+    if(success.value){
+      closeDialog()
+    }
   } catch (error) {
     loading.value = false // Reset loading state on error
     console.error('Failed to add members:', error)
