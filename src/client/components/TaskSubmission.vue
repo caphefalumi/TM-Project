@@ -48,7 +48,10 @@ const formValues = ref({})
 
 onMounted(async () => {
   console.log('User Props:', props.userProps)
-  initializeForm()
+  // If props.task is defined, initialize the form
+  if(props.task && props.task.design && props.task.design.fields) {
+    initializeForm()
+  }
 })
 
 // Initialize or reset the form data
@@ -133,6 +136,7 @@ const resetForm = () => {
   success.value = false
   error.value = false
   message.value = ''
+  loading.value = false
 }
 
 // File handling for image uploads
