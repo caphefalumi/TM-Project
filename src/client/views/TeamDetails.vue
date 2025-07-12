@@ -8,6 +8,7 @@ import TaskSubmission from '../components/TaskSubmission.vue'
 import DeleteMembers from '../components/DeleteMembers.vue'
 import UpdateAnnouncements from '../components/UpdateAnnouncements.vue'
 import DeleteAnnouncements from '../components/DeleteAnnouncements.vue'
+import AnnouncementView from '../components/AnnouncementView.vue'
 
 const { getUserByAccessToken } = AuthStore
 const route = useRoute()
@@ -31,6 +32,7 @@ const team = ref({
 const userLoaded = ref(false)
 const newTaskDialog = ref(false)
 
+const viewAnnouncementDialog = ref(false)
 const deleteAnnouncementDialog = ref(false)
 const updateAnnouncementDialog = ref(false)
 const newAnnouncementsDialog = ref(false)
@@ -40,6 +42,7 @@ const deleteMembersDialog = ref(false)
 const selectedTaskForSubmission = ref(null)
 const selectedAnnouncementForDeletion = ref(null)
 const announcementToEdit = ref(null)
+const announcementToView = ref(null)
 
 const tasks = ref([])
 const announcements = ref([])
@@ -80,8 +83,6 @@ const setUserToUserToken = (userToken) => {
 const getRoleColor = (role) => {
   return role === 'Admin' ? 'red' : 'primary'
 }
-
-
 
 const fetchTeamTasks = async () => {
   try {
@@ -176,14 +177,26 @@ const editAnnnouncement = (announcementId) => {
 }
 
 const deleteAnnouncement = (announcementId) => {
-  if( announcements.value.find((announcement) => announcement._id === announcementId)) 
-  {
+  if (announcements.value.find((announcement) => announcement._id === announcementId)) {
     selectedAnnouncementForDeletion.value = announcementId
     console.log('Selected announcement for deletion:', selectedAnnouncementForDeletion.value)
   } else {
     console.error('Announcement not found with ID:', announcementId)
   }
   deleteAnnouncementDialog.value = true
+}
+
+const viewAnnouncement = (announcementId) => {
+  // Logic to view the announcement
+  console.log('View announcement with ID:', announcementId)
+  announcementToView.value = announcements.value.find(
+    (announcement) => announcement._id === announcementId,
+  )
+  if (announcementToView.value) {
+    viewAnnouncementDialog.value = true
+  } else {
+    console.error('Announcement not found with ID:', announcementId)
+  }
 }
 
 const toggleLikeAnnouncement = async (announcementId) => {
@@ -193,13 +206,16 @@ const toggleLikeAnnouncement = async (announcementId) => {
 
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const response = await fetch(`http://localhost:${PORT}/api/announcements/${announcementId}/like`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `http://localhost:${PORT}/api/announcements/${announcementId}/like`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.value.userId }),
       },
-      body: JSON.stringify({ userId: user.value.userId }),
-    })
+    )
 
     if (!response.ok) {
       throw new Error('Failed to like announcement')
@@ -208,7 +224,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
       const currentAnnouncement = announcements.value.find(
         (announcement) => announcement._id === announcementId,
       )
-      if(currentAnnouncement.likeUsers.includes(user.value.userId)) {
+      if (currentAnnouncement.likeUsers.includes(user.value.userId)) {
         // User has already liked the announcement, so we remove their like
         currentAnnouncement.likeUsers = currentAnnouncement.likeUsers.filter(
           (userId) => userId !== user.value.userId,
@@ -251,6 +267,10 @@ const getPriorityColor = (priority) => {
     Optional: 'grey-darken-3',
   }
   return colors[priority] || 'grey-darken-3'
+}
+
+const getLikeColor = (announcement) => {
+  return announcement.likeUsers.includes(user.value.userId) ? 'primary' : ''
 }
 </script>
 
@@ -297,7 +317,7 @@ const getPriorityColor = (priority) => {
       v-model:teamId="teamId"
       @announcement-updated="fetchAnnouncements"
       @close-dialog="updateAnnouncementDialog = false"
-      :announcement="announcementToEdit"
+      v-model:announcement="announcementToEdit"
     />
 
     <!-- Delete Announcement Dialog -->
@@ -306,6 +326,17 @@ const getPriorityColor = (priority) => {
       v-model:dialog="deleteAnnouncementDialog"
       v-model:announcementId="selectedAnnouncementForDeletion"
       @announcement-deleted="fetchAnnouncements"
+    />
+
+    <!-- View Announcement Dialog -->
+    <AnnouncementView
+      v-if="userLoaded && viewAnnouncementDialog"
+      v-model:dialog="viewAnnouncementDialog"
+      v-model:announcement="announcementToView"
+      v-model:userProps="user"
+      v-model:teamId="teamId"
+      @close-dialog="viewAnnouncementDialog = false"
+      @announcement-updated="fetchAnnouncements"
     />
 
     <!-- Task Submission Dialog -->
@@ -393,36 +424,41 @@ const getPriorityColor = (priority) => {
             <h2 class="text-h5 mb-4">Your Tasks</h2>
           </v-col>
           <transition-group name="scroll-x" tag="div" class="w-100 d-flex flex-wrap" appear>
-              <v-col v-for="(task, index) in tasks" :key="task._id" 
-                cols="12" md="6" lg="4"
-                :style="{ 'transition-delay': `${index * 100}ms` }">
-                <v-card class="mb-4 elevation-2 project-card" @click="submitTask(task._id)">
-                  <v-card-item>
-                    <v-card-title>{{ task.title }}</v-card-title>
-                    <v-card-subtitle>
-                      <v-chip :color="getPriorityColor(task.priority)" class="mr-2">
-                        {{ task.priority }}
-                      </v-chip>
-                      <v-chip color="purple-darken-2">
-                        {{ task.category }}
-                      </v-chip>
-                    </v-card-subtitle>
-                  </v-card-item>
-                  <v-card-text>
-                    <p>{{ task.description }}</p>
-                    <div class="d-flex justify-space-between text-caption">
-                      <span>Weight: {{ task.weighted }}</span>
-                      <span>Due: {{ new Date(task.dueDate).toLocaleDateString() }}</span>
-                    </div>
-                  </v-card-text>
-                  <v-card-actions v-if="!task.submitted">
-                    <v-chip color="red" text-color="white">No Submission</v-chip>
-                  </v-card-actions>
-                  <v-card-actions v-else>
-                    <v-chip color="green" text-color="white">Submitted</v-chip>
-                  </v-card-actions>
-                </v-card>
-              </v-col>
+            <v-col
+              v-for="(task, index) in tasks"
+              :key="task._id"
+              cols="12"
+              md="6"
+              lg="4"
+              :style="{ 'transition-delay': `${index * 100}ms` }"
+            >
+              <v-card class="mb-4 elevation-2 project-card" @click="submitTask(task._id)">
+                <v-card-item>
+                  <v-card-title>{{ task.title }}</v-card-title>
+                  <v-card-subtitle>
+                    <v-chip :color="getPriorityColor(task.priority)" class="mr-2">
+                      {{ task.priority }}
+                    </v-chip>
+                    <v-chip color="purple-darken-2">
+                      {{ task.category }}
+                    </v-chip>
+                  </v-card-subtitle>
+                </v-card-item>
+                <v-card-text>
+                  <p>{{ task.description }}</p>
+                  <div class="d-flex justify-space-between text-caption">
+                    <span>Weight: {{ task.weighted }}</span>
+                    <span>Due: {{ new Date(task.dueDate).toLocaleDateString() }}</span>
+                  </div>
+                </v-card-text>
+                <v-card-actions v-if="!task.submitted">
+                  <v-chip color="red" text-color="white">No Submission</v-chip>
+                </v-card-actions>
+                <v-card-actions v-else>
+                  <v-chip color="green" text-color="white">Submitted</v-chip>
+                </v-card-actions>
+              </v-card>
+            </v-col>
           </transition-group>
         </v-row>
         <v-row v-else-if="userLoaded">
@@ -463,25 +499,17 @@ const getPriorityColor = (priority) => {
               </v-card-text>
               <v-card-actions>
                 <v-btn
-                  v-if="!announcement.likeUsers.includes(user.userId)"
                   @click="toggleLikeAnnouncement(announcement._id)"
-                  color="primary"
+                  :color="getLikeColor(announcement)"
                   variant="outlined"
-                  >
-                  <v-icon start>mdi-thumb-up</v-icon>Like({{ announcement.likeUsers.length }})
+                >
+                  <v-icon start>mdi-thumb-up</v-icon>Like ({{ announcement.likeUsers.length }})
                 </v-btn>
                 <v-btn
-                  v-else
-                  @click="toggleLikeAnnouncement(announcement._id)"
+                  @click="viewAnnouncement(announcement._id)"
                   color="secondary"
                   variant="outlined"
-                  >
-                  <v-icon start>mdi-thumb-up</v-icon>Liked({{ announcement.likeUsers.length }})
-                </v-btn>
-                <v-btn
-                  color="secondary"
-                  variant="outlined"
-                  >
+                >
                   <v-icon start>mdi-comment-text</v-icon>Comments
                 </v-btn>
                 <v-spacer></v-spacer>

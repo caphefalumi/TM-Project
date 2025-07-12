@@ -1,8 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
+import { ref, onMounted, watch } from 'vue'
 
 const success = ref(false)
 const error = ref(false)
@@ -34,13 +31,28 @@ const props = defineProps({
   },
 })
 
+const updateFields = () => {
+  titleField.value = props.announcement.title || ''
+  subtitleField.value = props.announcement.subtitle || ''
+  announcementContent.value = props.announcement.content || ''
+}
+
 onMounted(() => {
-    if (props.announcement) {
-      titleField.value = props.announcement.title || ''
-      subtitleField.value = props.announcement.subtitle || ''
-      announcementContent.value = props.announcement.content || ''
+  updateFields()
+})
+
+// Watch for changes in the announcement prop to update fields
+watch(
+  () => props.announcement,
+  (newAnnouncement) => {
+    if (newAnnouncement) {
+      titleField.value = newAnnouncement.title || ''
+      subtitleField.value = newAnnouncement.subtitle || ''
+      announcementContent.value = newAnnouncement.content || ''
     }
-  })
+  },
+  { immediate: true },
+)
 
 const updateAnnouncement = async () => {
     if (!titleField.value || !announcementContent.value) {

@@ -34,7 +34,7 @@ const { addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam } = Users
 const { addTaskToUsers, getTasksOfAUser, submitATask } = Tasks
 
 const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement,
-       toggleLikeAnnouncement } = Announcements
+       toggleLikeAnnouncement, addCommentToAnnouncement } = Announcements
 
 const router = express.Router()
 
@@ -108,6 +108,8 @@ router.post('/api/teams/:teamId/create/announcements', addAnnouncement)
 // Create a new announcement for a team
 
 router.post('/api/announcements/:announcementId/like', toggleLikeAnnouncement)
+
+router.post('/api/announcements/:announcementId/comments', addCommentToAnnouncement)
 
 // ------------------------ Token Handling ------------------------
 

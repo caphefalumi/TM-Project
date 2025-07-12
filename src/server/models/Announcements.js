@@ -1,5 +1,28 @@
 import mongoose from 'mongoose'
 
+const announcementCommentsSchema = new mongoose.Schema({
+  announcementId: {
+    type: String,
+    required: true,
+  },
+  replyTo: { // ID of the comment being replied to, null if it's a top-level comment
+    type: String,
+    default: null, // Can be null if it's a top-level comment
+  },
+  username: {
+    type: String,
+    required: true,
+  },
+  content: {
+    type: String,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: () => Date.now(),
+  },
+})
+
 const AnnoucementSchema = new mongoose.Schema({
   teamId: {
     type: String,
@@ -19,6 +42,10 @@ const AnnoucementSchema = new mongoose.Schema({
   },
   likeUsers: {
     type: [String],
+    default: () => [],
+  },
+  comments: {
+    type: [announcementCommentsSchema],
     default: () => [],
   },
   createdBy: {
