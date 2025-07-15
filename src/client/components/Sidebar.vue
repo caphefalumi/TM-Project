@@ -33,15 +33,32 @@ onMounted(async () => {
 })
 
 const logout = async () => {
-  drawer.value = false // Close the drawer after redirecting
-  // Clear Refresh Token
-  await revokeRefreshToken()
-  // Redirect to the home page
-  router.push('/')
+  try {
+    drawer.value = false // Close the drawer
+    console.log('Logging out user:', user.value.username)
+
+    // Revoke refresh token from database and clear cookies
+    await revokeRefreshToken()
+
+    // Clear local user data
+    user.value = {
+      userId: '',
+      username: 'Guest',
+      email: '',
+    }
+
+    console.log('Logout successful, redirecting to login page')
+    // Redirect to the login page
+    router.push('/')
+  } catch (error) {
+    console.error('Logout failed:', error)
+    // Even if logout fails, still redirect to login for security
+    router.push('/')
+  }
 }
 
 const revokeRefreshToken = async () => {
-  console.log('Current user:', user.value)
+  console.log('Revoking refresh token for user:', user.value.username)
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
@@ -50,17 +67,22 @@ const revokeRefreshToken = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: include cookies in request
       body: JSON.stringify({ userId: user.value.userId }),
     })
 
+    const responseData = await response.json()
+
     if (!response.ok) {
-      console.log('Failed to revoke refresh token')
-      throw new Error('Failed to revoke refresh token')
+      console.error('Failed to revoke refresh token:', responseData.error || 'Unknown error')
+      throw new Error(responseData.error || 'Failed to revoke refresh token')
     } else {
-      console.log('Refresh token revoked successfully')
+      console.log('Refresh token revoked successfully:', responseData.message)
+      return responseData
     }
   } catch (error) {
-    console.error('Error revoking refresh token:', error)
+    console.error('Error revoking refresh token:', error.message)
+    throw error
   }
 }
 

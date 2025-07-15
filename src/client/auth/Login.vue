@@ -25,11 +25,14 @@ const sendToHomePage = async () => {
   console.log('User Email:', userEmail.value)
   await createRefreshToken()
   await getAccessToHome()
-  //console.log('User ID:', userId.value)
-  if(authenticate.value){
+  console.log('User ID:', userId.value)
+  console.log('User Email:', userEmail.value)
+  console.log('Authenticate:', authenticate.value)
+  if (authenticate.value) {
     setTimeout(() => router.push('/home'), 1500)
   } else {
     error.value = 'Authentication failed. Please try again.'
+    success.value = ''
   }
 }
 
@@ -88,17 +91,18 @@ const getUserEmail = async (name) => {
 }
 
 const getAccessToHome = async () => {
-  // Get access to home page
+  // Get access to home page using login-specific validation
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const res = await fetch(`http://localhost:${PORT}/api/protected`, {
+    const res = await fetch(`http://localhost:${PORT}/api/login-protected`, {
       method: 'GET',
       credentials: 'include', // Include cookies for authentication
       headers: { 'Content-Type': 'application/json' },
     })
     const data = await res.json()
     if (!res.ok || data.error) {
-      error.value = data.error
+      error.value = data.error || 'Access validation failed'
+      console.log('Error accessing home:', data.error)
     } else {
       success.value = 'Access to home granted!'
       authenticate.value = true

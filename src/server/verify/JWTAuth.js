@@ -33,41 +33,79 @@ const generateRefreshToken = (user) => {
   )
 }
 
-const authenticateAccessToken = (req, res, next) => {
+const authenticateAccessToken = async (req, res, next) => {
   // Authenticate token middleware from cookie
   const token = req.cookies.accessToken
   if (token == null) return res.sendStatus(401) // 401: not sending token
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403).json({ error: 'Invalid token' })
-    const storedToken = RefreshToken.findOne({ userId: user.userId })
+  try {
+    const user = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+
+    // Only check refresh token for non-revoked status (don't require specific token match)
+    const storedToken = await RefreshToken.findOne({
+      userId: user.userId,
+      revoked: false,
+    })
     if (!storedToken) {
-      return res.status(403).json({ error: 'Refresh token not found' })
-    } else if (storedToken.revoked) {
-      return res.status(403).json({ error: 'Refresh token has been revoked' })
+      return res.status(403).json({ error: 'No valid session found' })
     } else {
       req.user = user
       next()
     }
-  })
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid access token' })
+  }
 }
 
-const authenticateRefreshToken = (req, res, next) => {
+const authenticateAccessTokenOnly = async (req, res, next) => {
+  // Authenticate ONLY access token without checking refresh token status
+  // Used during fresh login process before refresh token is properly set
+  const token = req.cookies.accessToken
+  if (token == null) return res.sendStatus(401) // 401: not sending token
+
+  try {
+    const user = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    req.user = user
+    next()
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid access token' })
+  }
+}
+
+const authenticateRefreshToken = async (req, res, next) => {
   // Authenticate refresh token middleware from cookie
   const token = req.cookies.refreshToken
   if (token == null) return res.sendStatus(401) // 401: not sending token
+
   console.log('RefreshToken: ', token)
-  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403).json({ error: 'Invalid refresh token' })
+
+  try {
+    const user = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET)
+
+    // Check if refresh token exists in database and is not revoked
+    const storedToken = await RefreshToken.findOne({
+      userId: user.userId,
+      token: token,
+      revoked: false,
+    })
+    if (!storedToken) {
+      return res.status(403).json({ error: 'Refresh token not found or revoked' })
+    } else if (storedToken.expiresAt < new Date()) {
+      return res.status(403).json({ error: 'Refresh token has expired' })
+    } else {
       console.log('User from refresh token:', user)
       req.user = user
       next()
-  })
+    }
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid refresh token' })
+  }
 }
 
 export default {
   generateAccessToken,
   generateRefreshToken,
   authenticateAccessToken,
+  authenticateAccessTokenOnly,
   authenticateRefreshToken,
 }
