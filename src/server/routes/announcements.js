@@ -1,7 +1,14 @@
 import connectDB from '../config/db.js'
+import {
+  createAnnouncementLikedNotification,
+  createAnnouncementCommentedNotification,
+  createCommentRepliedNotification,
+  createTeamAnnouncementCreatedNotification,
+} from '../scripts/notificationsService.js'
 
 import Teams from '../models/Teams.js'
 import Announcements from '../models/Announcements.js'
+import UsersOfTeam from '../models/UsersOfTeam.js'
 
 const getAnnouncementsOfTeam = async (req, res) => {
   // Get all announcements of a team
@@ -43,8 +50,9 @@ const addAnnouncement = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' })
     }
 
+    let finalSubtitle = subtitle
     if (subtitle == undefined || subtitle == null) {
-      subtitle = ''
+      finalSubtitle = ''
     }
 
     const teamExists = await Teams.exists({ _id: teamId })
@@ -55,12 +63,33 @@ const addAnnouncement = async (req, res) => {
     const newAnnouncement = new Announcements({
       teamId,
       title,
-      subtitle,
+      subtitle: finalSubtitle,
       content,
       createdBy,
     })
 
     await newAnnouncement.save()
+
+    // Create notifications for team members about the new announcement
+    try {
+      const teamMembers = await UsersOfTeam.find({ teamId }, 'userId')
+      const teamMemberUserIds = teamMembers.map((member) => member.userId)
+
+      if (teamMemberUserIds.length > 0) {
+        await createTeamAnnouncementCreatedNotification(
+          teamId,
+          newAnnouncement._id.toString(),
+          title,
+          createdBy,
+          teamMemberUserIds,
+        )
+        console.log(`Notifications created for new announcement in team ${teamId}`)
+      }
+    } catch (notificationError) {
+      console.error('Error creating announcement notifications:', notificationError)
+      // Don't fail the announcement creation if notification creation fails
+    }
+
     return res
       .status(201)
       .json({ message: 'Announcement added successfully', announcement: newAnnouncement })
@@ -150,7 +179,9 @@ const toggleLikeAnnouncement = async (req, res) => {
       return res.status(404).json({ message: 'Announcement not found' })
     }
 
-    if (announcement.likeUsers.includes(userId)) {
+    const wasLiked = announcement.likeUsers.includes(userId)
+
+    if (wasLiked) {
       // User already liked the announcement, remove like
       announcement.likeUsers = announcement.likeUsers.filter((user) => user !== userId)
       console.log(`User ${userId} unliked announcement ${announcementId}`)
@@ -158,7 +189,23 @@ const toggleLikeAnnouncement = async (req, res) => {
       // User has not liked the announcement, add like
       announcement.likeUsers.push(userId)
       console.log(`User ${userId} liked announcement ${announcementId}`)
+
+      // Create notification for the announcement creator (only when liking, not unliking)
+      try {
+        await createAnnouncementLikedNotification(
+          announcement.createdBy,
+          announcementId,
+          announcement.title,
+          userId,
+          announcement.teamId,
+        )
+        console.log(`Like notification created for announcement ${announcementId}`)
+      } catch (notificationError) {
+        console.error('Error creating like notification:', notificationError)
+        // Don't fail the like operation if notification creation fails
+      }
     }
+
     await announcement.save()
     return res.status(200).json({ message: 'Like status toggled successfully', announcement })
   } catch (error) {
@@ -169,22 +216,23 @@ const toggleLikeAnnouncement = async (req, res) => {
 
 const addCommentToAnnouncement = async (req, res) => {
   // Add a comment to an announcement
-  // Requires announcementId, userId, content, and replyTo (optional) in the request body
+  // Requires announcementId, userId, username, content, and replyTo (optional) in the request body
   await connectDB()
   try {
     const { announcementId } = req.params
-    const { username, content, replyTo } = req.body
+    const { userId, username, content, replyTo } = req.body
     console.log('Add comment to announcement request:', {
       announcementId,
+      userId,
       username,
       content,
       replyTo,
     })
-    if (!announcementId || !username || !content) {
-      console.log('Announcement ID, Username, and content are required')
+    if (!announcementId || !userId || !username || !content) {
+      console.log('Announcement ID, User ID, Username, and content are required')
       return res
         .status(400)
-        .json({ message: 'Announcement ID, Username, and content are required' })
+        .json({ message: 'Announcement ID, User ID, Username, and content are required' })
     }
 
     const announcement = await Announcements.findById(announcementId)
@@ -205,6 +253,51 @@ const addCommentToAnnouncement = async (req, res) => {
 
     // Get the newly created comment with its generated _id
     const savedComment = announcement.comments[announcement.comments.length - 1]
+
+    // Create notifications based on comment type
+    try {
+      if (replyTo) {
+        // This is a reply to another comment - find the original commenter
+        const parentComment = announcement.comments.find(
+          (comment) => comment._id.toString() === replyTo,
+        )
+
+        if (parentComment) {
+          // Find the userId of the parent comment's author by username
+          // Note: This is a limitation of the current schema - we should store userId with comments
+          const Account = await import('../models/Account.js').then((m) => m.default)
+          const parentCommenter = await Account.findOne({ username: parentComment.username }, '_id')
+
+          if (parentCommenter) {
+            await createCommentRepliedNotification(
+              parentCommenter._id.toString(),
+              announcementId,
+              announcement.title,
+              userId,
+              savedComment._id.toString(),
+              replyTo,
+              announcement.teamId,
+            )
+            console.log(`Reply notification created for comment ${replyTo}`)
+          }
+        }
+      } else {
+        // This is a comment on the announcement - notify the announcement creator
+        await createAnnouncementCommentedNotification(
+          announcement.createdBy,
+          announcementId,
+          announcement.title,
+          userId,
+          savedComment._id.toString(),
+          announcement.teamId,
+        )
+        console.log(`Comment notification created for announcement ${announcementId}`)
+      }
+    } catch (notificationError) {
+      console.error('Error creating comment notification:', notificationError)
+      // Don't fail the comment creation if notification creation fails
+    }
+
     return res.status(201).json({ message: 'Comment added successfully', comment: savedComment })
   } catch (error) {
     console.error('Error adding comment:', error)

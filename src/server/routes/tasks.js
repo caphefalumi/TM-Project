@@ -5,6 +5,38 @@ import UsersOfTeam from '../models/UsersOfTeam.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 
 const getTasksOfAUser = async (req, res) => {
+  // Get all tasks of a user across all teams
+  // Returns an array of tasks sorted by DueDate in ascending order
+  // Requires userId as a parameter
+  await connectDB()
+  try {
+    const { userId } = req.params
+    if (!userId) {
+      console.log('Missing required parameter: userId')
+      return res.status(400).json({ message: 'User ID is required' })
+    }
+    // Check if the user exists in any team
+    const userExists = await UsersOfTeam.exists({ userId })
+    if (!userExists) {
+      console.log(`User with ID ${userId} does not exist in any team`)
+      return res.status(404).json({ message: 'User not found in any team' })
+    }
+    // Fetch tasks for the user across all teams
+    // Sort tasks by DueDate in ascending order
+    const tasks = await Tasks.find({ userId }).sort({ dueDate: 1 })
+    if (tasks.length === 0) {
+      console.log(`No tasks found for user ${userId}`)
+      return res.status(200).json({ message: 'No tasks found for this user', tasks: [] })
+    }
+
+    return res.status(200).json({ tasks })
+  } catch (error) {
+    console.error('Error fetching tasks:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+const getTasksOfAUserInATeam = async (req, res) => {
   // Get all tasks of a user in a team
   // Returns an array of tasks sorted by DueDate in ascending order
   // Requires userId and teamId as parameters
@@ -33,7 +65,9 @@ const getTasksOfAUser = async (req, res) => {
     const tasks = await Tasks.find({ userId, teamId }).sort({ dueDate: 1 })
     if (tasks.length === 0) {
       console.log(`No tasks found for user ${userId} in team ${teamId}`)
-      return res.status(200).json({ message: 'No tasks found for this user in the specified team', tasks: [] })
+      return res
+        .status(200)
+        .json({ message: 'No tasks found for this user in the specified team', tasks: [] })
     }
     return res.status(200).json({ tasks })
   } catch (error) {
@@ -57,6 +91,9 @@ const addTaskToUsers = async (req, res) => {
       weighted,
       design,
     } = req.body
+
+    // Generate a unique group ID for this batch of tasks
+    const taskGroupId = `task-group-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
 
     if (
       !assignedUsers ||
@@ -99,6 +136,7 @@ const addTaskToUsers = async (req, res) => {
     const tasks = assignedUsers.map((userId) => ({
       userId,
       teamId,
+      taskGroupId, // Add the group ID to link related tasks
       title,
       description,
       design,
@@ -113,7 +151,11 @@ const addTaskToUsers = async (req, res) => {
       return res.status(500).json({ message: 'Failed to add tasks' })
     }
     console.log('Tasks added successfully:', newTasks)
-    return res.status(201).json({ message: 'Tasks added successfully' })
+    return res.status(201).json({
+      message: 'Tasks added successfully',
+      taskGroupId, // Return the group ID for frontend reference
+      tasksCreated: newTasks.length,
+    })
   } catch (error) {
     console.error('Error adding task:', error)
     return res.status(500).json({ error: 'Internal server error' })
@@ -286,8 +328,180 @@ const calculateTotalTaskWeightedOfAUser = async (req, res) => {
   }
 }
 
+const getTasksByGroupId = async (req, res) => {
+  // Get all tasks in a task group for admin view
+  // Returns tasks grouped by user with submission status
+  await connectDB()
+  try {
+    const { taskGroupId, teamId } = req.params
+    if (!taskGroupId || !teamId) {
+      return res.status(400).json({ message: 'Task Group ID and Team ID are required' })
+    }
+
+    const tasks = await Tasks.find({ taskGroupId, teamId }).sort({ userId: 1 })
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: 'No tasks found for this group' })
+    }
+
+    // Group tasks by user for easier admin view
+    const tasksByUser = tasks.reduce((acc, task) => {
+      if (!acc[task.userId]) {
+        acc[task.userId] = []
+      }
+      acc[task.userId].push(task)
+      return acc
+    }, {})
+
+    return res.status(200).json({
+      taskGroupId,
+      tasks,
+      tasksByUser,
+      totalUsers: Object.keys(tasksByUser).length,
+      completedTasks: tasks.filter((task) => task.submitted).length,
+      totalTasks: tasks.length,
+    })
+  } catch (error) {
+    console.error('Error fetching tasks by group ID:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+const updateTaskGroup = async (req, res) => {
+  // Update all tasks in a group (for admin bulk operations)
+  // Can update title, description, priority, dueDate, etc.
+  await connectDB()
+  try {
+    const { taskGroupId, teamId } = req.params
+    const updateData = req.body
+
+    if (!taskGroupId || !teamId) {
+      return res.status(400).json({ message: 'Task Group ID and Team ID are required' })
+    }
+
+    // Remove fields that shouldn't be bulk updated
+    const { userId, submitted, submissions, ...allowedUpdates } = updateData
+
+    const result = await Tasks.updateMany(
+      { taskGroupId, teamId },
+      {
+        $set: {
+          ...allowedUpdates,
+          updatedAt: new Date(),
+        },
+      },
+    )
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'No tasks found for this group' })
+    }
+
+    return res.status(200).json({
+      message: 'Task group updated successfully',
+      updatedCount: result.modifiedCount,
+      taskGroupId,
+    })
+  } catch (error) {
+    console.error('Error updating task group:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+const deleteTaskGroup = async (req, res) => {
+  // Delete all tasks in a group (for admin operations)
+  await connectDB()
+  try {
+    const { taskGroupId, teamId } = req.params
+
+    if (!taskGroupId || !teamId) {
+      return res.status(400).json({ message: 'Task Group ID and Team ID are required' })
+    }
+
+    // First, delete all task submissions for this group
+    const tasks = await Tasks.find({ taskGroupId, teamId })
+    const taskIds = tasks.map((task) => task._id)
+
+    if (taskIds.length > 0) {
+      await TaskSubmissions.deleteMany({ taskId: { $in: taskIds } })
+    }
+
+    // Then delete the tasks
+    const result = await Tasks.deleteMany({ taskGroupId, teamId })
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No tasks found for this group' })
+    }
+
+    return res.status(200).json({
+      message: 'Task group deleted successfully',
+      deletedCount: result.deletedCount,
+      taskGroupId,
+    })
+  } catch (error) {
+    console.error('Error deleting task group:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+const getAllTaskGroups = async (req, res) => {
+  // Get all task groups in a team (for admin dashboard)
+  await connectDB()
+  try {
+    const { teamId } = req.params
+    if (!teamId) {
+      return res.status(400).json({ message: 'Team ID is required' })
+    }
+
+    // Get unique task groups with summary info
+    const taskGroups = await Tasks.aggregate([
+      { $match: { teamId } },
+      {
+        $group: {
+          _id: '$taskGroupId',
+          title: { $first: '$title' },
+          category: { $first: '$category' },
+          priority: { $first: '$priority' },
+          dueDate: { $first: '$dueDate' },
+          totalTasks: { $sum: 1 },
+          completedTasks: {
+            $sum: { $cond: [{ $eq: ['$submitted', true] }, 1, 0] },
+          },
+          totalWeight: { $sum: '$weighted' },
+          createdAt: { $first: '$createdAt' },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ])
+
+    return res.status(200).json({
+      taskGroups: taskGroups.map((group) => ({
+        taskGroupId: group._id,
+        title: group.title,
+        category: group.category,
+        priority: group.priority,
+        dueDate: group.dueDate,
+        totalTasks: group.totalTasks,
+        completedTasks: group.completedTasks,
+        totalWeight: group.totalWeight,
+        completionRate:
+          group.totalTasks > 0 ? ((group.completedTasks / group.totalTasks) * 100).toFixed(1) : 0,
+        createdAt: group.createdAt,
+      })),
+    })
+  } catch (error) {
+    console.error('Error fetching task groups:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 export default {
   addTaskToUsers,
+  getTasksOfAUserInATeam,
   getTasksOfAUser,
   submitATask,
+  getTasksByGroupId,
+  updateTaskGroup,
+  deleteTaskGroup,
+  calculateFinishedWeightedTaskOfAUser,
+  calculateTotalTaskWeightedOfAUser,
+  getAllTaskGroups,
 }

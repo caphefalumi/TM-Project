@@ -29,7 +29,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:dialog', 'update:teamsThatUserIsAdmin'])
+const emit = defineEmits(['update:dialog', 'create-task'])
 
 // Selected users for task assignment
 const selectedUsers = ref([])
@@ -101,6 +101,7 @@ const setUserFromProps = (userProps) => {
 
 // Close dialog
 const closeDialog = () => {
+  emit('create-task', taskForm.value) // Emit task data
   emit('update:dialog', false)
   resetForm()
 }
@@ -114,7 +115,7 @@ const resetForm = () => {
     priority: 'Medium',
     weighted: 1,
     dueDate: '',
-    teamId: '',
+    teamId: `${props.teamId}`,
     design: {
       numberOfFields: 0,
       fields: [],

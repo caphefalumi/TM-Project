@@ -36,6 +36,7 @@ const loading = ref(false)
 
 // Form data for submission structure
 const submissionForm = ref({
+  taskGroupId: props.task.taskGroupId,
   taskId: props.taskId,
   userId: props.userProps.userId,
   teamId: props.teamId,
@@ -242,7 +243,7 @@ const submitTaskResponse = async () => {
     ...submissionForm.value,
     submissionData: filteredSubmissionData,
   }
-
+  submissionData.taskGroupId = props.task.taskGroupId
   console.log('Submitting task response:', submissionData)
 
   try {

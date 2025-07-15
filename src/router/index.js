@@ -3,17 +3,19 @@ import Login from '../client/auth/Login.vue'
 import Register from '../client/auth/Register.vue'
 import TeamsView from '../client/TeamsView.vue'
 import TeamDetails from '../client/views/TeamDetails.vue'
+import Dashboard from '../client/views/Dashboard.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/', component: Login, meta: { requiresAuth: false } },
+    { path: '/login', component: Login, meta: { requiresAuth: false } },
     { path: '/register', component: Register, meta: { requiresAuth: false } },
-    { path: '/home', component: TeamsView, meta: { requiresAuth: true } },
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true } },
     { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true } },
     { path: '/inbox', component: TeamsView, meta: { requiresAuth: true } },
     { path: '/about', component: TeamsView, meta: { requiresAuth: true } },
+    { path: '/home', component: Dashboard, meta: { requiresAuth: true } },
   ],
 })
 
