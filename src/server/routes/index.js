@@ -16,7 +16,7 @@ const {
   localLogin,
 } = Authentication
 
-const { authenticateAccessToken } = JWTAuth
+const { authenticateAccessToken, authenticateAccessTokenOnly } = JWTAuth
 
 const { addRefreshToken, renewAccessToken, revokeRefreshToken } = Tokens
 
@@ -181,6 +181,15 @@ router.get('/api/protected', authenticateAccessToken, (req, res) => {
   console.log('Access token is valid')
   res.status(200).json({
     success: 'Access token is valid',
+    user: req.user,
+  })
+})
+
+// Separate endpoint for login validation (doesn't check refresh token status)
+router.get('/api/login-protected', authenticateAccessTokenOnly, (req, res) => {
+  console.log('Login access token is valid')
+  res.status(200).json({
+    success: 'Login access token is valid',
     user: req.user,
   })
 })
