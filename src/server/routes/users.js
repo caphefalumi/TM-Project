@@ -4,22 +4,25 @@
 // 2. Retrieving user's team data
 
 import connectDB from '../config/db.js'
+import { createTeamMemberAddedNotification } from '../scripts/notificationsService.js'
 
-import Tasks, { TaskSubmissions} from '../models/Tasks.js'
+import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
 const addUsersToTeam = async (req, res) => {
   // Add users to a team
   await connectDB()
-  const users = req.body
+  const { users, addedByUserId } = req.body // Expect addedByUserId to track who added the users
   console.log(users)
   if (!users || !Array.isArray(users)) {
     return res.status(400).json({ error: 'Team ID and users array are required' })
   }
 
   try {
-    const userPromises = users.map(async (user) => {
+    const addedUsers = []
+
+    for (const user of users) {
       const { teamId, userId, username, role } = user
       if (!teamId || !userId || !username || !role) {
         throw new Error('TeamId, User ID, username, and role are required for each user')
@@ -29,22 +32,38 @@ const addUsersToTeam = async (req, res) => {
       const existingUser = await UsersOfTeam.findOne({ userId, teamId })
       if (existingUser) {
         console.log(`User with ID ${userId} is already added to team ${teamId}`)
-        return res.status(400).json({ message: `Some user(s) is already in a team` })
+        continue // Skip this user but continue with others
       }
 
       // Check there is a team with the given teamId
-      const teamExists = await UsersOfTeam.exists({ teamId })
+      const teamExists = await Teams.exists({ _id: teamId })
       if (!teamExists) {
         console.log(`Team with ID ${teamId} does not exist`)
         return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
       }
-      console.log("Creating user in team:", { userId, username, teamId, role })
-      return UsersOfTeam.create({ userId, username, teamId, role })
-    })
 
-    await Promise.all(userPromises)
+      console.log('Creating user in team:', { userId, username, teamId, role })
+      const newUserOfTeam = await UsersOfTeam.create({ userId, username, teamId, role })
+      addedUsers.push({ userId, teamId, username })
+
+      // Create notification for the added user (if not adding themselves)
+      if (addedByUserId && userId !== addedByUserId) {
+        try {
+          await createTeamMemberAddedNotification(userId, teamId, addedByUserId)
+          console.log(`Notification created for user ${userId} being added to team ${teamId}`)
+        } catch (notificationError) {
+          console.error('Error creating team member added notification:', notificationError)
+          // Don't fail the user addition if notification creation fails
+        }
+      }
+    }
+
     console.log('Users added to team successfully')
-    return res.status(200).json({ message: 'Users added to team successfully' })
+    return res.status(200).json({
+      message: 'Users added to team successfully',
+      addedUsers: addedUsers.length,
+      details: addedUsers,
+    })
   } catch (error) {
     console.error('Error adding users to team:', error)
     return res.status(500).json({ message: 'Internal server error' })
@@ -99,7 +118,9 @@ const deleteUsersFromTeam = async (req, res) => {
       const existingUser = await UsersOfTeam.findOne({ userId, teamId })
       if (!existingUser) {
         console.log(`User with ID ${userId} not found in team ${teamId}`)
-        return res.status(404).json({ message: `User with ID ${userId} not found in team ${teamId}` })
+        return res
+          .status(404)
+          .json({ message: `User with ID ${userId} not found in team ${teamId}` })
       }
       // Delete all tasks and submissions associated with the user in the team
       await Tasks.deleteMany({ userId, teamId })
@@ -117,9 +138,8 @@ const deleteUsersFromTeam = async (req, res) => {
   }
 }
 
-
 export default {
-    addUsersToTeam,
-    getUsersOfTeam,
-    deleteUsersFromTeam,
+  addUsersToTeam,
+  getUsersOfTeam,
+  deleteUsersFromTeam,
 }

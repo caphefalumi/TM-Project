@@ -1,0 +1,469 @@
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+
+const emit = defineEmits(['update:dialog', 'task-group-updated'])
+
+const props = defineProps({
+  dialog: {
+    type: Boolean,
+    required: true,
+  },
+  taskGroupId: {
+    type: String,
+    required: true,
+  },
+  teamId: {
+    type: String,
+    required: true,
+  },
+  userProps: {
+    type: Object,
+    required: true,
+  },
+  teamMembers: {
+    type: Array,
+    required: true,
+  }
+})
+
+// State
+const loading = ref(false)
+const saving = ref(false)
+const success = ref(false)
+const error = ref(false)
+const message = ref('')
+const activeTab = ref('overview')
+
+// Task group data
+const taskGroup = ref({
+  tasks: [],
+  tasksByUser: {},
+  totalUsers: 0,
+  completedTasks: 0,
+  totalTasks: 0,
+  taskGroupId: '',
+})
+
+// Edit form data
+const editForm = ref({
+  title: '',
+  description: '',
+  priority: '',
+  dueDate: '',
+  category: '',
+})
+
+// Computed properties
+const completionRate = computed(() => {
+  if (taskGroup.value.totalTasks === 0) return 0
+  return ((taskGroup.value.completedTasks / taskGroup.value.totalTasks) * 100).toFixed(1)
+})
+
+const priorityOptions = ['Urgent', 'High', 'Medium', 'Low', 'Optional']
+const categoryOptions = ['Development', 'Design', 'Testing', 'Documentation', 'Research', 'Other']
+
+const getUsernameById = (userId) => {
+  const member = props.teamMembers.find((m) => m.userId === userId)
+  return member ? member.username : 'Unknown User'
+}
+
+// Methods
+const fetchTaskGroupDetails = async () => {
+  loading.value = true
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(
+      `http://localhost:${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+
+    const result = await response.json()
+    if (response.ok) {
+      taskGroup.value = result
+      // Initialize edit form with current values
+      const firstTask = result.tasks[0]
+      if (firstTask) {
+        editForm.value = {
+          title: firstTask.title,
+          description: firstTask.description || '',
+          priority: firstTask.priority,
+          dueDate: firstTask.dueDate ? new Date(firstTask.dueDate).toISOString().substr(0, 10) : '',
+          category: firstTask.category,
+        }
+      }
+    } else {
+      error.value = true
+      message.value = result.message || 'Failed to fetch task group details'
+    }
+  } catch (err) {
+    console.error('Error fetching task group:', err)
+    error.value = true
+    message.value = 'Failed to fetch task group details'
+  } finally {
+    loading.value = false
+  }
+}
+
+const updateTaskGroup = async () => {
+  if (!editForm.value.title || !editForm.value.priority || !editForm.value.dueDate) {
+    error.value = true
+    message.value = 'Please fill in all required fields'
+    return
+  }
+
+  saving.value = true
+  error.value = false
+
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(
+      `http://localhost:${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: editForm.value.title,
+          description: editForm.value.description,
+          priority: editForm.value.priority,
+          dueDate: new Date(editForm.value.dueDate),
+          category: editForm.value.category,
+        }),
+      },
+    )
+
+    const result = await response.json()
+    if (response.ok) {
+      success.value = true
+      message.value = 'Task group updated successfully!'
+      emit('task-group-updated')
+
+      // Refresh the data
+      await fetchTaskGroupDetails()
+      
+      // Soft update the task group in the parent component
+      
+
+
+      // Clear success message after delay
+      setTimeout(() => {
+        success.value = false
+        message.value = ''
+      }, 3000)
+    } else {
+      error.value = true
+      message.value = result.message || 'Failed to update task group'
+    }
+  } catch (err) {
+    console.error('Error updating task group:', err)
+    error.value = true
+    message.value = 'Failed to update task group'
+  } finally {
+    saving.value = false
+  }
+}
+
+const deleteTaskGroup = async () => {
+  if (
+    !confirm(
+      'Are you sure you want to delete this entire task group? This action cannot be undone.',
+    )
+  ) {
+    return
+  }
+
+  saving.value = true
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(
+      `http://localhost:${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+
+    const result = await response.json()
+    if (response.ok) {
+      success.value = true
+      message.value = 'Task group deleted successfully!'
+      emit('task-group-updated')
+
+      // Close dialog after short delay
+      setTimeout(() => {
+        emit('update:dialog', false)
+      }, 1500)
+    } else {
+      error.value = true
+      message.value = result.message || 'Failed to delete task group'
+    }
+  } catch (err) {
+    console.error('Error deleting task group:', err)
+    error.value = true
+    message.value = 'Failed to delete task group'
+  } finally {
+    saving.value = false
+  }
+}
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString()
+}
+
+const getPriorityColor = (priority) => {
+  const colors = {
+    Urgent: 'red-darken-2',
+    High: 'orange-darken-1',
+    Medium: 'green-darken-1',
+    Low: 'blue-darken-1',
+    Optional: 'grey-darken-3',
+  }
+  return colors[priority] || 'grey-darken-3'
+}
+
+const getSubmissionStatus = (task) => {
+  return task.submitted ? 'Submitted' : 'Pending'
+}
+
+const getSubmissionColor = (task) => {
+  return task.submitted ? 'success' : 'warning'
+}
+
+onMounted(() => {
+  if (props.dialog && props.taskGroupId) {
+    fetchTaskGroupDetails()
+  }
+})
+</script>
+
+<template>
+  <v-dialog v-model="props.dialog" max-width="1200px" persistent>
+    <v-card>
+      <v-card-title class="d-flex align-center justify-space-between">
+        <span class="text-h5">Manage Task Group</span>
+        <v-btn icon variant="text" @click="$emit('update:dialog', false)">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <!-- Loading State -->
+      <v-card-text v-if="loading">
+        <v-row class="justify-center">
+          <v-col cols="auto">
+            <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          </v-col>
+        </v-row>
+        <v-row class="justify-center mt-4">
+          <v-col cols="auto">
+            <p class="text-h6">Loading task group details...</p>
+          </v-col>
+        </v-row>
+      </v-card-text>
+
+      <!-- Main Content -->
+      <v-card-text v-else>
+        <!-- Alert Messages -->
+        <v-alert v-if="success" type="success" class="mb-4" :text="message"></v-alert>
+        <v-alert v-if="error" type="error" class="mb-4" :text="message"></v-alert>
+
+        <!-- Task Group Summary -->
+        <v-row class="mb-4">
+          <v-col cols="12">
+            <v-card variant="outlined" class="mb-4">
+              <v-card-title>Task Group Overview</v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="primary" variant="tonal">
+                      <v-card-title class="text-h4">{{ taskGroup.totalTasks }}</v-card-title>
+                      <v-card-subtitle>Total Tasks</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="success" variant="tonal">
+                      <v-card-title class="text-h4">{{ taskGroup.completedTasks }}</v-card-title>
+                      <v-card-subtitle>Completed</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="info" variant="tonal">
+                      <v-card-title class="text-h4">{{ taskGroup.totalUsers }}</v-card-title>
+                      <v-card-subtitle>Assigned Users</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="warning" variant="tonal">
+                      <v-card-title class="text-h4">{{ completionRate }}%</v-card-title>
+                      <v-card-subtitle>Completion Rate</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Tabs -->
+        <v-tabs v-model="activeTab" class="mb-4">
+          <v-tab value="overview">Overview</v-tab>
+          <v-tab value="edit">Edit Task Group</v-tab>
+          <v-tab value="submissions">View Submissions</v-tab>
+        </v-tabs>
+
+        <!-- Tab Content -->
+        <v-window v-model="activeTab">
+          <!-- Overview Tab -->
+          <v-window-item value="overview">
+            <v-row>
+              <v-col cols="12">
+                <h3 class="text-h6 mb-3">Tasks by User</h3>
+                <v-card
+                  v-for="task in taskGroup.tasks"
+                  :key="task._id"
+                  class="mb-3"
+                  variant="outlined"
+                >
+                  <v-card-title class="d-flex align-center">
+                    <v-icon class="mr-2">mdi-account</v-icon>
+                    {{ getUsernameById(task.userId) }}
+                    <v-spacer></v-spacer>
+                    <v-chip :color="getPriorityColor(task.priority)" size="small" class="mr-2">
+                      {{ task.priority }}
+                    </v-chip>
+                    <v-chip :color="getSubmissionColor(task)" size="small">
+                      {{ getSubmissionStatus(task) }}
+                    </v-chip>
+                  </v-card-title>
+                  <v-card-text>
+                    <v-row class="align-center">
+                      <v-col cols="8">
+                        <strong>{{ task.title }}</strong>
+                        <p class="text-caption text-grey mb-0">
+                          Due: {{ formatDate(task.dueDate) }}
+                        </p>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-window-item>
+
+          <!-- Edit Tab -->
+          <v-window-item value="edit">
+            <v-form @submit.prevent="updateTaskGroup">
+              <v-row class="pa-2">
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="editForm.title"
+                    label="Task Title"
+                    required
+                    variant="outlined"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="editForm.category"
+                    :items="categoryOptions"
+                    label="Category"
+                    required
+                    variant="outlined"
+                  ></v-select>
+                </v-col>
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="editForm.description"
+                    label="Description"
+                    rows="3"
+                    variant="outlined"
+                  ></v-textarea>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="editForm.priority"
+                    :items="priorityOptions"
+                    label="Priority"
+                    required
+                    variant="outlined"
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="editForm.dueDate"
+                    label="Due Date"
+                    type="date"
+                    required
+                    variant="outlined"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-row>
+                    <v-col cols="auto">
+                      <v-btn type="submit" color="primary" :loading="saving" size="large">
+                        Update Task Group
+                      </v-btn>
+                    </v-col>
+                    <v-col cols="auto">
+                      <v-btn
+                        @click="deleteTaskGroup"
+                        color="red-darken-2"
+                        :loading="saving"
+                        size="large"
+                        variant="outlined"
+                      >
+                        Delete Task Group
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
+            </v-form>
+          </v-window-item>
+
+          <!-- Submissions Tab -->
+          <v-window-item value="submissions">
+            <v-row>
+              <v-col cols="12">
+                <h3 class="text-h6 mb-3">All Submissions</h3>
+                <v-card
+                  v-for="task in taskGroup.tasks"
+                  :key="task._id"
+                  class="mb-3"
+                  variant="outlined"
+                >
+                  <v-card-title class="d-flex align-center">
+                    <v-icon class="mr-2">mdi-file-document</v-icon>
+                    {{ task.title }} - {{ getUsernameById(task.userId) }}
+                    <v-spacer></v-spacer>
+                    <v-chip :color="getSubmissionColor(task)" size="small">
+                      {{ getSubmissionStatus(task) }}
+                    </v-chip>
+                  </v-card-title>
+                  <v-card-text v-if="task.submitted && task.submissions">
+                    <p class="text-caption text-grey mb-2">
+                      Submitted on: {{ formatDate(task.updatedAt) }}
+                    </p>
+                    <v-divider class="mb-3"></v-divider>
+                    <!-- Here you could add more detailed submission data display -->
+                    <p class="text-body-2">Task has been submitted successfully.</p>
+                  </v-card-text>
+                  <v-card-text v-else>
+                    <p class="text-body-2 text-grey">No submission yet.</p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-window-item>
+        </v-window>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+</template>

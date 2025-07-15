@@ -71,7 +71,6 @@ const fetchUsers = async () => {
     })
 
     if (!response.ok) {
-
       throw new Error('Network response was not ok')
     }
     const res = await response.json()
@@ -113,10 +112,12 @@ const sendMembersToServer = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(selectedUsers.value),
+      body: JSON.stringify({
+        users: selectedUsers.value,
+        addedByUserId: props.userProps.userId,
+      }),
     })
 
-    
     const result = await response.json()
     if (!response.ok) {
       error.value = true
@@ -224,7 +225,7 @@ const addUsers = async () => {
   console.log('Adding these users:', JSON.stringify(selectedUsers.value, null, 2))
   try {
     await sendMembersToServer()
-    if(success.value){
+    if (success.value) {
       closeDialog()
     }
   } catch (error) {

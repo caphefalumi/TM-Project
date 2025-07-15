@@ -46,8 +46,8 @@ watch(
   () => props.announcement,
   (newAnnouncement) => {
     if (newAnnouncement && newAnnouncement._id) {
-        console.log('Announcement updated, fetching comments...')
-        fetchComments()
+      console.log('Announcement updated, fetching comments...')
+      fetchComments()
     }
   },
 )
@@ -61,10 +61,10 @@ onMounted(() => {
 
 // Fetch comments for the announcement
 const fetchComments = () => {
-    console.log('Fetching comments for announcement:', props.announcement.comments)
-    if(props.announcement.comments && Array.isArray(props.announcement.comments)) {
-        comments.value = props.announcement.comments || []
-    }
+  console.log('Fetching comments for announcement:', props.announcement.comments)
+  if (props.announcement.comments && Array.isArray(props.announcement.comments)) {
+    comments.value = props.announcement.comments || []
+  }
 }
 
 // Submit a new comment
@@ -81,6 +81,7 @@ const submitComment = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const commentData = {
+      userId: props.userProps.userId,
       username: props.userProps.username,
       content: newComment.value.content,
       replyTo: newComment.value.replyTo || '',
@@ -99,40 +100,40 @@ const submitComment = async () => {
 
     const result = await response.json()
     if (response.ok) {
-        success.value = true
-        message.value = 'Comment added successfully!'
+      success.value = true
+      message.value = 'Comment added successfully!'
 
-        // Reset form
-        newComment.value.content = ''
-        newComment.value.replyTo = ''
+      // Reset form
+      newComment.value.content = ''
+      newComment.value.replyTo = ''
 
-        // Refresh comments
-        emit('announcement-updated')
-        // Soft update comments
-        comments.value.push({
-            ...commentData,
-            _id: result.comment._id, // Assuming the API returns the new comment ID
-            createdAt: new Date().toISOString(), // Set current time as createdAt
-        })
-        // Clear success message after delay
-        setTimeout(() => {
-            success.value = false
-            message.value = ''
-        }, 1250)
-        await fetchComments()
-    } else {
-        error.value = true
+      // Refresh comments
+      emit('announcement-updated')
+      // Soft update comments
+      comments.value.push({
+        ...commentData,
+        _id: result.comment._id, // Assuming the API returns the new comment ID
+        createdAt: new Date().toISOString(), // Set current time as createdAt
+      })
+      // Clear success message after delay
+      setTimeout(() => {
         success.value = false
-        message.value = result.message || 'Failed to add comment'
-        throw new Error(result.message || 'Failed to add comment')
+        message.value = ''
+      }, 1250)
+      await fetchComments()
+    } else {
+      error.value = true
+      success.value = false
+      message.value = result.message || 'Failed to add comment'
+      throw new Error(result.message || 'Failed to add comment')
     }
-    } catch (err) {
-        console.error('Error submitting comment:', err)
-        error.value = true
-        message.value = err.message || 'Failed to add comment'
-    } finally {
-        submittingComment.value = false
-    }
+  } catch (err) {
+    console.error('Error submitting comment:', err)
+    error.value = true
+    message.value = err.message || 'Failed to add comment'
+  } finally {
+    submittingComment.value = false
+  }
 }
 
 // Reply to a specific comment
@@ -141,8 +142,8 @@ const replyToComment = (comment) => {
   // Focus on the comment input (you can add ref for this)
 }
 
-const getReplyUsername= (commentId) => {
-    return comments.value.find(comment => comment._id === commentId)?.username || ''
+const getReplyUsername = (commentId) => {
+  return comments.value.find((comment) => comment._id === commentId)?.username || ''
   // Focus on the comment input (you can add ref for this)
 }
 
@@ -182,14 +183,14 @@ const getTimeAgo = (dateString) => {
 
 // Group comments by replies
 const organizedComments = computed(() => {
-    const mainComments = comments.value.filter((comment) => !comment.replyTo)
-    const replies = comments.value.filter((comment) => comment.replyTo)
-    const result = mainComments.map((comment) => ({
-        ...comment,
-        replies: replies.filter((reply) => reply.replyTo === comment._id),
-    }))
-    console.log('Organized Comments:', result)
-    return result
+  const mainComments = comments.value.filter((comment) => !comment.replyTo)
+  const replies = comments.value.filter((comment) => comment.replyTo)
+  const result = mainComments.map((comment) => ({
+    ...comment,
+    replies: replies.filter((reply) => reply.replyTo === comment._id),
+  }))
+  console.log('Organized Comments:', result)
+  return result
 })
 </script>
 

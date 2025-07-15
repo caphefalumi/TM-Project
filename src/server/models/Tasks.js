@@ -129,6 +129,10 @@ const taskSchema = new mongoose.Schema({
     ref: 'Teams',
     required: true,
   },
+  taskGroupId: {
+    type: String,
+    required: true,
+  },
   design: {
     type: designSchema,
     required: true,
@@ -175,12 +179,6 @@ const taskSchema = new mongoose.Schema({
       ref: 'TaskSubmissions',
     },
   ],
-  // Task status
-  status: {
-    type: String,
-    enum: ['active', 'completed', 'cancelled'],
-    default: 'active',
-  },
   // Task submission status
   submitted: {
     type: Boolean,

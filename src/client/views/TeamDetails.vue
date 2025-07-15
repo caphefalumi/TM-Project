@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NewTasks from '../components/NewTasks.vue'
@@ -9,8 +9,10 @@ import DeleteMembers from '../components/DeleteMembers.vue'
 import UpdateAnnouncements from '../components/UpdateAnnouncements.vue'
 import DeleteAnnouncements from '../components/DeleteAnnouncements.vue'
 import AnnouncementView from '../components/AnnouncementView.vue'
+import UpdateTaskGroups from '../components/UpdateTaskGroups.vue'
 
 const { getUserByAccessToken } = AuthStore
+
 const route = useRoute()
 const router = useRouter()
 
@@ -38,39 +40,66 @@ const updateAnnouncementDialog = ref(false)
 const newAnnouncementsDialog = ref(false)
 const taskSubmissionDialog = ref(false)
 const deleteMembersDialog = ref(false)
+const updateTaskGroupDialog = ref(false)
 
 const selectedTaskForSubmission = ref(null)
 const selectedAnnouncementForDeletion = ref(null)
 const announcementToEdit = ref(null)
 const announcementToView = ref(null)
+const specificTaskGroup = ref(null)
+const selectedTaskGroupId = ref(null)
 
 const tasks = ref([])
 const announcements = ref([])
 const teamMembers = ref([])
+const taskGroups = ref([])
 
 const activeTab = ref('tasks')
 
 // Get team ID from route params
-const teamId = route.params.teamId
+const teamId = ref(route.params.teamId)
 
-onMounted(async () => {
+// Function to initialize/reload team data
+const initializeTeamData = async () => {
   const userFromToken = await getUserByAccessToken()
   if (userFromToken) {
     setUserToUserToken(userFromToken)
     await fetchTeamTasks()
     await fetchAnnouncements()
     await fetchTeamMembers()
+    await getTaskGroups()
     if (
       teamMembers.value.some(
         (member) => member.userId === user.value.userId && member.role === 'Admin',
       )
     ) {
       isAdmin.value = true
+    } else {
+      isAdmin.value = false
     }
     userLoaded.value = true
   } else {
     router.push('/')
   }
+}
+
+// Watch for route parameter changes
+watch(
+  () => route.params.teamId,
+  (newTeamId) => {
+    if (newTeamId) {
+      teamId.value = newTeamId
+      // Reset state before loading new team data
+      userLoaded.value = false
+      isAdmin.value = false
+      initializeTeamData()
+    }
+  },
+  { immediate: false },
+)
+
+onMounted(async () => {
+  await initializeTeamData()
 })
 
 const setUserToUserToken = (userToken) => {
@@ -89,7 +118,7 @@ const fetchTeamTasks = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
       // '/api/teams/:teamId/:userId/tasks'
-      `http://localhost:${PORT}/api/teams/${teamId}/${user.value.userId}/tasks`,
+      `http://localhost:${PORT}/api/teams/${teamId.value}/${user.value.userId}/tasks`,
       {
         method: 'GET',
         headers: {
@@ -117,12 +146,15 @@ const fetchTeamTasks = async () => {
 const fetchAnnouncements = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams/${teamId}/announcements`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `http://localhost:${PORT}/api/teams/${teamId.value}/announcements`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    })
+    )
 
     const data = await response.json()
     console.log('Announcements response:', data)
@@ -141,7 +173,7 @@ const fetchAnnouncements = async () => {
 const fetchTeamMembers = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams/${teamId}/members`, {
+    const response = await fetch(`http://localhost:${PORT}/api/teams/${teamId.value}/members`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -234,11 +266,31 @@ const toggleLikeAnnouncement = async (announcementId) => {
         currentAnnouncement.likeUsers.push(user.value.userId)
       }
     }
-
-    // Optionally, you can refetch the announcements to update the like count
-    // await fetchAnnouncements()
   } catch (error) {
     console.error('Error liking announcement:', error)
+  }
+}
+
+const getTaskGroups = async () => {
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(`http://localhost:${PORT}/api/teams/${teamId.value}/task-groups`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const data = await response.json()
+    if (!response.ok) {
+      console.error('Failed to fetch team details:', data.message)
+      taskGroups.value = []
+    } else {
+      taskGroups.value = data.taskGroups || []
+      console.log('Fetched team details:', team.value)
+    }
+  } catch (error) {
+    console.error('Failed to fetch team details:', error)
   }
 }
 
@@ -272,6 +324,15 @@ const getPriorityColor = (priority) => {
 const getLikeColor = (announcement) => {
   return announcement.likeUsers.includes(user.value.userId) ? 'primary' : ''
 }
+
+const openTaskGroupDialog = (taskGroupId) => {
+  selectedTaskGroupId.value = taskGroupId
+  updateTaskGroupDialog.value = true
+}
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString()
+}
 </script>
 
 <template>
@@ -296,7 +357,7 @@ const getLikeColor = (announcement) => {
       :userProps="user"
       :teamId="teamId"
       :teamMembers="teamMembers"
-      @task-submitted="fetchTeamTasks"
+      @create-task="fetchTeamTasks"
     />
 
     <!-- New Announcements Dialog -->
@@ -360,6 +421,17 @@ const getLikeColor = (announcement) => {
       @members-removed="fetchTeamMembers"
     />
 
+    <!-- Update Task Groups Dialog -->
+    <UpdateTaskGroups
+      v-if="userLoaded && updateTaskGroupDialog"
+      v-model:dialog="updateTaskGroupDialog"
+      v-model:taskGroupId="selectedTaskGroupId"
+      v-model:teamId="teamId"
+      v-model:userProps="user"
+      v-model:teamMembers="teamMembers"
+      @task-group-updated="getTaskGroups"
+    />
+
     <!-- Team navigation tabs -->
     <v-row class="align-center">
       <v-col cols="12" lg="8" xl="9">
@@ -367,6 +439,7 @@ const getLikeColor = (announcement) => {
           <v-tab value="tasks">Tasks</v-tab>
           <v-tab value="announcements">Announcements</v-tab>
           <v-tab value="members">Members</v-tab>
+          <v-tab value="manage" v-if="isAdmin">Manage</v-tab>
         </v-tabs>
       </v-col>
     </v-row>
@@ -390,7 +463,7 @@ const getLikeColor = (announcement) => {
           v-if="isAdmin"
           v-tooltip:bottom="'Add new announcement'"
           @click="newAnnouncementsDialog = !newAnnouncementsDialog"
-          color="secondary"
+          color="success"
           class="w-100 project-card rounded-lg font-weight-bold text-h5"
           size="large"
           flat
@@ -551,6 +624,168 @@ const getLikeColor = (announcement) => {
           </v-col>
         </v-row>
       </v-window-item>
+      <!-- Manage Tab -->
+      <v-window-item value="manage" v-if="isAdmin">
+        <v-row>
+          <v-col cols="12">
+            <h2 class="text-h5 mb-4">Manage Team - Task Groups</h2>
+          </v-col>
+        </v-row>
+
+        <!-- Task Groups Overview -->
+        <v-row v-if="taskGroups.length > 0">
+          <v-col cols="12">
+            <v-card class="mb-4" variant="outlined">
+              <v-card-title class="d-flex align-center">
+                <v-icon class="mr-2">mdi-view-dashboard</v-icon>
+                Task Groups Overview
+              </v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="primary" variant="tonal">
+                      <v-card-title class="text-h4">{{ taskGroups.length }}</v-card-title>
+                      <v-card-subtitle>Total Task Groups</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="success" variant="tonal">
+                      <v-card-title class="text-h4">{{
+                        taskGroups.reduce((sum, group) => sum + group.totalTasks, 0)
+                      }}</v-card-title>
+                      <v-card-subtitle>Total Tasks</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="info" variant="tonal">
+                      <v-card-title class="text-h4">{{
+                        taskGroups.reduce((sum, group) => sum + group.completedTasks, 0)
+                      }}</v-card-title>
+                      <v-card-subtitle>Completed Tasks</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-card class="text-center pa-3" color="warning" variant="tonal">
+                      <v-card-title class="text-h4">
+                        {{
+                          taskGroups.length > 0
+                            ? Math.round(
+                                taskGroups.reduce(
+                                  (sum, group) => sum + parseFloat(group.completionRate),
+                                  0,
+                                ) / taskGroups.length,
+                              )
+                            : 0
+                        }}%
+                      </v-card-title>
+                      <v-card-subtitle>Avg Completion</v-card-subtitle>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Task Groups List -->
+        <v-row v-if="taskGroups.length > 0">
+          <v-col cols="12">
+            <h3 class="text-h6 mb-3">Task Groups</h3>
+          </v-col>
+          <v-col
+            v-for="taskGroup in taskGroups"
+            :key="taskGroup.taskGroupId"
+            cols="12"
+            md="6"
+            lg="4"
+          >
+            <v-card
+              class="mb-4 elevation-2 project-card task-group-card"
+              @click="openTaskGroupDialog(taskGroup.taskGroupId)"
+              variant="outlined"
+            >
+              <v-card-item>
+                <v-card-title class="d-flex align-center">
+                  <v-icon class="mr-2">mdi-folder-multiple</v-icon>
+                  {{ taskGroup.title }}
+                  <v-spacer></v-spacer>
+                  <v-chip :color="getPriorityColor(taskGroup.priority)" size="small">
+                    {{ taskGroup.priority }}
+                  </v-chip>
+                </v-card-title>
+                <v-card-subtitle> Category: {{ taskGroup.category }} </v-card-subtitle>
+                <v-card-subtitle class="text-caption">
+                  Due: {{ formatDate(taskGroup.dueDate) }}
+                </v-card-subtitle>
+              </v-card-item>
+
+              <v-card-text>
+                <!-- Progress Bar -->
+                <div class="mb-3">
+                  <div class="d-flex justify-space-between mb-1">
+                    <span class="text-caption">Progress</span>
+                    <span class="text-caption">{{ taskGroup.completionRate }}%</span>
+                  </div>
+                  <v-progress-linear
+                    :model-value="taskGroup.completionRate"
+                    color="success"
+                    height="8"
+                    rounded
+                  ></v-progress-linear>
+                </div>
+
+                <!-- Task Statistics -->
+                <v-row class="text-center">
+                  <v-col cols="6">
+                    <div class="text-h6 font-weight-bold">{{ taskGroup.totalTasks }}</div>
+                    <div class="text-caption text-grey">Total Tasks</div>
+                  </v-col>
+                  <v-col cols="6">
+                    <div class="text-h6 font-weight-bold text-success">
+                      {{ taskGroup.completedTasks }}
+                    </div>
+                    <div class="text-caption text-grey">Completed</div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-btn
+                  variant="outlined"
+                  size="small"
+                  @click.stop="openTaskGroupDialog(taskGroup.taskGroupId)"
+                >
+                  <v-icon start>mdi-cog</v-icon>
+                  Manage
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-chip variant="outlined" size="small" color="primary">
+                  Weight: {{ taskGroup.totalWeight }}
+                </v-chip>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- No Task Groups State -->
+        <v-row v-else>
+          <v-col cols="12">
+            <v-card class="text-center pa-6" variant="outlined">
+              <v-card-text>
+                <v-icon size="64" class="mb-4" color="grey">mdi-folder-open</v-icon>
+                <h3 class="text-h6 mb-2">No Task Groups Found</h3>
+                <p class="text-grey mb-4">
+                  Task groups will appear here when you create tasks for team members.
+                </p>
+                <v-btn color="primary" @click="newTaskDialog = true" size="large">
+                  <v-icon start>mdi-plus</v-icon>
+                  Create First Task Group
+                </v-btn>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-window-item>
     </v-window>
   </v-container>
 </template>
@@ -566,6 +801,17 @@ const getLikeColor = (announcement) => {
 .project-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.task-group-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.task-group-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+  border-color: rgba(var(--v-theme-primary), 0.3);
 }
 
 /* Scroll-X Transition Styles */

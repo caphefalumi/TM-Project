@@ -67,7 +67,35 @@ const renewAccessToken = async (req, res, next) => {
     res.status(200).json({ accessToken })
 }
 
+const revokeRefreshToken = async (req, res) => {
+    // Delete refresh token from database
+    // This is called when user logout or when refresh token is expired
+    // Also revoke the access token cookie
+    res.clearCookie('refreshToken', { path: '/' })
+    res.clearCookie('accessToken', { path: '/' })
+    await connectDB()
+    const { userId } = req.body
+    console.log('Revoke refresh token for user:', req.body)
+    if (!userId) {
+        console.error('User ID is required to delete refresh token')
+        return res.status(400).json({ error: 'User ID is required' })
+    }
+    try {
+        const result = await RefreshToken.deleteOne({ userId })
+        if (result.deletedCount === 0) {
+            console.log('Refresh token not found for user:', userId)
+            return res.status(404).json({ message: 'Refresh token not found' })
+        }
+        console.log('Refresh token deleted successfully')
+        res.status(200).json({ success: 'Refresh token deleted successfully' })
+    } catch (error) {
+        console.error('Error deleting refresh token:', error)
+        res.status(500).json({ error: 'Internal server error' })
+    }
+}
+
 export default {
   addRefreshToken,
   renewAccessToken,
+  revokeRefreshToken,
 }

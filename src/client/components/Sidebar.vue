@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
+import NotificationCenter from './NotificationCenter.vue'
 
 const router = useRouter()
 
@@ -10,26 +11,57 @@ const { getUserByAccessToken } = AuthStore
 // `ref(null)` allows Vuetify to automatically manage the state
 // based on the screen size (starts open on desktop, closed on mobile).
 
-const username = ref('')
-const email = ref('')
+const user = ref({
+  userId: '',
+  username: '',
+  email: '',
+})
+
 const drawer = ref(null)
 
 onMounted(async () => {
-  const user = await getUserByAccessToken()
-  if (user) {
-    username.value = user.username
-    email.value = user.email
+  const userData = await getUserByAccessToken()
+  user.value = await getUserByAccessToken()
+  if (userData) {
+    user.value.userId = userData.userId
+    user.value.username = userData.username
+    user.value.email = userData.email
   } else {
-    username.value = 'Guest'
-    email.value = ''
+    user.value.username = 'Guest'
+    user.value.email = ''
   }
 })
 
-const logout = () => {
+const logout = async () => {
   drawer.value = false // Close the drawer after redirecting
   // Clear Refresh Token
-
+  await revokeRefreshToken()
+  // Redirect to the home page
   router.push('/')
+}
+
+const revokeRefreshToken = async () => {
+  console.log('Current user:', user.value)
+
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(`http://localhost:${PORT}/api/auth/revoke`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId: user.value.userId }),
+    })
+
+    if (!response.ok) {
+      console.log('Failed to revoke refresh token')
+      throw new Error('Failed to revoke refresh token')
+    } else {
+      console.log('Refresh token revoked successfully')
+    }
+  } catch (error) {
+    console.error('Error revoking refresh token:', error)
+  }
 }
 
 // Defines the navigation items for the sidebar.
@@ -37,7 +69,6 @@ const logout = () => {
 const items = ref([
   { title: 'Dashboard', icon: 'mdi-view-dashboard', to: '/home' },
   { title: 'Teams', icon: 'mdi-briefcase-variant', to: '/teams' },
-  { title: 'Inbox', icon: 'mdi-inbox-full', to: '/inbox' },
   { title: 'About', icon: 'mdi-information', to: '/about' },
 ])
 </script>
@@ -53,9 +84,7 @@ const items = ref([
 
       <v-spacer></v-spacer>
 
-      <v-btn icon>
-        <v-icon v-tooltip:bottom="'Notifications'">mdi-bell</v-icon>
-      </v-btn>
+      <NotificationCenter v-if="user.userId" :userId="user.userId" />
 
       <v-btn icon @click="logout">
         <v-icon v-tooltip:bottom="'Log out'">mdi-logout</v-icon>
@@ -68,8 +97,8 @@ const items = ref([
       <v-list>
         <v-list-item
           prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
-          :title="username"
-          :subtitle="email"
+          :title="user.username"
+          :subtitle="user.email"
         ></v-list-item>
       </v-list>
 

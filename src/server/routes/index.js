@@ -6,6 +6,7 @@ import Teams from './teams.js'
 import Users from './users.js'
 import Tasks from './tasks.js'
 import Announcements from './announcements.js'
+import Notifications from './notifications.js'
 
 const {
   getUserIDAndEmailByName,
@@ -17,7 +18,7 @@ const {
 
 const { authenticateAccessToken } = JWTAuth
 
-const { addRefreshToken, renewAccessToken } = Tokens
+const { addRefreshToken, renewAccessToken, revokeRefreshToken } = Tokens
 
 const {
   addTeamPro,
@@ -31,10 +32,34 @@ const {
 
 const { addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam } = Users
 
-const { addTaskToUsers, getTasksOfAUser, submitATask } = Tasks
+const {
+  addTaskToUsers,
+  getTasksOfAUser,
+  getTasksOfAUserInATeam,
+  submitATask,
+  getTasksByGroupId,
+  updateTaskGroup,
+  deleteTaskGroup,
+  getAllTaskGroups,
+} = Tasks
 
-const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement,
-       toggleLikeAnnouncement, addCommentToAnnouncement } = Announcements
+const {
+  getAnnouncementsOfTeam,
+  addAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  toggleLikeAnnouncement,
+  addCommentToAnnouncement,
+} = Announcements
+
+const {
+  getUserNotifications,
+  markNotificationsAsRead,
+  deleteNotifications,
+  getNotificationPreferences,
+  updateNotificationPreferences,
+  getNotificationStats,
+} = Notifications
 
 const router = express.Router()
 
@@ -68,13 +93,27 @@ router.get('/api/teams/user/:userId', getTeamThatUserIsMember)
 router.get('/api/teams/:teamId/members', getUsersOfTeam)
 // Get all members of a team by team ID
 
-router.get('/api/teams/:teamId/:userId/tasks', getTasksOfAUser)
+router.get('/api/teams/:teamId/:userId/tasks', getTasksOfAUserInATeam)
 // Get all tasks of a user in a team by user ID and team ID
 
 router.get('/api/teams/:teamId/announcements', getAnnouncementsOfTeam)
 // Get all announcements of a team by team ID
 
+router.get('/api/tasks/:userId', getTasksOfAUser)
+
+// ************************* NOTIFICATIONS *********************************
+
+router.get('/api/notifications/:userId', getUserNotifications)
+// Get notifications for a user with pagination and filtering
+
+router.get('/api/notifications/:userId/preferences', getNotificationPreferences)
+// Get user's notification preferences
+
+router.get('/api/notifications/:userId/stats', getNotificationStats)
+// Get notification statistics for a user
+
 // *************************** POST DATA *********************************
+
 router.post('/api/account/oauth', oAuthentication)
 // Check OAuth whether account is registered or not.
 // If account is not registered, reroute to '/api/account/google/register'.
@@ -88,6 +127,8 @@ router.post('/api/account/local/register', localRegister)
 
 router.post('/api/account/local/login', localLogin)
 // Login an account that is locally registered
+
+router.post('/api/auth/revoke', revokeRefreshToken)
 
 router.post('/api/teams', addTeamPro)
 // Add a new team with Pro features: categorize subteam or team
@@ -104,12 +145,30 @@ router.post('/api/tasks/create', addTaskToUsers)
 router.post('/api/tasks/submit', submitATask)
 // Submit a task with filled form data
 
+// Task Group Management Routes (for admin)
+router.get('/api/teams/:teamId/task-groups', getAllTaskGroups)
+// Get all task groups in a team (admin dashboard)
+
+router.get('/api/teams/:teamId/task-groups/:taskGroupId', getTasksByGroupId)
+// Get all tasks in a task group for admin view
+
+router.put('/api/teams/:teamId/task-groups/:taskGroupId', updateTaskGroup)
+// Update all tasks in a group (bulk operation)
+
+router.delete('/api/teams/:teamId/task-groups/:taskGroupId', deleteTaskGroup)
+// Delete all tasks in a group
+
 router.post('/api/teams/:teamId/create/announcements', addAnnouncement)
 // Create a new announcement for a team
 
 router.post('/api/announcements/:announcementId/like', toggleLikeAnnouncement)
 
 router.post('/api/announcements/:announcementId/comments', addCommentToAnnouncement)
+
+// ------------------------ Notification Handling ------------------------
+
+router.post('/api/notifications/:userId/mark-read', markNotificationsAsRead)
+// Mark notification(s) as read for a user
 
 // ------------------------ Token Handling ------------------------
 
@@ -143,8 +202,14 @@ router.delete('/api/teams/remove/members', deleteUsersFromTeam)
 
 router.delete('/api/announcements/:announcementId', deleteAnnouncement)
 
+router.delete('/api/notifications/:userId', deleteNotifications)
+// Delete notification(s) for a user
+
 // **************************** UPDATE DATA *********************************
 
-
 router.put('/api/teams/:teamId/update/announcements', updateAnnouncement)
+
+router.put('/api/notifications/:userId/preferences', updateNotificationPreferences)
+// Update user's notification preferences
+
 export default router
