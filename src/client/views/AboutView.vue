@@ -151,7 +151,7 @@ onMounted(() => {
 /* Container Styles */
 .about-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #040506 0%, #4f0896 100%);
+  background: linear-gradient(135deg, #f0f0f0 0%, #e1e9f4 100%);
   padding: 2rem 0;
   position: relative;
   overflow: hidden;
@@ -164,7 +164,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>')
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(99,102,241,0.1)"/></svg>')
     repeat;
   background-size: 50px 50px;
   animation: float 20s infinite linear;
@@ -207,19 +207,18 @@ onMounted(() => {
 
 .gradient-text {
   background: linear-gradient(45deg, #fff, #e3f2fd);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .highlight-text {
-  color: #ffeb3b;
-  text-shadow: 0 0 20px rgba(255, 235, 59, 0.5);
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  background-clip: text;
+  text-shadow: none;
 }
 
 .hero-subtitle {
   font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #64748b;
   font-weight: 300;
   letter-spacing: 1px;
 }
@@ -237,12 +236,11 @@ onMounted(() => {
 }
 
 .floating-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  border: 2px solid rgba(131, 131, 131, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.15);
   position: relative;
   overflow: hidden;
   opacity: 0;
@@ -259,9 +257,8 @@ onMounted(() => {
 
 .floating-card:hover {
   transform: translateY(-10px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .card-glow {
@@ -291,13 +288,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.95);
+  color: #334155;
 }
 
 .card-content {
   font-size: 1rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
+  color: #475569;
 }
 
 /* Creator Card Specific */
@@ -320,13 +317,13 @@ onMounted(() => {
 .creator-name {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #64b5f6;
+  color: #3b82f6;
   margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(100, 181, 246, 0.3);
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
 }
 
 .creator-description {
-  color: rgba(255, 255, 255, 0.9);
+  color: #64748b;
   font-style: italic;
 }
 
@@ -405,7 +402,7 @@ onMounted(() => {
   opacity: 0;
   transform: translateY(30px);
   transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-  transition-delay: 0.8s;
+  transition-delay: 0.5s;
 }
 
 .footer-content.animate-in {
@@ -414,7 +411,7 @@ onMounted(() => {
 }
 
 .footer-text {
-  color: rgba(255, 255, 255, 0.9);
+  color: #64748b;
   font-size: 1.1rem;
   font-weight: 300;
   display: flex;
