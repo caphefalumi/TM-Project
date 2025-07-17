@@ -8,16 +8,6 @@ import connectDB from '../config/db.js'
  * Handles creation, retrieval, and management of notifications
  */
 
-/**
- * Create a new notification
- * @param {Object} notificationData - Notification data
- * @param {string} notificationData.recipientUserId - User ID who will receive the notification
- * @param {string} notificationData.actorUserId - User ID who triggered the notification (optional)
- * @param {string} notificationData.type - Type of notification
- * @param {string} notificationData.title - Notification title
- * @param {string} notificationData.message - Notification message
- * @param {Object} notificationData.relatedData - Related data (teamId, announcementId, etc.)
- */
 const createNotification = async (notificationData) => {
   await connectDB()
 
