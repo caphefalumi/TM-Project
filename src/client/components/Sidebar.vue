@@ -135,11 +135,12 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
     <v-navigation-drawer v-model="drawer" :permanent="$vuetify.display.lgAndUp" app>
       <!-- User profile section at the top of the drawer -->
       <v-list>
-        <v-list-item
-          prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
-          :title="user.username"
-          :subtitle="user.email"
-        >
+        <v-list-item :title="user.username" :subtitle="user.email">
+          <template v-slot:prepend>
+            <v-avatar size="32" color="primary" class="mr-2">
+              <span class="text-white">{{ user.username?.[0]?.toUpperCase() }}</span>
+            </v-avatar>
+          </template>
         </v-list-item>
       </v-list>
 
