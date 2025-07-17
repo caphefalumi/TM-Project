@@ -484,29 +484,6 @@ const onCalendarChange = (interval) => {
               <v-btn size="x-small" color="primary" @click="selectedDate = new Date()" class="mr-2">
                 Set to Today
               </v-btn>
-              <v-btn
-                size="x-small"
-                color="secondary"
-                @click="selectedDate = new Date('2025-07-17')"
-                class="mr-2"
-              >
-                Test Date (July 17)
-              </v-btn>
-              <v-btn
-                size="x-small"
-                color="warning"
-                @click="selectedDate = new Date('2025-07-15')"
-                class="mr-2"
-              >
-                Today (July 15)
-              </v-btn>
-              <v-btn
-                size="x-small"
-                color="success"
-                @click="console.log('Tasks by date:', tasksByDate)"
-              >
-                Log Tasks
-              </v-btn>
             </div>
           </v-card-text>
         </v-card>

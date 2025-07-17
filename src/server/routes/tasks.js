@@ -493,6 +493,38 @@ const getAllTaskGroups = async (req, res) => {
   }
 }
 
+const getTaskSubmission = async (req, res) => {
+  // Get submission details for a specific task
+  await connectDB()
+  try {
+    const { taskId } = req.params
+    if (!taskId) {
+      return res.status(400).json({ message: 'Task ID is required' })
+    }
+
+    // Find the task to verify it exists
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    // Find the submission for this task
+    const submission = await TaskSubmissions.findOne({ taskId })
+
+    if (!submission) {
+      return res.status(404).json({ message: 'No submission found for this task' })
+    }
+
+    return res.status(200).json({
+      task,
+      submission,
+    })
+  } catch (error) {
+    console.error('Error fetching task submission:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 export default {
   addTaskToUsers,
   getTasksOfAUserInATeam,
@@ -504,4 +536,5 @@ export default {
   calculateFinishedWeightedTaskOfAUser,
   calculateTotalTaskWeightedOfAUser,
   getAllTaskGroups,
+  getTaskSubmission,
 }

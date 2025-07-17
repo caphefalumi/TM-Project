@@ -41,6 +41,7 @@ const {
   updateTaskGroup,
   deleteTaskGroup,
   getAllTaskGroups,
+  getTaskSubmission,
 } = Tasks
 
 const {
@@ -144,6 +145,9 @@ router.post('/api/tasks/create', addTaskToUsers)
 
 router.post('/api/tasks/submit', submitATask)
 // Submit a task with filled form data
+
+router.get('/api/tasks/submission/:taskId', getTaskSubmission)
+// Get submission details for a specific task
 
 // Task Group Management Routes (for admin)
 router.get('/api/teams/:teamId/task-groups', getAllTaskGroups)
