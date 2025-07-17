@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NotificationCenter from './NotificationCenter.vue'
 
+// Import Admin.Vue if username is 'admin'
+
+
 const router = useRouter()
 
 const { getUserByAccessToken } = AuthStore
@@ -121,7 +124,8 @@ const items = ref([
           prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
           :title="user.username"
           :subtitle="user.email"
-        ></v-list-item>
+        >
+      </v-list-item>
       </v-list>
 
       <v-divider></v-divider>

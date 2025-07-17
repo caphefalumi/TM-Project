@@ -68,10 +68,11 @@ const initializeTeamData = async () => {
     await fetchAnnouncements()
     await fetchTeamMembers()
     await getTaskGroups()
+    // Authorized admin of a team or admin of the webpage with username = 'admin'
     if (
       teamMembers.value.some(
         (member) => member.userId === user.value.userId && member.role === 'Admin',
-      )
+      ) || user.value.username === 'admin'
     ) {
       isAdmin.value = true
     } else {
