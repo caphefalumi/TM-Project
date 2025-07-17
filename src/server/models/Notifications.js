@@ -24,6 +24,7 @@ const notificationSchema = new mongoose.Schema({
       'announcement_commented', // Someone commented on user's announcement
       'comment_replied', // Someone replied to user's comment
       'team_announcement_created', // New announcement in user's team
+      'admin', // Admin notification
     ],
   },
 
@@ -97,6 +98,9 @@ const notificationPreferencesSchema = new mongoose.Schema({
     },
     team_announcement_created: {
       enabled: { type: Boolean, default: true },
+    },
+    admin: {
+      enabled: { type: Boolean, default: true }, // Admin notifications are always enabled by default
     },
   },
 

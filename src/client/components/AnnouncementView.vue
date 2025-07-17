@@ -224,7 +224,7 @@ const organizedComments = computed(() => {
               <div>
                 <div class="font-weight-medium">{{ props.announcement.createdBy }}</div>
                 <div class="text-caption text-grey">
-                  {{ formatDate(props.announcement.createdAt) }}
+                  {{ formatDate(props.announcement.updatedAt) }}
                 </div>
               </div>
             </div>

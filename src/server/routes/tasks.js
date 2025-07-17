@@ -19,7 +19,7 @@ const getTasksOfAUser = async (req, res) => {
     const userExists = await UsersOfTeam.exists({ userId })
     if (!userExists) {
       console.log(`User with ID ${userId} does not exist in any team`)
-      return res.status(404).json({ message: 'User not found in any team' })
+      return res.status(200).json({ message: 'User not found in any team', tasks: [] })
     }
     // Fetch tasks for the user across all teams
     // Sort tasks by DueDate in ascending order

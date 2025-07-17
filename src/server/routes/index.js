@@ -7,6 +7,7 @@ import Users from './users.js'
 import Tasks from './tasks.js'
 import Announcements from './announcements.js'
 import Notifications from './notifications.js'
+import Admin from './admin.js'
 
 const {
   getUserIDAndEmailByName,
@@ -16,7 +17,7 @@ const {
   localLogin,
 } = Authentication
 
-const { authenticateAccessToken, authenticateAccessTokenOnly } = JWTAuth
+const { authenticateAccessToken, authenticateAccessTokenOnly, authenticateRefreshToken } = JWTAuth
 
 const { addRefreshToken, renewAccessToken, revokeRefreshToken } = Tokens
 
@@ -61,6 +62,17 @@ const {
   updateNotificationPreferences,
   getNotificationStats,
 } = Notifications
+
+const {
+  checkAdminAccess,
+  getAllTeamsForAdmin,
+  getAllUsersForAdmin,
+  getAllAnnouncementsForAdmin,
+  deleteTeamAsAdmin,
+  deleteUserAsAdmin,
+  deleteAnnouncementAsAdmin,
+  sendNotificationToUser,
+} = Admin
 
 const router = express.Router()
 
@@ -179,7 +191,7 @@ router.post('/api/notifications/:userId/mark-read', markNotificationsAsRead)
 // Create new refresh token
 router.post('/api/tokens/refresh', addRefreshToken)
 
-router.get('/api/tokens/access', renewAccessToken)
+router.get('/api/tokens/access', authenticateRefreshToken, renewAccessToken)
 
 router.get('/api/protected', authenticateAccessToken, (req, res) => {
   console.log('Access token is valid')
@@ -224,5 +236,47 @@ router.put('/api/teams/:teamId/update/announcements', updateAnnouncement)
 
 router.put('/api/notifications/:userId/preferences', updateNotificationPreferences)
 // Update user's notification preferences
+
+// ************************* ADMIN ROUTES *********************************
+router.get('/api/admin/teams', authenticateAccessToken, checkAdminAccess, getAllTeamsForAdmin)
+// Get all teams for admin dashboard
+
+router.get('/api/admin/users', authenticateAccessToken, checkAdminAccess, getAllUsersForAdmin)
+// Get all users for admin dashboard
+
+router.get(
+  '/api/admin/announcements',
+  authenticateAccessToken,
+  checkAdminAccess,
+  getAllAnnouncementsForAdmin,
+)
+// Get all announcements for admin dashboard
+
+router.post('/api/admin/notify', authenticateAccessToken, checkAdminAccess, sendNotificationToUser)
+// Send notification to user (admin only)
+
+router.delete(
+  '/api/admin/teams/:teamId',
+  authenticateAccessToken,
+  checkAdminAccess,
+  deleteTeamAsAdmin,
+)
+// Delete team and all associated data (admin only)
+
+router.delete(
+  '/api/admin/users/:userId',
+  authenticateAccessToken,
+  checkAdminAccess,
+  deleteUserAsAdmin,
+)
+// Delete user and all associated data (admin only)
+
+router.delete(
+  '/api/admin/announcements/:announcementId',
+  authenticateAccessToken,
+  checkAdminAccess,
+  deleteAnnouncementAsAdmin,
+)
+// Delete announcement (admin only)
 
 export default router
