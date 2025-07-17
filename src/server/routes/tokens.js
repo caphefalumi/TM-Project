@@ -52,15 +52,16 @@ const addRefreshToken = async (req, res, next) => {
   }
 }
 
-const renewAccessToken = async (req, res, next) => {
+const renewAccessToken = async (req, res) => {
   // Middleware to: Authenticate refresh token and renew access token
-  authenticateRefreshToken(req, res, next)
+  // Note: authenticateRefreshToken middleware should be called before this function
   const accessToken = generateAccessToken(req.user)
   console.log('Renewing access token for user:', req.user)
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     sameSite: 'Strict',
     maxAge: 10 * 60 * 1000, // 10 minutes
+    path: '/',
   })
   res.status(200).json({ accessToken })
 }

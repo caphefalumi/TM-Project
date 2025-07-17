@@ -31,15 +31,31 @@ const createNotification = async (notificationData) => {
       relatedData = {},
     } = notificationData
 
-    // Check if the recipient has this type of notification enabled
-    const userPreferences = await getUserNotificationPreferences(recipientUserId)
+    // Skip preference checks for admin notifications
+    let userPreferences = null
+    if (type !== 'admin') {
+      // Check if the recipient has this type of notification enabled
+      userPreferences = await getUserNotificationPreferences(recipientUserId)
 
-    if (
-      !userPreferences.preferences[type]?.enabled ||
-      !userPreferences.globalSettings.enableAllNotifications
-    ) {
-      console.log(`Notification ${type} is disabled for user ${recipientUserId}`)
-      return null
+      if (
+        !userPreferences.preferences[type]?.enabled ||
+        !userPreferences.globalSettings.enableAllNotifications
+      ) {
+        console.log(`Notification ${type} is disabled for user ${recipientUserId}`)
+        return null
+      }
+    } else {
+      console.log(`Admin notification - bypassing preference checks for user ${recipientUserId}`)
+      // For admin notifications, try to get preferences for cleanup, but don't fail if it doesn't work
+      try {
+        userPreferences = await getUserNotificationPreferences(recipientUserId)
+      } catch (error) {
+        console.warn(
+          'Could not get user preferences for admin notification cleanup:',
+          error.message,
+        )
+        userPreferences = { globalSettings: { maxNotificationsToKeep: 100 } }
+      }
     }
 
     // Create the notification
@@ -57,7 +73,7 @@ const createNotification = async (notificationData) => {
     // Clean up old notifications if user has a limit set
     await cleanupOldNotifications(
       recipientUserId,
-      userPreferences.globalSettings.maxNotificationsToKeep,
+      userPreferences?.globalSettings?.maxNotificationsToKeep || 100, // Default to 100 if no preference
     )
 
     console.log(`Notification created for user ${recipientUserId}:`, savedNotification)

@@ -6,7 +6,6 @@ import NotificationCenter from './NotificationCenter.vue'
 
 // Import Admin.Vue if username is 'admin'
 
-
 const router = useRouter()
 
 const { getUserByAccessToken } = AuthStore
@@ -96,6 +95,22 @@ const items = ref([
   { title: 'Teams', icon: 'mdi-briefcase-variant', to: '/teams' },
   { title: 'About', icon: 'mdi-information', to: '/about' },
 ])
+
+// Add admin menu item only if user is admin
+const adminItems = ref([])
+
+// Check if user is admin and update navigation items
+const updateNavigationItems = () => {
+  if (user.value.username === 'admin') {
+    adminItems.value = [{ title: 'Admin Panel', icon: 'mdi-shield-crown', to: '/admin' }]
+  } else {
+    adminItems.value = []
+  }
+}
+
+// Watch for user changes to update navigation
+import { watch } from 'vue'
+watch(() => user.value.username, updateNavigationItems, { immediate: true })
 </script>
 
 <template>
@@ -125,7 +140,7 @@ const items = ref([
           :title="user.username"
           :subtitle="user.email"
         >
-      </v-list-item>
+        </v-list-item>
       </v-list>
 
       <v-divider></v-divider>
@@ -141,6 +156,21 @@ const items = ref([
           class="text-h5"
           link
         ></v-list-item>
+
+        <!-- Admin section with divider -->
+        <template v-if="adminItems.length > 0">
+          <v-divider class="my-2"></v-divider>
+          <v-list-subheader>Administration</v-list-subheader>
+          <v-list-item
+            v-for="item in adminItems"
+            :key="item.title"
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :title="item.title"
+            class="text-h5"
+            link
+          ></v-list-item>
+        </template>
       </v-list>
     </v-navigation-drawer>
   </div>
