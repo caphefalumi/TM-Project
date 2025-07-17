@@ -12,7 +12,9 @@ app.use(
     credentials: true, // CRITICAL for cookies to work
   }),
 )
-app.use(express.json())
+// Increase payload size limit for image uploads
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ limit: '10mb', extended: true }))
 app.use(cookieParser())
 app.use(accountRoutes)
 

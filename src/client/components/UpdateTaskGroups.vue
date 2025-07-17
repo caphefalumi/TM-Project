@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import ViewTask from './ViewTask.vue'
 
 const emit = defineEmits(['update:dialog', 'task-group-updated'])
 
@@ -23,7 +24,7 @@ const props = defineProps({
   teamMembers: {
     type: Array,
     required: true,
-  }
+  },
 })
 
 // State
@@ -33,6 +34,11 @@ const success = ref(false)
 const error = ref(false)
 const message = ref('')
 const activeTab = ref('overview')
+
+// ViewTask dialog state
+const viewTaskDialog = ref(false)
+const selectedTask = ref({})
+const selectedUsername = ref('')
 
 // Task group data
 const taskGroup = ref({
@@ -65,6 +71,13 @@ const categoryOptions = ['Development', 'Design', 'Testing', 'Documentation', 'R
 const getUsernameById = (userId) => {
   const member = props.teamMembers.find((m) => m.userId === userId)
   return member ? member.username : 'Unknown User'
+}
+
+// ViewTask methods
+const openTaskView = (task) => {
+  selectedTask.value = task
+  selectedUsername.value = getUsernameById(task.userId)
+  viewTaskDialog.value = true
 }
 
 // Methods
@@ -146,10 +159,8 @@ const updateTaskGroup = async () => {
 
       // Refresh the data
       await fetchTaskGroupDetails()
-      
-      // Soft update the task group in the parent component
-      
 
+      // Soft update the task group in the parent component
 
       // Clear success message after delay
       setTimeout(() => {
@@ -315,7 +326,6 @@ onMounted(() => {
         <v-tabs v-model="activeTab" class="mb-4">
           <v-tab value="overview">Overview</v-tab>
           <v-tab value="edit">Edit Task Group</v-tab>
-          <v-tab value="submissions">View Submissions</v-tab>
         </v-tabs>
 
         <!-- Tab Content -->
@@ -330,6 +340,9 @@ onMounted(() => {
                   :key="task._id"
                   class="mb-3"
                   variant="outlined"
+                  @click="openTaskView(task)"
+                  style="cursor: pointer"
+                  hover
                 >
                   <v-card-title class="d-flex align-center">
                     <v-icon class="mr-2">mdi-account</v-icon>
@@ -427,43 +440,16 @@ onMounted(() => {
               </v-row>
             </v-form>
           </v-window-item>
-
-          <!-- Submissions Tab -->
-          <v-window-item value="submissions">
-            <v-row>
-              <v-col cols="12">
-                <h3 class="text-h6 mb-3">All Submissions</h3>
-                <v-card
-                  v-for="task in taskGroup.tasks"
-                  :key="task._id"
-                  class="mb-3"
-                  variant="outlined"
-                >
-                  <v-card-title class="d-flex align-center">
-                    <v-icon class="mr-2">mdi-file-document</v-icon>
-                    {{ task.title }} - {{ getUsernameById(task.userId) }}
-                    <v-spacer></v-spacer>
-                    <v-chip :color="getSubmissionColor(task)" size="small">
-                      {{ getSubmissionStatus(task) }}
-                    </v-chip>
-                  </v-card-title>
-                  <v-card-text v-if="task.submitted && task.submissions">
-                    <p class="text-caption text-grey mb-2">
-                      Submitted on: {{ formatDate(task.updatedAt) }}
-                    </p>
-                    <v-divider class="mb-3"></v-divider>
-                    <!-- Here you could add more detailed submission data display -->
-                    <p class="text-body-2">Task has been submitted successfully.</p>
-                  </v-card-text>
-                  <v-card-text v-else>
-                    <p class="text-body-2 text-grey">No submission yet.</p>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-window-item>
         </v-window>
       </v-card-text>
     </v-card>
+
+    <!-- ViewTask Dialog -->
+    <ViewTask
+      v-model:dialog="viewTaskDialog"
+      :task="selectedTask"
+      :team-id="teamId"
+      :username="selectedUsername"
+    />
   </v-dialog>
 </template>

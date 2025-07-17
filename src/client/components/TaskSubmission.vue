@@ -50,7 +50,7 @@ const formValues = ref({})
 onMounted(async () => {
   console.log('User Props:', props.userProps)
   // If props.task is defined, initialize the form
-  if(props.task && props.task.design && props.task.design.fields) {
+  if (props.task && props.task.design && props.task.design.fields) {
     initializeForm()
   }
 })
@@ -149,21 +149,77 @@ const handleFileUpload = (fieldName, event) => {
   const isRequired = fieldDef?.config?.required || false
 
   if (file) {
+    // Check file size (limit to 5MB)
+    const maxSizeInBytes = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSizeInBytes) {
+      error.value = true
+      message.value = `File size too large. Please select an image smaller than 5MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`
+      return
+    }
+
+    // Check if it's actually an image
+    if (!file.type.startsWith('image/')) {
+      error.value = true
+      message.value = 'Please select a valid image file (JPG, PNG, GIF, etc.)'
+      return
+    }
+
+    // Clear any previous errors
+    error.value = false
+    message.value = ''
+
     // Convert file to base64 for storage
     const reader = new FileReader()
     reader.onload = (e) => {
-      // Update both the form values object and the submission data
-      formValues.value[fieldName] = e.target.result
+      let result = e.target.result
 
-      // Update the submission data array too
-      updateSubmissionData()
+      // For large images, we might want to compress them
+      if (file.size > 1024 * 1024) {
+        // If larger than 1MB
+        // Create an image element to compress
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+
+          // Calculate new dimensions (max 1024px width/height)
+          const maxDimension = 1024
+          let { width, height } = img
+
+          if (width > height) {
+            if (width > maxDimension) {
+              height = (height * maxDimension) / width
+              width = maxDimension
+            }
+          } else {
+            if (height > maxDimension) {
+              width = (width * maxDimension) / height
+              height = maxDimension
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          // Draw and compress
+          ctx.drawImage(img, 0, 0, width, height)
+          const compressedData = canvas.toDataURL('image/jpeg', 0.8) // 80% quality
+
+          // Update form values with compressed image
+          formValues.value[fieldName] = compressedData
+          updateSubmissionData()
+        }
+        img.src = result
+      } else {
+        // Small image, use as-is
+        formValues.value[fieldName] = result
+        updateSubmissionData()
+      }
     }
     reader.readAsDataURL(file)
   } else {
     // No file selected or file was removed
     formValues.value[fieldName] = isRequired ? null : '(No image)'
-
-    // Update the submission data array
     updateSubmissionData()
   }
 }
@@ -456,6 +512,8 @@ watch(
                   density="comfortable"
                   accept="image/*"
                   :required="field.config && field.config.required"
+                  hint="Maximum file size: 5MB. Large images will be automatically compressed."
+                  persistent-hint
                 ></v-file-input>
                 <!-- Display current image if available -->
                 <div
@@ -463,7 +521,7 @@ watch(
                   class="mt-2"
                 >
                   <p class="text-caption">Current image:</p>
-                  <img
+                  <v-img
                     :src="formValues[field.label]"
                     alt="Uploaded image"
                     style="max-height: 100px; max-width: 100%"

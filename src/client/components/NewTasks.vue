@@ -437,7 +437,7 @@ const getFieldPreviewValue = (field) => {
                   <v-btn
                     color="primary"
                     @click="currentStep = 2"
-                    :disabled="!taskForm.title || !taskForm.teamId"
+                    :disabled="!taskForm.title || !taskForm.teamId || !taskForm.dueDate || selectedUsers.length === 0"
                   >
                     Next: Add Fields
                   </v-btn>
