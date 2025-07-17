@@ -200,7 +200,7 @@ const navigateToTeam = (teamId) => {
       </v-col>
     </v-row>
 
-    <v-row>
+    <v-row  v-if="userTeams.length > 0" class="mb-6">
       <transition-group name="scroll-x" tag="div" class="w-100 d-flex flex-wrap" appear>
         <v-col
           v-for="(team, index) in userTeams"
@@ -238,6 +238,11 @@ const navigateToTeam = (teamId) => {
           </v-card>
         </v-col>
       </transition-group>
+    </v-row>
+    <v-row v-else>
+      <v-col cols="12" class="text-center">
+        <v-alert type="info">You are not a member of any teams yet.</v-alert>
+      </v-col>
     </v-row>
   </v-container>
 

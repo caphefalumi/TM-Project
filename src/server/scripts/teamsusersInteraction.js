@@ -1,6 +1,9 @@
 import connectDB from '../config/db.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
+// test purposes only
+
+
 const addUserToTeam = async (userId, username, teamId, role) => {
     await connectDB()
     const userOfTeam = new UsersOfTeam({

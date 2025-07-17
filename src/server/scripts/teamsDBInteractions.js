@@ -1,6 +1,9 @@
 import connectDB from '../config/db.js'
 import Teams from '../models/Teams.js'
 
+// test purposes only
+
+
 async function addTeam(title, category, description){
     await connectDB()
     const team = new Teams({

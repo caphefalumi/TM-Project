@@ -6,6 +6,7 @@ import TeamDetails from '../client/views/TeamDetails.vue'
 import Dashboard from '../client/views/Dashboard.vue'
 import AdminView from '../client/views/AdminView.vue'
 import AuthStore from '../client/scripts/authStore.js'
+import AboutView from '../client/views/AboutView.vue'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -17,8 +18,7 @@ const router = createRouter({
     { path: '/register', component: Register, meta: { requiresAuth: false } },
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true } },
     { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true } },
-    { path: '/inbox', component: TeamsView, meta: { requiresAuth: true } },
-    { path: '/about', component: TeamsView, meta: { requiresAuth: true } },
+    { path: '/about', component: AboutView, meta: { requiresAuth: true } },
     { path: '/home', component: Dashboard, meta: { requiresAuth: true } },
     { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
   ],
