@@ -11,8 +11,6 @@ const success = ref('')
 const loading = ref(false)
 const router = useRouter()
 
-// console.log(process.env.PORT);
-
 async function register() {
   
   error.value = ''

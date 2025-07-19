@@ -19,6 +19,7 @@ app.use(cookieParser())
 app.use(accountRoutes)
 
 const PORT = process.env.VITE_API_PORT
+
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`)
+  console.log(`Server listening on port ${process.env.ACCESS_TOKEN_SECRET}`)
 })
