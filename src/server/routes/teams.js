@@ -1,5 +1,4 @@
 import connectDB from '../config/db.js'
-import mongoose from 'mongoose'
 
 import Account from '../models/Account.js'
 import Teams from '../models/Teams.js'
@@ -270,27 +269,6 @@ const getTeamThatUserIsMember = async (req, res) => {
     return res.status(200).json(teamsData)
   } catch (error) {
     console.error('Error fetching teams for user:', error)
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-}
-
-
-const deleteAUserFromATeam = async (req, res) => {
-  // Delete a user from a team
-  const { userId, teamId } = req.body
-  if (!userId || !teamId) {
-    return res.status(400).json({ error: 'User ID and Team ID are required' })
-  }
-  await connectDB()
-  try {
-    const result = await UsersOfTeam.deleteOne({ userId, teamId })
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ error: 'User not found in the team' })
-    }
-    console.log('User deleted from team:', userId, teamId)
-    return res.status(200).json({ success: 'User deleted from team successfully' })
-  } catch (error) {
-    console.error('Error deleting user from team:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }

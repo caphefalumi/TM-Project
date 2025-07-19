@@ -97,6 +97,11 @@ const fetchUserTeams = async () => {
   }
 }
 
+const handleTeamUpdated = async () => {
+  await getTeamThatUserIsAdmin()
+  await fetchUserTeams()
+}
+
 const navigateToTeam = (teamId) => {
   router.push(`/teams/${teamId}`)
 }
@@ -179,6 +184,7 @@ const navigateToTeam = (teamId) => {
       v-model:dialog="isCreatingNewTeam"
       :userProps="user"
       v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
+      @team-created="handleTeamUpdated"
     />
     <NewMembers
       v-if="userLoaded"
@@ -191,7 +197,7 @@ const navigateToTeam = (teamId) => {
       v-model:dialog="isDeletingTeam"
       :userProps="user"
       v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
-      @teams-deleted="getTeamThatUserIsAdmin"
+      @teams-deleted="handleTeamUpdated"
     />
 
     <v-row>
