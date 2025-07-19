@@ -58,7 +58,7 @@ const getTeamThatUserIsAdmin = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/teams/user/${user.value.userId}/admin`,
+      `${PORT}/api/teams/user/${user.value.userId}/admin`,
       {
         method: 'GET',
         headers: {
@@ -80,7 +80,7 @@ const getTeamThatUserIsAdmin = async () => {
 const fetchUserTeams = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams/user/${user.value.userId}`, {
+    const response = await fetch(`${PORT}/api/teams/user/${user.value.userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

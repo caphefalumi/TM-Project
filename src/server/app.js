@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser'
 const app = express()
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'https://tm-demo-gamma.vercel.app'],
     credentials: true, // CRITICAL for cookies to work
   }),
 )
@@ -18,8 +18,12 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }))
 app.use(cookieParser())
 app.use(accountRoutes)
 
-const PORT = process.env.VITE_API_PORT
+const PORT = process.env.PORT || 3000
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${process.env.ACCESS_TOKEN_SECRET}`)
-})
+// For local development
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`)
+  })
+
+// Export for Vercel
+export default app

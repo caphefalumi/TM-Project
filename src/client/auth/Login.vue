@@ -49,7 +49,7 @@ const getUserId = async (name) => {
       error.value = 'Username is required'
       return
     }
-    const res = await fetch(`http://localhost:${PORT}/api/account/user/${param}`, {
+    const res = await fetch(`${PORT}/api/account/user/${param}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -74,7 +74,7 @@ const getUserEmail = async (name) => {
       error.value = 'Username is required'
       return
     }
-    const res = await fetch(`http://localhost:${PORT}/api/account/user/${param}`, {
+    const res = await fetch(`${PORT}/api/account/user/${param}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -94,7 +94,7 @@ const getAccessToHome = async () => {
   // Get access to home page using login-specific validation
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const res = await fetch(`http://localhost:${PORT}/api/login-protected`, {
+    const res = await fetch(`${PORT}/api/login-protected`, {
       method: 'GET',
       credentials: 'include', // Include cookies for authentication
       headers: { 'Content-Type': 'application/json' },
@@ -122,7 +122,7 @@ const createRefreshToken = async () => {
       username: username.value,
       email: userEmail.value,
     }
-    const res = await fetch(`http://localhost:${PORT}/api/tokens/refresh`, {
+    const res = await fetch(`${PORT}/api/tokens/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include', // Include cookies for authentication
@@ -137,7 +137,7 @@ const createRefreshToken = async () => {
       console.alert('Error creating refresh token:', data.error)
     } else {
       console.log('Refresh token created successfully!')
-      console.log(data)
+      console.log('Access Token data:', data)
     }
   } catch (err) {
     error.value = 'Network error'
@@ -155,7 +155,7 @@ const loginUsingLocal = async () => {
   success.value = ''
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const res = await fetch(`http://localhost:${PORT}/api/account/local/login`, {
+    const res = await fetch(`${PORT}/api/account/local/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -184,7 +184,7 @@ const loginUsingOAuth = (response) => {
     userEmail.value = email
     const PORT = import.meta.env.VITE_API_PORT
 
-    const res = await fetch(`http://localhost:${PORT}/api/account/oauth`, {
+    const res = await fetch(`${PORT}/api/account/oauth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -231,7 +231,7 @@ const registerWithOAuth = async () => {
   success.value = ''
   const PORT = import.meta.env.VITE_API_PORT
 
-  const res = await fetch(`http://localhost:${PORT}/api/account/google/register`, {
+  const res = await fetch(`${PORT}/api/account/google/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

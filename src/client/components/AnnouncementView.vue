@@ -88,7 +88,7 @@ const submitComment = async () => {
     }
 
     const response = await fetch(
-      `http://localhost:${PORT}/api/announcements/${props.announcement._id}/comments`,
+      `${PORT}/api/announcements/${props.announcement._id}/comments`,
       {
         method: 'POST',
         headers: {

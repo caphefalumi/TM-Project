@@ -78,7 +78,7 @@ const removeMembers = async () => {
       userId: member.userId,
       teamId: props.teamId,
     }))
-    const response = await fetch(`http://localhost:${PORT}/api/teams/remove/members`, {
+    const response = await fetch(`${PORT}/api/teams/remove/members`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

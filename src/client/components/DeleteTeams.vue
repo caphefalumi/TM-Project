@@ -78,7 +78,7 @@ const deleteTeams = async (teamId) => {
     // Logic to delete teams goes here
     // For example, you might call an API endpoint to delete the selected teams
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams/delete`, {
+    const response = await fetch(`${PORT}/api/teams/delete`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

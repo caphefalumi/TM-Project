@@ -225,7 +225,7 @@ const loadNotifications = async (page = 1) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/notifications/${props.userId}?page=${page}&limit=20`,
+      `${PORT}/api/notifications/${props.userId}?page=${page}&limit=20`,
       {
         method: 'GET',
         headers: {
@@ -267,7 +267,7 @@ const markAllAsRead = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/notifications/${props.userId}/mark-read`,
+      `${PORT}/api/notifications/${props.userId}/mark-read`,
       {
         method: 'POST',
         headers: {
@@ -368,7 +368,7 @@ const handleNotificationClick = async (notification) => {
 const markNotificationAsRead = async (notificationId) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    await fetch(`http://localhost:${PORT}/api/notifications/${props.userId}/mark-read`, {
+    await fetch(`${PORT}/api/notifications/${props.userId}/mark-read`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -383,7 +383,7 @@ const markNotificationAsRead = async (notificationId) => {
 const deleteNotification = async (notificationId) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/notifications/${props.userId}`, {
+    const response = await fetch(`${PORT}/api/notifications/${props.userId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -418,7 +418,7 @@ const loadPreferences = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/notifications/${props.userId}/preferences`,
+      `${PORT}/api/notifications/${props.userId}/preferences`,
       {
         method: 'GET',
         headers: {
@@ -442,7 +442,7 @@ const saveSettings = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/notifications/${props.userId}/preferences`,
+      `${PORT}/api/notifications/${props.userId}/preferences`,
       {
         method: 'PUT',
         headers: {

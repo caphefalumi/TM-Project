@@ -206,7 +206,7 @@ const createTask = async () => {
     if (taskForm.value.description === undefined) {
       taskForm.value.description = ''
     }
-    const response = await fetch(`http://localhost:${PORT}/api/tasks/create`, {
+    const response = await fetch(`${PORT}/api/tasks/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

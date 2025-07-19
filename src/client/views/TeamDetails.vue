@@ -119,7 +119,7 @@ const fetchTeamTasks = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
       // '/api/teams/:teamId/:userId/tasks'
-      `http://localhost:${PORT}/api/teams/${teamId.value}/${user.value.userId}/tasks`,
+      `${PORT}/api/teams/${teamId.value}/${user.value.userId}/tasks`,
       {
         method: 'GET',
         headers: {
@@ -148,7 +148,7 @@ const fetchAnnouncements = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/teams/${teamId.value}/announcements`,
+      `${PORT}/api/teams/${teamId.value}/announcements`,
       {
         method: 'GET',
         headers: {
@@ -174,7 +174,7 @@ const fetchAnnouncements = async () => {
 const fetchTeamMembers = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams/${teamId.value}/members`, {
+    const response = await fetch(`${PORT}/api/teams/${teamId.value}/members`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
   const PORT = import.meta.env.VITE_API_PORT
   try {
     const response = await fetch(
-      `http://localhost:${PORT}/api/announcements/${announcementId}/like`,
+      `${PORT}/api/announcements/${announcementId}/like`,
       {
         method: 'POST',
         headers: {
@@ -275,7 +275,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
 const getTaskGroups = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams/${teamId.value}/task-groups`, {
+    const response = await fetch(`${PORT}/api/teams/${teamId.value}/task-groups`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

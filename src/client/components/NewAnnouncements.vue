@@ -50,7 +50,7 @@ const createAnnouncement = async () => {
     }
     try {
         const PORT = import.meta.env.VITE_API_PORT
-        const response = await fetch(`http://localhost:${PORT}/api/teams/${props.teamId}/create/announcements`, {
+        const response = await fetch(`${PORT}/api/teams/${props.teamId}/create/announcements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
