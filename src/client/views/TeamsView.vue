@@ -102,6 +102,27 @@ const handleTeamUpdated = async () => {
 const navigateToTeam = (teamId) => {
   router.push(`/teams/${teamId}`)
 }
+
+const getProgressColor = (percentage) => {
+  // Create a gradient from red (0%) to green (100%) with 8 variants (12.5% intervals)
+  if (percentage <= 12.5) {
+    return 'red-darken-2' // 0-12.5%: Deep red
+  } else if (percentage <= 25) {
+    return 'red' // 12.5-25%: Red
+  } else if (percentage <= 37.5) {
+    return 'orange-darken-2' // 25-37.5%: Deep orange
+  } else if (percentage <= 50) {
+    return 'orange' // 37.5-50%: Orange
+  } else if (percentage <= 62.5) {
+    return 'yellow-darken-2' // 50-62.5%: Dark yellow
+  } else if (percentage <= 75) {
+    return 'yellow' // 62.5-75%: Yellow
+  } else if (percentage <= 87.5) {
+    return 'light-green' // 75-87.5%: Light green
+  } else {
+    return 'green' // 87.5-100%: Green
+  }
+}
 </script>
 
 <template>
@@ -223,6 +244,28 @@ const navigateToTeam = (teamId) => {
             <v-card-text>
               {{ team.description }}
             </v-card-text>
+
+            <!-- Progress Section -->
+            <v-card-text v-if="team.progress" class="pt-0">
+              <div class="progress-section">
+                <div class="progress-label mb-2">
+                  <span class="text-caption text-grey-darken-1">
+                    Weight: {{ team.progress.completedWeight }}/{{ team.progress.totalWeight }}
+                  </span>
+                  <span class="text-caption text-grey-darken-1 ml-2">
+                    {{ team.progress.progressPercentage }}%
+                  </span>
+                </div>
+                <v-progress-linear
+                  :model-value="team.progress.progressPercentage"
+                  height="8"
+                  rounded
+                  :color="getProgressColor(team.progress.progressPercentage)"
+                  bg-color="grey-lighten-3"
+                  class="progress-bar"
+                ></v-progress-linear>
+              </div>
+            </v-card-text>
             <v-divider></v-divider>
             <v-card-actions class="pa-4">
               <v-chip v-if="team.role === 'Member'" color="primary" size="small">
@@ -302,5 +345,26 @@ const navigateToTeam = (teamId) => {
 /* Staggered animation for multiple items */
 .scroll-x-move {
   transition: transform 0.6s ease;
+}
+
+/* Progress Section Styles */
+.progress-section {
+  margin-top: 0.5rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.progress-bar {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.progress-bar:hover {
+  transform: scaleY(1.2);
 }
 </style>

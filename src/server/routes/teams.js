@@ -3,6 +3,7 @@ import connectDB from '../config/db.js'
 import Account from '../models/Account.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
+import Tasks from '../models/Tasks.js'
 
 const getAllUsers = async (req, res) => {
   // Returns all users in the database by array
@@ -114,12 +115,14 @@ const addTeamPro = async (req, res) => {
     }
   }
   let breadCrumpTitle = await getParentsTeam(parentTeamId)
-  if(breadCrumpTitle) {
+  if (breadCrumpTitle) {
     resTitle = breadCrumpTitle + ' ' + title
   } else {
     resTitle = title
   }
-  res.status(200).json({ teamId: teamId._id, title: resTitle, message: 'Team created successfully' })
+  res
+    .status(200)
+    .json({ teamId: teamId._id, title: resTitle, message: 'Team created successfully' })
 }
 
 const addTeam = async (title, category, description) => {
@@ -219,11 +222,11 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
     const teamsData = await Promise.all(
       validTeams.map(async (team) => ({
         teamId: team.teamId._id,
-        title: await getParentsTeam(team.teamId.parentTeamId) + ' ' + team.teamId.title,
+        title: (await getParentsTeam(team.teamId.parentTeamId)) + ' ' + team.teamId.title,
       })),
     )
 
-    console.log('Resolved teams data:', teamsData)
+    // console.log('Resolved teams data:', teamsData)
     return res.status(200).json(teamsData)
   } catch (error) {
     console.error('Error fetching teams for user:', error)
@@ -234,6 +237,7 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
 const getTeamThatUserIsMember = async (req, res) => {
   // Get all teams that the user is a member of, include admins
   // Return an array of team objects with teamId, title, category, and description, full breadcrumps
+  // Also returns a progress bar for each team
   const { userId } = req.params
   if (!userId) {
     return res.status(400).json({ error: 'User ID is required' })
@@ -256,14 +260,19 @@ const getTeamThatUserIsMember = async (req, res) => {
 
     // Use Promise.all to wait for all async operations to complete
     const teamsData = await Promise.all(
-      validTeams.map(async (team) => ({
-        teamId: team.teamId._id,
-        title: team.teamId.title,
-        fullBreadCrump: await getParentsTeam(team.teamId.parentTeamId) + ' ' + team.teamId.title,
-        category: team.teamId.category,
-        description: team.teamId.description,
-        role: team.role
-      })),
+      validTeams.map(async (team) => {
+        const progress = await getProgressBar(userId, team.teamId._id)
+        return {
+          teamId: team.teamId._id,
+          title: team.teamId.title,
+          fullBreadCrump:
+            (await getParentsTeam(team.teamId.parentTeamId)) + ' ' + team.teamId.title,
+          category: team.teamId.category,
+          description: team.teamId.description,
+          role: team.role,
+          progress: progress,
+        }
+      }),
     )
     console.log('Resolved teams data:', teamsData)
     return res.status(200).json(teamsData)
@@ -281,8 +290,7 @@ const recursiveDeleteSubTeams = async (teamId) => {
     if (subTeams.length > 0) {
       const subTeamIds = subTeams.map((subTeam) => subTeam._id)
       await Teams.deleteMany({ parentTeamId: teamId })
-      await UsersOfTeam.deleteMany({ teamId: { $in: subTeamIds }
-      })
+      await UsersOfTeam.deleteMany({ teamId: { $in: subTeamIds } })
       console.log('Sub-teams and associated users deleted:', subTeamIds)
       // Recursively delete sub-teams of sub-teams
       for (const subTeamId of subTeamIds) {
@@ -325,6 +333,53 @@ const deleteATeam = async (req, res) => {
   }
 }
 
+const getProgressBar = async (userId, teamId) => {
+  // Requires userId and teamId to calculate the progress bar (by weight)
+  // Returns an object with completed weight, total weight, and progress percentage
+  await connectDB()
+  try {
+    // Get all tasks for this team and user
+    console.log('Calculating progress bar for user:', userId, 'in team:', teamId)
+    const allTasks = await Tasks.find({ teamId, userId })
+
+    if (allTasks.length === 0) {
+      return {
+        completedWeight: 0,
+        totalWeight: 0,
+        progressPercentage: 0,
+      }
+    }
+
+    // Calculate total weight of all tasks in the team
+    const totalWeight = allTasks.reduce((sum, task) => sum + task.weighted, 0)
+
+    // Calculate completed weight of all tasks in the team
+    const completedWeight = allTasks.reduce((sum, task) => {
+      return task.submitted ? sum + task.weighted : sum
+    }, 0)
+
+    const progressPercentage =
+      totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0
+    console.log('Progress bar calculated:', {
+      completedWeight,
+      totalWeight,
+      progressPercentage,
+    })
+    return {
+      completedWeight,
+      totalWeight,
+      progressPercentage,
+    }
+  } catch (error) {
+    console.error('Error calculating progress bar:', error)
+    return {
+      completedWeight: 0,
+      totalWeight: 0,
+      progressPercentage: 0,
+    }
+  }
+}
+
 export default {
   addUserToTeam,
   addTeamPro,
@@ -334,7 +389,8 @@ export default {
   getCategories,
   getRoles,
   getAllUsers,
-  deleteATeam
+  deleteATeam,
+  getProgressBar,
 }
 
 // nodemon "src\server\routes\teams.js"
