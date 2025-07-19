@@ -14,7 +14,7 @@ const deleteAnnouncement = async () => {
     loading.value = true
     try {
         const PORT = import.meta.env.VITE_API_PORT
-        const response = await fetch(`http://localhost:${PORT}/api/announcements/${props.announcementId}`, {
+        const response = await fetch(`${PORT}/api/announcements/${props.announcementId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

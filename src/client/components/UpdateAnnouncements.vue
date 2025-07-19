@@ -71,7 +71,7 @@ const updateAnnouncement = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/teams/${props.teamId}/update/announcements`,
+      `${PORT}/api/teams/${props.teamId}/update/announcements`,
       {
         method: 'PUT',
         headers: {

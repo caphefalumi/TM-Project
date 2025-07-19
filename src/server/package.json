@@ -3,31 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "app.js",
   "scripts": {
-    "dev": "vite",
-    "server": "nodemon \"src/server/app.js\"",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --fix",
-    "format": "prettier --write src/",
-    "start:all": "concurrently \"npm run dev\" \"npm run server\""
+    "build": "echo 'Build completed for Express server'",
+    "start": "node app.js",
+    "dev": "node app.js",
+    "preview": "node app.js"
   },
   "dependencies": {
-    "@mdi/font": "^7.4.47",
-    "@mdi/js": "^7.4.47",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.15.1",
-    "pinia": "^3.0.3",
-    "vercel": "^44.5.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "vue3-google-login": "^2.0.33",
-    "vuetify": "^3.8.9"
+    "mongoose": "^8.15.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

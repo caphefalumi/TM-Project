@@ -57,7 +57,7 @@ const fetchTaskDetails = async () => {
 
     // First, get the task details from the task group
     const taskGroupResponse = await fetch(
-      `http://localhost:${PORT}/api/teams/${props.teamId}/task-groups/${props.task.taskGroupId}`,
+      `${PORT}/api/teams/${props.teamId}/task-groups/${props.task.taskGroupId}`,
       {
         method: 'GET',
         headers: {
@@ -77,7 +77,7 @@ const fetchTaskDetails = async () => {
 
     // Then, try to get the submission details
     const submissionResponse = await fetch(
-      `http://localhost:${PORT}/api/tasks/submission/${props.task._id}`,
+      `${PORT}/api/tasks/submission/${props.task._id}`,
       {
         method: 'GET',
         headers: {

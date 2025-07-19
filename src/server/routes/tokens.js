@@ -19,13 +19,15 @@ const addRefreshToken = async (req, res, next) => {
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    sameSite: 'Strict',
+    secure: true, // Use secure cookies in production
+    sameSite: 'None',
     maxAge: 12 * 60 * 60 * 1000, // 12 hours
     path: '/',
   })
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    sameSite: 'Strict',
+    secure: true, // Use secure cookies in production
+    sameSite: 'None',
     maxAge: 10 * 60 * 1000, // 10 minutes
     path: '/',
   })
@@ -44,7 +46,7 @@ const addRefreshToken = async (req, res, next) => {
     await newRefreshToken.save()
 
     console.log('New refresh token created for fresh login')
-    res.status(200).json({ success: 'Fresh login session created successfully' })
+    res.status(200).json({ success: 'Fresh login session created successfully', accessToken })
   } catch (error) {
     console.error('Error adding refresh token:', error)
     res.status(500).json({ error: 'Internal server error' })
@@ -58,7 +60,8 @@ const renewAccessToken = async (req, res) => {
   console.log('Renewing access token for user:', req.user)
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    sameSite: 'Strict',
+    secure: true, // Use secure cookies in production
+    sameSite: 'None',
     maxAge: 10 * 60 * 1000, // 10 minutes
     path: '/',
   })
@@ -73,12 +76,14 @@ const revokeRefreshToken = async (req, res) => {
   res.clearCookie('refreshToken', {
     path: '/',
     httpOnly: true,
-    sameSite: 'Strict',
+    secure: true,
+    sameSite: 'None',
   })
   res.clearCookie('accessToken', {
     path: '/',
     httpOnly: true,
-    sameSite: 'Strict',
+    secure: true,
+    sameSite: 'None',
   })
 
   await connectDB()

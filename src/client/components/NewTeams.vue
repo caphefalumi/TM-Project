@@ -70,7 +70,7 @@ const props = defineProps({
 const fetchCategories = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/categories`, {
+    const response = await fetch(`${PORT}/api/categories`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ const createTeam = async () => {
   console.log('Creating project with data:', newTeam.value)
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/teams`, {
+    const response = await fetch(`${PORT}/api/teams`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

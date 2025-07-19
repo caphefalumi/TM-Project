@@ -64,7 +64,7 @@ const revokeRefreshToken = async () => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`http://localhost:${PORT}/api/auth/revoke`, {
+    const response = await fetch(`${PORT}/api/auth/revoke`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

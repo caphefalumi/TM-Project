@@ -86,7 +86,7 @@ const fetchTaskGroupDetails = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
+      `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'GET',
         headers: {
@@ -135,7 +135,7 @@ const updateTaskGroup = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
+      `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'PUT',
         headers: {
@@ -193,7 +193,7 @@ const deleteTaskGroup = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `http://localhost:${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
+      `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'DELETE',
         headers: {
