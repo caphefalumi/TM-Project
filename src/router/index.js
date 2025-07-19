@@ -1,10 +1,11 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Login from '../client/auth/Login.vue'
 import Register from '../client/auth/Register.vue'
-import TeamsView from '../client/TeamsView.vue'
+import TeamsView from '../client/views/TeamsView.vue'
 import TeamDetails from '../client/views/TeamDetails.vue'
 import Dashboard from '../client/views/Dashboard.vue'
 import AdminView from '../client/views/AdminView.vue'
+import LandingView from '../client/views/LandingView.vue'
 import AuthStore from '../client/scripts/authStore.js'
 import AboutView from '../client/views/AboutView.vue'
 
@@ -13,7 +14,8 @@ const { getUserByAccessToken } = AuthStore
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', component: Login, meta: { requiresAuth: false } },
+    { path: '/', component: LandingView, meta: { requiresAuth: false } },
+    { path: '/landing', component: LandingView, meta: { requiresAuth: false } },
     { path: '/login', component: Login, meta: { requiresAuth: false } },
     { path: '/register', component: Register, meta: { requiresAuth: false } },
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true } },

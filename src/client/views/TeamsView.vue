@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import AuthStore from './scripts/authStore.js'
-import NewTeams from './components/NewTeams.vue'
-import NewMembers from './components/NewMembers.vue'
-import DeleteTeams from './components/DeleteTeams.vue'
+import AuthStore from '../scripts/authStore.js'
+import NewTeams from '../components/NewTeams.vue'
+import NewMembers from '../components/NewMembers.vue'
+import DeleteTeams from '../components/DeleteTeams.vue'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -57,15 +57,12 @@ const setUserToUserToken = (userToken) => {
 const getTeamThatUserIsAdmin = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/teams/user/${user.value.userId}/admin`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const response = await fetch(`${PORT}/api/teams/user/${user.value.userId}/admin`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+    })
 
     if (!response.ok) {
       throw new Error('Network response was not ok')
@@ -138,8 +135,7 @@ const navigateToTeam = (teamId) => {
             <v-card-title
               class="font-weight-bold text-h5"
               v-tooltip:bottom="'Click to create new team'"
-              ><v-icon start>mdi-plus</v-icon>
-              Create New Team</v-card-title
+              ><v-icon start>mdi-plus</v-icon> Create New Team</v-card-title
             >
           </v-card-item>
         </v-card>
@@ -172,8 +168,7 @@ const navigateToTeam = (teamId) => {
             <v-card-title
               class="font-weight-bold text-h5"
               v-tooltip:bottom="'Click to delete a team'"
-              ><v-icon start>mdi-delete</v-icon>
-              Delete A Team</v-card-title
+              ><v-icon start>mdi-delete</v-icon> Delete A Team</v-card-title
             >
           </v-card-item>
         </v-card>
@@ -206,7 +201,7 @@ const navigateToTeam = (teamId) => {
       </v-col>
     </v-row>
 
-    <v-row  v-if="userTeams.length > 0" class="mb-6">
+    <v-row v-if="userTeams.length > 0" class="mb-6">
       <transition-group name="scroll-x" tag="div" class="w-100 d-flex flex-wrap" appear>
         <v-col
           v-for="(team, index) in userTeams"
