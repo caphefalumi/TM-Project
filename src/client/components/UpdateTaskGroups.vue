@@ -57,6 +57,8 @@ const editForm = ref({
   priority: '',
   dueDate: '',
   category: '',
+  weighted: 0,
+  assignedUsers: [], // Array of user IDs
 })
 
 // Computed properties
@@ -67,6 +69,14 @@ const completionRate = computed(() => {
 
 const priorityOptions = ['Urgent', 'High', 'Medium', 'Low', 'Optional']
 const categoryOptions = ['Development', 'Design', 'Testing', 'Documentation', 'Research', 'Other']
+
+// Computed property for team members as select options
+const teamMemberOptions = computed(() => {
+  return props.teamMembers.map((member) => ({
+    title: member.username,
+    value: member.userId,
+  }))
+})
 
 const getUsernameById = (userId) => {
   const member = props.teamMembers.find((m) => m.userId === userId)
@@ -101,12 +111,17 @@ const fetchTaskGroupDetails = async () => {
       // Initialize edit form with current values
       const firstTask = result.tasks[0]
       if (firstTask) {
+        // Get all unique user IDs assigned to this task group
+        const assignedUserIds = [...new Set(result.tasks.map((task) => task.userId))]
+
         editForm.value = {
           title: firstTask.title,
           description: firstTask.description || '',
           priority: firstTask.priority,
           dueDate: firstTask.dueDate ? new Date(firstTask.dueDate).toISOString().substr(0, 10) : '',
           category: firstTask.category,
+          weighted: firstTask.weighted || 0,
+          assignedUsers: assignedUserIds,
         }
       }
     } else {
@@ -123,9 +138,15 @@ const fetchTaskGroupDetails = async () => {
 }
 
 const updateTaskGroup = async () => {
-  if (!editForm.value.title || !editForm.value.priority || !editForm.value.dueDate) {
+  if (
+    !editForm.value.title ||
+    !editForm.value.priority ||
+    !editForm.value.dueDate ||
+    !editForm.value.weighted ||
+    editForm.value.assignedUsers.length === 0
+  ) {
     error.value = true
-    message.value = 'Please fill in all required fields'
+    message.value = 'Please fill in all required fields and assign at least one user'
     return
   }
 
@@ -147,6 +168,8 @@ const updateTaskGroup = async () => {
           priority: editForm.value.priority,
           dueDate: new Date(editForm.value.dueDate),
           category: editForm.value.category,
+          weighted: Number(editForm.value.weighted),
+          assignedUsers: editForm.value.assignedUsers,
         }),
       },
     )
@@ -246,6 +269,10 @@ const getSubmissionStatus = (task) => {
 
 const getSubmissionColor = (task) => {
   return task.submitted ? 'success' : 'warning'
+}
+
+const removeUser = (userId) => {
+  editForm.value.assignedUsers = editForm.value.assignedUsers.filter((id) => id !== userId)
 }
 
 onMounted(() => {
@@ -357,11 +384,16 @@ onMounted(() => {
                   </v-card-title>
                   <v-card-text>
                     <v-row class="align-center">
-                      <v-col cols="8">
+                      <v-col cols="6">
                         <strong>{{ task.title }}</strong>
                         <p class="text-caption text-grey mb-0">
                           Due: {{ formatDate(task.dueDate) }}
                         </p>
+                      </v-col>
+                      <v-col cols="6" class="text-right">
+                        <v-chip color="info" size="small" class="mb-1">
+                          Weight: {{ task.weighted }}
+                        </v-chip>
                       </v-col>
                     </v-row>
                   </v-card-text>
@@ -416,6 +448,47 @@ onMounted(() => {
                     required
                     variant="outlined"
                   ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model.number="editForm.weighted"
+                    label="Task Weight"
+                    type="number"
+                    min="0"
+                    required
+                    variant="outlined"
+                    hint="Higher weight = more important task"
+                    persistent-hint
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-select
+                    v-model="editForm.assignedUsers"
+                    :items="teamMemberOptions"
+                    label="Assigned Users"
+                    multiple
+                    chips
+                    closable-chips
+                    required
+                    variant="outlined"
+                    hint="Select which team members should complete this task"
+                    persistent-hint
+                  >
+                    <template v-slot:selection="{ item, index }">
+                      <v-chip
+                        v-if="index < 3"
+                        :key="item.value"
+                        size="small"
+                        closable
+                        @click:close="removeUser(item.value)"
+                      >
+                        {{ item.title }}
+                      </v-chip>
+                      <span v-if="index === 3" class="text-grey text-caption align-self-center">
+                        (+{{ editForm.assignedUsers.length - 3 }} others)
+                      </span>
+                    </template>
+                  </v-select>
                 </v-col>
                 <v-col cols="12">
                   <v-row>

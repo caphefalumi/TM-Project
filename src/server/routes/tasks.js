@@ -368,36 +368,109 @@ const getTasksByGroupId = async (req, res) => {
 
 const updateTaskGroup = async (req, res) => {
   // Update all tasks in a group (for admin bulk operations)
-  // Can update title, description, priority, dueDate, etc.
+  // Can update title, description, priority, dueDate, weighted, and reassign users
   await connectDB()
   try {
     const { taskGroupId, teamId } = req.params
-    const updateData = req.body
+    const { assignedUsers, userId, submitted, submissions, ...updateData } = req.body
 
     if (!taskGroupId || !teamId) {
       return res.status(400).json({ message: 'Task Group ID and Team ID are required' })
     }
 
-    // Remove fields that shouldn't be bulk updated
-    const { userId, submitted, submissions, ...allowedUpdates } = updateData
+    // If assignedUsers is provided, handle user reassignment
+    if (assignedUsers && Array.isArray(assignedUsers)) {
+      // Get current tasks in the group
+      const currentTasks = await Tasks.find({ taskGroupId, teamId })
+      const currentUserIds = [...new Set(currentTasks.map((task) => task.userId))]
 
-    const result = await Tasks.updateMany(
-      { taskGroupId, teamId },
-      {
-        $set: {
-          ...allowedUpdates,
-          updatedAt: new Date(),
-        },
-      },
-    )
+      // Determine users to add and remove
+      const usersToAdd = assignedUsers.filter((userId) => !currentUserIds.includes(userId))
+      const usersToRemove = currentUserIds.filter((userId) => !assignedUsers.includes(userId))
 
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: 'No tasks found for this group' })
+      console.log('Updating task group assignments:', {
+        taskGroupId,
+        currentUsers: currentUserIds,
+        newUsers: assignedUsers,
+        usersToAdd,
+        usersToRemove,
+      })
+
+      // Validate all new users are team members
+      if (usersToAdd.length > 0) {
+        const usersOfTeam = await UsersOfTeam.find({ teamId, userId: { $in: usersToAdd } })
+        if (usersOfTeam.length !== usersToAdd.length) {
+          return res.status(404).json({ message: 'Some assigned users are not part of the team' })
+        }
+      }
+
+      // Remove tasks for users no longer assigned
+      if (usersToRemove.length > 0) {
+        // Also delete their task submissions
+        await TaskSubmissions.deleteMany({
+          taskId: {
+            $in: currentTasks.filter((t) => usersToRemove.includes(t.userId)).map((t) => t._id),
+          },
+        })
+
+        await Tasks.deleteMany({
+          taskGroupId,
+          teamId,
+          userId: { $in: usersToRemove },
+        })
+        console.log('Removed tasks for users:', usersToRemove)
+      }
+
+      // Add tasks for new users
+      if (usersToAdd.length > 0 && currentTasks.length > 0) {
+        const templateTask = currentTasks[0] // Use first task as template
+        const newTasks = usersToAdd.map((newUserId) => ({
+          userId: newUserId,
+          teamId,
+          taskGroupId,
+          title: updateData.title || templateTask.title,
+          description:
+            updateData.description !== undefined
+              ? updateData.description
+              : templateTask.description,
+          design: templateTask.design,
+          category: updateData.category || templateTask.category,
+          priority: updateData.priority || templateTask.priority,
+          weighted: updateData.weighted !== undefined ? updateData.weighted : templateTask.weighted,
+          dueDate: updateData.dueDate ? new Date(updateData.dueDate) : templateTask.dueDate,
+        }))
+
+        await Tasks.insertMany(newTasks)
+        console.log('Added tasks for users:', usersToAdd)
+      }
     }
+
+    // Update remaining/existing tasks with new data (excluding user assignment fields)
+    const { assignedUsers: _, ...taskUpdates } = updateData
+
+    if (Object.keys(taskUpdates).length > 0) {
+      const result = await Tasks.updateMany(
+        { taskGroupId, teamId },
+        {
+          $set: {
+            ...taskUpdates,
+            updatedAt: new Date(),
+          },
+        },
+      )
+
+      console.log('Updated task fields:', {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+      })
+    }
+
+    // Get updated task count
+    const finalTasks = await Tasks.find({ taskGroupId, teamId })
 
     return res.status(200).json({
       message: 'Task group updated successfully',
-      updatedCount: result.modifiedCount,
+      updatedCount: finalTasks.length,
       taskGroupId,
     })
   } catch (error) {
