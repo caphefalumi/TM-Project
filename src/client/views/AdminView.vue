@@ -556,4 +556,10 @@ const getBreadcrumbs = (team) => {
 .admin-view {
   padding: 20px;
 }
+
+/* Make all data table headers bold */
+:deep(.v-data-table-header__content) {
+  font-weight: bold !important;
+}
+
 </style>

@@ -1,5 +1,4 @@
 import connectDB from '../config/db.js'
-import mongoose from 'mongoose'
 import RefreshToken from '../models/RefreshToken.js'
 import JWTAuth from '../verify/JWTAuth.js'
 

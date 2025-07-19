@@ -533,8 +533,6 @@ export default {
   getTasksByGroupId,
   updateTaskGroup,
   deleteTaskGroup,
-  calculateFinishedWeightedTaskOfAUser,
-  calculateTotalTaskWeightedOfAUser,
   getAllTaskGroups,
   getTaskSubmission,
 }
