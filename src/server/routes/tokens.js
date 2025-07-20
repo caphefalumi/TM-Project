@@ -28,7 +28,7 @@ const addRefreshToken = async (req, res, next) => {
     httpOnly: true,
     secure: true, // Use secure cookies in production
     sameSite: 'None',
-    maxAge: 10 * 60 * 1000, // 10 minutes
+    maxAge: 19 * 60 * 1000, // 19 minutes
     path: '/',
   })
 
@@ -62,7 +62,7 @@ const renewAccessToken = async (req, res) => {
     httpOnly: true,
     secure: true, // Use secure cookies in production
     sameSite: 'None',
-    maxAge: 10 * 60 * 1000, // 10 minutes
+    maxAge: 19 * 60 * 1000, // 19 minutes
     path: '/',
   })
   res.status(200).json({ accessToken })

@@ -13,7 +13,7 @@ function generateAccessToken(user) {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: '10m', // 10 minutes
+      expiresIn: '19m', // 19 minutes
     },
   )
 }
