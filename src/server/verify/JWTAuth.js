@@ -47,13 +47,13 @@ const authenticateAccessToken = async (req, res, next) => {
       revoked: false,
     })
     if (!storedToken) {
-      return res.status(403).json({ error: 'No valid session found' })
+      return res.status(403).json({ message: 'No valid session found' })
     } else {
       req.user = user
       next()
     }
   } catch (err) {
-    return res.status(403).json({ error: 'Invalid access token' })
+    return res.status(403).json({ message: 'Invalid access token' })
   }
 }
 
