@@ -120,6 +120,10 @@ const loadUsers = async () => {
     if (response.ok) {
       const data = await response.json()
       users.value = data.users || []
+    } else {
+      const error = await response.json()
+      console.error('Failed to load users:', error.message)
+      alert(`Failed to load users: ${error.message}`)
     }
   } catch (error) {
     console.error('Error loading users:', error)
@@ -238,7 +242,7 @@ const deleteUser = async (userToDelete) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `${PORT}/api/admin/users/${userToDelete.userId}`, // Use userId instead of _id
+      `${PORT}/api/admin/users/${userToDelete._id}`, // Never change this endpoint
       {
         method: 'DELETE',
         credentials: 'include',
