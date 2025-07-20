@@ -44,7 +44,7 @@ const startTokenRefresh = () => {
     clearInterval(tokenRefreshInterval)
   }
 
-  // Set up interval to refresh token every 9 minutes (540,000 ms)
+  // Set up interval to refresh token every 8 minutes
   tokenRefreshInterval = setInterval(
     async () => {
       if (showSidebar.value) {
@@ -55,8 +55,8 @@ const startTokenRefresh = () => {
         }
       }
     },
-    9 * 60 * 1000,
-  ) // 9 minutes in milliseconds
+    18 * 60 * 1000,
+  ) // 18 minutes in milliseconds
 
   console.log('Auto token refresh started - will refresh every 9 minutes when authenticated')
 }

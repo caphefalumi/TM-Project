@@ -69,10 +69,9 @@ const features = [
                 <v-chip
                   v-for="(chip, index) in ['Intuitive', 'Secure', 'Responsive']"
                   :key="chip"
-                  color="primary"
                   variant="outlined"
                   size="small"
-                  class="ma-1 feature-chip"
+                  class="ma-1 feature-chip highlight-text"
                   :style="{ 'animation-delay': `${1 + index * 0.1}s` }"
                 >
                   {{ chip }}
