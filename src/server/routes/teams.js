@@ -380,9 +380,28 @@ const getProgressBar = async (userId, teamId) => {
   }
 }
 
+const getTeamDetails = async (req, res) => {
+  const { teamId } = req.params
+  if (!teamId) {
+    return res.status(400).json({ message: 'Team ID is required' })
+  }
+  await connectDB()
+  try {
+    const team = await Teams.findById(teamId)
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' })
+    }
+    return res.status(200).json({ team })
+  } catch (error) {
+    console.error('Error fetching team details:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 export default {
   addUserToTeam,
   addTeamPro,
+  getTeamDetails,
   getParentsTeam,
   getTeamNameThatUserIsAdmin,
   getTeamThatUserIsMember,

@@ -29,6 +29,7 @@ const {
   getCategories,
   getAllUsers,
   deleteATeam,
+  getTeamDetails,
 } = Teams
 
 const { addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam } = Users
@@ -102,6 +103,8 @@ router.get('/api/teams/user/:userId/admin', getTeamNameThatUserIsAdmin)
 
 router.get('/api/teams/user/:userId', getTeamThatUserIsMember)
 // Get all teams that the user is a member of
+
+router.get('/api/teams/:teamId', getTeamDetails)
 
 router.get('/api/teams/:teamId/members', getUsersOfTeam)
 // Get all members of a team by team ID

@@ -431,10 +431,31 @@ const getFieldPreviewValue = (field) => {
                     </div>
                   </v-form>
                 </v-card-text>
-
+                <div class="validation-messages mb-3">
+                  <v-alert 
+                    v-if="!taskForm.title || !taskForm.teamId || !taskForm.dueDate || selectedUsers.length === 0"
+                    type="warning" 
+                    variant="tonal"
+                    density="compact"
+                    class="mb-2"
+                  >
+                    <template v-slot:prepend>
+                      <v-icon>mdi-alert-circle</v-icon>
+                    </template>
+                    <div class="text-caption">
+                      <strong>Please complete the following to continue:</strong>
+                      <ul class="mt-1 ml-4">
+                        <li v-if="!taskForm.title">Add a task title</li>
+                        <li v-if="!taskForm.dueDate">Select a due date</li>
+                        <li v-if="selectedUsers.length === 0">Assign at least one team member</li>
+                      </ul>
+                    </div>
+                  </v-alert>
+                </div>
                 <v-card-actions class="px-0">
                   <v-spacer></v-spacer>
                   <v-btn
+                    variant="outlined"
                     color="primary"
                     @click="currentStep = 2"
                     :disabled="!taskForm.title || !taskForm.teamId || !taskForm.dueDate || selectedUsers.length === 0"
@@ -684,6 +705,7 @@ const getFieldPreviewValue = (field) => {
         <v-btn @click="closeDialog" variant="outlined">Cancel</v-btn>
         <v-spacer></v-spacer>
         <v-btn
+          variant="outlined"
           color="primary"
           @click="createTask"
           :loading="loading"
