@@ -46,7 +46,6 @@ const selectedTaskForSubmission = ref(null)
 const selectedAnnouncementForDeletion = ref(null)
 const announcementToEdit = ref(null)
 const announcementToView = ref(null)
-const specificTaskGroup = ref(null)
 const selectedTaskGroupId = ref(null)
 
 const tasks = ref([])
@@ -65,6 +64,7 @@ const initializeTeamData = async () => {
   if (userFromToken) {
     setUserToUserToken(userFromToken)
     await fetchTeamTasks()
+    await fetchTeamDetails()
     await fetchAnnouncements()
     await fetchTeamMembers()
     await getTaskGroups()
@@ -141,6 +141,29 @@ const fetchTeamTasks = async () => {
   } catch (error) {
     console.error('Failed to fetch team tasks:', error)
     tasks.value = []
+  }
+}
+
+const fetchTeamDetails = async () => {
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const data = await response.json()
+    if (!response.ok) {
+      console.error('Failed to fetch team details:', data.message)
+      team.value = {}
+    } else {
+      team.value = data.team || {}
+      console.log('Fetched team details:', team.value)
+    }
+  } catch (error) {
+    console.error('Failed to fetch team details:', error)
   }
 }
 
@@ -288,10 +311,10 @@ const getTaskGroups = async () => {
       taskGroups.value = []
     } else {
       taskGroups.value = data.taskGroups || []
-      console.log('Fetched team details:', team.value)
+      console.log('Fetched task groups:', taskGroups.value)
     }
   } catch (error) {
-    console.error('Failed to fetch team details:', error)
+    console.error('Failed to fetch task groups:', error)
   }
 }
 
