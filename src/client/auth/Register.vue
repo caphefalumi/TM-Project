@@ -48,7 +48,7 @@ async function register() {
     <v-row align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
         <v-card class="pa-6" elevation="8">
-          <v-card-title class="text-h5 text-center">Register</v-card-title>
+          <v-card-title class="text-h5 text-center mb-2">Register</v-card-title>
           <v-card-text>
             <v-form @submit.prevent="register">
               <v-text-field

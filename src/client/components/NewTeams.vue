@@ -185,27 +185,6 @@ const createTeam = async () => {
         >Create New Team</v-card-title
       >
       <v-card-text>
-        <v-expand-transition>
-          <v-select
-            v-model="newTeam.parentTeamId"
-            :items="props.teamsThatUserIsAdmin"
-            item-title="title"
-            item-value="teamId"
-            label="Parent Team ID (optional)"
-            variant="outlined"
-            placeholder="Enter parent team ID if applicable"
-          ></v-select>
-        </v-expand-transition>
-
-        <v-expand-transition>
-          <v-select
-            v-model="newTeam.category"
-            :items="categories"
-            label="Category"
-            variant="outlined"
-            required
-          ></v-select>
-        </v-expand-transition>
         <v-text-field
           v-model="newTeam.title"
           label="Team Title"
@@ -218,6 +197,26 @@ const createTeam = async () => {
           rows="3"
           variant="outlined"
         ></v-textarea>
+                <v-expand-transition>
+          <v-select
+            v-model="newTeam.category"
+            :items="categories"
+            label="Category"
+            variant="outlined"
+            required
+          ></v-select>
+        </v-expand-transition>
+        <v-expand-transition v-if="props.teamsThatUserIsAdmin.length > 0">
+          <v-select
+            v-model="newTeam.parentTeamId"
+            :items="props.teamsThatUserIsAdmin"
+            item-title="title"
+            item-value="teamId"
+            label="Parent Team ID (optional)"
+            variant="outlined"
+            placeholder="Enter parent team ID if applicable"
+          ></v-select>
+        </v-expand-transition>
       </v-card-text>
       <!-- Display success/errors here -->
       <v-card-text>
