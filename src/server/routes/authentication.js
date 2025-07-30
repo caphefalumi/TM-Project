@@ -43,7 +43,7 @@ const oAuthentication = async (req, res) => {
     return res.status(202).json({ success: 'register' })
   } else {
     // Has user --> authorize
-    return res.status(202).json({ success: 'login' })
+    return res.status(202).json({ success: 'login', username: existingUser.username })
   }
 }
 

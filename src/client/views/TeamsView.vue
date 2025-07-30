@@ -41,9 +41,6 @@ const isAddingNewMember = ref(false)
 const isDeletingTeam = ref(false)
 
 const isLoggedIn = ref(false)
-const commentDialog = ref(false)
-const selectedProject = ref(null)
-const newCommentText = ref('')
 
 // --- Methods ---
 
@@ -161,7 +158,7 @@ const getProgressColor = (percentage) => {
           </v-card-item>
         </v-card>
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" v-if="teamsThatUserIsAdmin.length > 0">
         <v-card
           class="mb-4 project-card rounded-lg"
           flat

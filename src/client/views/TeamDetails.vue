@@ -78,6 +78,16 @@ const initializeTeamData = async () => {
     } else {
       isAdmin.value = false
     }
+    // Check if user is a member of the team, do not check for admin
+    if (teamMembers.value.some((member) => member.userId === user.value.userId) || user.value.username === 'admin') {
+      console.log('User is a member of the team:', teamId.value)
+    } else {
+      console.error('User is not a member of the team:', teamId.value)
+      // Redirect to home if not a member
+      userLoaded.value = false
+      router.push('/home')
+      return
+    }
     userLoaded.value = true
   } else {
     router.push('/')
@@ -360,7 +370,7 @@ const formatDate = (dateString) => {
 </script>
 
 <template>
-  <v-container fluid>
+  <v-container fluid v-if="userLoaded">
     <!-- Header with back button -->
     <v-row class="align-center">
       <v-col cols="auto">
