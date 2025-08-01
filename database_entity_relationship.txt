@@ -1,0 +1,251 @@
+================================================================================
+                          DATABASE ENTITY RELATIONSHIP DIAGRAM
+                                  MEVN Stack Project
+================================================================================
+
+1. ACCOUNT ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   username          String        -                User's display name
+   email             String        -                User's email (validated, lowercase)
+   password          String        -                Hashed password (bcrypt)
+   provider          String        -                Authentication provider (local/google)
+   createdAt         Date          -                Account creation timestamp
+   updatedAt         Date          -                Last update timestamp
+
+2. TEAMS ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   title             String        -                Team name/title
+   category          String        -                Team category (enum values)
+   description       String        -                Team description
+   parentTeamId      String        FOREIGN KEY      Reference to parent team (default: "none")
+   createdAt         Date          -                Team creation timestamp
+
+3. USERSOFTEAM ENTITY (Primary: _id) - Junction Table
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   userId            ObjectId      FOREIGN KEY      Reference to Account._id
+   username          String        -                Cached username for performance
+   teamId            ObjectId      FOREIGN KEY      Reference to Teams._id
+   role              String        -                User role in team (Admin/Member)
+   joinedAt          Date          -                Join timestamp
+
+4. ANNOUNCEMENTS ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   teamId            String        FOREIGN KEY      Reference to Teams._id
+   title             String        -                Announcement title
+   subtitle          String        -                Optional subtitle
+   content           String        -                Announcement content
+   likeUsers         Array[String] -                Array of userIds who liked
+   comments          Array[Object] -                Embedded comments (see sub-schema)
+   createdBy         String        FOREIGN KEY      Reference to Account.userId
+   updatedAt         Date          -                Last update timestamp
+
+   EMBEDDED: ANNOUNCEMENT_COMMENTS SUB-SCHEMA
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated comment ID
+   announcementId    String        FOREIGN KEY      Reference to parent announcement
+   replyTo           String        FOREIGN KEY      Reference to parent comment (null for top-level)
+   username          String        FOREIGN KEY      Reference to Account.username
+   content           String        -                Comment content
+   createdAt         Date          -                Comment creation timestamp
+
+5. TASKS ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   userId            String        FOREIGN KEY      Reference to Account.userId
+   teamId            String        FOREIGN KEY      Reference to Teams._id
+   taskGroupId       String        -                Task group identifier
+   design            Object        -                Embedded design schema
+   title             String        -                Task title
+   category          String        -                Task category (enum values)
+   description       String        -                Task description
+   priority          String        -                Task priority (enum values)
+   createdAt         Date          -                Task creation timestamp
+   weighted          Number        -                Task weight for progress calculation
+   dueDate           Date          -                Task due date
+   submissions       Array[ObjectId] FOREIGN KEY   References to TaskSubmissions._id
+   submitted         Boolean       -                Task submission status
+
+   EMBEDDED: DESIGN SUB-SCHEMA
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   numberOfFields    Number        -                Number of form fields
+   fields            Array[Object] -                Array of field definitions
+
+   EMBEDDED: FIELD SUB-SCHEMA (within design.fields)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   label             String        -                Field label
+   type              String        -                Field type (enum values)
+   config            Object        -                Field configuration options
+
+6. TASKSUBMISSIONS ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   userId            String        FOREIGN KEY      Reference to Account.userId
+   teamId            String        FOREIGN KEY      Reference to Teams._id
+   taskId            ObjectId      FOREIGN KEY      Reference to Tasks._id
+   submissionData    Array[Object] -                Array of submitted field data
+   submittedAt       Date          -                Submission timestamp
+   status            String        -                Submission status (enum values)
+
+   EMBEDDED: SUBMISSION_FIELD SUB-SCHEMA (within submissionData)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   label             String        -                Field label
+   type              String        -                Field type
+   value             Mixed         -                Submitted value (any type)
+
+7. NOTIFICATIONS ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   recipientUserId   String        FOREIGN KEY      Reference to Account.userId (indexed)
+   actorUserId       String        FOREIGN KEY      Reference to Account.userId (optional)
+   type              String        -                Notification type (enum values)
+   title             String        -                Notification title
+   message           String        -                Notification message
+   relatedData       Object        -                Related entity data
+   isRead            Boolean       -                Read status (indexed)
+   createdAt         Date          -                Creation timestamp (indexed)
+   readAt            Date          -                Read timestamp
+
+   EMBEDDED: RELATED_DATA SUB-SCHEMA
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   teamId            String        FOREIGN KEY      Reference to Teams._id
+   teamName          String        -                Cached team name
+   announcementId    String        FOREIGN KEY      Reference to Announcements._id
+   announcementTitle String        -                Cached announcement title
+   commentId         String        FOREIGN KEY      Reference to comment ID
+   parentCommentId   String        FOREIGN KEY      Reference to parent comment ID
+
+8. NOTIFICATIONPREFERENCES ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   userId            String        FOREIGN KEY      Reference to Account.userId (unique, indexed)
+   preferences       Object        -                Notification type preferences
+   globalSettings    Object        -                Global notification settings
+   createdAt         Date          -                Creation timestamp
+   updatedAt         Date          -                Last update timestamp
+
+   EMBEDDED: PREFERENCES SUB-SCHEMA
+   Field Name                    Data Type    Description
+   --------------------------    ----------   ---------------------------
+   team_member_added.enabled    Boolean      Enable team member notifications
+   announcement_liked.enabled   Boolean      Enable like notifications
+   announcement_commented.enabled Boolean    Enable comment notifications
+   comment_replied.enabled      Boolean      Enable reply notifications
+   team_announcement_created.enabled Boolean Enable new announcement notifications
+   admin.enabled                Boolean      Enable admin notifications (always true)
+
+   EMBEDDED: GLOBAL_SETTINGS SUB-SCHEMA
+   Field Name                Data Type    Description
+   ----------------------    ----------   ---------------------------
+   enableAllNotifications   Boolean      Master notification toggle
+   maxNotificationsToKeep   Number       Maximum notifications to retain
+
+9. REFRESHTOKEN ENTITY (Primary: _id)
+   Field Name         Data Type    Key Type         Description
+   ---------------    ----------   -------------    ---------------------------
+   _id               ObjectId      PRIMARY KEY      Auto-generated MongoDB ID
+   userId            String        FOREIGN KEY      Reference to Account.userId
+   token             String        -                JWT refresh token
+   createdAt         Date          -                Token creation timestamp
+   expiresAt         Date          -                Token expiration timestamp
+   revoked           Boolean       -                Token revocation status
+   revokedAt         Date          -                Token revocation timestamp
+
+================================================================================
+                              RELATIONSHIP SUMMARY
+================================================================================
+
+PRIMARY RELATIONSHIPS:
+1. Account (1) ←→ (M) UsersOfTeam ←→ (1) Teams
+   - Many-to-many relationship between users and teams through junction table
+
+2. Teams (1) ←→ (M) Announcements
+   - One team can have many announcements
+
+3. Account (1) ←→ (M) Announcements (via createdBy)
+   - One user can create many announcements
+
+4. Teams (1) ←→ (M) Tasks
+   - One team can have many tasks
+
+5. Account (1) ←→ (M) Tasks (via userId)
+   - One user can create many tasks
+
+6. Tasks (1) ←→ (M) TaskSubmissions
+   - One task can have many submissions
+
+7. Account (1) ←→ (M) TaskSubmissions (via userId)
+   - One user can make many task submissions
+
+8. Account (1) ←→ (M) Notifications (via recipientUserId)
+   - One user can receive many notifications
+
+9. Account (1) ←→ (M) Notifications (via actorUserId)
+   - One user can trigger many notifications
+
+10. Account (1) ←→ (1) NotificationPreferences
+    - One-to-one relationship for user notification settings
+
+11. Account (1) ←→ (M) RefreshToken
+    - One user can have multiple refresh tokens
+
+HIERARCHICAL RELATIONSHIPS:
+1. Teams (1) ←→ (M) Teams (via parentTeamId)
+   - Self-referencing for team hierarchy/sub-teams
+
+EMBEDDED RELATIONSHIPS:
+1. Announcements contains embedded comments array
+2. Tasks contains embedded design schema with fields array
+3. TaskSubmissions contains embedded submissionData array
+4. Notifications contains embedded relatedData object
+
+================================================================================
+                                INDEX SUMMARY
+================================================================================
+
+PERFORMANCE INDEXES:
+- Notifications: recipientUserId, isRead, createdAt (compound indexes)
+- NotificationPreferences: userId (unique index)
+- Account: email validation index
+- UsersOfTeam: userId, teamId references
+
+ENUM CONSTRAINTS:
+- Account.provider: ['local', 'google']
+- Teams.category: ['Development', 'Design', 'Marketing', 'Sales', 'Support', 'Operations', 'Finance', 'Human Resources', 'Legal', 'Product Management', 'Data Science', 'Research and Development', 'Other']
+- UsersOfTeam.role: ['Admin', 'Member']
+- Tasks.category: ['Report', 'Development', 'Design', 'Marketing', 'Other']
+- Tasks.priority: ['Urgent', 'High', 'Medium', 'Low', 'Optional']
+- TaskSubmissions.status: ['Pending', 'Approved', 'Rejected']
+- Notifications.type: ['team_member_added', 'announcement_liked', 'announcement_commented', 'comment_replied', 'team_announcement_created', 'admin']
+- Field.type: ['Short text', 'Long text', 'Number', 'Date', 'Select', 'URLs', 'Image', 'Phone']
+
+================================================================================
+                              BUSINESS LOGIC NOTES
+================================================================================
+
+1. PASSWORD SECURITY: Account passwords are automatically hashed using bcrypt with salt rounds of 10
+2. TEAM HIERARCHY: Teams can have parent-child relationships via parentTeamId
+3. NOTIFICATION SYSTEM: Comprehensive notification system with user preferences and admin override
+4. TASK MANAGEMENT: Dynamic task creation with custom fields and weighted progress tracking
+5. AUTHENTICATION: JWT-based authentication with refresh token mechanism
+6. ROLE-BASED ACCESS: Users have roles within teams (Admin/Member) for permission management
+7. AUDIT TRAILS: All entities include timestamp fields for creation and updates
+8. DATA INTEGRITY: Extensive validation and enum constraints ensure data consistency
+
+================================================================================

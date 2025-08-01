@@ -139,7 +139,7 @@
 
           <div>
             <h3 class="mb-2">Notification Types</h3>
-            <div v-for="(pref, type) in preferences.preferences" :key="type" class="mb-3">
+            <div v-for="(pref, type) in filteredPreferences" :key="type" class="mb-3">
               <v-card variant="outlined" class="pa-3">
                 <div class="d-flex justify-space-between align-center">
                   <span class="font-weight-medium">{{ formatNotificationType(type) }}</span>
@@ -151,8 +151,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="showSettings = false">Cancel</v-btn>
-          <v-btn color="primary" @click="saveSettings" :loading="savingSettings">Save</v-btn>
+          <v-btn @click="showSettings = false" variant="outlined">Cancel</v-btn>
+          <v-btn color="primary" @click="saveSettings" :loading="savingSettings" variant="outlined"
+            >Save</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -202,6 +204,17 @@ const preferences = ref({
 
 // Computed
 const hasUnreadNotifications = computed(() => unreadCount.value > 0)
+
+// Filter out admin notifications from user preferences UI
+const filteredPreferences = computed(() => {
+  const filtered = {}
+  for (const [type, pref] of Object.entries(preferences.value.preferences)) {
+    if (type !== 'admin') {
+      filtered[type] = pref
+    }
+  }
+  return filtered
+})
 
 // Methods
 const toggleNotifications = () => {
@@ -266,16 +279,13 @@ const markAllAsRead = async () => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/notifications/${props.userId}/mark-read`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ markAllAsRead: true }),
+    const response = await fetch(`${PORT}/api/notifications/${props.userId}/mark-read`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      body: JSON.stringify({ markAllAsRead: true }),
+    })
 
     if (response.ok) {
       // Update local state
@@ -417,15 +427,12 @@ const openSettings = () => {
 const loadPreferences = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/notifications/${props.userId}/preferences`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const response = await fetch(`${PORT}/api/notifications/${props.userId}/preferences`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+    })
 
     if (response.ok) {
       const data = await response.json()
@@ -441,19 +448,23 @@ const saveSettings = async () => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/notifications/${props.userId}/preferences`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          preferences: preferences.value.preferences,
-          globalSettings: preferences.value.globalSettings,
-        }),
+
+    // Preserve admin preferences when saving (always keep them enabled)
+    const preferencesToSave = {
+      ...preferences.value.preferences,
+      admin: { enabled: true }, // Admin notifications should always be enabled
+    }
+
+    const response = await fetch(`${PORT}/api/notifications/${props.userId}/preferences`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      body: JSON.stringify({
+        preferences: preferencesToSave,
+        globalSettings: preferences.value.globalSettings,
+      }),
+    })
 
     if (response.ok) {
       showSettings.value = false
@@ -474,6 +485,7 @@ const getNotificationIcon = (type) => {
     announcement_commented: 'mdi-comment',
     comment_replied: 'mdi-reply',
     team_announcement_created: 'mdi-bullhorn',
+    admin: 'mdi-shield-crown',
   }
   return icons[type] || 'mdi-bell'
 }
@@ -485,6 +497,7 @@ const getNotificationColor = (type) => {
     announcement_commented: 'info',
     comment_replied: 'info',
     team_announcement_created: 'primary',
+    admin: 'warning',
   }
   return colors[type] || 'grey'
 }
@@ -496,6 +509,7 @@ const formatNotificationType = (type) => {
     announcement_commented: 'Announcement Commented',
     comment_replied: 'Comment Replied',
     team_announcement_created: 'New Team Announcement',
+    admin: 'Admin Notification',
   }
   return labels[type] || type
 }

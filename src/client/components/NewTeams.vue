@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import '../styles/buttonStyling.css'
 
@@ -67,6 +67,7 @@ const props = defineProps({
   },
 })
 
+// Computed property to add "None" option to parent team selection
 const fetchCategories = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
@@ -197,7 +198,7 @@ const createTeam = async () => {
           rows="3"
           variant="outlined"
         ></v-textarea>
-                <v-expand-transition>
+        <v-expand-transition>
           <v-select
             v-model="newTeam.category"
             :items="categories"
@@ -214,7 +215,9 @@ const createTeam = async () => {
             item-value="teamId"
             label="Parent Team ID (optional)"
             variant="outlined"
-            placeholder="Enter parent team ID if applicable"
+            placeholder="Select parent team if applicable"
+            clearable
+            clear-icon="mdi-close"
           ></v-select>
         </v-expand-transition>
       </v-card-text>
