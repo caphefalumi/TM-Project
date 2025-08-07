@@ -72,14 +72,18 @@ const initializeTeamData = async () => {
     if (
       teamMembers.value.some(
         (member) => member.userId === user.value.userId && member.role === 'Admin',
-      ) || user.value.username === 'admin'
+      ) ||
+      user.value.username === 'admin'
     ) {
       isAdmin.value = true
     } else {
       isAdmin.value = false
     }
     // Check if user is a member of the team, do not check for admin
-    if (teamMembers.value.some((member) => member.userId === user.value.userId) || user.value.username === 'admin') {
+    if (
+      teamMembers.value.some((member) => member.userId === user.value.userId) ||
+      user.value.username === 'admin'
+    ) {
       console.log('User is a member of the team:', teamId.value)
     } else {
       console.error('User is not a member of the team:', teamId.value)
@@ -180,15 +184,12 @@ const fetchTeamDetails = async () => {
 const fetchAnnouncements = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/teams/${teamId.value}/announcements`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const response = await fetch(`${PORT}/api/teams/${teamId.value}/announcements`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+    })
 
     const data = await response.json()
     console.log('Announcements response:', data)
@@ -272,16 +273,13 @@ const toggleLikeAnnouncement = async (announcementId) => {
 
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const response = await fetch(
-      `${PORT}/api/announcements/${announcementId}/like`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user.value.userId }),
+    const response = await fetch(`${PORT}/api/announcements/${announcementId}/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      body: JSON.stringify({ userId: user.value.userId }),
+    })
 
     if (!response.ok) {
       throw new Error('Failed to like announcement')
@@ -592,7 +590,7 @@ const formatDate = (dateString) => {
               variant="outlined"
             >
               <v-card-item>
-                <v-card-title>Author: {{ announcement.createdBy }} </v-card-title>
+                <v-card-title>Author: {{ announcement.createdByUsername }} </v-card-title>
                 <v-card-title class="font-weight-bold">{{ announcement.title }}</v-card-title>
                 <v-card-subtitle v-if="announcement.subtitle" class="text-caption">
                   {{ announcement.subtitle }}

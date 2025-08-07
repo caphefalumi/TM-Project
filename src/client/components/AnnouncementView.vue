@@ -87,16 +87,13 @@ const submitComment = async () => {
       replyTo: newComment.value.replyTo || '',
     }
 
-    const response = await fetch(
-      `${PORT}/api/announcements/${props.announcement._id}/comments`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(commentData),
+    const response = await fetch(`${PORT}/api/announcements/${props.announcement._id}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      body: JSON.stringify(commentData),
+    })
 
     const result = await response.json()
     if (response.ok) {
@@ -218,11 +215,11 @@ const organizedComments = computed(() => {
             <div class="d-flex align-center mb-2">
               <v-avatar size="32" color="primary" class="mr-2">
                 <span class="text-white">{{
-                  props.announcement.createdBy?.[0]?.toUpperCase()
+                  props.announcement.createdByUsername?.[0]?.toUpperCase()
                 }}</span>
               </v-avatar>
               <div>
-                <div class="font-weight-medium">{{ props.announcement.createdBy }}</div>
+                <div class="font-weight-medium">{{ props.announcement.createdByUsername }}</div>
                 <div class="text-caption text-grey">
                   {{ formatDate(props.announcement.updatedAt) }}
                 </div>

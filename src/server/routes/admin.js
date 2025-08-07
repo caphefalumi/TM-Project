@@ -125,7 +125,7 @@ const getAllAnnouncementsForAdmin = async (req, res) => {
         $lookup: {
           from: 'accounts',
           localField: 'createdBy',
-          foreignField: 'userId',
+          foreignField: '_id',
           as: 'author',
         },
       },
@@ -135,8 +135,15 @@ const getAllAnnouncementsForAdmin = async (req, res) => {
           subtitle: 1, // Include subtitle field
           content: 1,
           createdBy: 1,
-          teamId: 1,
+          createdByUsername: {
+            $cond: {
+              if: { $gt: [{ $size: '$author' }, 0] },
+              then: { $arrayElemAt: ['$author.username', 0] },
+              else: '$createdByUsername', // Fallback to existing field if lookup fails
+            },
+          },
           createdAt: 1,
+          updatedAt: 1,
         },
       },
       {
