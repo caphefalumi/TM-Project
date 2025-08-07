@@ -278,13 +278,10 @@ const deleteAnnouncement = async (announcement) => {
   deleting.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/admin/announcements/${announcement._id}`,
-      {
-        method: 'DELETE',
-        credentials: 'include',
-      },
-    )
+    const response = await fetch(`${PORT}/api/admin/announcements/${announcement._id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
 
     if (response.ok) {
       await loadAnnouncements() // Reload announcements data
@@ -360,11 +357,11 @@ const getBreadcrumbs = (team) => {
                 <v-card-text>
                   <v-data-table
                     :headers="[
-                      { title: 'Team Name', key: 'name' },
-                      { title: 'Breadcrumbs', key: 'breadcrumbs' },
-                      { title: 'Members', key: 'memberCount' },
-                      { title: 'Tasks', key: 'taskCount' },
-                      { title: 'Actions', key: 'actions', sortable: false },
+                      { title: 'Team Name', key: 'name', width: '25%' },
+                      { title: 'Breadcrumbs', key: 'breadcrumbs', width: '35%' },
+                      { title: 'Members', key: 'memberCount', width: '10%' },
+                      { title: 'Tasks', key: 'taskCount', width: '10%' },
+                      { title: 'Actions', key: 'actions', sortable: false, width: '20%' },
                     ]"
                     :items="paginatedTeams"
                     :loading="loading"
@@ -469,7 +466,7 @@ const getBreadcrumbs = (team) => {
                     :headers="[
                       { title: 'Title', key: 'title', width: '30%' },
                       { title: 'Subtitle', key: 'subtitle', width: '25%' },
-                      { title: 'Author', key: 'createdBy', width: '25%' },
+                      { title: 'Author', key: 'createdByUsername', width: '25%' },
                       { title: 'Actions', key: 'actions', sortable: false, width: '20%' },
                     ]"
                     :items="paginatedAnnouncements"
@@ -565,5 +562,4 @@ const getBreadcrumbs = (team) => {
 :deep(.v-data-table-header__content) {
   font-weight: bold !important;
 }
-
 </style>

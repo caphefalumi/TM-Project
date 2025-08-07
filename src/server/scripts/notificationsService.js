@@ -145,13 +145,13 @@ const createTeamMemberAddedNotification = async (newMemberUserId, teamId, addedB
     }
 
     return await createNotification({
-      recipientUserId: newMemberUserId,
-      actorUserId: addedByUserId,
+      recipientUserId: newMemberUserId.toString(),
+      actorUserId: addedByUserId.toString(),
       type: 'team_member_added',
       title: 'Added to Team',
       message: `${actor.username} added you to the team "${team.title}"`,
       relatedData: {
-        teamId: teamId,
+        teamId: teamId.toString(),
         teamName: team.title,
       },
     })
@@ -174,8 +174,12 @@ const createAnnouncementLikedNotification = async (
   await connectDB()
 
   try {
+    // Convert to strings for consistent comparison
+    const creatorIdStr = announcementCreatorUserId.toString()
+    const likerIdStr = likerUserId.toString()
+
     // Don't notify if user liked their own announcement
-    if (announcementCreatorUserId === likerUserId) return null
+    if (creatorIdStr === likerIdStr) return null
 
     const liker = await Account.findById(likerUserId)
     if (!liker) {
@@ -184,15 +188,15 @@ const createAnnouncementLikedNotification = async (
     }
 
     return await createNotification({
-      recipientUserId: announcementCreatorUserId,
-      actorUserId: likerUserId,
+      recipientUserId: creatorIdStr,
+      actorUserId: likerIdStr,
       type: 'announcement_liked',
       title: 'Announcement Liked',
       message: `${liker.username} liked your announcement "${announcementTitle}"`,
       relatedData: {
-        announcementId: announcementId,
+        announcementId: announcementId.toString(),
         announcementTitle: announcementTitle,
-        ...(teamId && { teamId: teamId }),
+        ...(teamId && { teamId: teamId.toString() }),
       },
     })
   } catch (error) {
@@ -215,8 +219,12 @@ const createAnnouncementCommentedNotification = async (
   await connectDB()
 
   try {
+    // Convert to strings for consistent comparison
+    const creatorIdStr = announcementCreatorUserId.toString()
+    const commenterIdStr = commenterUserId.toString()
+
     // Don't notify if user commented on their own announcement
-    if (announcementCreatorUserId === commenterUserId) return null
+    if (creatorIdStr === commenterIdStr) return null
 
     const commenter = await Account.findById(commenterUserId)
     if (!commenter) {
@@ -225,16 +233,16 @@ const createAnnouncementCommentedNotification = async (
     }
 
     return await createNotification({
-      recipientUserId: announcementCreatorUserId,
-      actorUserId: commenterUserId,
+      recipientUserId: creatorIdStr,
+      actorUserId: commenterIdStr,
       type: 'announcement_commented',
       title: 'New Comment',
       message: `${commenter.username} commented on your announcement "${announcementTitle}"`,
       relatedData: {
-        announcementId: announcementId,
+        announcementId: announcementId.toString(),
         announcementTitle: announcementTitle,
-        commentId: commentId,
-        ...(teamId && { teamId: teamId }),
+        commentId: commentId.toString(),
+        ...(teamId && { teamId: teamId.toString() }),
       },
     })
   } catch (error) {
@@ -258,8 +266,12 @@ const createCommentRepliedNotification = async (
   await connectDB()
 
   try {
+    // Convert to strings for consistent comparison
+    const originalIdStr = originalCommenterUserId.toString()
+    const replierIdStr = replierUserId.toString()
+
     // Don't notify if user replied to their own comment
-    if (originalCommenterUserId === replierUserId) return null
+    if (originalIdStr === replierIdStr) return null
 
     const replier = await Account.findById(replierUserId)
     if (!replier) {
@@ -268,17 +280,17 @@ const createCommentRepliedNotification = async (
     }
 
     return await createNotification({
-      recipientUserId: originalCommenterUserId,
-      actorUserId: replierUserId,
+      recipientUserId: originalIdStr,
+      actorUserId: replierIdStr,
       type: 'comment_replied',
       title: 'Comment Reply',
       message: `${replier.username} replied to your comment on "${announcementTitle}"`,
       relatedData: {
-        announcementId: announcementId,
+        announcementId: announcementId.toString(),
         announcementTitle: announcementTitle,
-        commentId: commentId,
-        parentCommentId: parentCommentId,
-        ...(teamId && { teamId: teamId }),
+        commentId: commentId.toString(),
+        parentCommentId: parentCommentId.toString(),
+        ...(teamId && { teamId: teamId.toString() }),
       },
     })
   } catch (error) {
@@ -309,20 +321,22 @@ const createTeamAnnouncementCreatedNotification = async (
     }
 
     const notifications = []
+    const creatorIdStr = creatorUserId.toString()
 
     // Create notification for each team member (except the creator)
     for (const memberUserId of teamMemberUserIds) {
-      if (memberUserId !== creatorUserId) {
+      const memberIdStr = memberUserId.toString()
+      if (memberIdStr !== creatorIdStr) {
         const notification = await createNotification({
-          recipientUserId: memberUserId,
-          actorUserId: creatorUserId,
+          recipientUserId: memberIdStr,
+          actorUserId: creatorIdStr,
           type: 'team_announcement_created',
           title: 'New Team Announcement',
           message: `${creator.username} posted a new announcement in ${team.title}: "${announcementTitle}"`,
           relatedData: {
-            teamId: teamId,
+            teamId: teamId.toString(),
             teamName: team.title,
-            announcementId: announcementId,
+            announcementId: announcementId.toString(),
             announcementTitle: announcementTitle,
           },
         })

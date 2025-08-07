@@ -41,12 +41,12 @@ const getAnnouncementsOfTeam = async (req, res) => {
 
 const addAnnouncement = async (req, res) => {
   // Add a new announcement to a team
-  // Requires teamId, title, content, and createdBy in the request body
+  // Requires teamId, title, content, createdBy (userId), and createdByUsername in the request body
   await connectDB()
   try {
-    const { title, subtitle, content, createdBy } = req.body
+    const { title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
-    if (!teamId || !title || !content || !createdBy) {
+    if (!teamId || !title || !content || !createdBy || !createdByUsername) {
       return res.status(400).json({ message: 'All fields are required' })
     }
 
@@ -66,6 +66,7 @@ const addAnnouncement = async (req, res) => {
       subtitle: finalSubtitle,
       content,
       createdBy,
+      createdByUsername,
     })
 
     await newAnnouncement.save()
@@ -73,14 +74,14 @@ const addAnnouncement = async (req, res) => {
     // Create notifications for team members about the new announcement
     try {
       const teamMembers = await UsersOfTeam.find({ teamId }, 'userId')
-      const teamMemberUserIds = teamMembers.map((member) => member.userId)
+      const teamMemberUserIds = teamMembers.map((member) => member.userId.toString())
 
       if (teamMemberUserIds.length > 0) {
         await createTeamAnnouncementCreatedNotification(
           teamId,
           newAnnouncement._id.toString(),
           title,
-          createdBy,
+          createdBy, // Now this is the userId
           teamMemberUserIds,
         )
         console.log(`Notifications created for new announcement in team ${teamId}`)
@@ -125,18 +126,24 @@ const updateAnnouncement = async (req, res) => {
   // Requires announcementId in the request body and at least one field to update
   await connectDB()
   try {
-    const { id, title, subtitle, content, createdBy } = req.body
+    const { id, title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
-    console.log('Update announcement request:', { id, title, subtitle, content, createdBy, teamId })
+    console.log('Update announcement request:', {
+      id,
+      title,
+      subtitle,
+      content,
+      createdBy,
+      createdByUsername,
+      teamId,
+    })
     if (!teamId) {
       console.log('Team ID is required')
       return res.status(400).json({ message: 'Team ID is required' })
     }
-    if (!title || !content || !createdBy || !id) {
-      console.log('Missing required fields:', { id, title, content, createdBy })
-      return res
-        .status(400)
-        .json({ message: 'Announcement ID and at least one field to update are required' })
+    if (!title || !content || !createdBy || !createdByUsername || !id) {
+      console.log('Missing required fields:', { id, title, content, createdBy, createdByUsername })
+      return res.status(400).json({ message: 'Announcement ID and all fields are required' })
     }
     if (subtitle == undefined || subtitle == null) {
       subtitle = ''
@@ -150,6 +157,7 @@ const updateAnnouncement = async (req, res) => {
     announcement.subtitle = subtitle
     announcement.content = content
     announcement.createdBy = createdBy
+    announcement.createdByUsername = createdByUsername
     announcement.updatedAt = new Date() // Update the updatedAt field
     // Save the updated announcement
     await announcement.save()
@@ -243,6 +251,7 @@ const addCommentToAnnouncement = async (req, res) => {
 
     const newComment = {
       announcementId,
+      userId,
       username,
       content,
       replyTo: replyTo || '',
@@ -262,29 +271,22 @@ const addCommentToAnnouncement = async (req, res) => {
           (comment) => comment._id.toString() === replyTo,
         )
 
-        if (parentComment) {
-          // Find the userId of the parent comment's author by username
-          // Note: This is a limitation of the current schema - we should store userId with comments
-          const Account = await import('../models/Account.js').then((m) => m.default)
-          const parentCommenter = await Account.findOne({ username: parentComment.username }, '_id')
-
-          if (parentCommenter) {
-            await createCommentRepliedNotification(
-              parentCommenter._id.toString(),
-              announcementId,
-              announcement.title,
-              userId,
-              savedComment._id.toString(),
-              replyTo,
-              announcement.teamId,
-            )
-            console.log(`Reply notification created for comment ${replyTo}`)
-          }
+        if (parentComment && parentComment.userId) {
+          await createCommentRepliedNotification(
+            parentComment.userId, // Now we have the userId directly
+            announcementId,
+            announcement.title,
+            userId,
+            savedComment._id.toString(),
+            replyTo,
+            announcement.teamId,
+          )
+          console.log(`Reply notification created for comment ${replyTo}`)
         }
       } else {
         // This is a comment on the announcement - notify the announcement creator
         await createAnnouncementCommentedNotification(
-          announcement.createdBy,
+          announcement.createdBy, // This is now the userId
           announcementId,
           announcement.title,
           userId,

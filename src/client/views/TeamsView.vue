@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NewTeams from '../components/NewTeams.vue'
@@ -41,6 +41,48 @@ const isAddingNewMember = ref(false)
 const isDeletingTeam = ref(false)
 
 const isLoggedIn = ref(false)
+
+// Search and pagination state
+const searchQuery = ref('')
+const currentPage = ref(1)
+const teamsPerPage = 6
+const isTransitioning = ref(false)
+
+// Computed properties for search and pagination
+const filteredTeams = computed(() => {
+  if (!searchQuery.value) {
+    return userTeams.value
+  }
+  return userTeams.value.filter((team) =>
+    team.title.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  )
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredTeams.value.length / teamsPerPage)
+})
+
+const paginatedTeams = computed(() => {
+  const start = (currentPage.value - 1) * teamsPerPage
+  const end = start + teamsPerPage
+  return filteredTeams.value.slice(start, end)
+})
+
+// Reset to first page when search changes
+const resetPagination = () => {
+  currentPage.value = 1
+}
+
+// Handle pagination with smooth transition
+const handlePageChange = (newPage) => {
+  isTransitioning.value = true
+  setTimeout(() => {
+    currentPage.value = newPage
+    setTimeout(() => {
+      isTransitioning.value = false
+    }, 50)
+  }, 150)
+}
 
 // --- Methods ---
 
@@ -219,68 +261,133 @@ const getProgressColor = (percentage) => {
       </v-col>
     </v-row>
 
-    <v-row v-if="userTeams.length > 0" class="mb-6">
-      <transition-group name="scroll-x" tag="div" class="w-100 d-flex flex-wrap" appear>
-        <v-col
-          v-for="(team, index) in userTeams"
-          :key="team.teamId"
-          cols="12"
-          sm="6"
-          md="4"
-          :style="{ 'transition-delay': `${index * 100}ms` }"
-        >
-          <v-card
-            class="project-card rounded-lg elevation-1"
-            flat
-            @click="navigateToTeam(team.teamId)"
-          >
-            <v-card-item>
-              <v-card-title class="font-weight-bold text-wrap">{{ team.title }}</v-card-title>
-              <v-card-subtitle>{{ team.category }}</v-card-subtitle>
-            </v-card-item>
-            <v-card-text>
-              {{ team.description }}
-            </v-card-text>
-
-            <!-- Progress Section -->
-            <v-card-text v-if="team.progress" class="pt-0">
-              <div class="progress-section">
-                <div class="progress-label mb-2">
-                  <span class="text-caption text-grey-darken-1">
-                    Weight: {{ team.progress.completedWeight }}/{{ team.progress.totalWeight }}
-                  </span>
-                  <span class="text-caption text-grey-darken-1 ml-2">
-                    {{ team.progress.progressPercentage }}%
-                  </span>
-                </div>
-                <v-progress-linear
-                  :model-value="team.progress.progressPercentage"
-                  height="8"
-                  rounded
-                  :color="getProgressColor(team.progress.progressPercentage)"
-                  bg-color="grey-lighten-3"
-                  class="progress-bar"
-                ></v-progress-linear>
-              </div>
-            </v-card-text>
-            <v-divider></v-divider>
-            <v-card-actions class="pa-4">
-              <v-chip v-if="team.role === 'Member'" color="primary" size="small">
-                {{ team.role }}
-              </v-chip>
-              <v-chip v-else-if="team.role === 'Admin'" color="red-lighten-2" size="small">
-                {{ team.role }}
-              </v-chip>
-              <v-spacer></v-spacer>
-              <v-btn icon size="small">
-                <v-icon>mdi-arrow-right</v-icon>
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-col>
-      </transition-group>
+    <!-- Search Bar -->
+    <v-row v-if="userTeams.length > 0" justify="center" class="mb-4">
+      <v-col cols="12" md="6" lg="4">
+        <v-text-field
+          v-model="searchQuery"
+          @input="resetPagination"
+          label="Search teams..."
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="compact"
+          clearable
+          hide-details
+        ></v-text-field>
+      </v-col>
     </v-row>
-    <v-row v-else>
+
+    <v-row v-if="userTeams.length > 0" class="mb-6">
+      <!-- No results message when search returns no teams -->
+      <v-col v-if="filteredTeams.length === 0" cols="12" class="text-center">
+        <v-alert type="info">
+          No teams found matching "{{ searchQuery }}". Try a different search term.
+        </v-alert>
+      </v-col>
+
+      <!-- Teams grid -->
+      <div v-else class="teams-container w-100">
+        <transition name="page-fade" mode="out-in">
+          <div :key="currentPage" class="w-100">
+            <transition-group name="card-slide" tag="div" class="w-100" appear>
+              <v-col
+                v-for="(team, index) in paginatedTeams"
+                :key="team.teamId"
+                cols="12"
+                sm="6"
+                md="4"
+                class="d-flex"
+                :style="{ 'transition-delay': `${index * 75}ms` }"
+              >
+                <v-card
+                  class="team-card rounded-lg elevation-1 flex-fill"
+                  flat
+                  @click="navigateToTeam(team.teamId)"
+                >
+                  <v-card-item>
+                    <v-card-title class="font-weight-bold text-wrap">{{ team.title }}</v-card-title>
+                    <v-card-subtitle>{{ team.category }}</v-card-subtitle>
+                  </v-card-item>
+                  <v-card-text>
+                    {{ team.description }}
+                  </v-card-text>
+
+                  <!-- Progress Section -->
+                  <v-card-text v-if="team.progress" class="pt-0">
+                    <div class="progress-section">
+                      <div class="progress-label mb-2">
+                        <span class="text-caption text-grey-darken-1">
+                          Weight: {{ team.progress.completedWeight }}/{{
+                            team.progress.totalWeight
+                          }}
+                        </span>
+                        <span class="text-caption text-grey-darken-1 ml-2">
+                          {{ team.progress.progressPercentage }}%
+                        </span>
+                      </div>
+                      <v-progress-linear
+                        :model-value="team.progress.progressPercentage"
+                        height="8"
+                        rounded
+                        :color="
+                          team.progress.progressPercentage > 0
+                            ? getProgressColor(team.progress.progressPercentage)
+                            : 'grey-lighten-2'
+                        "
+                        bg-color="grey-lighten-3"
+                        class="progress-bar"
+                      ></v-progress-linear>
+                    </div>
+                  </v-card-text>
+
+                  <!-- Empty Progress Section when no progress data -->
+                  <v-card-text v-else class="pt-0">
+                    <div class="progress-section">
+                      <div class="progress-label mb-2">
+                        <span class="text-caption text-grey-darken-1"> Weight: 0/0 </span>
+                        <span class="text-caption text-grey-darken-1 ml-2"> 0% </span>
+                      </div>
+                    </div>
+                  </v-card-text>
+                  <v-divider></v-divider>
+                  <v-card-actions class="pa-4">
+                    <v-chip v-if="team.role === 'Member'" color="primary" size="small">
+                      {{ team.role }}
+                    </v-chip>
+                    <v-chip v-else-if="team.role === 'Admin'" color="red-lighten-2" size="small">
+                      {{ team.role }}
+                    </v-chip>
+                    <v-spacer></v-spacer>
+                    <v-btn icon size="small">
+                      <v-icon>mdi-arrow-right</v-icon>
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </transition-group>
+          </div>
+        </transition>
+      </div>
+    </v-row>
+
+    <!-- Pagination -->
+    <v-row
+      v-if="userTeams.length > 0 && filteredTeams.length > teamsPerPage"
+      justify="center"
+      class="mb-6"
+    >
+      <v-col cols="auto">
+        <v-pagination
+          :model-value="currentPage"
+          @update:model-value="handlePageChange"
+          :length="totalPages"
+          :total-visible="5"
+          color="primary"
+          density="comfortable"
+        ></v-pagination>
+      </v-col>
+    </v-row>
+    <v-row v-if="userTeams.length === 0" class="mb-6">
       <v-col cols="12" class="text-center">
         <v-alert type="info">You are not a member of any teams yet.</v-alert>
       </v-col>
@@ -344,6 +451,73 @@ const getProgressColor = (percentage) => {
   transition: transform 0.6s ease;
 }
 
+/* Page transition for pagination */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Card slide transition for individual cards */
+.card-slide-enter-active {
+  transition: all 0.5s ease;
+}
+
+.card-slide-enter-from {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.95);
+}
+
+.card-slide-enter-to {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+/* Teams container for smooth transitions */
+.teams-container {
+  min-height: 300px;
+  position: relative;
+  width: 100%;
+}
+
+.teams-container .w-100 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+/* Team cards specific styling */
+.team-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  height: auto;
+  max-height: 350px;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-card .v-card-text,
+.team-card .v-card-item,
+.team-card .v-card-actions {
+  flex-shrink: 0;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
 /* Progress Section Styles */
 .progress-section {
   margin-top: 0.5rem;
@@ -359,6 +533,7 @@ const getProgressColor = (percentage) => {
 .progress-bar {
   border-radius: 8px;
   transition: all 0.3s ease;
+  background-color: #eeeeee;
 }
 
 .progress-bar:hover {

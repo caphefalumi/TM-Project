@@ -5,9 +5,14 @@ const announcementCommentsSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  replyTo: { // ID of the comment being replied to, null if it's a top-level comment
+  replyTo: {
+    // ID of the comment being replied to, null if it's a top-level comment
     type: String,
     default: null, // Can be null if it's a top-level comment
+  },
+  userId: {
+    type: String,
+    required: true,
   },
   username: {
     type: String,
@@ -49,6 +54,10 @@ const AnnoucementSchema = new mongoose.Schema({
     default: () => [],
   },
   createdBy: {
+    type: String,
+    required: true,
+  },
+  createdByUsername: {
     type: String,
     required: true,
   },
