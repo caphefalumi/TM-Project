@@ -1,0 +1,309 @@
+================================================================================
+                      PROJECT SETUP AND IMPLEMENTATION GUIDE
+                                  MEVN Stack Application
+================================================================================
+
+SYSTEM REQUIREMENTS:
+- Node.js (v16.0 or higher)
+- MongoDB (v5.0 or higher) or MongoDB Atlas account
+- Git (for version control)
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Code editor (VS Code recommended)
+
+================================================================================
+                              STEP-BY-STEP SETUP
+================================================================================
+
+1. CLONE AND NAVIGATE TO PROJECT
+   ```
+   git clone <repository-url>
+   cd pm-demo
+   ```
+
+2. INSTALL DEPENDENCIES
+   ```
+   npm install
+   ```
+
+3. ENVIRONMENT CONFIGURATION
+   Create a .env file in the root directory with the following variables:
+   (See .ENV FILE REQUIREMENTS section below for details)
+
+4. DATABASE SETUP
+   Option A - Local MongoDB:
+   - Install MongoDB locally
+   - Start MongoDB service: mongod
+   - Database will be created automatically on first run
+
+   Option B - MongoDB Atlas (Cloud):
+   - Create account at https://cloud.mongodb.com
+   - Create a new cluster
+   - Get connection string and add to .env file
+
+5. GOOGLE OAUTH SETUP (Optional)
+   - Go to Google Cloud Console (https://console.cloud.google.com)
+   - Create new project or select existing
+   - Enable Google+ API
+   - Create OAuth 2.0 credentials
+   - Add authorized redirect URIs:
+     * http://localhost:5173/auth/google/callback (development)
+     * <your-production-domain>/auth/google/callback (production)
+   - Copy Client ID and Client Secret to .env file
+
+6. JWT SECRET GENERATION
+   Generate a secure random string for JWT tokens:
+   ```
+   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+   ```
+   Add this to JWT_SECRET in .env file
+
+7. START THE APPLICATION
+   Development mode (with auto-reload):
+   ```
+   npm run dev
+   ```
+   
+   Production mode:
+   ```
+   npm run build
+   npm start
+   ```
+
+8. ACCESS THE APPLICATION
+   - Open browser and navigate to: http://localhost:5173
+   - Create an admin account (username: 'admin') for full access
+   - Regular users can register and join teams
+
+================================================================================
+                           .ENV FILE REQUIREMENTS
+================================================================================
+
+Create a .env file in the root directory with these variables:
+
+# ======================== SERVER CONFIGURATION ========================
+NODE_ENV=development
+PORT=3000
+VITE_API_PORT=http://localhost:3000
+
+# ======================== DATABASE CONFIGURATION ========================
+# Option 1: Local MongoDB
+MONGODB_URI=mongodb://localhost:27017/project-management
+
+# Option 2: MongoDB Atlas (replace with your connection string)
+# MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
+
+# ======================== JWT AUTHENTICATION ========================
+# Generate using: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+JWT_SECRET=your-super-secure-jwt-secret-key-here-64-characters-minimum
+JWT_EXPIRES_IN=24h
+REFRESH_TOKEN_SECRET=your-refresh-token-secret-key-here-64-characters-minimum
+REFRESH_TOKEN_EXPIRES_IN=7d
+
+# ======================== GOOGLE OAUTH (Optional) ========================
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# ======================== APPLICATION SETTINGS ========================
+# Maximum file upload size (for announcements/tasks)
+MAX_FILE_SIZE=10MB
+
+# Session settings
+SESSION_SECRET=your-session-secret-key-here
+
+# CORS settings (adjust for production)
+CORS_ORIGIN=http://localhost:5173
+
+# ======================== EMAIL SETTINGS (Optional) ========================
+# For notification emails (if implemented)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+================================================================================
+                              PROJECT STRUCTURE
+================================================================================
+
+pm-demo/
+├── src/
+│   ├── client/                 # Vue.js frontend
+│   │   ├── components/         # Reusable Vue components
+│   │   ├── views/              # Page-level components
+│   │   ├── styles/             # CSS stylesheets
+│   │   ├── scripts/            # Frontend utilities
+│   │   └── router/             # Vue Router configuration
+│   ├── server/                 # Node.js backend
+│   │   ├── models/             # MongoDB/Mongoose models
+│   │   ├── routes/             # Express.js routes
+│   │   ├── scripts/            # Backend utilities
+│   │   ├── config/             # Database configuration
+│   │   └── verify/             # Authentication middleware
+│   ├── plugins/                # Vue/Vuetify plugins
+│   └── store/                  # State management
+├── public/                     # Static assets
+├── .env                        # Environment variables (create this)
+├── package.json                # Dependencies and scripts
+├── vite.config.js              # Vite build configuration
+└── README.md                   # Project documentation
+
+================================================================================
+                             DEVELOPMENT WORKFLOW
+================================================================================
+
+1. DAILY DEVELOPMENT
+   ```
+   npm run dev
+   ```
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:3000
+   - Hot reload enabled for both frontend and backend
+
+2. DATABASE MANAGEMENT
+   - MongoDB Compass (GUI tool) for database inspection
+   - Data automatically seeds with default categories and admin user
+
+3. TESTING ACCOUNTS
+   Create these accounts for testing:
+   - Admin user: username = 'admin' (has administrative privileges)
+   - Regular users: any other username
+
+4. KEY FEATURES TO TEST
+   - User registration/login
+   - Team creation and management
+   - Task assignment and submission
+   - Announcement system with comments
+   - Notification system
+   - Admin panel functionality
+   - Progress tracking and calendar view
+
+================================================================================
+                                TROUBLESHOOTING
+================================================================================
+
+COMMON ISSUES:
+
+1. "Cannot connect to MongoDB"
+   - Check MongoDB service is running
+   - Verify MONGODB_URI in .env file
+   - Check network connectivity for Atlas
+
+2. "JWT must be provided"
+   - Ensure JWT_SECRET is set in .env
+   - Clear browser cookies/localStorage
+   - Re-login to get fresh tokens
+
+3. "Google OAuth not working"
+   - Verify GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+   - Check redirect URIs in Google Console
+   - Ensure domain matches exactly
+
+4. "Port already in use"
+   - Change PORT in .env file
+   - Kill existing processes: `npx kill-port 3000`
+
+5. "Module not found"
+   - Run: `npm install`
+   - Clear node_modules: `rm -rf node_modules && npm install`
+
+6. "Permission denied"
+   - Check file permissions
+   - Run with appropriate user privileges
+   - On Windows, run terminal as administrator
+
+DEBUGGING TIPS:
+- Check browser console for frontend errors
+- Check terminal/server logs for backend errors
+- Use MongoDB Compass to inspect database
+- Enable debug mode: NODE_ENV=development
+
+================================================================================
+                               PRODUCTION DEPLOYMENT
+================================================================================
+
+1. ENVIRONMENT SETUP
+   - Set NODE_ENV=production in .env
+   - Use production MongoDB database
+   - Update CORS_ORIGIN to production domain
+   - Use HTTPS URLs for all external services
+
+2. BUILD APPLICATION
+   ```
+   npm run build
+   ```
+
+3. SECURITY CHECKLIST
+   - Change all default passwords and secrets
+   - Use strong JWT secrets (64+ characters)
+   - Enable HTTPS
+   - Configure proper CORS origins
+   - Set up proper database authentication
+   - Regular backup strategy for MongoDB
+
+4. PERFORMANCE OPTIMIZATION
+   - Enable MongoDB indexes
+   - Configure CDN for static assets
+   - Set up monitoring and logging
+   - Configure rate limiting
+   - Optimize image compression
+
+================================================================================
+                                API ENDPOINTS
+================================================================================
+
+AUTHENTICATION:
+POST /api/auth/login              # User login
+POST /api/auth/register           # User registration
+POST /api/auth/refresh            # Refresh access token
+POST /api/auth/logout             # User logout
+GET  /api/auth/google             # Google OAuth initiation
+GET  /api/auth/google/callback    # Google OAuth callback
+
+TEAMS:
+GET    /api/teams/user/:userId    # Get user's teams
+POST   /api/teams                 # Create new team
+PUT    /api/teams/:teamId         # Update team
+DELETE /api/teams/:teamId         # Delete team
+GET    /api/teams/:teamId/members # Get team members
+POST   /api/teams/:teamId/members # Add team members
+
+TASKS:
+GET    /api/tasks/:userId         # Get user's tasks
+POST   /api/tasks                 # Create new task
+PUT    /api/tasks/:taskId         # Update task
+DELETE /api/tasks/:taskId         # Delete task
+POST   /api/tasks/:taskId/submit  # Submit task
+
+ANNOUNCEMENTS:
+GET    /api/announcements/:teamId # Get team announcements
+POST   /api/announcements         # Create announcement
+PUT    /api/announcements/:id     # Update announcement
+DELETE /api/announcements/:id     # Delete announcement
+
+NOTIFICATIONS:
+GET    /api/notifications/:userId # Get user notifications
+POST   /api/notifications/:userId/mark-read # Mark as read
+DELETE /api/notifications/:userId # Delete notification
+
+ADMIN:
+GET    /api/admin/teams           # Get all teams (admin)
+GET    /api/admin/users           # Get all users (admin)
+DELETE /api/admin/teams/:id       # Delete team (admin)
+DELETE /api/admin/users/:id       # Delete user (admin)
+
+================================================================================
+                                   NOTES
+================================================================================
+
+- The application uses Vuetify 3 for UI components
+- JWT tokens expire in 24 hours by default
+- Refresh tokens expire in 7 days
+- File uploads are limited to 10MB
+- Admin user has special privileges (username must be 'admin')
+- Notification system works in real-time
+- Progress tracking uses weighted task completion
+- Calendar integration shows tasks by due date
+- Search and pagination implemented for team views
+
+For additional help or issues, check the README.md file or create an issue in the repository.
+
+================================================================================
