@@ -3,7 +3,6 @@
 // 1. Adding users to a team
 // 2. Retrieving user's team data
 
-import connectDB from '../config/db.js'
 import { createTeamMemberAddedNotification } from '../scripts/notificationsService.js'
 
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
@@ -12,7 +11,7 @@ import UsersOfTeam from '../models/UsersOfTeam.js'
 
 const addUsersToTeam = async (req, res) => {
   // Add users to a team
-  await connectDB()
+
   const { users, addedByUserId } = req.body // Expect addedByUserId to track who added the users
   console.log(users)
   if (!users || !Array.isArray(users)) {
@@ -73,7 +72,7 @@ const addUsersToTeam = async (req, res) => {
 const getUsersOfTeam = async (req, res) => {
   // Get all users of a team by team ID
   // Returns an array of users with their userId, username, and email
-  await connectDB()
+
   const { teamId } = req.params
   if (!teamId) {
     return res.status(400).json({ message: 'Team ID is required' })
@@ -101,7 +100,7 @@ const deleteUsersFromTeam = async (req, res) => {
   // Also delete all tasks and submissions associated with the user in the team
   // Returns a success message if users are deleted successfully
   // Requires an array of userID and teamID in the request body
-  await connectDB()
+
   const membersToRemove = req.body
   if (!membersToRemove || !Array.isArray(membersToRemove)) {
     console.log('Users array is required', membersToRemove)

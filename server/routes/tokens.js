@@ -1,4 +1,3 @@
-import connectDB from '../config/db.js'
 import RefreshToken from '../models/RefreshToken.js'
 import JWTAuth from '../verify/JWTAuth.js'
 
@@ -8,7 +7,7 @@ const addRefreshToken = async (req, res, next) => {
   // Middleware to:
   // 1. Add refresh token to cookie
   // 2. Create NEW refresh token in database (revoke any existing ones for fresh login)
-  await connectDB()
+
   const { user } = req.body
   if (!user) {
     return res.status(400).json({ error: 'User data is required' })
@@ -86,7 +85,7 @@ const revokeRefreshToken = async (req, res) => {
     sameSite: 'None',
   })
 
-  await connectDB()
+
   const { userId } = req.body
   console.log('Revoke refresh token for user:', req.body)
 

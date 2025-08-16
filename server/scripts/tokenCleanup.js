@@ -1,5 +1,4 @@
 import RefreshToken from '../models/RefreshToken.js'
-import connectDB from '../config/db.js'
 
 /**
  * Clean up expired and old revoked refresh tokens from the database
@@ -7,7 +6,7 @@ import connectDB from '../config/db.js'
  */
 const cleanupExpiredTokens = async () => {
   try {
-    await connectDB()
+
 
     const now = new Date()
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 days ago

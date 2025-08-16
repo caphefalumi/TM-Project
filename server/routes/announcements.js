@@ -1,4 +1,3 @@
-import connectDB from '../config/db.js'
 import {
   createAnnouncementLikedNotification,
   createAnnouncementCommentedNotification,
@@ -14,7 +13,7 @@ const getAnnouncementsOfTeam = async (req, res) => {
   // Get all announcements of a team
   // Returns an array of announcements sorted by updatedAt in descending order
   // Requires teamId as a parameter
-  await connectDB()
+
   try {
     const { teamId } = req.params
     if (!teamId) {
@@ -42,7 +41,7 @@ const getAnnouncementsOfTeam = async (req, res) => {
 const addAnnouncement = async (req, res) => {
   // Add a new announcement to a team
   // Requires teamId, title, content, createdBy (userId), and createdByUsername in the request body
-  await connectDB()
+
   try {
     const { title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
@@ -103,7 +102,7 @@ const addAnnouncement = async (req, res) => {
 const deleteAnnouncement = async (req, res) => {
   // Delete an announcement by ID
   // Requires announcementId as a parameter
-  await connectDB()
+
   try {
     const { announcementId } = req.params
     if (!announcementId) {
@@ -124,7 +123,7 @@ const deleteAnnouncement = async (req, res) => {
 const updateAnnouncement = async (req, res) => {
   // Update an announcement by ID
   // Requires announcementId in the request body and at least one field to update
-  await connectDB()
+
   try {
     const { id, title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
@@ -171,7 +170,7 @@ const updateAnnouncement = async (req, res) => {
 const toggleLikeAnnouncement = async (req, res) => {
   // Toggle like status of an announcement for a user
   // Requires announcementId and userId in the request body
-  await connectDB()
+
   try {
     const { userId } = req.body
     const { announcementId } = req.params
@@ -225,7 +224,7 @@ const toggleLikeAnnouncement = async (req, res) => {
 const addCommentToAnnouncement = async (req, res) => {
   // Add a comment to an announcement
   // Requires announcementId, userId, username, content, and replyTo (optional) in the request body
-  await connectDB()
+
   try {
     const { announcementId } = req.params
     const { userId, username, content, replyTo } = req.body

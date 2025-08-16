@@ -1,7 +1,6 @@
 import { Notifications, NotificationPreferences } from '../models/Notifications.js'
 import Account from '../models/Account.js'
 import Teams from '../models/Teams.js'
-import connectDB from '../config/db.js'
 
 /**
  * Notification Service
@@ -9,7 +8,7 @@ import connectDB from '../config/db.js'
  */
 
 const createNotification = async (notificationData) => {
-  await connectDB()
+
 
   try {
     const {
@@ -78,7 +77,7 @@ const createNotification = async (notificationData) => {
  * Get user's notification preferences, create default if not exists
  */
 const getUserNotificationPreferences = async (userId) => {
-  await connectDB()
+
 
   try {
     let preferences = await NotificationPreferences.findOne({ userId })
@@ -132,7 +131,7 @@ const cleanupOldNotifications = async (userId, maxNotifications) => {
  * Create notification when user is added to a team
  */
 const createTeamMemberAddedNotification = async (newMemberUserId, teamId, addedByUserId) => {
-  await connectDB()
+
 
   try {
     // Get team and actor details
@@ -171,7 +170,7 @@ const createAnnouncementLikedNotification = async (
   likerUserId,
   teamId = null,
 ) => {
-  await connectDB()
+
 
   try {
     // Convert to strings for consistent comparison
@@ -216,7 +215,7 @@ const createAnnouncementCommentedNotification = async (
   commentId,
   teamId = null,
 ) => {
-  await connectDB()
+
 
   try {
     // Convert to strings for consistent comparison
@@ -263,7 +262,7 @@ const createCommentRepliedNotification = async (
   parentCommentId,
   teamId = null,
 ) => {
-  await connectDB()
+
 
   try {
     // Convert to strings for consistent comparison
@@ -309,7 +308,7 @@ const createTeamAnnouncementCreatedNotification = async (
   creatorUserId,
   teamMemberUserIds,
 ) => {
-  await connectDB()
+
 
   try {
     const team = await Teams.findById(teamId)

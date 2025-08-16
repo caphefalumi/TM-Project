@@ -1,4 +1,3 @@
-import connectDB from '../config/db.js'
 
 import Account from '../models/Account.js'
 import Teams from '../models/Teams.js'
@@ -7,7 +6,7 @@ import Tasks from '../models/Tasks.js'
 
 const getAllUsers = async (req, res) => {
   // Returns all users in the database by array
-  await connectDB()
+
   try {
     const users = await Account.find({}, 'username _id').exec()
     // Find all users and return only username and _id
@@ -25,7 +24,7 @@ const getAllUsers = async (req, res) => {
 
 const getCategories = async (req, res) => {
   // Returns an array of enum categories from the Teams schema
-  await connectDB()
+
   try {
     const categories = Teams.schema.path('category').enumValues
     if (!categories || categories.length === 0) {
@@ -42,7 +41,7 @@ const getCategories = async (req, res) => {
 
 const getRoles = async (req, res) => {
   // Returns an array of enum roles from the UsersOfTeam schema
-  await connectDB()
+
   try {
     const roles = UsersOfTeam.schema.path('role').enumValues
     if (!roles || roles.length === 0) {
@@ -58,7 +57,7 @@ const getRoles = async (req, res) => {
 }
 
 const addUserToTeam = async (userId, username, teamId, role) => {
-  await connectDB()
+
   try {
     const userOfTeam = new UsersOfTeam({
       userId,
@@ -93,7 +92,7 @@ const addTeamPro = async (req, res) => {
       .status(400)
       .json({ message: 'Title, category, description, userId, and username are required' })
   } else {
-    await connectDB()
+
     try {
       if (!parentTeamId) {
         await addTeam(title, category, description)
@@ -126,7 +125,7 @@ const addTeamPro = async (req, res) => {
 }
 
 const addTeam = async (title, category, description) => {
-  await connectDB()
+
   try {
     const team = new Teams({
       title,
@@ -142,7 +141,7 @@ const addTeam = async (title, category, description) => {
 }
 
 const addSubTeam = async (title, category, description, parentTeamId) => {
-  await connectDB()
+
   // check for parentTeamId validity
   try {
     const parentTeam = await Teams.findById(parentTeamId)
@@ -173,7 +172,7 @@ const getParentsTeam = async (parentTeamId) => {
     console.log('This team has no parent team.')
     return ''
   } else {
-    await connectDB()
+
     let teamBreadCrumps = ''
     let parentTeam = await Teams.findOne({ _id: parentTeamId })
     while (parentTeam) {
@@ -194,7 +193,7 @@ const getParentsTeam = async (parentTeamId) => {
 }
 
 const getTeamNameThatUserIsAdmin = async (req, res) => {
-  await connectDB()
+
   const { userId } = req.params
   console.log('User ID to GetTeams:', userId)
 
@@ -242,7 +241,7 @@ const getTeamThatUserIsMember = async (req, res) => {
   if (!userId) {
     return res.status(400).json({ error: 'User ID is required' })
   }
-  await connectDB()
+
   try {
     const teams = await UsersOfTeam.find({ userId })
       .populate('teamId', 'title category description _id parentTeamId role')
@@ -284,7 +283,7 @@ const getTeamThatUserIsMember = async (req, res) => {
 
 const recursiveDeleteSubTeams = async (teamId) => {
   // Recursively delete sub-teams and their associated users
-  await connectDB()
+
   try {
     const subTeams = await Teams.find({ parentTeamId: teamId })
     if (subTeams.length > 0) {
@@ -311,7 +310,7 @@ const deleteATeam = async (req, res) => {
   if (!teamId) {
     return res.status(400).json({ error: 'Team ID is required' })
   }
-  await connectDB()
+
   try {
     // First, delete all sub-teams recursively
     await recursiveDeleteSubTeams(teamId)
@@ -336,7 +335,7 @@ const deleteATeam = async (req, res) => {
 const getProgressBar = async (userId, teamId) => {
   // Requires userId and teamId to calculate the progress bar (by weight)
   // Returns an object with completed weight, total weight, and progress percentage
-  await connectDB()
+
   try {
     // Get all tasks for this team and user
     console.log('Calculating progress bar for user:', userId, 'in team:', teamId)
@@ -385,7 +384,7 @@ const getTeamDetails = async (req, res) => {
   if (!teamId) {
     return res.status(400).json({ message: 'Team ID is required' })
   }
-  await connectDB()
+
   try {
     const team = await Teams.findById(teamId)
     if (!team) {
