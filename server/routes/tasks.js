@@ -1,4 +1,3 @@
-import connectDB from '../config/db.js'
 
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
@@ -8,7 +7,7 @@ const getTasksOfAUser = async (req, res) => {
   // Get all tasks of a user across all teams
   // Returns an array of tasks sorted by DueDate in ascending order
   // Requires userId as a parameter
-  await connectDB()
+
   try {
     const { userId } = req.params
     if (!userId) {
@@ -40,7 +39,7 @@ const getTasksOfAUserInATeam = async (req, res) => {
   // Get all tasks of a user in a team
   // Returns an array of tasks sorted by DueDate in ascending order
   // Requires userId and teamId as parameters
-  await connectDB()
+
   try {
     const { userId, teamId } = req.params
     if (!userId || !teamId) {
@@ -78,7 +77,7 @@ const getTasksOfAUserInATeam = async (req, res) => {
 
 const addTaskToUsers = async (req, res) => {
   // Add a new task to every user being assigned in the request body
-  await connectDB()
+
   try {
     const {
       assignedUsers,
@@ -165,7 +164,7 @@ const addTaskToUsers = async (req, res) => {
 const submitATask = async (req, res) => {
   // Submit a task by marking a task as submitted and creating a TaskSubmission record
   // Requires taskId, userId, teamId, and submissionData in request body
-  await connectDB()
+
   try {
     const { taskId, userId, teamId, submissionData } = req.body
 
@@ -283,7 +282,7 @@ const submitATask = async (req, res) => {
 const calculateFinishedWeightedTaskOfAUser = async (req, res) => {
   // Calculate the total weight of finished tasks of a user
   // Return the total weight of finished tasks
-  await connectDB()
+
   try {
     const { userId, teamId } = req.params
 
@@ -307,7 +306,7 @@ const calculateFinishedWeightedTaskOfAUser = async (req, res) => {
 
 const calculateTotalTaskWeightedOfAUser = async (req, res) => {
   // Calculate the total weighted tasks of a user
-  await connectDB()
+
   try {
     const { userId, teamId } = req.params
 
@@ -331,7 +330,7 @@ const calculateTotalTaskWeightedOfAUser = async (req, res) => {
 const getTasksByGroupId = async (req, res) => {
   // Get all tasks in a task group for admin view
   // Returns tasks grouped by user with submission status
-  await connectDB()
+
   try {
     const { taskGroupId, teamId } = req.params
     if (!taskGroupId || !teamId) {
@@ -369,7 +368,7 @@ const getTasksByGroupId = async (req, res) => {
 const updateTaskGroup = async (req, res) => {
   // Update all tasks in a group (for admin bulk operations)
   // Can update title, description, priority, dueDate, weighted, and reassign users
-  await connectDB()
+
   try {
     const { taskGroupId, teamId } = req.params
     const { assignedUsers, userId, submitted, submissions, ...updateData } = req.body
@@ -481,7 +480,7 @@ const updateTaskGroup = async (req, res) => {
 
 const deleteTaskGroup = async (req, res) => {
   // Delete all tasks in a group (for admin operations)
-  await connectDB()
+
   try {
     const { taskGroupId, teamId } = req.params
 
@@ -517,7 +516,7 @@ const deleteTaskGroup = async (req, res) => {
 
 const getAllTaskGroups = async (req, res) => {
   // Get all task groups in a team (for admin dashboard)
-  await connectDB()
+
   try {
     const { teamId } = req.params
     if (!teamId) {
@@ -568,7 +567,7 @@ const getAllTaskGroups = async (req, res) => {
 
 const getTaskSubmission = async (req, res) => {
   // Get submission details for a specific task
-  await connectDB()
+
   try {
     const { taskId } = req.params
     if (!taskId) {

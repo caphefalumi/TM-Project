@@ -1,6 +1,5 @@
 import { Notifications, NotificationPreferences } from '../models/Notifications.js'
 import Account from '../models/Account.js'
-import connectDB from '../config/db.js'
 import { getUserNotificationPreferences } from '../scripts/notificationsService.js'
 
 /**
@@ -12,7 +11,7 @@ import { getUserNotificationPreferences } from '../scripts/notificationsService.
  * - type: Filter by notification type (optional)
  */
 const getUserNotifications = async (req, res) => {
-  await connectDB()
+
 
   try {
     const { userId } = req.params
@@ -87,7 +86,7 @@ const getUserNotifications = async (req, res) => {
  * - markAllAsRead: Boolean to mark all user's notifications as read
  */
 const markNotificationsAsRead = async (req, res) => {
-  await connectDB()
+
 
   try {
     const { userId } = req.params
@@ -147,7 +146,7 @@ const markNotificationsAsRead = async (req, res) => {
  * - deleteAll: Boolean to delete all user's notifications
  */
 const deleteNotifications = async (req, res) => {
-  await connectDB()
+
 
   try {
     const { userId } = req.params
@@ -213,7 +212,7 @@ const getNotificationPreferences = async (req, res) => {
  * Update user's notification preferences
  */
 const updateNotificationPreferences = async (req, res) => {
-  await connectDB()
+
 
   try {
     const { userId } = req.params
@@ -260,7 +259,7 @@ const updateNotificationPreferences = async (req, res) => {
  * Get notification statistics for a user
  */
 const getNotificationStats = async (req, res) => {
-  await connectDB()
+
 
   try {
     const { userId } = req.params
