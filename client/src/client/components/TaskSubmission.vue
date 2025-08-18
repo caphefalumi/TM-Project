@@ -404,16 +404,28 @@ watch(
               <v-chip color="purple-darken-2">
                 {{ props.task.category }}
               </v-chip>
+              <v-chip-group>
+                    <v-chip
+                      v-for="tag in task.tags"
+                      :key="tag"
+                      color="black"
+                      size="small"
+                      class="ml-1"
+                    >
+                      {{ tag }}
+                    </v-chip>
+                  </v-chip-group>
             </v-card-subtitle>
           </v-card-item>
 
           <v-card-text>
             <p class="mb-2">{{ props.task.description }}</p>
-            <div class="d-flex justify-space-between text-caption">
+            <div class="text-caption">
               <span>Weight: {{ props.task.weighted }}</span>
-              <span v-if="props.task.dueDate"
-                >Due: {{ new Date(props.task.dueDate).toLocaleDateString() }}</span
-              >
+            </div>
+            <div class="d-flex justify-space-between text-caption">
+              <span>Start: {{ new Date(props.task.startDate).toLocaleDateString() }}</span>
+              <span>Due: {{ new Date(props.task.dueDate).toLocaleDateString() }}</span>
             </div>
           </v-card-text>
         </v-card>

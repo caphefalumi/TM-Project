@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NewTasks from '../components/NewTasks.vue'
@@ -53,6 +53,13 @@ const announcements = ref([])
 const teamMembers = ref([])
 const taskGroups = ref([])
 const refreshingTaskGroups = ref(false)
+
+// Tasks filtering and pagination
+const taskSearchQuery = ref('')
+const taskTagSearchQuery = ref('')
+const taskFilterType = ref('all') // 'all', 'not-submitted', 'pending'
+const taskCurrentPage = ref(1)
+const taskItemsPerPage = 6
 
 const activeTab = ref('tasks')
 
@@ -369,6 +376,64 @@ const openTaskGroupDialog = (taskGroupId) => {
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
 }
+
+// Task filtering and pagination computed properties
+const filteredAndSortedTasks = computed(() => {
+  let filtered = tasks.value
+
+  // Filter by task name search
+  if (taskSearchQuery.value) {
+    const searchTerm = taskSearchQuery.value.toLowerCase().trim()
+    filtered = filtered.filter(task => {
+      const taskTitle = task.title.toLowerCase()
+      return taskTitle.includes(searchTerm)
+    })
+  }
+
+  // Filter by tag search
+  if (taskTagSearchQuery.value) {
+    const tagSearchTerms = taskTagSearchQuery.value.toLowerCase().trim().split(/\s+/)
+    filtered = filtered.filter(task => {
+      const taskTags = task.tags ? task.tags.map(tag => tag.toLowerCase()) : []
+      
+      // Check if all search terms match any tag (AND logic for multiple tags)
+      return tagSearchTerms.every(term => {
+        return taskTags.some(tag => tag.includes(term))
+      })
+    })
+  }
+
+  // Filter by task type
+  const now = new Date()
+  if (taskFilterType.value === 'not-submitted') {
+    filtered = filtered.filter(task => !task.submitted)
+  } else if (taskFilterType.value === 'pending') {
+    filtered = filtered.filter(task => {
+      const startDate = new Date(task.startDate)
+      const dueDate = new Date(task.dueDate)
+      return now >= startDate && now <= dueDate
+    })
+  }
+
+  // Sort by most recently due date (closest due date first)
+  return filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+})
+
+const paginatedTasks = computed(() => {
+  const start = (taskCurrentPage.value - 1) * taskItemsPerPage
+  const end = start + taskItemsPerPage
+  return filteredAndSortedTasks.value.slice(start, end)
+})
+
+const totalTaskPages = computed(() => {
+  return Math.ceil(filteredAndSortedTasks.value.length / taskItemsPerPage)
+})
+
+const taskFilterOptions = [
+  { title: 'All Tasks', value: 'all' },
+  { title: 'Not Submitted', value: 'not-submitted' },
+  { title: 'Pending Tasks', value: 'pending' }
+]
 </script>
 
 <template>
@@ -528,63 +593,134 @@ const formatDate = (dateString) => {
     <v-window v-model="activeTab">
       <!-- Tasks Tab -->
       <v-window-item value="tasks">
-        <v-row v-if="tasks.length > 0 && userLoaded">
+        <!-- Tasks Header and Controls -->
+        <v-row v-if="userLoaded">
           <v-col cols="12">
-            <h2 class="text-h5 mb-4">Your Tasks</h2>
+            <div class="d-flex align-center justify-space-between mb-4">
+              <h2 class="text-h5">Your Tasks ({{ filteredAndSortedTasks.length }})</h2>
+            </div>
           </v-col>
-          <transition-group name="scroll-x" tag="div" class="w-100 d-flex flex-wrap" appear>
-            <v-col
-              v-for="(task, index) in tasks"
-              :key="task._id"
-              cols="12"
-              md="6"
-              lg="4"
-              :style="{ 'transition-delay': `${index * 100}ms` }"
-            >
-              <v-card class="mb-4 elevation-2 project-card" @click="submitTask(task._id)">
-                <v-card-item>
-                  <v-card-title>{{ task.title }}</v-card-title>
-                  <v-card-subtitle>
-                    <v-chip :color="getPriorityColor(task.priority)" class="mr-2">
-                      {{ task.priority }}
-                    </v-chip>
-                    <v-chip color="purple-darken-2">
-                      {{ task.category }}
-                    </v-chip>
-                    <v-chip-group>
-                      <v-chip
-                        v-for="tag in task.tags"
-                        :key="tag"
-                        color="black"
-                        size="small"
-                        class="ml-1"
-                      >
-                        {{ tag }}
-                      </v-chip>
-                    </v-chip-group>
-                    
-                  </v-card-subtitle>
-                </v-card-item>
-                <v-card-text>
-                  <p>{{ task.description }}</p>
-                  <div class="d-flex justify-space-between text-caption">
-                    <span>Weight: {{ task.weighted }}</span>
-                    <span>Due: {{ new Date(task.dueDate).toLocaleDateString() }}</span>
-                  </div>
-                </v-card-text>
-                <v-card-actions v-if="!task.submitted">
-                  <v-chip color="red" text-color="white">No Submission</v-chip>
-                </v-card-actions>
-                <v-card-actions v-else>
-                  <v-chip color="green" text-color="white">Submitted</v-chip>
-                </v-card-actions>
-              </v-card>
-            </v-col>
-          </transition-group>
-        </v-row>
-        <v-row v-else-if="userLoaded">
+          
+          <!-- Search and Filter Controls -->
           <v-col cols="12">
-            <v-alert type="info" class="text-center"> No tasks found. </v-alert>
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="taskSearchQuery"
+                  label="Search by task name"
+                  placeholder="e.g., Project Report"
+                  prepend-inner-icon="mdi-magnify"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  hide-details
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="taskTagSearchQuery"
+                  label="Search by tags"
+                  placeholder="e.g., urgent development"
+                  prepend-inner-icon="mdi-tag-multiple"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  hide-details
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="taskFilterType"
+                  :items="taskFilterOptions"
+                  label="Filter tasks"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                ></v-select>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+
+        <!-- Tasks Grid -->
+        <v-row v-if="paginatedTasks.length > 0 && userLoaded">
+          <v-col
+            v-for="task in paginatedTasks"
+            :key="task._id"
+            cols="12"
+            md="6"
+            lg="4"
+          >
+            <v-card class="mb-4 elevation-2 project-card" @click="submitTask(task._id)">
+              <v-card-item>
+                <v-card-title>{{ task.title }}</v-card-title>
+                <v-card-subtitle>
+                  <v-chip :color="getPriorityColor(task.priority)" class="mr-2">
+                    {{ task.priority }}
+                  </v-chip>
+                  <v-chip color="purple-darken-2">
+                    {{ task.category }}
+                  </v-chip>
+                  <v-chip-group>
+                    <v-chip
+                      v-for="tag in task.tags"
+                      :key="tag"
+                      color="black"
+                      size="small"
+                      class="ml-1"
+                    >
+                      {{ tag }}
+                    </v-chip>
+                  </v-chip-group>
+                </v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <p>{{ task.description }}</p>
+                <div class="text-caption">
+                  <span>Weight: {{ task.weighted }}</span>
+                </div>
+                <div class="d-flex justify-space-between text-caption">
+                  <span>Start: {{ new Date(task.startDate).toLocaleDateString() }}</span>
+                  <span>Due: {{ new Date(task.dueDate).toLocaleDateString() }}</span>
+                </div>
+              </v-card-text>
+              <v-card-actions v-if="!task.submitted">
+                <v-chip color="red" text-color="white">No Submission</v-chip>
+              </v-card-actions>
+              <v-card-actions v-else>
+                <v-chip color="green" text-color="white">Submitted</v-chip>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Pagination -->
+        <v-row v-if="totalTaskPages > 1 && userLoaded">
+          <v-col cols="12" class="d-flex justify-center">
+            <v-pagination
+              v-model="taskCurrentPage"
+              :length="totalTaskPages"
+              :total-visible="7"
+              color="primary"
+            ></v-pagination>
+          </v-col>
+        </v-row>
+
+        <!-- No Tasks State -->
+        <v-row v-else-if="userLoaded && filteredAndSortedTasks.length === 0 && tasks.length > 0">
+          <v-col cols="12">
+            <v-alert type="info" class="text-center">
+              No tasks match your current search and filter criteria.
+            </v-alert>
+          </v-col>
+        </v-row>
+
+        <!-- Empty State -->
+        <v-row v-else-if="userLoaded && tasks.length === 0">
+          <v-col cols="12">
+            <v-alert type="info" class="text-center">
+              No tasks found.
+            </v-alert>
           </v-col>
         </v-row>
       </v-window-item>
