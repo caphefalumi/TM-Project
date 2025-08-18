@@ -367,6 +367,7 @@ const getFieldPreviewValue = (field) => {
               <v-card v-if="currentStep === 1" flat>
                 <v-card-text class="pa-2">
                   <v-form>
+                    
                     <v-text-field
                       v-model="taskForm.title"
                       label="Task Title"
@@ -735,9 +736,12 @@ const getFieldPreviewValue = (field) => {
 
                 <v-card-text>
                   <p class="mb-2">{{ previewData.description }}</p>
+                  <div class="text-caption">
+                  <span>Weight: {{ taskForm.weighted }}</span>
+                  </div>
                   <div class="d-flex justify-space-between text-caption">
-                    <span>Weight: {{ previewData.weighted }}</span>
-                    <span>Due: {{ new Date(previewData.dueDate).toLocaleDateString() }}</span>
+                    <span>Start: {{ new Date(taskForm.startDate).toLocaleDateString() }}</span>
+                    <span>Due: {{ new Date(taskForm.dueDate).toLocaleDateString() }}</span>
                   </div>
                 </v-card-text>
               </v-card>
