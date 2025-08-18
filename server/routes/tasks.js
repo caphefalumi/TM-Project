@@ -84,6 +84,7 @@ const addTaskToUsers = async (req, res) => {
       title,
       description,
       category,
+      tags,
       priority,
       startDate,
       dueDate,
@@ -142,6 +143,7 @@ const addTaskToUsers = async (req, res) => {
       description,
       design,
       category,
+      tags,
       priority,
       weighted,
       startDate: new Date(startDate), // Convert to Date object

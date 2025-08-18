@@ -147,6 +147,10 @@ const taskSchema = new mongoose.Schema({
     required: true,
     enum: ['Report', 'Development', 'Design', 'Marketing', 'Other'],
   },
+  tags: {
+    type: [String],
+    default: () => [],
+  },
   description: {
     type: String,
     default: () => '',
