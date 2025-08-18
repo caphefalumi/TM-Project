@@ -165,6 +165,10 @@ const taskSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  startDate: {
+    type: Date,
+    required: true,
+  },
   dueDate: {
     // If admin wants to create weekly tasks,
     // the admin will be asked the range of days to apply weekly tasks. (max 3 months)

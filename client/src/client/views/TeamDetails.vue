@@ -52,6 +52,7 @@ const tasks = ref([])
 const announcements = ref([])
 const teamMembers = ref([])
 const taskGroups = ref([])
+const refreshingTaskGroups = ref(false)
 
 const activeTab = ref('tasks')
 
@@ -305,6 +306,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
 
 const getTaskGroups = async () => {
   try {
+    refreshingTaskGroups.value = true
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}/task-groups`, {
       method: 'GET',
@@ -323,6 +325,8 @@ const getTaskGroups = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch task groups:', error)
+  } finally {
+    refreshingTaskGroups.value = false
   }
 }
 
@@ -722,7 +726,19 @@ const formatDate = (dateString) => {
         <!-- Task Groups List -->
         <v-row v-if="taskGroups.length > 0">
           <v-col cols="12">
-            <h3 class="text-h6 mb-3">Task Groups</h3>
+            <div class="d-flex align-center justify-space-between mb-3">
+              <h3 class="text-h6">Task Groups</h3>
+              <v-btn
+                color="primary"
+                variant="outlined"
+                size="small"
+                @click="getTaskGroups"
+                :loading="refreshingTaskGroups"
+              >
+                <v-icon start>mdi-refresh</v-icon>
+                Refresh
+              </v-btn>
+            </div>
           </v-col>
           <v-col
             v-for="taskGroup in taskGroups"
