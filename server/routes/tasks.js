@@ -77,7 +77,6 @@ const getTasksOfAUserInATeam = async (req, res) => {
 
 const addTaskToUsers = async (req, res) => {
   // Add a new task to every user being assigned in the request body
-
   try {
     const {
       assignedUsers,
@@ -86,6 +85,7 @@ const addTaskToUsers = async (req, res) => {
       description,
       category,
       priority,
+      startDate,
       dueDate,
       weighted,
       design,
@@ -100,6 +100,7 @@ const addTaskToUsers = async (req, res) => {
       !title ||
       !category ||
       !priority ||
+      !startDate ||
       !dueDate ||
       weighted === undefined ||
       !design
@@ -110,6 +111,7 @@ const addTaskToUsers = async (req, res) => {
         title,
         category,
         priority,
+        startDate,
         dueDate,
         weighted,
         design,
@@ -142,6 +144,7 @@ const addTaskToUsers = async (req, res) => {
       category,
       priority,
       weighted,
+      startDate: new Date(startDate), // Convert to Date object
       dueDate: new Date(dueDate),
     }))
     // Insert all tasks into the database
@@ -367,7 +370,7 @@ const getTasksByGroupId = async (req, res) => {
 
 const updateTaskGroup = async (req, res) => {
   // Update all tasks in a group (for admin bulk operations)
-  // Can update title, description, priority, dueDate, weighted, and reassign users
+  // Can update title, description, priority, startDate, dueDate, weighted, and reassign users
 
   try {
     const { taskGroupId, teamId } = req.params
@@ -436,6 +439,7 @@ const updateTaskGroup = async (req, res) => {
           category: updateData.category || templateTask.category,
           priority: updateData.priority || templateTask.priority,
           weighted: updateData.weighted !== undefined ? updateData.weighted : templateTask.weighted,
+          startDate: updateData.startDate ? new Date(updateData.startDate) : templateTask.startDate,
           dueDate: updateData.dueDate ? new Date(updateData.dueDate) : templateTask.dueDate,
         }))
 
@@ -532,6 +536,7 @@ const getAllTaskGroups = async (req, res) => {
           title: { $first: '$title' },
           category: { $first: '$category' },
           priority: { $first: '$priority' },
+          startDate: { $first: '$startDate' },
           dueDate: { $first: '$dueDate' },
           totalTasks: { $sum: 1 },
           completedTasks: {
@@ -550,6 +555,7 @@ const getAllTaskGroups = async (req, res) => {
         title: group.title,
         category: group.category,
         priority: group.priority,
+        startDate: group.startDate,
         dueDate: group.dueDate,
         totalTasks: group.totalTasks,
         completedTasks: group.completedTasks,

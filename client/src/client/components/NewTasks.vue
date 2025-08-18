@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -41,6 +41,7 @@ const taskForm = ref({
   description: '',
   priority: 'Medium',
   weighted: 0,
+  startDate: '',
   dueDate: '',
   teamId: '',
   design: {
@@ -99,6 +100,17 @@ const setUserFromProps = (userProps) => {
   user.value.email = userProps.email
 }
 
+const allFilled = computed(() => {
+  return (
+    taskForm.value.title &&
+    taskForm.value.teamId &&
+    taskForm.value.startDate &&
+    taskForm.value.dueDate &&
+    taskForm.value.startDate < taskForm.value.dueDate &&
+    selectedUsers.value.length > 0
+  )
+})
+
 // Close dialog
 const closeDialog = () => {
   emit('create-task', taskForm.value) // Emit task data
@@ -114,6 +126,7 @@ const resetForm = () => {
     description: '',
     priority: 'Medium',
     weighted: 1,
+    startDate: '',
     dueDate: '',
     teamId: `${props.teamId}`,
     design: {
@@ -259,6 +272,7 @@ const previewData = computed(() => {
     description: taskForm.value.description || 'Task description...',
     priority: taskForm.value.priority,
     weighted: taskForm.value.weighted,
+    startDate: taskForm.value.startDate || new Date().toISOString().split('T')[0],
     dueDate: taskForm.value.dueDate || new Date().toISOString().split('T')[0],
     fields: taskForm.value.design.fields,
   }
@@ -371,15 +385,28 @@ const getFieldPreviewValue = (field) => {
                         ></v-text-field>
                       </v-col>
                     </v-row>
-
-                    <v-text-field
-                      v-model="taskForm.dueDate"
-                      label="Due Date"
-                      type="date"
-                      variant="outlined"
-                      class="mb-3"
-                      required
-                    ></v-text-field>
+                    <v-row>
+                      <v-col cols="6">
+                        <v-text-field
+                          v-model="taskForm.startDate"
+                          label="Start Date"
+                          type="date"
+                          variant="outlined"
+                          class="mb-3"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="6">
+                        <v-text-field
+                          v-model="taskForm.dueDate"
+                          label="Due Date"
+                          type="date"
+                          variant="outlined"
+                          class="mb-3"
+                          required
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                    
 
                     <!-- User Selection -->
                     <v-divider class="my-4"></v-divider>
@@ -433,7 +460,7 @@ const getFieldPreviewValue = (field) => {
                 </v-card-text>
                 <div class="validation-messages mb-3">
                   <v-alert 
-                    v-if="!taskForm.title || !taskForm.teamId || !taskForm.dueDate || selectedUsers.length === 0"
+                    v-if="!allFilled" 
                     type="warning" 
                     variant="tonal"
                     density="compact"
@@ -446,7 +473,9 @@ const getFieldPreviewValue = (field) => {
                       <strong>Please complete the following to continue:</strong>
                       <ul class="mt-1 ml-4">
                         <li v-if="!taskForm.title">Add a task title</li>
+                        <li v-if="!taskForm.startDate">Select a start date</li>
                         <li v-if="!taskForm.dueDate">Select a due date</li>
+                        <li v-if="taskForm.startDate >= taskForm.dueDate">Start date must be before due date</li>
                         <li v-if="selectedUsers.length === 0">Assign at least one team member</li>
                       </ul>
                     </div>
@@ -458,7 +487,7 @@ const getFieldPreviewValue = (field) => {
                     variant="outlined"
                     color="primary"
                     @click="currentStep = 2"
-                    :disabled="!taskForm.title || !taskForm.teamId || !taskForm.dueDate || selectedUsers.length === 0"
+                    :disabled="!allFilled"
                   >
                     Next: Add Fields
                   </v-btn>
