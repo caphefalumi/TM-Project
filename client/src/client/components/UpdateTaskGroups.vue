@@ -384,13 +384,13 @@ onMounted(() => {
                   </v-card-title>
                   <v-card-text>
                     <v-row class="align-center">
-                      <v-col cols="6">
+                      <v-col cols="9">
                         <strong>{{ task.title }}</strong>
                         <p class="text-caption text-grey mb-0">
-                          Due: {{ formatDate(task.dueDate) }}
+                          Start: {{ formatDate(task.startDate) }} &nbsp;&nbsp;Due: {{ formatDate(task.dueDate) }}
                         </p>
                       </v-col>
-                      <v-col cols="6" class="text-right">
+                      <v-col cols="3" class="text-right">
                         <v-chip color="info" size="small" class="mb-1">
                           Weight: {{ task.weighted }}
                         </v-chip>
