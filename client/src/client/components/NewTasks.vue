@@ -38,6 +38,7 @@ const selectedUsers = ref([])
 const taskForm = ref({
   title: '',
   category: 'Report',
+  tags: [],
   description: '',
   priority: 'Medium',
   weighted: 0,
@@ -75,6 +76,7 @@ const fieldTypes = ref([...DEFAULT_FIELD_TYPES])
 // Form states
 const loading = ref(false)
 const currentStep = ref(1) // 1: Basic Info, 2: Dynamic Fields
+const newTag = ref('')
 const newField = ref({
   label: '',
   type: 'Short text',
@@ -123,6 +125,7 @@ const resetForm = () => {
   taskForm.value = {
     title: '',
     category: 'Report',
+    tags: [],
     description: '',
     priority: 'Medium',
     weighted: 1,
@@ -136,6 +139,7 @@ const resetForm = () => {
   }
   selectedUsers.value = []
   currentStep.value = 1
+  newTag.value = ''
   newField.value = {
     label: '',
     type: 'Short text',
@@ -184,9 +188,13 @@ const addField = () => {
 }
 
 // Remove field
-const removeField = (index) => {
-  taskForm.value.design.fields.splice(index, 1)
-  taskForm.value.design.numberOfFields = taskForm.value.design.fields.length
+const removeField = (field) => {
+  // remove field by field label
+  const index = taskForm.value.design.fields.findIndex(f => f.label === field.label)
+  if (index > -1) {
+    taskForm.value.design.fields.splice(index, 1)
+    taskForm.value.design.numberOfFields = taskForm.value.design.fields.length
+  }
 }
 
 // Add option to select field
@@ -198,13 +206,32 @@ const addOption = () => {
 }
 
 // Remove option from select field
-const removeOption = (index) => {
-  newField.value.config.options.splice(index, 1)
+const removeOption = (option) => {
+  const index = newField.value.config.options.indexOf(option)
+  if (index > -1) {
+    newField.value.config.options.splice(index, 1)
+  }
+}
+
+// Add tag to task
+const addTag = () => {
+  if (newTag.value && !taskForm.value.tags.includes(newTag.value)) {
+    taskForm.value.tags.push(newTag.value)
+    newTag.value = ''
+  }
+}
+
+// Remove tag from task
+const removeTag = (tag) => {
+  const index = taskForm.value.tags.indexOf(tag)
+  if (index > -1) {
+    taskForm.value.tags.splice(index, 1)
+  }
 }
 
 // Create task
 const createTask = async () => {
-  if (!taskForm.value.title || !taskForm.value.teamId) return
+  if (!taskForm.value.title || !taskForm.value.teamId || taskForm.value.design.fields.length === 0) return
 
   loading.value = true
   const submittedData = {
@@ -269,6 +296,7 @@ const previewData = computed(() => {
   return {
     title: taskForm.value.title || 'Task Title',
     category: taskForm.value.category,
+    tags: taskForm.value.tags,
     description: taskForm.value.description || 'Task description...',
     priority: taskForm.value.priority,
     weighted: taskForm.value.weighted,
@@ -362,6 +390,43 @@ const getFieldPreviewValue = (field) => {
                       rows="3"
                       class="mb-3"
                     ></v-textarea>
+
+                    <!-- Tags Section -->
+                    <div class="mb-3">
+                      <h4 class="text-subtitle-2 mb-2">Tags (Optional):</h4>
+                      
+                      <!-- Add Tag Input -->
+                      <v-text-field
+                        v-model="newTag"
+                        label="Add Tag"
+                        variant="outlined"
+                        density="compact"
+                        @keyup.enter="addTag"
+                        append-inner-icon="mdi-plus"
+                        @click:append-inner="addTag"
+                        placeholder="Enter tag name"
+                        class="mb-2"
+                      ></v-text-field>
+
+                      <!-- Display Current Tags -->
+                      <v-chip-group v-if="taskForm.tags.length > 0" column class="mb-2">
+                        <v-chip
+                          v-for="tag in taskForm.tags"
+                          :key="tag"
+                          closable
+                          @click:close="removeTag(tag)"
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        >
+                          {{ tag }}
+                        </v-chip>
+                      </v-chip-group>
+
+                      <div v-if="taskForm.tags.length === 0" class="text-caption text-grey mb-2">
+                        No tags added yet. Tags help categorize and filter tasks.
+                      </div>
+                    </div>
 
                     <v-row>
                       <v-col cols="6">
@@ -515,10 +580,10 @@ const getFieldPreviewValue = (field) => {
                     <h4 class="text-subtitle-1 mb-2">Current Fields:</h4>
                     <v-chip-group column>
                       <v-chip
-                        v-for="(field, index) in taskForm.design.fields"
-                        :key="field.label + index"
+                        v-for="field in taskForm.design.fields"
+                        :key="field.label"
                         closable
-                        @click:close="removeField(index)"
+                        @click:close="removeField(field)"
                         :color="field.config.required ? 'primary' : 'default'"
                       >
                         {{ field.label }} ({{ field.type }})
@@ -591,10 +656,10 @@ const getFieldPreviewValue = (field) => {
 
                     <v-chip-group v-if="newField.config.options.length > 0" column class="mt-2">
                       <v-chip
-                        v-for="(option, index) in newField.config.options"
-                        :key="index"
+                        v-for="option in newField.config.options"
+                        :key="option"
                         closable
-                        @click:close="removeOption(index)"
+                        @click:close="removeOption(option)"
                         size="small"
                       >
                         {{ option }}
@@ -614,6 +679,25 @@ const getFieldPreviewValue = (field) => {
                   >
                     Add Field
                   </v-btn>
+
+                  <!-- Validation warning for Step 2 -->
+                  <div class="validation-messages mb-3">
+                    <v-alert 
+                      v-if="taskForm.design.fields.length === 0" 
+                      type="warning" 
+                      variant="tonal"
+                      density="compact"
+                      class="mb-2"
+                    >
+                      <template v-slot:prepend>
+                        <v-icon>mdi-alert-circle</v-icon>
+                      </template>
+                      <div class="text-caption">
+                        <strong>At least 1 custom field is required to create a task</strong>
+                        <p class="mt-1 mb-0">Add fields above to define what information team members need to submit when completing this task.</p>
+                      </div>
+                    </v-alert>
+                  </div>
                 </v-card-text>
               </v-card>
             </div>
@@ -634,6 +718,18 @@ const getFieldPreviewValue = (field) => {
                     <v-chip color="purple-darken-2">
                       {{ previewData.category }}
                     </v-chip>
+                    <!-- Tags Preview -->
+                    <v-chip-group>
+                      <v-chip
+                        v-for="tag in previewData.tags"
+                        :key="tag"
+                        color="black"
+                        size="small"
+                        class="ml-1"
+                      >
+                        {{ tag }}
+                      </v-chip>
+                    </v-chip-group>
                   </v-card-subtitle>
                 </v-card-item>
 
@@ -650,7 +746,7 @@ const getFieldPreviewValue = (field) => {
               <v-card v-if="previewData.fields.length > 0">
                 <v-card-title>Submission Form Preview</v-card-title>
                 <v-card-text>
-                  <div v-for="(field, index) in previewData.fields" :key="index" class="mb-3">
+                  <div v-for="field in previewData.fields" :key="field.label" class="mb-3">
                     <label class="text-subtitle-2 mb-1 d-block">
                       {{ field.label }}
                       <span v-if="field.config.required" class="text-red">*</span>
@@ -738,7 +834,7 @@ const getFieldPreviewValue = (field) => {
           color="primary"
           @click="createTask"
           :loading="loading"
-          :disabled="!taskForm.title || !taskForm.teamId || currentStep !== 2"
+          :disabled="!taskForm.title || !taskForm.teamId || currentStep !== 2 || taskForm.design.fields.length === 0"
         >
           Create Task
         </v-btn>
