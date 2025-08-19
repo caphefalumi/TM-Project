@@ -13,6 +13,7 @@ const userId = ref('')
 const authenticate = ref(false)
 const showPassword = ref(false)
 const usingOAuthRegister = ref(false)
+const isLoading = ref(false)
 const error = ref('')
 const success = ref('')
 
@@ -155,6 +156,7 @@ const loginUsingLocal = async () => {
     return
   }
 
+  isLoading.value = true
   error.value = ''
   success.value = ''
   const PORT = import.meta.env.VITE_API_PORT
@@ -177,38 +179,47 @@ const loginUsingLocal = async () => {
     }
   } catch (err) {
     error.value = 'Network error'
+  } finally {
+    isLoading.value = false
   }
 }
 
-const loginUsingOAuth = (response) => {
+const loginUsingOAuth = async (response) => {
   // Login with OAuth Button logic
   const validateEmail = async (email) => {
+    isLoading.value = true
     error.value = ''
     success.value = ''
     userEmail.value = email
     const PORT = import.meta.env.VITE_API_PORT
 
-    const res = await fetch(`${PORT}/api/account/oauth`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: email,
-      }),
-    })
+    try {
+      const res = await fetch(`${PORT}/api/account/oauth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+        }),
+      })
 
-    if (!res.ok) {
-      error.value = res.error || 'Validate email failed'
-    } else {
-      success.value = 'Authorization completed! Please enter username.'
-      const data = await res.json()
-      console.log('Data:', data)
+      if (!res.ok) {
+        error.value = res.error || 'Validate email failed'
+      } else {
+        success.value = 'Authorization completed! Please enter username.'
+        const data = await res.json()
+        console.log('Data:', data)
 
-      if (data.success === 'register') {
-        usingOAuthRegister.value = true
-      } else if (data.success === 'login') {
-        username.value = data.username
-        sendToHomePage()
+        if (data.success === 'register') {
+          usingOAuthRegister.value = true
+        } else if (data.success === 'login') {
+          username.value = data.username
+          sendToHomePage()
+        }
       }
+    } catch (err) {
+      error.value = 'Network error'
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -232,32 +243,39 @@ const loginUsingOAuth = (response) => {
 
 const registerWithOAuth = async () => {
   // Register with OAuth Button logic
+  isLoading.value = true
   error.value = ''
   success.value = ''
   const PORT = import.meta.env.VITE_API_PORT
 
-  const res = await fetch(`${PORT}/api/account/google/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: username.value,
-      email: userEmail.value,
-    }),
-  })
+  try {
+    const res = await fetch(`${PORT}/api/account/google/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username.value,
+        email: userEmail.value,
+      }),
+    })
 
-  if (!res.ok) {
-    error.value = res.error
-  } else {
-    const data = await res.json()
-    console.log('Data:', data)
-    if (data.success) {
-      success.value = data.success
-      sendToHomePage()
-    } else if (data.error) {
-      error.value = data.error
+    if (!res.ok) {
+      error.value = res.error
+    } else {
+      const data = await res.json()
+      console.log('Data:', data)
+      if (data.success) {
+        success.value = data.success
+        sendToHomePage()
+      } else if (data.error) {
+        error.value = data.error
+      }
     }
+  } catch (err) {
+    error.value = 'Network error'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -299,7 +317,16 @@ const registerWithOAuth = async () => {
                 required
                 class="mb-4"
               />
-              <v-btn type="submit" color="primary" block class="mb-2">Login</v-btn>
+              <v-btn 
+                type="submit" 
+                color="primary" 
+                block 
+                class="mb-2"
+                :loading="isLoading"
+                :disabled="isLoading"
+              >
+                Login
+              </v-btn>
               <v-divider class="my-4">OR</v-divider>
               <GoogleLogin class="w-100 oauth-button" :callback="loginUsingOAuth"></GoogleLogin>
             </v-form>
@@ -312,7 +339,16 @@ const registerWithOAuth = async () => {
                 required
                 class="mb-4"
               />
-              <v-btn type="submit" color="primary" block class="mb-2">Login</v-btn>
+              <v-btn 
+                type="submit" 
+                color="primary" 
+                block 
+                class="mb-2"
+                :loading="isLoading"
+                :disabled="isLoading"
+              >
+                Login
+              </v-btn>
             </v-form>
             <v-alert v-if="error" type="error" class="mt-2">{{ error }}</v-alert>
             <v-alert v-if="success" type="success" class="mt-2">{{ success }}</v-alert>
