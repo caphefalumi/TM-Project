@@ -85,7 +85,6 @@ const revokeRefreshToken = async (req, res) => {
     sameSite: 'None',
   })
 
-
   const { userId } = req.body
   console.log('Revoke refresh token for user:', req.body)
 

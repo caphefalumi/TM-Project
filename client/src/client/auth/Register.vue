@@ -12,21 +12,20 @@ const loading = ref(false)
 const router = useRouter()
 
 async function register() {
-  
   error.value = ''
   success.value = ''
   loading.value = true
   try {
     // Send registration data to backend API (adjust URL as needed)
-    const PORT = import.meta.env.VITE_API_PORT;
+    const PORT = import.meta.env.VITE_API_PORT
     const res = await fetch(`${PORT}/api/account/local/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: username.value,
         email: email.value,
-        password: password.value
-      })
+        password: password.value,
+      }),
     })
     const data = await res.json()
     if (!res.ok) {
@@ -59,8 +58,8 @@ async function register() {
                 required
                 class="mb-4"
                 :rules="[
-                  v => !!v || 'Username is required',
-                  v => v.length >= 3 || 'Username must be at least 3 characters'
+                  (v) => !!v || 'Username is required',
+                  (v) => v.length >= 3 || 'Username must be at least 3 characters',
                 ]"
               />
               <v-text-field
@@ -71,8 +70,8 @@ async function register() {
                 required
                 class="mb-4"
                 :rules="[
-                  v => !!v || 'Email is required',
-                  v => /.+@.+\..+/.test(v) || 'E-mail must be valid'
+                  (v) => !!v || 'Email is required',
+                  (v) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
                 ]"
               />
               <v-text-field
@@ -85,11 +84,13 @@ async function register() {
                 required
                 class="mb-4"
                 :rules="[
-                  v => !!v || 'Password is required',
-                  v => v.length >= 6 || 'Password must be at least 6 characters'
+                  (v) => !!v || 'Password is required',
+                  (v) => v.length >= 6 || 'Password must be at least 6 characters',
                 ]"
               />
-              <v-btn :loading="loading" type="submit" color="primary" block class="mb-2">Register</v-btn>
+              <v-btn :loading="loading" type="submit" color="primary" block class="mb-2"
+                >Register</v-btn
+              >
             </v-form>
             <v-alert v-if="error" type="error" class="mt-2">{{ error }}</v-alert>
             <v-alert v-if="success" type="success" class="mt-2">{{ success }}</v-alert>

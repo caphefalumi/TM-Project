@@ -387,7 +387,8 @@ onMounted(() => {
                       <v-col cols="9">
                         <strong>{{ task.title }}</strong>
                         <p class="text-caption text-grey mb-0">
-                          Start: {{ formatDate(task.startDate) }} &nbsp;&nbsp;Due: {{ formatDate(task.dueDate) }}
+                          Start: {{ formatDate(task.startDate) }} &nbsp;&nbsp;Due:
+                          {{ formatDate(task.dueDate) }}
                         </p>
                       </v-col>
                       <v-col cols="3" class="text-right">

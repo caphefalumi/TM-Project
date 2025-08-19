@@ -1,4 +1,3 @@
-
 import Account from '../models/Account.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
@@ -57,7 +56,6 @@ const getRoles = async (req, res) => {
 }
 
 const addUserToTeam = async (userId, username, teamId, role) => {
-
   try {
     const userOfTeam = new UsersOfTeam({
       userId,
@@ -92,7 +90,6 @@ const addTeamPro = async (req, res) => {
       .status(400)
       .json({ message: 'Title, category, description, userId, and username are required' })
   } else {
-
     try {
       if (!parentTeamId) {
         await addTeam(title, category, description)
@@ -125,7 +122,6 @@ const addTeamPro = async (req, res) => {
 }
 
 const addTeam = async (title, category, description) => {
-
   try {
     const team = new Teams({
       title,
@@ -141,7 +137,6 @@ const addTeam = async (title, category, description) => {
 }
 
 const addSubTeam = async (title, category, description, parentTeamId) => {
-
   // check for parentTeamId validity
   try {
     const parentTeam = await Teams.findById(parentTeamId)
@@ -172,7 +167,6 @@ const getParentsTeam = async (parentTeamId) => {
     console.log('This team has no parent team.')
     return ''
   } else {
-
     let teamBreadCrumps = ''
     let parentTeam = await Teams.findOne({ _id: parentTeamId })
     while (parentTeam) {
@@ -193,7 +187,6 @@ const getParentsTeam = async (parentTeamId) => {
 }
 
 const getTeamNameThatUserIsAdmin = async (req, res) => {
-
   const { userId } = req.params
   console.log('User ID to GetTeams:', userId)
 

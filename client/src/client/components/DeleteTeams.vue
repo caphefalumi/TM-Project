@@ -48,7 +48,6 @@ onMounted(async () => {
   // const userToken = await getUserByAccessToken()
   setUserFromProps(props.userProps)
   if (user) {
-    
   } else {
     user.value.username = 'Guest'
     user.value.email = ''
@@ -87,7 +86,7 @@ const deleteTeams = async (teamId) => {
         teamId: teamId,
       }),
     })
-    
+
     const result = await response.json()
     if (!response.ok) {
       error.value = true
