@@ -526,10 +526,7 @@ const onCalendarChange = (interval) => {
                       </v-icon>
                       <span class="text-truncate">{{ task.title }}</span>
                       <v-spacer></v-spacer>
-                      <v-chip
-                        :color="getTaskColor(task)"
-                        size="small"
-                      >
+                      <v-chip :color="getTaskColor(task)" size="small">
                         {{ task.priority }}
                       </v-chip>
                     </v-card-title>

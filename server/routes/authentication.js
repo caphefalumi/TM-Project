@@ -2,7 +2,6 @@ import Account from '../models/Account.js'
 import bcrypt from 'bcrypt'
 
 const getUserIDAndEmailByName = async (req, res) => {
-
   const { username } = req.params
   console.log('Username:', username)
   if (!username) {
@@ -29,7 +28,6 @@ const getUserIDAndEmailByName = async (req, res) => {
 // Returns message for Gmail OAuth
 
 const oAuthentication = async (req, res) => {
-
   const { email } = req.body
   if (!email) {
     return res.status(400).json({ error: 'Email is required' })
@@ -49,7 +47,6 @@ const oAuthentication = async (req, res) => {
 // ####################################################################################
 
 const oAuthenticationRegister = async (req, res) => {
-
   const { username, email } = req.body
   const provider = 'google'
   console.log(username, email)
@@ -83,7 +80,6 @@ const oAuthenticationRegister = async (req, res) => {
 }
 
 const localRegister = async (req, res) => {
-
   const { username, email, password } = req.body
   const provider = 'local'
 
@@ -114,7 +110,6 @@ const localRegister = async (req, res) => {
 }
 
 const localLogin = async (req, res) => {
-
   const { username, password } = req.body
   if (!username || !password) {
     return res.status(400).json({ error: 'All fields are required.' })

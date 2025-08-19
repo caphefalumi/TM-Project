@@ -11,14 +11,13 @@ import vue3GoogleLogin from 'vue3-google-login'
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID
 
 const app = createApp(App)
-const pinia = createPinia();
+const pinia = createPinia()
 
 app.use(vue3GoogleLogin, {
-  clientId: CLIENT_ID
+  clientId: CLIENT_ID,
 })
 
-
-app.use(router);
-app.use(vuetify);
-app.use(pinia);
+app.use(router)
+app.use(vuetify)
+app.use(pinia)
 app.mount('#app')

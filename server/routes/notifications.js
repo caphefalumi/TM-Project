@@ -11,8 +11,6 @@ import { getUserNotificationPreferences } from '../scripts/notificationsService.
  * - type: Filter by notification type (optional)
  */
 const getUserNotifications = async (req, res) => {
-
-
   try {
     const { userId } = req.params
     const { page = 1, limit = 20, unreadOnly = false, type } = req.query
@@ -86,8 +84,6 @@ const getUserNotifications = async (req, res) => {
  * - markAllAsRead: Boolean to mark all user's notifications as read
  */
 const markNotificationsAsRead = async (req, res) => {
-
-
   try {
     const { userId } = req.params
     const { notificationId, notificationIds, markAllAsRead } = req.body
@@ -146,8 +142,6 @@ const markNotificationsAsRead = async (req, res) => {
  * - deleteAll: Boolean to delete all user's notifications
  */
 const deleteNotifications = async (req, res) => {
-
-
   try {
     const { userId } = req.params
     const { notificationId, notificationIds, deleteAll } = req.body
@@ -212,8 +206,6 @@ const getNotificationPreferences = async (req, res) => {
  * Update user's notification preferences
  */
 const updateNotificationPreferences = async (req, res) => {
-
-
   try {
     const { userId } = req.params
     const { preferences, globalSettings } = req.body
@@ -259,8 +251,6 @@ const updateNotificationPreferences = async (req, res) => {
  * Get notification statistics for a user
  */
 const getNotificationStats = async (req, res) => {
-
-
   try {
     const { userId } = req.params
 

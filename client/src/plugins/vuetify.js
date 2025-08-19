@@ -16,5 +16,5 @@ export default createVuetify({
     ...components,
     VCalendar,
   },
-  directives
+  directives,
 })

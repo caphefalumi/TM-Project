@@ -384,7 +384,7 @@ const filteredAndSortedTasks = computed(() => {
   // Filter by task name search
   if (taskSearchQuery.value) {
     const searchTerm = taskSearchQuery.value.toLowerCase().trim()
-    filtered = filtered.filter(task => {
+    filtered = filtered.filter((task) => {
       const taskTitle = task.title.toLowerCase()
       return taskTitle.includes(searchTerm)
     })
@@ -393,12 +393,12 @@ const filteredAndSortedTasks = computed(() => {
   // Filter by tag search
   if (taskTagSearchQuery.value) {
     const tagSearchTerms = taskTagSearchQuery.value.toLowerCase().trim().split(/\s+/)
-    filtered = filtered.filter(task => {
-      const taskTags = task.tags ? task.tags.map(tag => tag.toLowerCase()) : []
-      
+    filtered = filtered.filter((task) => {
+      const taskTags = task.tags ? task.tags.map((tag) => tag.toLowerCase()) : []
+
       // Check if all search terms match any tag (AND logic for multiple tags)
-      return tagSearchTerms.every(term => {
-        return taskTags.some(tag => tag.includes(term))
+      return tagSearchTerms.every((term) => {
+        return taskTags.some((tag) => tag.includes(term))
       })
     })
   }
@@ -406,9 +406,9 @@ const filteredAndSortedTasks = computed(() => {
   // Filter by task type
   const now = new Date()
   if (taskFilterType.value === 'not-submitted') {
-    filtered = filtered.filter(task => !task.submitted)
+    filtered = filtered.filter((task) => !task.submitted)
   } else if (taskFilterType.value === 'pending') {
-    filtered = filtered.filter(task => {
+    filtered = filtered.filter((task) => {
       const startDate = new Date(task.startDate)
       const dueDate = new Date(task.dueDate)
       return now >= startDate && now <= dueDate
@@ -432,7 +432,7 @@ const totalTaskPages = computed(() => {
 const taskFilterOptions = [
   { title: 'All Tasks', value: 'all' },
   { title: 'Not Submitted', value: 'not-submitted' },
-  { title: 'Pending Tasks', value: 'pending' }
+  { title: 'Pending Tasks', value: 'pending' },
 ]
 </script>
 
@@ -600,7 +600,7 @@ const taskFilterOptions = [
               <h2 class="text-h5">Your Tasks ({{ filteredAndSortedTasks.length }})</h2>
             </div>
           </v-col>
-          
+
           <!-- Search and Filter Controls -->
           <v-col cols="12">
             <v-row>
@@ -644,13 +644,7 @@ const taskFilterOptions = [
 
         <!-- Tasks Grid -->
         <v-row v-if="paginatedTasks.length > 0 && userLoaded">
-          <v-col
-            v-for="task in paginatedTasks"
-            :key="task._id"
-            cols="12"
-            md="6"
-            lg="4"
-          >
+          <v-col v-for="task in paginatedTasks" :key="task._id" cols="12" md="6" lg="4">
             <v-card class="mb-4 elevation-2 project-card" @click="submitTask(task._id)">
               <v-card-item>
                 <v-card-title>{{ task.title }}</v-card-title>
@@ -718,9 +712,7 @@ const taskFilterOptions = [
         <!-- Empty State -->
         <v-row v-else-if="userLoaded && tasks.length === 0">
           <v-col cols="12">
-            <v-alert type="info" class="text-center">
-              No tasks found.
-            </v-alert>
+            <v-alert type="info" class="text-center"> No tasks found. </v-alert>
           </v-col>
         </v-row>
       </v-window-item>

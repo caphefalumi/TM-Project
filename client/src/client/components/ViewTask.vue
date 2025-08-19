@@ -76,15 +76,12 @@ const fetchTaskDetails = async () => {
     }
 
     // Then, try to get the submission details
-    const submissionResponse = await fetch(
-      `${PORT}/api/tasks/submission/${props.task._id}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const submissionResponse = await fetch(`${PORT}/api/tasks/submission/${props.task._id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+    })
 
     if (submissionResponse.ok) {
       const submissionResult = await submissionResponse.json()
@@ -240,7 +237,7 @@ watch(
                   </div>
 
                   <!-- Display field value based on type -->
-                  <div class="ml-2">    
+                  <div class="ml-2">
                     <div
                       v-if="field.type === 'Image' && field.value && field.value !== '(No image)'"
                     >
@@ -306,7 +303,9 @@ watch(
       <!-- Actions -->
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" variant="outlined" @click="$emit('update:dialog', false)"> Close </v-btn>
+        <v-btn color="primary" variant="outlined" @click="$emit('update:dialog', false)">
+          Close
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

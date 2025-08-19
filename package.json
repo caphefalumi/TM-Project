@@ -9,12 +9,12 @@
     "server": "cd server && npm run server",
     "build": "cd client && npm run build",
     "preview": "cd client && npm run preview",
-    "lint": "eslint . --fix",
-    "format": "prettier --write src/",
+    "format": "prettier --write \"client/**/*.{js,ts,vue,json,md}\" \"server/**/*.{js,ts,json}\"",
     "start:all": "concurrently \"npm run dev\" \"npm run server\"",
     "app": "concurrently \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
-    "concurrently": "^9.2.0"
+    "concurrently": "^9.2.0",
+    "prettier": "^3.6.2"
   }
 }

@@ -190,7 +190,7 @@ const addField = () => {
 // Remove field
 const removeField = (field) => {
   // remove field by field label
-  const index = taskForm.value.design.fields.findIndex(f => f.label === field.label)
+  const index = taskForm.value.design.fields.findIndex((f) => f.label === field.label)
   if (index > -1) {
     taskForm.value.design.fields.splice(index, 1)
     taskForm.value.design.numberOfFields = taskForm.value.design.fields.length
@@ -231,7 +231,8 @@ const removeTag = (tag) => {
 
 // Create task
 const createTask = async () => {
-  if (!taskForm.value.title || !taskForm.value.teamId || taskForm.value.design.fields.length === 0) return
+  if (!taskForm.value.title || !taskForm.value.teamId || taskForm.value.design.fields.length === 0)
+    return
 
   loading.value = true
   const submittedData = {
@@ -367,7 +368,6 @@ const getFieldPreviewValue = (field) => {
               <v-card v-if="currentStep === 1" flat>
                 <v-card-text class="pa-2">
                   <v-form>
-                    
                     <v-text-field
                       v-model="taskForm.title"
                       label="Task Title"
@@ -395,7 +395,7 @@ const getFieldPreviewValue = (field) => {
                     <!-- Tags Section -->
                     <div class="mb-3">
                       <h4 class="text-subtitle-2 mb-2">Tags (Optional):</h4>
-                      
+
                       <!-- Add Tag Input -->
                       <v-text-field
                         v-model="newTag"
@@ -472,7 +472,6 @@ const getFieldPreviewValue = (field) => {
                         ></v-text-field>
                       </v-col>
                     </v-row>
-                    
 
                     <!-- User Selection -->
                     <v-divider class="my-4"></v-divider>
@@ -525,9 +524,9 @@ const getFieldPreviewValue = (field) => {
                   </v-form>
                 </v-card-text>
                 <div class="validation-messages mb-3">
-                  <v-alert 
-                    v-if="!allFilled" 
-                    type="warning" 
+                  <v-alert
+                    v-if="!allFilled"
+                    type="warning"
                     variant="tonal"
                     density="compact"
                     class="mb-2"
@@ -541,7 +540,9 @@ const getFieldPreviewValue = (field) => {
                         <li v-if="!taskForm.title">Add a task title</li>
                         <li v-if="!taskForm.startDate">Select a start date</li>
                         <li v-if="!taskForm.dueDate">Select a due date</li>
-                        <li v-if="taskForm.startDate >= taskForm.dueDate">Start date must be before due date</li>
+                        <li v-if="taskForm.startDate >= taskForm.dueDate">
+                          Start date must be before due date
+                        </li>
                         <li v-if="selectedUsers.length === 0">Assign at least one team member</li>
                       </ul>
                     </div>
@@ -683,9 +684,9 @@ const getFieldPreviewValue = (field) => {
 
                   <!-- Validation warning for Step 2 -->
                   <div class="validation-messages mb-3">
-                    <v-alert 
-                      v-if="taskForm.design.fields.length === 0" 
-                      type="warning" 
+                    <v-alert
+                      v-if="taskForm.design.fields.length === 0"
+                      type="warning"
                       variant="tonal"
                       density="compact"
                       class="mb-2"
@@ -695,7 +696,10 @@ const getFieldPreviewValue = (field) => {
                       </template>
                       <div class="text-caption">
                         <strong>At least 1 custom field is required to create a task</strong>
-                        <p class="mt-1 mb-0">Add fields above to define what information team members need to submit when completing this task.</p>
+                        <p class="mt-1 mb-0">
+                          Add fields above to define what information team members need to submit
+                          when completing this task.
+                        </p>
                       </div>
                     </v-alert>
                   </div>
@@ -737,7 +741,7 @@ const getFieldPreviewValue = (field) => {
                 <v-card-text>
                   <p class="mb-2">{{ previewData.description }}</p>
                   <div class="text-caption">
-                  <span>Weight: {{ taskForm.weighted }}</span>
+                    <span>Weight: {{ taskForm.weighted }}</span>
                   </div>
                   <div class="d-flex justify-space-between text-caption">
                     <span>Start: {{ new Date(taskForm.startDate).toLocaleDateString() }}</span>
@@ -838,7 +842,12 @@ const getFieldPreviewValue = (field) => {
           color="primary"
           @click="createTask"
           :loading="loading"
-          :disabled="!taskForm.title || !taskForm.teamId || currentStep !== 2 || taskForm.design.fields.length === 0"
+          :disabled="
+            !taskForm.title ||
+            !taskForm.teamId ||
+            currentStep !== 2 ||
+            taskForm.design.fields.length === 0
+          "
         >
           Create Task
         </v-btn>

@@ -23,7 +23,6 @@ const getParentsTeam = async (parentTeamId) => {
     console.log('This team has no parent team.')
     return ''
   } else {
-
     let teamBreadCrumps = ''
     let parentTeam = await Teams.findOne({ _id: parentTeamId })
     while (parentTeam) {
@@ -44,7 +43,6 @@ const getParentsTeam = async (parentTeamId) => {
 }
 
 const getAllTeamsForAdmin = async (req, res) => {
-
   try {
     // Get all teams with member count and task count
     const teams = await Teams.find({}).sort({ createdAt: -1 })
@@ -85,7 +83,6 @@ const getAllTeamsForAdmin = async (req, res) => {
 }
 
 const getAllUsersForAdmin = async (req, res) => {
-
   try {
     // Get all users with just username and email
     const users = await Account.find(
@@ -108,7 +105,6 @@ const getAllUsersForAdmin = async (req, res) => {
 }
 
 const getAllAnnouncementsForAdmin = async (req, res) => {
-
   try {
     // Get all announcements with team and author info
     const announcementsWithInfo = await Announcements.aggregate([
@@ -160,7 +156,6 @@ const getAllAnnouncementsForAdmin = async (req, res) => {
 }
 
 const deleteTeamAsAdmin = async (req, res) => {
-
   try {
     const { teamId } = req.params
 
@@ -192,7 +187,6 @@ const deleteTeamAsAdmin = async (req, res) => {
 }
 
 const deleteUserAsAdmin = async (req, res) => {
-
   try {
     const { userId } = req.params
 
@@ -227,7 +221,6 @@ const deleteUserAsAdmin = async (req, res) => {
 }
 
 const deleteAnnouncementAsAdmin = async (req, res) => {
-
   try {
     const { announcementId } = req.params
 
@@ -247,7 +240,6 @@ const deleteAnnouncementAsAdmin = async (req, res) => {
 }
 
 const sendNotificationToUser = async (req, res) => {
-
   try {
     const { userId, message, type = 'admin' } = req.body
 

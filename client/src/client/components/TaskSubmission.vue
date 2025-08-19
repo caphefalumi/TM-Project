@@ -405,16 +405,10 @@ watch(
                 {{ props.task.category }}
               </v-chip>
               <v-chip-group>
-                    <v-chip
-                      v-for="tag in task.tags"
-                      :key="tag"
-                      color="black"
-                      size="small"
-                      class="ml-1"
-                    >
-                      {{ tag }}
-                    </v-chip>
-                  </v-chip-group>
+                <v-chip v-for="tag in task.tags" :key="tag" color="black" size="small" class="ml-1">
+                  {{ tag }}
+                </v-chip>
+              </v-chip-group>
             </v-card-subtitle>
           </v-card-item>
 

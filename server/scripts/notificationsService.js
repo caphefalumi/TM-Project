@@ -8,8 +8,6 @@ import Teams from '../models/Teams.js'
  */
 
 const createNotification = async (notificationData) => {
-
-
   try {
     const {
       recipientUserId,
@@ -77,8 +75,6 @@ const createNotification = async (notificationData) => {
  * Get user's notification preferences, create default if not exists
  */
 const getUserNotificationPreferences = async (userId) => {
-
-
   try {
     let preferences = await NotificationPreferences.findOne({ userId })
 
@@ -131,8 +127,6 @@ const cleanupOldNotifications = async (userId, maxNotifications) => {
  * Create notification when user is added to a team
  */
 const createTeamMemberAddedNotification = async (newMemberUserId, teamId, addedByUserId) => {
-
-
   try {
     // Get team and actor details
     const team = await Teams.findById(teamId)
@@ -170,8 +164,6 @@ const createAnnouncementLikedNotification = async (
   likerUserId,
   teamId = null,
 ) => {
-
-
   try {
     // Convert to strings for consistent comparison
     const creatorIdStr = announcementCreatorUserId.toString()
@@ -215,8 +207,6 @@ const createAnnouncementCommentedNotification = async (
   commentId,
   teamId = null,
 ) => {
-
-
   try {
     // Convert to strings for consistent comparison
     const creatorIdStr = announcementCreatorUserId.toString()
@@ -262,8 +252,6 @@ const createCommentRepliedNotification = async (
   parentCommentId,
   teamId = null,
 ) => {
-
-
   try {
     // Convert to strings for consistent comparison
     const originalIdStr = originalCommenterUserId.toString()
@@ -308,8 +296,6 @@ const createTeamAnnouncementCreatedNotification = async (
   creatorUserId,
   teamMemberUserIds,
 ) => {
-
-
   try {
     const team = await Teams.findById(teamId)
     const creator = await Account.findById(creatorUserId)
