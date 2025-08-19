@@ -812,7 +812,20 @@ const taskFilterOptions = [
       <v-window-item value="manage" v-if="isAdmin">
         <v-row>
           <v-col cols="12">
-            <h2 class="text-h5 mb-4">Manage Team - Task Groups</h2>
+            <div class="d-flex align-center justify-space-between mb-3">
+              <h2 class="text-h5 mb-4">Manage Team - Task Groups</h2>
+              <v-btn
+                color="primary"
+                variant="outlined"
+                size="small"
+                @click="getTaskGroups"
+                :loading="refreshingTaskGroups"
+              >
+                <v-icon start>mdi-refresh</v-icon>
+                Refresh
+              </v-btn>
+            </div>
+            
           </v-col>
         </v-row>
 
@@ -876,16 +889,6 @@ const taskFilterOptions = [
           <v-col cols="12">
             <div class="d-flex align-center justify-space-between mb-3">
               <h3 class="text-h6">Task Groups</h3>
-              <v-btn
-                color="primary"
-                variant="outlined"
-                size="small"
-                @click="getTaskGroups"
-                :loading="refreshingTaskGroups"
-              >
-                <v-icon start>mdi-refresh</v-icon>
-                Refresh
-              </v-btn>
             </div>
           </v-col>
           <v-col
