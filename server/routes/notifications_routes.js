@@ -1,5 +1,5 @@
 import express from 'express'
-import Notifications from '../api/notifications.js'
+import Notifications from './notifications.js'
 
 const router = express.Router()
 const {
