@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "install": "concurrently \"npm install\" \"cd client && npm install\" \"cd server && npm install\"",
+    "install": "concurrently \"cd client && npm install\" \"cd server && npm install\"",
     "dev": "cd client && npm run dev",
     "server": "cd server && npm run server",
     "build": "cd client && npm run build",
