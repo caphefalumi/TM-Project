@@ -1,6 +1,6 @@
 import express from 'express'
-import Authentication from '../api/authentication.js'
-import Tokens from '../api/tokens.js'
+import Authentication from './authentication.js'
+import Tokens from './tokens.js'
 import JWTAuth from '../verify/JWTAuth.js'
 
 const router = express.Router()

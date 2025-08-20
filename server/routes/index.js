@@ -1,13 +1,13 @@
 import express from 'express'
 
 // Import sub-route files
-import authRoutes from './auth.routes.js'
-import userRoutes from './users.routes.js'
-import teamRoutes from './teams.routes.js'
-import taskRoutes from './tasks.routes.js'
-import announcementRoutes from './announcements.routes.js'
-import notificationRoutes from './notifications.routes.js'
-import adminRoutes from './admin.routes.js'
+import authRoutes from './auth_routes.js'
+import userRoutes from './users_routes.js'
+import teamRoutes from './teams_routes.js'
+import taskRoutes from './tasks_routes.js'
+import announcementRoutes from './announcements_routes.js'
+import notificationRoutes from './notifications_routes.js'
+import adminRoutes from './admin_routes.js'
 
 const router = express.Router()
 
