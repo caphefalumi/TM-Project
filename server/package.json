@@ -6,10 +6,10 @@
   "main": "app.js",
   "scripts": {
     "build": "echo 'Build completed for Express server'",
-    "start": "node app.js",
-    "dev": "node app.js",
-    "server": "nodemon app.js",
-    "preview": "node app.js"
+    "start": "bun --hot --no-clear-screen app.js",
+    "dev": "bun --hot --no-clear-screen app.js",
+    "server": "bun --hot --no-clear-screen app.js",
+    "preview": "bun app.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
