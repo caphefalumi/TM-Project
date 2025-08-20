@@ -1,7 +1,7 @@
 import express from 'express'
-import Teams from '../api/teams.js'
-import Announcements from '../api/announcements.js'
-import Tasks from '../api/tasks.js'
+import Teams from './teams.js'
+import Announcements from './announcements.js'
+import Tasks from './tasks.js'
 
 const router = express.Router()
 const { addTeamPro, deleteATeam, getTeamDetails, getRoles, getCategories } = Teams
