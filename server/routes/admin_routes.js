@@ -1,5 +1,5 @@
 import express from 'express'
-import Admin from '../api/admin.js'
+import Admin from './admin.js'
 import JWTAuth from '../verify/JWTAuth.js'
 
 const router = express.Router()
