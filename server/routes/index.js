@@ -12,12 +12,12 @@ import adminRoutes from './admin_routes.js'
 const router = express.Router()
 
 // Instead of defining all endpoints here, delegate them:
-router.use('/account', authRoutes)            // /api/account/*
-router.use('/users', userRoutes)              // /api/users/*
-router.use('/teams', teamRoutes)              // /api/teams/*
-router.use('/tasks', taskRoutes)              // /api/tasks/*
-router.use('/announcements', announcementRoutes) // /api/announcements/*
-router.use('/notifications', notificationRoutes) // /api/notifications/*
-router.use('/admin', adminRoutes)             // /api/admin/*
+router.use('/api/account', authRoutes)            // /api/account/*
+router.use('/api/users', userRoutes)              // /api/users/*
+router.use('/api/teams', teamRoutes)              // /api/teams/*
+router.use('/api/tasks', taskRoutes)              // /api/tasks/*
+router.use('/api/announcements', announcementRoutes) // /api/announcements/*
+router.use('/api/notifications', notificationRoutes) // /api/notifications/*
+router.use('/api/admin', adminRoutes)             // /api/admin/*
 
 export default router
