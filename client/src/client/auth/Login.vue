@@ -26,7 +26,7 @@ const sendToHomePage = async () => {
   console.log('User Email:', userEmail.value)
   await createRefreshToken()
   await getAccessToHome()
-  console.log('User ID:', userId.value)
+  console.log('User ID:', username.value)
   console.log('User Email:', userEmail.value)
   console.log('Authenticate:', authenticate.value)
   if (authenticate.value) {
@@ -317,10 +317,10 @@ const registerWithOAuth = async () => {
                 required
                 class="mb-4"
               />
-              <v-btn 
-                type="submit" 
-                color="primary" 
-                block 
+              <v-btn
+                type="submit"
+                color="primary"
+                block
                 class="mb-2"
                 :loading="isLoading"
                 :disabled="isLoading"
@@ -339,10 +339,10 @@ const registerWithOAuth = async () => {
                 required
                 class="mb-4"
               />
-              <v-btn 
-                type="submit" 
-                color="primary" 
-                block 
+              <v-btn
+                type="submit"
+                color="primary"
+                block
                 class="mb-2"
                 :loading="isLoading"
                 :disabled="isLoading"
