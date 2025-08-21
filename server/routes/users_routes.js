@@ -1,5 +1,5 @@
 import express from 'express'
-import { getAllUsers, addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam } from '../controllers/users.js'
+import {addUsersToTeam,getUsersOfTeam,deleteUsersFromTeam,} from './users.js'
 import { authenticateAccessToken } from '../verify/JWTAuth.js'
 
 const router = express.Router()
@@ -11,7 +11,6 @@ router.get('/users', authenticateAccessToken, (req, res) => {
   })
 })
 
-router.get('/all', getAllUsers)
 router.post('/teams/add', addUsersToTeam)
 router.get('/teams/:teamId/members', getUsersOfTeam)
 router.delete('/teams/remove', deleteUsersFromTeam)
