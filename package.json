@@ -4,11 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
+<<<<<<< HEAD
     "setup": "concurrently \"cd client && bun install\" \"cd server && bun install\"",
     "dev": "cd client && bun run dev",
     "server": "cd server && bun run server",
     "build": "cd client && bun run build",
     "preview": "cd client && bun run preview",
+=======
+    "setup": "concurrently \"npm install\" \"cd client && npm install\" \"cd server && npm install\"",
+    "dev": "cd client && npm run dev",
+    "server": "cd server && npm run server",
+    "build": "cd client && npm run build",
+    "preview": "cd client && npm run preview",
+>>>>>>> 2d2e51bf3f7eee81918eba44bc7019b82b06043c
     "format": "prettier --write \"client/**/*.{js,ts,vue,json,md}\" \"server/**/*.{js,ts,json}\"",
     "start:all": "concurrently \"bun run dev\" \"bun run server\"",
     "app": "concurrently \"bun run dev\" \"bun run server\""
