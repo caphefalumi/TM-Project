@@ -71,7 +71,7 @@ const props = defineProps({
 const fetchCategories = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/categories`, {
+    const response = await fetch(`${PORT}/api/teams/categories`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

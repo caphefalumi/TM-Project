@@ -4,11 +4,28 @@
 // 2. Retrieving user's team data
 
 import { createTeamMemberAddedNotification } from '../scripts/notificationsService.js'
-
+import Account from '../models/Account.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
+export const getAllUsers = async (req, res) => {
+  // Returns all users in the database by array
+
+  try {
+    const users = await Account.find({}, 'username _id').exec()
+    // Find all users and return only username and _id
+    if (!users || users.length === 0) {
+      console.log('No users found')
+      return res.status(404).json({ error: 'No users found' })
+    }
+    // console.log('Users:', users)
+    return res.status(200).json(users)
+  } catch (error) {
+    console.error('Error fetching users:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
 export const addUsersToTeam = async (req, res) => {
   // Add users to a team
 
@@ -138,6 +155,7 @@ export const deleteUsersFromTeam = async (req, res) => {
 }
 
 export default {
+  getAllUsers,
   addUsersToTeam,
   getUsersOfTeam,
   deleteUsersFromTeam,

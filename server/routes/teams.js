@@ -3,23 +3,7 @@ import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 import Tasks from '../models/Tasks.js'
 
-const getAllUsers = async (req, res) => {
-  // Returns all users in the database by array
 
-  try {
-    const users = await Account.find({}, 'username _id').exec()
-    // Find all users and return only username and _id
-    if (!users || users.length === 0) {
-      console.log('No users found')
-      return res.status(404).json({ error: 'No users found' })
-    }
-    // console.log('Users:', users)
-    return res.status(200).json(users)
-  } catch (error) {
-    console.error('Error fetching users:', error)
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-}
 
 const getCategories = async (req, res) => {
   // Returns an array of enum categories from the Teams schema
@@ -399,7 +383,6 @@ export default {
   getTeamThatUserIsMember,
   getCategories,
   getRoles,
-  getAllUsers,
   deleteATeam,
   getProgressBar,
 }

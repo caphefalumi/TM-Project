@@ -38,7 +38,7 @@ const logout = async () => {
   try {
     drawer.value = false // Close the drawer
     console.log('Logging out user:', user.value.username)
-
+    sessionStorage.removeItem('isLoggedIn')
     // Revoke refresh token from database and clear cookies
     await revokeRefreshToken()
 
