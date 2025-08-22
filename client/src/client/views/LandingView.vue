@@ -6,6 +6,9 @@ const router = useRouter()
 const isVisible = ref(false)
 
 onMounted(() => {
+  if (sessionStorage.getItem('isLoggedIn')) {
+    router.push('/home')
+  }
   // Trigger animations after component is mounted
   setTimeout(() => {
     isVisible.value = true
