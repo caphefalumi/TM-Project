@@ -4,7 +4,7 @@ import { authenticateAccessToken } from '../verify/JWTAuth.js'
 
 const router = express.Router()
 
-router.get('/users', authenticateAccessToken, (req, res) => {
+router.get('/', authenticateAccessToken, (req, res) => {
   res.status(200).json({
     user: req.user,
     success: 'User data retrieved successfully',

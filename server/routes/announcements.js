@@ -43,7 +43,7 @@ const addAnnouncement = async (req, res) => {
   // Requires teamId, title, content, createdBy (userId), and createdByUsername in the request body
 
   try {
-    const { title, subtitle, content, createdBy, createdByUsername } = req.body
+    let { title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
     if (!teamId || !title || !content || !createdBy || !createdByUsername) {
       return res.status(400).json({ message: 'All fields are required' })
@@ -125,7 +125,7 @@ const updateAnnouncement = async (req, res) => {
   // Requires announcementId in the request body and at least one field to update
 
   try {
-    const { id, title, subtitle, content, createdBy, createdByUsername } = req.body
+    let { id, title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
     console.log('Update announcement request:', {
       id,

@@ -4,13 +4,14 @@ import Tokens from './tokens.js'
 import JWTAuth from '../verify/JWTAuth.js'
 
 const router = express.Router()
-const { oAuthentication, oAuthenticationRegister, localRegister, localLogin } = Authentication
+const { oAuthentication, oAuthenticationRegister, localRegister, localLogin, getUserIDAndEmailByName } = Authentication
 const { addRefreshToken, revokeRefreshToken, renewAccessToken } = Tokens
 const { authenticateRefreshToken, authenticateAccessToken, authenticateAccessTokenOnly } = JWTAuth
 
 // OAuth
 router.post('/oauth', oAuthentication)
 router.post('/google/register', oAuthenticationRegister)
+router.get('/user/:username', getUserIDAndEmailByName)
 
 // Local Auth
 router.post('/local/register', localRegister)
