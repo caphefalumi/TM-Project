@@ -1,9 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { decodeCredential } from 'vue3-google-login'
 
 const router = useRouter()
+
+onMounted(() => {
+  // Check if user is already logged in
+  const isLoggedIn = sessionStorage.getItem('isLoggedIn')
+  if (isLoggedIn) {
+    router.push('/home')
+  }
+})
 
 const username = ref('')
 const password = ref('')
@@ -30,6 +38,7 @@ const sendToHomePage = async () => {
   console.log('User Email:', userEmail.value)
   console.log('Authenticate:', authenticate.value)
   if (authenticate.value) {
+    sessionStorage.setItem('isLoggedIn', true)
     setTimeout(() => router.push('/home'), 1500)
   } else {
     error.value = 'Authentication failed. Please try again.'
