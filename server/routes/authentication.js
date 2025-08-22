@@ -1,5 +1,5 @@
 import Account from '../models/Account.js'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 const getUserIDAndEmailByName = async (req, res) => {
   const { username } = req.params
