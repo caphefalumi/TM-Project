@@ -2,7 +2,7 @@ const refreshAccessToken = async () => {
   const PORT = import.meta.env.VITE_API_PORT
   try {
     console.log('Attempting to refresh access token...')
-    const response = await fetch(`${PORT}/api/tokens/access`, {
+    const response = await fetch(`${PORT}/api/auth/tokens/access`, {
       method: 'GET',
       credentials: 'include', // Important for cookies - sends refresh token
     })

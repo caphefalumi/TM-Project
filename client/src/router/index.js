@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import Login from '../client/auth/Login.vue'
 import Register from '../client/auth/Register.vue'
 import TeamsView from '../client/views/TeamsView.vue'
@@ -12,7 +12,7 @@ import AboutView from '../client/views/AboutView.vue'
 const { getUserByAccessToken } = AuthStore
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     { path: '/', component: LandingView, meta: { requiresAuth: false } },
     { path: '/landing', component: LandingView, meta: { requiresAuth: false } },
