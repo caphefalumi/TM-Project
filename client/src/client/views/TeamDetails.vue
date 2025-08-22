@@ -216,7 +216,7 @@ const fetchAnnouncements = async () => {
 const fetchTeamMembers = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${teamId.value}/members`, {
+    const response = await fetch(`${PORT}/api/teams/${teamId.value}/users`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -817,7 +817,7 @@ const taskFilterOptions = [
                 Refresh
               </v-btn>
             </div>
-            
+
           </v-col>
         </v-row>
 

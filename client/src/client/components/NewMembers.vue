@@ -63,7 +63,7 @@ const props = defineProps({
 const fetchUsers = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/allusers`, {
+    const response = await fetch(`${PORT}/api/users/all`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ const fetchUsers = async () => {
 const fetchRoles = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/roles`, {
+    const response = await fetch(`${PORT}/api/teams/roles`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ const fetchRoles = async () => {
 const sendMembersToServer = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/add/members`, {
+    const response = await fetch(`${PORT}/api/teams/add`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
