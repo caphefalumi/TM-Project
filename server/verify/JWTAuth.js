@@ -33,7 +33,7 @@ const generateRefreshToken = (user) => {
   )
 }
 
-const authenticateAccessToken = async (req, res, next) => {
+export const authenticateAccessToken = async (req, res, next) => {
   // Authenticate token middleware from cookie
   const token = req.cookies.accessToken
   if (token == null) return res.sendStatus(401) // 401: not sending token
@@ -57,7 +57,7 @@ const authenticateAccessToken = async (req, res, next) => {
   }
 }
 
-const authenticateAccessTokenOnly = async (req, res, next) => {
+export const authenticateAccessTokenOnly = async (req, res, next) => {
   // Authenticate ONLY access token without checking refresh token status
   // Used during fresh login process before refresh token is properly set
   const token = req.cookies.accessToken
@@ -72,7 +72,7 @@ const authenticateAccessTokenOnly = async (req, res, next) => {
   }
 }
 
-const authenticateRefreshToken = async (req, res, next) => {
+export const authenticateRefreshToken = async (req, res, next) => {
   // Authenticate refresh token middleware from cookie
   const token = req.cookies.refreshToken
   if (token == null) return res.sendStatus(401) // 401: not sending token

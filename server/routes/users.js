@@ -9,7 +9,7 @@ import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
-const addUsersToTeam = async (req, res) => {
+export const addUsersToTeam = async (req, res) => {
   // Add users to a team
 
   const { users, addedByUserId } = req.body // Expect addedByUserId to track who added the users
@@ -69,7 +69,7 @@ const addUsersToTeam = async (req, res) => {
   }
 }
 
-const getUsersOfTeam = async (req, res) => {
+export const getUsersOfTeam = async (req, res) => {
   // Get all users of a team by team ID
   // Returns an array of users with their userId, username, and email
 
@@ -95,7 +95,7 @@ const getUsersOfTeam = async (req, res) => {
   }
 }
 
-const deleteUsersFromTeam = async (req, res) => {
+export const deleteUsersFromTeam = async (req, res) => {
   // Delete users from a team by user ID and team ID
   // Also delete all tasks and submissions associated with the user in the team
   // Returns a success message if users are deleted successfully
