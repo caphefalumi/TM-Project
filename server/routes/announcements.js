@@ -125,7 +125,7 @@ const updateAnnouncement = async (req, res) => {
   // Requires announcementId in the request body and at least one field to update
 
   try {
-    const { id, title, subtitle, content, createdBy, createdByUsername } = req.body
+    let { id, title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
     console.log('Update announcement request:', {
       id,

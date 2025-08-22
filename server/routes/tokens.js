@@ -1,7 +1,7 @@
 import RefreshToken from '../models/RefreshToken.js'
 import JWTAuth from '../verify/JWTAuth.js'
 
-const { generateAccessToken, generateRefreshToken, authenticateRefreshToken } = JWTAuth
+const { generateAccessToken, generateRefreshToken } = JWTAuth
 
 const addRefreshToken = async (req, res, next) => {
   // Middleware to:
