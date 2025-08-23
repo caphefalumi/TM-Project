@@ -1,0 +1,19 @@
+# === Build Stage ===
+FROM oven/bun:slim
+
+WORKDIR /app
+
+# Copy dependencies files
+COPY client/package.json client/vite.config.js ./
+COPY client/index.html ./
+COPY client/public ./public
+COPY client/src ./src
+COPY client/.env ./
+# Install dependencies and build the app
+RUN bun install && bun run build
+
+
+# Expose the port
+EXPOSE 5173
+# Serve the built app
+CMD ["bun", "vite", "preview"]

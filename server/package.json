@@ -5,9 +5,7 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "build": "echo 'Build completed for Express server'",
-    "start": "bun --hot --no-clear-screen app.js",
-    "dev": "bun --hot --no-clear-screen app.js",
+    "build": "bun build app.js --outdir=dist --target=node --minify",
     "server": "bun --hot --no-clear-screen app.js",
     "preview": "bun app.js"
   },

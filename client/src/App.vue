@@ -25,7 +25,7 @@ const refreshAccessToken = async () => {
     })
 
     if (response.ok) {
-      const data = await response.json()
+      sessionStorage.setItem('isLoggedIn', true)
       console.log('Access token auto-refreshed successfully')
       return true
     } else {
@@ -85,6 +85,7 @@ watch(
 )
 
 onMounted(() => {
+  refreshAccessToken() // Initial token refresh on mount
   // Start token refresh if user is already authenticated
   if (showSidebar.value) {
     startTokenRefresh()

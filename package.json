@@ -7,7 +7,7 @@
     "setup": "concurrently \"cd client && bun install\" \"cd server && bun install\"",
     "dev": "cd client && bun run dev",
     "server": "cd server && bun run server",
-    "build": "cd client && bun run build",
+    "build": "concurrently \"cd client && bun run build\" \"cd server && bun run build\"",
     "preview": "cd client && bun run preview",
     "format": "prettier --write \"client/**/*.{js,ts,vue,json,md}\" \"server/**/*.{js,ts,json}\"",
     "start:all": "concurrently \"bun run dev\" \"bun run server\"",
