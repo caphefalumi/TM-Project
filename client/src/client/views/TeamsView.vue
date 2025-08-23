@@ -354,6 +354,9 @@ const getProgressColor = (percentage) => {
                     <v-chip v-if="team.role === 'Member'" color="primary" size="small">
                       {{ team.role }}
                     </v-chip>
+                    <v-chip v-else-if="team.role === 'Moderator'" color="orange" size="small">
+                      {{ team.role }}
+                    </v-chip>
                     <v-chip v-else-if="team.role === 'Admin'" color="red-lighten-2" size="small">
                       {{ team.role }}
                     </v-chip>

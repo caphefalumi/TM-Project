@@ -17,10 +17,10 @@ const UsersOfTeamSchema = new mongoose.Schema({
     required: true,
   },
   role: {
-    // admin, member
+    // admin, moderator, member
     type: String,
     required: true,
-    enum: ['Admin', 'Member'],
+    enum: ['Admin', 'Moderator', 'Member'],
   },
   joinedAt: {
     type: Date,

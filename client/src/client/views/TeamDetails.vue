@@ -10,6 +10,7 @@ import UpdateAnnouncements from '../components/UpdateAnnouncements.vue'
 import DeleteAnnouncements from '../components/DeleteAnnouncements.vue'
 import AnnouncementView from '../components/AnnouncementView.vue'
 import UpdateTaskGroups from '../components/UpdateTaskGroups.vue'
+import RoleManagement from '../components/RoleManagement.vue'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -17,6 +18,8 @@ const route = useRoute()
 const router = useRouter()
 
 const isAdmin = ref(false)
+const isModerator = ref(false)
+const userPermissions = ref({})
 
 const user = ref({
   userId: '',
@@ -41,6 +44,7 @@ const newAnnouncementsDialog = ref(false)
 const taskSubmissionDialog = ref(false)
 const deleteMembersDialog = ref(false)
 const updateTaskGroupDialog = ref(false)
+const roleManagementDialog = ref(false)
 
 const selectedTaskForSubmission = ref(null)
 const selectedAnnouncementForDeletion = ref(null)
@@ -66,6 +70,31 @@ const activeTab = ref('tasks')
 // Get team ID from route params
 const teamId = ref(route.params.teamId)
 
+// Computed properties for permissions
+const canCreateTasks = computed(() => {
+  return userPermissions.value.canCreateTaskGroups || userPermissions.value.isGlobalAdmin
+})
+
+const canCreateAnnouncements = computed(() => {
+  return userPermissions.value.canEditAnnouncements || userPermissions.value.isGlobalAdmin
+})
+
+const canManageMembers = computed(() => {
+  return userPermissions.value.canAddMembers || userPermissions.value.isGlobalAdmin
+})
+
+const canManageTaskGroups = computed(() => {
+  return userPermissions.value.canViewTaskGroups || userPermissions.value.isGlobalAdmin
+})
+
+const canEditAnnouncements = computed(() => {
+  return userPermissions.value.canEditAnnouncements || userPermissions.value.isGlobalAdmin
+})
+
+const canManageRoles = computed(() => {
+  return userPermissions.value.canChangeRoles || userPermissions.value.isGlobalAdmin
+})
+
 // Function to initialize/reload team data
 const initializeTeamData = async () => {
   const userFromToken = await getUserByAccessToken()
@@ -76,17 +105,11 @@ const initializeTeamData = async () => {
     await fetchAnnouncements()
     await fetchTeamMembers()
     await getTaskGroups()
-    // Authorized admin of a team or admin of the webpage with username = 'admin'
-    if (
-      teamMembers.value.some(
-        (member) => member.userId === user.value.userId && member.role === 'Admin',
-      ) ||
-      user.value.username === 'admin'
-    ) {
-      isAdmin.value = true
-    } else {
-      isAdmin.value = false
-    }
+    await fetchUserPermissions()
+
+    // Update role-based flags
+    updateRoleFlags()
+
     // Check if user is a member of the team, do not check for admin
     if (
       teamMembers.value.some((member) => member.userId === user.value.userId) ||
@@ -115,6 +138,8 @@ watch(
       // Reset state before loading new team data
       userLoaded.value = false
       isAdmin.value = false
+      isModerator.value = false
+      userPermissions.value = {}
       initializeTeamData()
     }
   },
@@ -133,7 +158,46 @@ const setUserToUserToken = (userToken) => {
 }
 
 const getRoleColor = (role) => {
-  return role === 'Admin' ? 'red' : 'primary'
+  switch (role) {
+    case 'Admin': return 'red'
+    case 'Moderator': return 'orange'
+    case 'Member': return 'primary'
+    default: return 'grey'
+  }
+}
+
+const fetchUserPermissions = async () => {
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(
+      `${PORT}/api/teams/${teamId.value}/members/${user.value.userId}/permissions`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    if (response.ok) {
+      userPermissions.value = await response.json()
+      console.log('User permissions:', userPermissions.value)
+    } else {
+      console.error('Failed to fetch user permissions')
+      userPermissions.value = {}
+    }
+  } catch (error) {
+    console.error('Error fetching user permissions:', error)
+    userPermissions.value = {}
+  }
+}
+
+const updateRoleFlags = () => {
+  const userRole = userPermissions.value.role || 'Member'
+  isAdmin.value = userRole === 'Admin' || user.value.username === 'admin'
+  isModerator.value = userRole === 'Moderator'
+  console.log('Role flags updated:', { isAdmin: isAdmin.value, isModerator: isModerator.value, role: userRole })
 }
 
 const fetchTeamTasks = async () => {
@@ -533,6 +597,16 @@ const taskFilterOptions = [
       @task-group-updated="getTaskGroups"
     />
 
+    <!-- Role Management Dialog -->
+    <RoleManagement
+      v-if="userLoaded && roleManagementDialog"
+      v-model:dialog="roleManagementDialog"
+      :userProps="user"
+      :teamId="teamId"
+      :teamMembers="teamMembers"
+      @roles-updated="fetchTeamMembers"
+    />
+
     <!-- Team navigation tabs -->
     <v-row class="align-center">
       <v-col cols="12" lg="8" xl="9">
@@ -540,14 +614,14 @@ const taskFilterOptions = [
           <v-tab value="tasks">Tasks</v-tab>
           <v-tab value="announcements">Announcements</v-tab>
           <v-tab value="members">Members</v-tab>
-          <v-tab value="manage" v-if="isAdmin">Manage</v-tab>
+          <v-tab value="manage" v-if="canManageTaskGroups">Manage</v-tab>
         </v-tabs>
       </v-col>
     </v-row>
     <v-row class="align-center mb-6">
       <v-col cols="12" lg="4" xl="3">
         <v-btn
-          v-if="isAdmin"
+          v-if="canCreateTasks"
           v-tooltip:bottom="'Add new tasks to the team'"
           @click="newTaskDialog = !newTaskDialog"
           color="primary"
@@ -561,7 +635,7 @@ const taskFilterOptions = [
       </v-col>
       <v-col cols="12" lg="4" xl="3">
         <v-btn
-          v-if="isAdmin"
+          v-if="canCreateAnnouncements"
           v-tooltip:bottom="'Add new announcement'"
           @click="newAnnouncementsDialog = !newAnnouncementsDialog"
           color="success"
@@ -575,7 +649,7 @@ const taskFilterOptions = [
       </v-col>
       <v-col cols="12" lg="4" xl="3">
         <v-btn
-          v-if="isAdmin"
+          v-if="canManageMembers"
           v-tooltip:bottom="'Remove team members'"
           @click="deleteMembersDialog = true"
           color="red-lighten-2"
@@ -585,6 +659,20 @@ const taskFilterOptions = [
         >
           <v-icon start>mdi-account-remove</v-icon>
           Remove Members
+        </v-btn>
+      </v-col>
+      <v-col cols="12" lg="4" xl="3">
+        <v-btn
+          v-if="canManageRoles"
+          v-tooltip:bottom="'Manage member roles and permissions'"
+          @click="roleManagementDialog = true"
+          color="purple"
+          class="w-100 project-card rounded-lg font-weight-bold text-h5"
+          size="large"
+          flat
+        >
+          <v-icon start>mdi-account-cog</v-icon>
+          Manage Roles
         </v-btn>
       </v-col>
     </v-row>
@@ -763,7 +851,7 @@ const taskFilterOptions = [
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn
-                  v-if="isAdmin"
+                  v-if="canEditAnnouncements"
                   color="primary"
                   variant="outlined"
                   @click="editAnnnouncement(announcement._id)"
@@ -771,7 +859,7 @@ const taskFilterOptions = [
                   Edit
                 </v-btn>
                 <v-btn
-                  v-if="isAdmin"
+                  v-if="canEditAnnouncements"
                   color="error"
                   variant="outlined"
                   @click="deleteAnnouncement(announcement._id)"
@@ -799,9 +887,8 @@ const taskFilterOptions = [
             </v-card>
           </v-col>
         </v-row>
-      </v-window-item>
-      <!-- Manage Tab -->
-      <v-window-item value="manage" v-if="isAdmin">
+      </v-window-item>      <!-- Manage Tab -->
+      <v-window-item value="manage" v-if="canManageTaskGroups">
         <v-row>
           <v-col cols="12">
             <div class="d-flex align-center justify-space-between mb-3">
@@ -817,7 +904,6 @@ const taskFilterOptions = [
                 Refresh
               </v-btn>
             </div>
-
           </v-col>
         </v-row>
 

@@ -8,6 +8,7 @@ import Account from '../models/Account.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
+import { getUserRoleInTeam, hasPermission, ROLES } from '../verify/RoleAuth.js'
 
 export const getAllUsers = async (req, res) => {
   // Returns all users in the database by array
@@ -154,9 +155,101 @@ export const deleteUsersFromTeam = async (req, res) => {
   }
 }
 
+/**
+ * Change a user's role in a team
+ * Only admins can change roles
+ */
+export const changeUserRole = async (req, res) => {
+  try {
+    const { teamId, userId } = req.params
+    const { newRole } = req.body
+    const requestingUserId = req.user.userId
+
+    if (!Object.values(ROLES).includes(newRole)) {
+      return res.status(400).json({
+        message: 'Invalid role',
+        validRoles: Object.values(ROLES)
+      })
+    }
+
+    // Check if target user exists in team
+    const targetUser = await UsersOfTeam.findOne({ userId, teamId })
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found in team' })
+    }
+
+    // Prevent self-demotion of last admin
+    if (requestingUserId === userId && targetUser.role === 'Admin' && newRole !== 'Admin') {
+      const adminCount = await UsersOfTeam.countDocuments({ teamId, role: 'Admin' })
+      if (adminCount === 1) {
+        return res.status(400).json({ message: 'Cannot demote the last admin of the team' })
+      }
+    }
+
+    // Update the role
+    await UsersOfTeam.findOneAndUpdate(
+      { userId, teamId },
+      { role: newRole },
+      { new: true }
+    )
+
+    res.status(200).json({
+      message: 'Role updated successfully',
+      userId,
+      teamId,
+      newRole
+    })
+  } catch (error) {
+    console.error('Error changing user role:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+/**
+ * Get user's permissions in a team
+ */
+export const getUserPermissions = async (req, res) => {
+  try {
+    const { teamId, userId } = req.params
+    const requestingUsername = req.user.username
+
+    const userRole = await getUserRoleInTeam(userId, teamId)
+    if (!userRole) {
+      return res.status(404).json({ message: 'User not found in team' })
+    }
+
+    // Define permissions based on role
+    const permissions = {
+      role: userRole,
+      canViewTeam: true,
+      canViewTasks: true,
+      canViewAnnouncements: true,
+      canViewMembers: true,
+      canSubmitTasks: true,
+      canEditAnnouncements: ['Admin', 'Moderator'].includes(userRole),
+      canViewTaskGroups: ['Admin', 'Moderator'].includes(userRole),
+      canCreateTaskGroups: ['Admin', 'Moderator'].includes(userRole),
+      canEditTaskGroups: ['Admin', 'Moderator'].includes(userRole),
+      canAddMembers: userRole === 'Admin',
+      canRemoveMembers: userRole === 'Admin',
+      canDeleteTeams: userRole === 'Admin',
+      canCreateSubTeams: userRole === 'Admin',
+      canChangeRoles: userRole === 'Admin',
+      isGlobalAdmin: requestingUsername === 'admin'
+    }
+    console.log('User permissions:', { userId, teamId, permissions })
+    res.status(200).json(permissions)
+  } catch (error) {
+    console.error('Error getting user permissions:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 export default {
   getAllUsers,
   addUsersToTeam,
   getUsersOfTeam,
   deleteUsersFromTeam,
+  changeUserRole,
+  getUserPermissions,
 }
