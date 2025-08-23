@@ -289,7 +289,12 @@ const getUserName = (userId) => {
 }
 
 const getRoleColor = (role) => {
-  return role === 'Admin' ? 'red' : 'primary'
+  switch (role) {
+    case 'Admin': return 'red'
+    case 'Moderator': return 'orange'
+    case 'Member': return 'primary'
+    default: return 'grey'
+  }
 }
 
 // Computed properties for preview
