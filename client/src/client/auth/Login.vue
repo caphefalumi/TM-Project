@@ -8,9 +8,11 @@ const router = useRouter()
 onMounted(() => {
   // Check if user is already logged in
   const isLoggedIn = sessionStorage.getItem('isLoggedIn')
+  console.log('Is Logged In:', isLoggedIn)
   if (isLoggedIn) {
     router.push('/home')
   }
+
 })
 
 const username = ref('')
