@@ -1,17 +1,13 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
 
 const user = ref({
   userId: '',
   username: '',
   email: '',
 })
-const newMemberOfATeam = ref({
+const newMemberData = ref({
   role: '',
-  teamId: '',
 })
 
 const success = ref(false)
@@ -27,22 +23,40 @@ const listOfUsers = ref([])
 const listOfRoles = ref([])
 const selectedUsers = ref([])
 
-// Computed property to filter users based on the search input and not the current user
+// Computed property to filter users based on the search input and exclude current user, existing team members, and selected users
 const filteredUsers = computed(() => {
-  if (!searchUsernameField.value) {
-    return listOfUsers.value
-  }
-  const _search = searchUsernameField.value.toLowerCase()
-  const res = listOfUsers.value.filter(
-    (_user) => _user.username.toLowerCase().includes(_search) && _user.userId !== user.value.userId, // Ensure the current user is excluded
+  // Get array of existing team member user IDs
+  const existingMemberIds = props.teamMembers.map(member => member.userId || member._id || member.id)
+  
+  // Get array of already selected user IDs
+  const selectedUserIds = selectedUsers.value.map(user => user.userId)
+  
+  // Always exclude the current user, existing team members, and already selected users from results
+  const availableUsers = listOfUsers.value.filter(
+    (_user) => {
+      const isCurrentUser = _user.userId === user.value.userId
+      const isExistingMember = existingMemberIds.includes(_user.userId)
+      const isAlreadySelected = selectedUserIds.includes(_user.userId)
+      return !isCurrentUser && !isExistingMember && !isAlreadySelected
+    }
   )
-  // Exclude the current user from the results
+  
+  if (!searchUsernameField.value) {
+    return availableUsers
+  }
+  
+  const _search = searchUsernameField.value.toLowerCase()
+  const res = availableUsers.filter(
+    (_user) => _user.username.toLowerCase().includes(_search)
+  )
 
   return res.slice(0, 5) // Limit to 5 results
 })
 
-const resetANewMember = () => {
+const resetForm = () => {
   searchUsernameField.value = ''
+  selectedUsers.value = []
+  newMemberData.value.role = ''
 }
 
 const props = defineProps({
@@ -54,11 +68,17 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  teamsThatUserIsAdmin: {
-    type: Array,
+  teamId: {
+    type: String,
     required: true,
   },
+  teamMembers: {
+    type: Array,
+    default: () => [],
+  },
 })
+
+const emit = defineEmits(['update:dialog', 'members-added'])
 
 const fetchUsers = async () => {
   try {
@@ -84,8 +104,10 @@ const fetchUsers = async () => {
     console.error('Failed to fetch users:', error)
   }
 }
+
 const fetchRoles = async () => {
   try {
+    // First get default roles
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/roles`, {
       method: 'GET',
@@ -97,10 +119,53 @@ const fetchRoles = async () => {
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
-    listOfRoles.value = await response.json()
-    console.log('Fetched roles:', listOfRoles.value)
+    const defaultRoles = await response.json()
+
+    // Initialize with default roles
+    listOfRoles.value = [...defaultRoles]
+    
+    console.log('Fetched default roles:', listOfRoles.value)
   } catch (error) {
     console.error('Failed to fetch roles:', error)
+  }
+}
+
+// Function to fetch custom roles for the specific team
+const fetchCustomRoles = async () => {
+  if (!props.teamId) return
+  
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    
+    const data = await response.json()
+    
+    // Combine default roles with custom roles
+    const defaultRoles = ['Admin', 'Moderator', 'Member']
+    const customRoleOptions = data.roles.map(role => ({
+      title: role.name,
+      value: `custom:${role._id}` // Prefix to identify custom roles
+    }))
+    
+    listOfRoles.value = [
+      ...defaultRoles,
+      ...customRoleOptions
+    ]
+    
+    console.log('Fetched team roles:', data.roles)
+    console.log('Combined role options:', listOfRoles.value)
+  } catch (error) {
+    console.error('Failed to fetch custom roles:', error)
   }
 }
 
@@ -123,15 +188,18 @@ const sendMembersToServer = async () => {
       error.value = true
       success.value = false
       message.value = result.message || 'Failed to add users to team'
-      loading.value = false // Reset loading state on error
+      loading.value = false
       throw new Error('Network response was not ok')
     }
     success.value = true
     error.value = false
     message.value = 'Members added successfully!'
     console.log('Members added successfully:', result)
+    
+    // Emit event to parent to refresh team members
+    emit('members-added')
   } catch (error) {
-    loading.value = false // Reset loading state on error
+    loading.value = false
     console.error('Failed to add members:', error)
   }
 }
@@ -145,60 +213,66 @@ const setUserFromProps = (userProps) => {
 
 onMounted(async () => {
   setUserFromProps(props.userProps)
-  console.log('Teams that user is admin:', props.teamsThatUserIsAdmin)
   await fetchRoles()
+  await fetchCustomRoles() // Fetch custom roles for this team
   await fetchUsers()
-  if (user) {
-  } else {
-    user.value.username = 'Guest'
-    user.value.email = ''
-  }
 })
 
+// Watch for teamId changes to refetch custom roles
 watch(
-  () => props.dialog,
-  (newVal) => {
-    console.log('Dialog prop changed:', newVal)
-  },
+  () => props.teamId,
+  (newTeamId) => {
+    if (newTeamId) {
+      fetchCustomRoles()
+    }
+  }
 )
 
-// watch for changes in teamsThatUserIsAdmin prop
+// Watch for team members changes to update available users
 watch(
-  () => props.teamsThatUserIsAdmin,
-  (newVal) => {
-    console.log('Teams that user is admin changed:', newVal)
-    props.teamsThatUserIsAdmin.value = newVal
+  () => props.teamMembers,
+  () => {
+    // Team members updated, filtered users will be recalculated automatically
   },
+  { deep: true }
 )
-
-const emit = defineEmits(['update:dialog'])
 
 const closeDialog = () => {
   setTimeout(() => {
-    selectedUsers.value = [] // Clear selected users
-    resetANewMember() // Reset the new member input
-    success.value = false // Reset success state
-    error.value = false // Reset error state
-    message.value = '' // Clear message
-    loading.value = false // Reset loading state
+    resetForm()
+    success.value = false
+    error.value = false
+    message.value = ''
+    loading.value = false
     emit('update:dialog', false)
-  }, 1500) // Optional delay for better UX
+  }, 1500)
 }
 
 const selectAUser = (selectedUser) => {
+  // Handle custom roles
+  let role = newMemberData.value.role
+  let roleId = null
+  
+  if (role.startsWith('custom:')) {
+    roleId = role.replace('custom:', '')
+    role = 'Member' // Default role for users with custom role
+  }
+
   const newMember = {
     userId: selectedUser.userId,
     username: selectedUser.username,
-    role: newMemberOfATeam.value.role,
-    teamId: newMemberOfATeam.value.teamId,
+    role: role,
+    roleId: roleId, // Add role_id for custom roles
+    teamId: props.teamId,
   }
+  
   // Check if the user is already selected
   const isAlreadySelected = selectedUsers.value.some((user) => user.userId === selectedUser.userId)
 
   if (!isAlreadySelected) {
     selectedUsers.value.push(newMember)
     console.log('Selected users:', selectedUsers.value)
-    resetANewMember()
+    searchUsernameField.value = ''
   } else {
     console.log('User already selected:', selectedUser.username)
   }
@@ -215,13 +289,13 @@ const addUsers = async () => {
     error.value = true
     message.value = 'Please select at least one user to add.'
     return
-  } else if (newMemberOfATeam.value.role === '' || newMemberOfATeam.value.teamId === '') {
+  } else if (newMemberData.value.role === '') {
     error.value = true
-    message.value = 'Please select a team and a role.'
+    message.value = 'Please select a role.'
     return
   }
 
-  loading.value = true // Set loading state
+  loading.value = true
   console.log('Adding these users:', JSON.stringify(selectedUsers.value, null, 2))
   try {
     await sendMembersToServer()
@@ -229,7 +303,7 @@ const addUsers = async () => {
       closeDialog()
     }
   } catch (error) {
-    loading.value = false // Reset loading state on error
+    loading.value = false
     console.error('Failed to add members:', error)
   }
 }
@@ -238,53 +312,44 @@ const addUsers = async () => {
 <template>
   <v-dialog v-model="props.dialog" max-width="600px" closable>
     <v-card>
-      <v-card-title class="font-weight-bold text-center text-h5 mb-2 mt-2"
-        >New Members</v-card-title
-      >
+      <v-card-title class="font-weight-bold text-center text-h5 mb-2 mt-2">
+        Add Team Members
+      </v-card-title>
       <v-card-text>
         <v-expand-transition>
           <v-select
-            v-model="newMemberOfATeam.teamId"
-            :items="props.teamsThatUserIsAdmin"
-            item-title="title"
-            item-value="teamId"
-            label="Select Team"
-            variant="outlined"
-            required
-          ></v-select>
-        </v-expand-transition>
-        <v-expand-transition>
-          <v-select
-            v-model="newMemberOfATeam.role"
+            v-model="newMemberData.role"
             :items="listOfRoles"
             label="Role"
             variant="outlined"
             required
           ></v-select>
         </v-expand-transition>
+        
         <!-- Display selected users using v-chip -->
-        <v-chip
-          v-for="(user, index) in selectedUsers"
-          :key="user.userId"
-          class="ma-1"
-          closable
-          @click:close="removeSelectedUser(user.userId)"
-          color="primary"
-        >
-          {{ user.username }}
-        </v-chip>
-        <!-- Search field for usernames -->
+        <div v-if="selectedUsers.length > 0" class="mb-4">
+          <v-chip
+            v-for="(user, index) in selectedUsers"
+            :key="user.userId"
+            class="ma-1"
+            closable
+            @click:close="removeSelectedUser(user.userId)"
+            color="primary"
+          >
+            {{ user.username }}
+          </v-chip>
+        </div>
+          <!-- Search field for usernames -->
         <v-text-field
           v-model="searchUsernameField"
           label="Username"
+          placeholder="Search for username..."
           variant="outlined"
-          class="mt-6"
+          class="mt-2"
           required
-        ></v-text-field>
-
-        <!-- Display filtered users -->
+        ></v-text-field><!-- Display filtered users -->
         <v-list
-          v-if="searchUsernameField && filteredUsers.length > 0"
+          v-if="filteredUsers.length > 0"
           max-height="200"
           class="filtered-users-list"
         >
@@ -304,17 +369,18 @@ const addUsers = async () => {
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="emit('update:dialog', false)" variant="outlined" :disabled="loading"
-          >Cancel</v-btn
-        >
+        <v-btn @click="emit('update:dialog', false)" variant="outlined" :disabled="loading">
+          Cancel
+        </v-btn>
         <v-btn
           color="primary"
           @click="addUsers"
           variant="outlined"
           :disabled="loading"
           :loading="loading"
-          >Add</v-btn
         >
+          Add Members
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

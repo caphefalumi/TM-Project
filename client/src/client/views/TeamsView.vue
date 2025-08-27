@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NewTeams from '../components/NewTeams.vue'
-import NewMembers from '../components/NewMembers.vue'
 import DeleteTeams from '../components/DeleteTeams.vue'
 
 const { getUserByAccessToken } = AuthStore
@@ -37,7 +36,6 @@ onMounted(async () => {
 
 // --- Reactive State ---
 const isCreatingNewTeam = ref(false)
-const isAddingNewMember = ref(false)
 const isDeletingTeam = ref(false)
 
 const isLoggedIn = ref(false)
@@ -200,23 +198,7 @@ const getProgressColor = (percentage) => {
           </v-card-item>
         </v-card>
       </v-col>
-      <v-col cols="12" md="4" v-if="teamsThatUserIsAdmin.length > 0">
-        <v-card
-          class="mb-4 project-card rounded-lg"
-          flat
-          @click="isAddingNewMember = !isAddingNewMember"
-          color="success"
-        >
-          <v-card-item class="text-center">
-            <v-card-title
-              class="font-weight-bold text-h5"
-              v-tooltip:bottom="'Click to add new members'"
-              ><v-icon start>mdi-account-plus</v-icon>
-              Add New Members
-            </v-card-title>
-          </v-card-item>
-        </v-card>
-      </v-col>
+
       <v-col cols="12" md="4">
         <v-card
           class="mb-4 project-card rounded-lg"
@@ -240,12 +222,6 @@ const getProgressColor = (percentage) => {
       :userProps="user"
       v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
       @team-created="handleTeamUpdated"
-    />
-    <NewMembers
-      v-if="userLoaded"
-      v-model:dialog="isAddingNewMember"
-      :userProps="user"
-      v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
     />
     <DeleteTeams
       v-if="userLoaded"

@@ -7,6 +7,7 @@ import { requirePermission } from '../verify/RoleAuth.js'
 
 const router = express.Router()
 import { addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam, changeUserRole, getUserPermissions, updateUserPermissions, getRoleDefaultPermissionsAPI } from './users.js'
+import { createRole, getRolesByTeam, updateRole, deleteRole, getRoleById, getAvailablePermissions, assignCustomRoleToUser } from './roles.js'
 const { addTeamPro, deleteATeam, getTeamDetails, getRoles, getCategories, getTeamNameThatUserIsAdmin } = Teams
 const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement } = Announcements
 const { getTasksOfAUserInATeam, getAllTaskGroups, getTasksByGroupId, updateTaskGroup, deleteTaskGroup } = Tasks
@@ -43,5 +44,16 @@ router.put('/:teamId/members/:userId/role', authenticateAccessToken, requirePerm
 router.get('/:teamId/members/:userId/permissions', authenticateAccessToken, getUserPermissions)
 router.put('/:teamId/members/:userId/permissions', authenticateAccessToken, requirePermission('CHANGE_MEMBER_ROLES'), updateUserPermissions)
 router.get('/roles/:role/permissions', authenticateAccessToken, getRoleDefaultPermissionsAPI)
+
+// Custom Roles Management for Teams
+router.post('/:teamId/roles', authenticateAccessToken, requirePermission('CHANGE_MEMBER_ROLES'), createRole)
+router.get('/:teamId/roles', authenticateAccessToken, getRolesByTeam)
+router.get('/:teamId/roles/:roleId', authenticateAccessToken, getRoleById)
+router.put('/:teamId/roles/:roleId', authenticateAccessToken, requirePermission('CHANGE_MEMBER_ROLES'), updateRole)
+router.delete('/:teamId/roles/:roleId', authenticateAccessToken, requirePermission('CHANGE_MEMBER_ROLES'), deleteRole)
+
+// Additional Role Management Endpoints
+router.get('/permissions/available', authenticateAccessToken, getAvailablePermissions)
+router.put('/:teamId/members/:userId/assign-role', authenticateAccessToken, requirePermission('CHANGE_MEMBER_ROLES'), assignCustomRoleToUser)
 
 export default router

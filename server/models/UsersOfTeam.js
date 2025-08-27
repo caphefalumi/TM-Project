@@ -21,23 +21,41 @@ const UsersOfTeamSchema = new mongoose.Schema({
     required: true,
     enum: ['Admin', 'Moderator', 'Member'],
   },
+  role_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
+    required: false,
+  },
   customPermissions: {
     // Custom permissions that override default role permissions
     type: {
+      // View permissions
       canViewTeam: { type: Boolean, default: null },
       canViewTasks: { type: Boolean, default: null },
       canViewAnnouncements: { type: Boolean, default: null },
       canViewMembers: { type: Boolean, default: null },
-      canSubmitTasks: { type: Boolean, default: null },
-      canEditAnnouncements: { type: Boolean, default: null },
       canViewTaskGroups: { type: Boolean, default: null },
+      
+      // Task permissions
+      canSubmitTasks: { type: Boolean, default: null },
       canCreateTaskGroups: { type: Boolean, default: null },
       canEditTaskGroups: { type: Boolean, default: null },
+      canDeleteTaskGroups: { type: Boolean, default: null },
+      canAssignTasks: { type: Boolean, default: null },
+      
+      // Announcement permissions
+      canEditAnnouncements: { type: Boolean, default: null },
+      canDeleteAnnouncements: { type: Boolean, default: null },
+      
+      // Member management permissions
       canAddMembers: { type: Boolean, default: null },
       canRemoveMembers: { type: Boolean, default: null },
+      canChangeRoles: { type: Boolean, default: null },
+      
+      // Advanced management permissions
       canDeleteTeams: { type: Boolean, default: null },
       canCreateSubTeams: { type: Boolean, default: null },
-      canChangeRoles: { type: Boolean, default: null },
+      canManageCustomRoles: { type: Boolean, default: null },
     },
     default: {},
   },
