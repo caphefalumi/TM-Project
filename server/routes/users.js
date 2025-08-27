@@ -8,6 +8,8 @@ import Account from '../models/Account.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
+import Role from '../models/Role.js'
+import { PERMISSIONS } from '../config/permissions.js'
 import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
 
 export const getAllUsers = async (req, res) => {
@@ -40,7 +42,7 @@ export const addUsersToTeam = async (req, res) => {
     const addedUsers = []
 
     for (const user of users) {
-      const { teamId, userId, username, role } = user
+      const { teamId, userId, username, role, roleId } = user
       if (!teamId || !userId || !username || !role) {
         throw new Error('TeamId, User ID, username, and role are required for each user')
       }
@@ -59,9 +61,22 @@ export const addUsersToTeam = async (req, res) => {
         return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
       }
 
-      console.log('Creating user in team:', { userId, username, teamId, role })
-      const newUserOfTeam = await UsersOfTeam.create({ userId, username, teamId, role })
-      addedUsers.push({ userId, teamId, username })
+      // Prepare user data for creation
+      const userData = { userId, username, teamId, role }
+      
+      // If roleId is provided, validate it exists and belongs to the team
+      if (roleId) {
+        const customRole = await Role.findOne({ _id: roleId, team_id: teamId })
+        if (!customRole) {
+          console.log(`Custom role ${roleId} not found for team ${teamId}`)
+          return res.status(400).json({ message: `Invalid custom role for team` })
+        }
+        userData.role_id = roleId
+      }
+
+      console.log('Creating user in team:', userData)
+      const newUserOfTeam = await UsersOfTeam.create(userData)
+      addedUsers.push({ userId, teamId, username, role, customRole: roleId ? true : false })
 
       // Create notification for the added user (if not adding themselves)
       if (addedByUserId && userId !== addedByUserId) {
@@ -89,7 +104,7 @@ export const addUsersToTeam = async (req, res) => {
 
 export const getUsersOfTeam = async (req, res) => {
   // Get all users of a team by team ID
-  // Returns an array of users with their userId, username, and email
+  // Returns an array of users with their userId, username, role, and custom role information
 
   const { teamId } = req.params
   if (!teamId) {
@@ -101,12 +116,27 @@ export const getUsersOfTeam = async (req, res) => {
       return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
     }
 
-    const users = await UsersOfTeam.find({ teamId }).select('userId username role')
+    const users = await UsersOfTeam.find({ teamId })
+      .select('userId username role role_id')
+      .populate('role_id', 'name permissions')
+    
     if (users.length === 0) {
       return res.status(404).json({ message: 'No users found for this team' })
     }
 
-    return res.status(200).json(users)
+    // Transform the data to include custom role information
+    const transformedUsers = users.map(user => ({
+      userId: user.userId,
+      username: user.username,
+      role: user.role, // Default role (Admin/Moderator/Member)
+      customRole: user.role_id ? {
+        id: user.role_id._id,
+        name: user.role_id.name,
+        permissions: user.role_id.permissions
+      } : null
+    }))
+
+    return res.status(200).json(transformedUsers)
   } catch (error) {
     console.error('Error fetching users of team:', error)
     return res.status(500).json({ message: 'Internal server error' })
@@ -159,12 +189,20 @@ export const deleteUsersFromTeam = async (req, res) => {
 export const changeUserRole = async (req, res) => {
   try {
     const { teamId, userId } = req.params
-    const { newRole } = req.body
+    const { role, newRole, roleId } = req.body
     const requestingUserId = req.user.userId
 
-    if (!Object.values(ROLES).includes(newRole)) {
+    // Support both 'role' and 'newRole' for backward compatibility
+    const targetRole = role || newRole
+
+    if (!targetRole) {
+      return res.status(400).json({ message: 'Role is required' })
+    }
+
+    // If it's not a standard role, validate the custom role
+    if (!Object.values(ROLES).includes(targetRole) && !roleId) {
       return res.status(400).json({
-        message: 'Invalid role',
+        message: 'Invalid role or missing custom role ID',
         validRoles: Object.values(ROLES)
       })
     }
@@ -175,26 +213,46 @@ export const changeUserRole = async (req, res) => {
       return res.status(404).json({ message: 'User not found in team' })
     }
 
+    // If assigning a custom role, validate it exists and belongs to the team
+    if (roleId) {
+      const customRole = await Role.findById(roleId)
+      if (!customRole || customRole.team_id.toString() !== teamId) {
+        return res.status(404).json({ message: 'Custom role not found or does not belong to this team' })
+      }
+    }
+
     // Prevent self-demotion of last admin
-    if (requestingUserId === userId && targetUser.role === 'Admin' && newRole !== 'Admin') {
+    if (requestingUserId === userId && targetUser.role === 'Admin' && targetRole !== 'Admin') {
       const adminCount = await UsersOfTeam.countDocuments({ teamId, role: 'Admin' })
       if (adminCount === 1) {
         return res.status(400).json({ message: 'Cannot demote the last admin of the team' })
       }
     }
 
-    // Update the role
-    await UsersOfTeam.findOneAndUpdate(
+    // Update the role and custom role assignment
+    const updatedUser = await UsersOfTeam.findOneAndUpdate(
       { userId, teamId },
-      { role: newRole },
+      { 
+        role: targetRole,
+        role_id: roleId || null,
+        // Reset custom permissions when changing roles
+        customPermissions: {}
+      },
       { new: true }
-    )
+    ).populate('role_id')
 
     res.status(200).json({
       message: 'Role updated successfully',
-      userId,
-      teamId,
-      newRole
+      user: {
+        userId: updatedUser.userId,
+        role: updatedUser.role,
+        customRole: updatedUser.role_id ? {
+          id: updatedUser.role_id._id,
+          name: updatedUser.role_id.name,
+          icon: updatedUser.role_id.icon,
+          color: updatedUser.role_id.color
+        } : null
+      }
     })
   } catch (error) {
     console.error('Error changing user role:', error)
@@ -242,13 +300,8 @@ export const updateUserPermissions = async (req, res) => {
       return res.status(404).json({ message: 'User not found in team' })
     }
 
-    // Validate custom permissions structure
-    const validPermissions = [
-      'canViewTeam', 'canViewTasks', 'canViewAnnouncements', 'canViewMembers',
-      'canSubmitTasks', 'canEditAnnouncements', 'canViewTaskGroups',
-      'canCreateTaskGroups', 'canEditTaskGroups', 'canAddMembers',
-      'canRemoveMembers', 'canDeleteTeams', 'canCreateSubTeams', 'canChangeRoles'
-    ]
+    // Use centralized permission validation
+    const validPermissions = Object.values(PERMISSIONS)
 
     const invalidPermissions = Object.keys(customPermissions).filter(
       perm => !validPermissions.includes(perm)

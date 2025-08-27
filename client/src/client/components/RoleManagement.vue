@@ -440,6 +440,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { permissionService, usePermissions, AVAILABLE_PERMISSIONS } from '../services/permissionService.js'
 
 const props = defineProps({
   dialog: {
@@ -461,6 +462,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:dialog', 'roles-updated'])
+
+// Use permission composables
+const { hasPermission, isAdmin, getRoleIcon, getRoleColor, hasCustomPermissions } = usePermissions()
 
 // Reactive state
 const user = ref({
@@ -502,9 +506,7 @@ const filteredMembers = computed(() => {
   )
 })
 
-const canChangeRoles = computed(() => {
-  return userPermissions.value.canChangeRoles || userPermissions.value.isGlobalAdmin
-})
+const canChangeRoles = computed(() => hasPermission('canChangeRoles'))
 
 // Methods
 const setUserFromProps = (userProps) => {
@@ -513,49 +515,11 @@ const setUserFromProps = (userProps) => {
   user.value.email = userProps.email
 }
 
-const getRoleColor = (role) => {
-  switch (role) {
-    case 'Admin': return 'red'
-    case 'Moderator': return 'orange'
-    case 'Member': return 'blue'
-    default: return 'grey'
-  }
-}
-
-const getRoleIcon = (role) => {
-  switch (role) {
-    case 'Admin': return 'mdi-crown'
-    case 'Moderator': return 'mdi-shield-account'
-    case 'Member': return 'mdi-account'
-    default: return 'mdi-help'
-  }
-}
-
-const hasCustomPermissions = (member) => {
-  // Check if member has any custom permissions set
-  if (!member.customPermissions) return false
-  return Object.values(member.customPermissions).some(value => value !== null)
-}
-
 const fetchUserPermissions = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/teams/${props.teamId}/members/${user.value.userId}/permissions`,
-      {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-
-    if (response.ok) {
-      userPermissions.value = await response.json()
-    } else {
-      console.error('Failed to fetch user permissions')
-    }
+    // Use permission service to fetch permissions
+    await permissionService.fetchUserPermissions(props.teamId, user.value.userId)
+    userPermissions.value = permissionService.userPermissions
   } catch (error) {
     console.error('Error fetching user permissions:', error)
   }
@@ -693,22 +657,13 @@ const savePermissions = async () => {
   savingPermissions.value = true
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/teams/${props.teamId}/members/${selectedMember.value.userId}/permissions`,
-      {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ customPermissions: customPermissions.value }),
-      }
+    const success = await permissionService.updateUserPermissions(
+      props.teamId,
+      selectedMember.value.userId,
+      customPermissions.value
     )
 
-    const data = await response.json()
-
-    if (response.ok) {
+    if (success) {
       permissionSuccess.value = true
       permissionMessage.value = `Successfully updated permissions for ${selectedMember.value.username}`
 
@@ -725,7 +680,7 @@ const savePermissions = async () => {
       }, 2000)
     } else {
       permissionError.value = true
-      permissionMessage.value = data.message || 'Failed to update permissions'
+      permissionMessage.value = 'Failed to update permissions'
     }
   } catch (error) {
     console.error('Error saving permissions:', error)
@@ -770,24 +725,12 @@ onMounted(() => {
 
 const getPermissionIcon = (permission) => {
   const value = customPermissions.value[permission]
-  if (value === null) {
-    return 'mdi-minus' // Default/indeterminate state
-  } else if (value === true) {
-    return 'mdi-check' // Enabled
-  } else {
-    return 'mdi-close' // Disabled
-  }
+  return permissionService.getPermissionIcon(value)
 }
 
 const getPermissionColor = (permission) => {
   const value = customPermissions.value[permission]
-  if (value === null) {
-    return 'grey' // Default/indeterminate state
-  } else if (value === true) {
-    return 'success' // Enabled - green
-  } else {
-    return 'error' // Disabled - red
-  }
+  return permissionService.getPermissionColor(value)
 }
 </script>
 

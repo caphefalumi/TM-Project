@@ -10,7 +10,7 @@ import ExpressMongoSanitize from "express-mongo-sanitize"
 const app = express()
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://tm-demo-gamma.vercel.app'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://tm-demo-gamma.vercel.app'],
     credentials: true, // CRITICAL for cookies to work
   }),
 )

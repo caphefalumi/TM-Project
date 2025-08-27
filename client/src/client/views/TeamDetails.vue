@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
+import { permissionService, usePermissions } from '../services/permissionService.js'
 import NewTasks from '../components/NewTasks.vue'
 import NewAnnouncements from '../components/NewAnnouncements.vue'
 import TaskSubmission from '../components/TaskSubmission.vue'
@@ -11,14 +12,17 @@ import DeleteAnnouncements from '../components/DeleteAnnouncements.vue'
 import AnnouncementView from '../components/AnnouncementView.vue'
 import UpdateTaskGroups from '../components/UpdateTaskGroups.vue'
 import RoleManagement from '../components/RoleManagement.vue'
+import RoleManagementTabs from '../components/RoleManagementTabs.vue'
+import NewMembers from '../components/NewMembers.vue'
 
 const { getUserByAccessToken } = AuthStore
 
 const route = useRoute()
 const router = useRouter()
 
-const isAdmin = ref(false)
-const isModerator = ref(false)
+// Use permission composables
+const { hasPermission, isAdmin, isModerator, getRoleIcon, getRoleColor } = usePermissions()
+
 const userPermissions = ref({})
 
 const user = ref({
@@ -43,6 +47,7 @@ const updateAnnouncementDialog = ref(false)
 const newAnnouncementsDialog = ref(false)
 const taskSubmissionDialog = ref(false)
 const deleteMembersDialog = ref(false)
+const addMembersDialog = ref(false)
 const updateTaskGroupDialog = ref(false)
 const roleManagementDialog = ref(false)
 
@@ -65,35 +70,21 @@ const taskFilterType = ref('all') // 'all', 'not-submitted', 'pending'
 const taskCurrentPage = ref(1)
 const taskItemsPerPage = 6
 
-const activeTab = ref('tasks')
+// Members search and filtering
+const memberSearchQuery = ref('')
+
+const activeTab = ref(route.query.tab || 'tasks')
 
 // Get team ID from route params
 const teamId = ref(route.params.teamId)
 
-// Computed properties for permissions
-const canCreateTasks = computed(() => {
-  return userPermissions.value.canCreateTaskGroups || userPermissions.value.isGlobalAdmin
-})
-
-const canCreateAnnouncements = computed(() => {
-  return userPermissions.value.canEditAnnouncements || userPermissions.value.isGlobalAdmin
-})
-
-const canManageMembers = computed(() => {
-  return userPermissions.value.canAddMembers || userPermissions.value.isGlobalAdmin
-})
-
-const canManageTaskGroups = computed(() => {
-  return userPermissions.value.canViewTaskGroups || userPermissions.value.isGlobalAdmin
-})
-
-const canEditAnnouncements = computed(() => {
-  return userPermissions.value.canEditAnnouncements || userPermissions.value.isGlobalAdmin
-})
-
-const canManageRoles = computed(() => {
-  return userPermissions.value.canChangeRoles || userPermissions.value.isGlobalAdmin
-})
+// Computed properties for permissions - using centralized permission service
+const canCreateTasks = computed(() => hasPermission('canCreateTaskGroups'))
+const canCreateAnnouncements = computed(() => hasPermission('canEditAnnouncements'))
+const canManageMembers = computed(() => hasPermission('canAddMembers'))
+const canManageTaskGroups = computed(() => hasPermission('canViewTaskGroups'))
+const canEditAnnouncements = computed(() => hasPermission('canEditAnnouncements'))
+const canManageRoles = computed(() => hasPermission('canChangeRoles'))
 
 // Function to initialize/reload team data
 const initializeTeamData = async () => {
@@ -137,16 +128,47 @@ watch(
       teamId.value = newTeamId
       // Reset state before loading new team data
       userLoaded.value = false
-      isAdmin.value = false
-      isModerator.value = false
       userPermissions.value = {}
+      // Reset permission service state
+      permissionService.setPermissions({})
       initializeTeamData()
     }
   },
   { immediate: false },
 )
 
+// Watch for tab changes and update URL
+watch(
+  () => activeTab.value,
+  (newTab) => {
+    if (newTab && route.query.tab !== newTab) {
+      router.push({
+        path: route.path,
+        query: { ...route.query, tab: newTab }
+      })
+    }
+  }
+)
+
+// Watch for URL query parameter changes
+watch(
+  () => route.query.tab,
+  (newTab) => {
+    if (newTab && newTab !== activeTab.value) {
+      activeTab.value = newTab
+    }
+  },
+  { immediate: true } // Run immediately to sync with initial URL
+)
+
 onMounted(async () => {
+  // Set default tab parameter if not present
+  if (!route.query.tab) {
+    router.replace({
+      path: route.path,
+      query: { ...route.query, tab: 'tasks' }
+    })
+  }
   await initializeTeamData()
 })
 
@@ -157,36 +179,12 @@ const setUserToUserToken = (userToken) => {
   user.value.email = userToken.email
 }
 
-const getRoleColor = (role) => {
-  switch (role) {
-    case 'Admin': return 'red'
-    case 'Moderator': return 'orange'
-    case 'Member': return 'primary'
-    default: return 'grey'
-  }
-}
-
 const fetchUserPermissions = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
-      `${PORT}/api/teams/${teamId.value}/members/${user.value.userId}/permissions`,
-      {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-
-    if (response.ok) {
-      userPermissions.value = await response.json()
-      console.log('User permissions:', userPermissions.value)
-    } else {
-      console.error('Failed to fetch user permissions')
-      userPermissions.value = {}
-    }
+    // Use permission service to fetch and set permissions
+    await permissionService.fetchUserPermissions(teamId.value, user.value.userId)
+    userPermissions.value = permissionService.userPermissions
+    console.log('User permissions:', userPermissions.value)
   } catch (error) {
     console.error('Error fetching user permissions:', error)
     userPermissions.value = {}
@@ -194,10 +192,14 @@ const fetchUserPermissions = async () => {
 }
 
 const updateRoleFlags = () => {
+  // Role flags are now handled by the permission service
+  // Keep for backward compatibility if needed elsewhere
   const userRole = userPermissions.value.role || 'Member'
-  isAdmin.value = userRole === 'Admin' || user.value.username === 'admin'
-  isModerator.value = userRole === 'Moderator'
-  console.log('Role flags updated:', { isAdmin: isAdmin.value, isModerator: isModerator.value, role: userRole })
+  console.log('Role flags updated:', { 
+    isAdmin: isAdmin(), 
+    isModerator: isModerator(), 
+    role: userRole 
+  })
 }
 
 const fetchTeamTasks = async () => {
@@ -494,6 +496,34 @@ const totalTaskPages = computed(() => {
   return Math.ceil(filteredAndSortedTasks.value.length / taskItemsPerPage)
 })
 
+// Filtered members based on search query
+const filteredMembers = computed(() => {
+  if (!memberSearchQuery.value) {
+    return teamMembers.value
+  }
+
+  const query = memberSearchQuery.value.toLowerCase().trim()
+  
+  // If query starts with #, search by role
+  if (query.startsWith('#')) {
+    const roleQuery = query.slice(1) // Remove the # symbol
+    if (!roleQuery) return teamMembers.value // If just # without role name, show all
+    
+    return teamMembers.value.filter(member => {
+      // Check custom role first, then base role
+      if (member.customRole) {
+        return member.customRole.name.toLowerCase().includes(roleQuery)
+      }
+      return member.role.toLowerCase().includes(roleQuery)
+    })
+  }
+  
+  // Otherwise, search by username
+  return teamMembers.value.filter(member =>
+    member.username.toLowerCase().includes(query)
+  )
+})
+
 const taskFilterOptions = [
   { title: 'All Tasks', value: 'all' },
   { title: 'Not Submitted', value: 'not-submitted' },
@@ -577,6 +607,14 @@ const taskFilterOptions = [
       @submission-success="fetchTeamTasks"
     />
 
+    <NewMembers
+      v-if="userLoaded"
+      v-model:dialog="addMembersDialog"
+      :userProps="user"
+      :teamId="teamId"
+      :teamMembers="teamMembers"
+      @members-added="fetchTeamMembers"
+    />
     <!-- Delete Members Dialog -->
     <DeleteMembers
       v-if="userLoaded"
@@ -608,73 +646,94 @@ const taskFilterOptions = [
       @roles-updated="fetchTeamMembers"
     />
 
-    <!-- Team navigation tabs -->
-    <v-row class="align-center">
-      <v-col cols="12" lg="8" xl="9">
-        <v-tabs v-model="activeTab">
-          <v-tab value="tasks">Tasks</v-tab>
-          <v-tab value="announcements">Announcements</v-tab>
-          <v-tab value="members">Members</v-tab>
-          <v-tab value="manage" v-if="canManageTaskGroups">Manage</v-tab>
-        </v-tabs>
-      </v-col>
-    </v-row>
+    <!-- Team navigation tabs with action buttons -->
     <v-row class="align-center mb-6">
-      <v-col cols="12" lg="4" xl="3">
-        <v-btn
-          v-if="canCreateTasks"
-          v-tooltip:bottom="'Add new tasks to the team'"
-          @click="newTaskDialog = !newTaskDialog"
-          color="primary"
-          class="w-100 project-card rounded-lg font-weight-bold text-h5"
-          size="large"
-          flat
-        >
-          <v-icon start>mdi-file-document-plus-outline</v-icon>
-          Add new tasks
-        </v-btn>
-      </v-col>
-      <v-col cols="12" lg="4" xl="3">
-        <v-btn
-          v-if="canCreateAnnouncements"
-          v-tooltip:bottom="'Add new announcement'"
-          @click="newAnnouncementsDialog = !newAnnouncementsDialog"
-          color="success"
-          class="w-100 project-card rounded-lg font-weight-bold text-h5"
-          size="large"
-          flat
-        >
-          <v-icon start>mdi-bullhorn</v-icon>
-          Add new annoucement
-        </v-btn>
-      </v-col>
-      <v-col cols="12" lg="4" xl="3">
-        <v-btn
-          v-if="canManageMembers"
-          v-tooltip:bottom="'Remove team members'"
-          @click="deleteMembersDialog = true"
-          color="red-lighten-2"
-          class="w-100 project-card rounded-lg font-weight-bold text-h5"
-          size="large"
-          flat
-        >
-          <v-icon start>mdi-account-remove</v-icon>
-          Remove Members
-        </v-btn>
-      </v-col>
-      <v-col cols="12" lg="4" xl="3">
-        <v-btn
-          v-if="canManageRoles"
-          v-tooltip:bottom="'Manage member roles and permissions'"
-          @click="roleManagementDialog = true"
-          color="purple"
-          class="w-100 project-card rounded-lg font-weight-bold text-h5"
-          size="large"
-          flat
-        >
-          <v-icon start>mdi-account-cog</v-icon>
-          Manage Roles
-        </v-btn>
+      <v-col cols="12">
+        <v-tabs v-model="activeTab" align-tabs="start">
+          <v-tab value="tasks">
+            <v-icon start>mdi-clipboard-text</v-icon>
+            Tasks
+          </v-tab>
+          <v-tab value="task-groups" v-if="canManageTaskGroups">
+            <v-icon start>mdi-folder-multiple</v-icon>
+            Task Groups
+          </v-tab>
+          <v-tab value="announcements">
+            <v-icon start>mdi-bullhorn</v-icon>
+            Announcements
+          </v-tab>
+          <v-tab value="members">
+            <v-icon start>mdi-account-group</v-icon>
+            Members
+          </v-tab>
+          <v-tab value="roles" v-if="canManageMembers || canManageRoles">
+            <v-icon start>mdi-account-key</v-icon>
+            Roles
+          </v-tab>
+        </v-tabs>
+
+        <!-- Action buttons row based on active tab -->
+        <v-row class="mt-4">
+          <!-- Tasks tab actions -->
+          <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && canCreateTasks">
+            <v-btn
+              v-tooltip:bottom="'Add new tasks to the team'"
+              @click="newTaskDialog = !newTaskDialog"
+              color="primary"
+              class="w-100 project-card rounded-lg font-weight-bold"
+              size="large"
+              variant="outlined"
+            >
+              <v-icon start>mdi-file-document-plus-outline</v-icon>
+              Add New Tasks
+            </v-btn>
+          </v-col>
+
+          <!-- Announcements tab actions -->
+          <v-col cols="12" md="6" lg="4" v-if="activeTab === 'announcements' && canCreateAnnouncements">
+            <v-btn
+              v-tooltip:bottom="'Add new announcement'"
+              @click="newAnnouncementsDialog = !newAnnouncementsDialog"
+              color="success"
+              class="w-100 project-card rounded-lg font-weight-bold"
+              size="large"
+              variant="outlined"
+            >
+              <v-icon start>mdi-bullhorn</v-icon>
+              Add New Announcement
+            </v-btn>
+          </v-col>
+
+          <template v-if="activeTab === 'members'">
+            <v-col cols="12" md="6" lg="4" v-if="canManageMembers">
+              <v-btn
+                v-tooltip:bottom="'Add team members'"
+                @click="addMembersDialog = true"
+                color="success"
+                class="w-100 project-card rounded-lg font-weight-bold"
+                size="large"
+                variant="outlined"
+              >
+                <v-icon start>mdi-account-plus</v-icon>
+                Add Members
+              </v-btn>
+            </v-col>   
+            <v-col cols="12" md="6" lg="4" v-if="canManageMembers">
+              <v-btn
+                v-tooltip:bottom="'Remove team members'"
+                @click="deleteMembersDialog = true"
+                color="error"
+                class="w-100 project-card rounded-lg font-weight-bold"
+                size="large"
+                variant="outlined"
+              >
+                <v-icon start>mdi-account-remove</v-icon>
+                Remove Members
+              </v-btn>
+            </v-col>
+
+          </template>
+        </v-row>
       </v-col>
     </v-row>
 
@@ -806,90 +865,8 @@ const taskFilterOptions = [
         </v-row>
       </v-window-item>
 
-      <!-- Announcements Tab -->
-      <v-window-item value="announcements">
-        <v-row>
-          <v-col cols="12">
-            <h2 class="text-h5 mb-4">Team Announcements</h2>
-            <v-card v-if="announcements.length == 0" class="mb-4">
-              <v-card-text>
-                <p class="text-center text-grey">No announcements yet.</p>
-              </v-card-text>
-            </v-card>
-            <v-card
-              v-for="announcement in announcements"
-              :key="announcement._id"
-              class="mb-4 elevation-2"
-              variant="outlined"
-            >
-              <v-card-item>
-                <v-card-title>Author: {{ announcement.createdByUsername }} </v-card-title>
-                <v-card-title class="font-weight-bold">{{ announcement.title }}</v-card-title>
-                <v-card-subtitle v-if="announcement.subtitle" class="text-caption">
-                  {{ announcement.subtitle }}
-                </v-card-subtitle>
-                <v-card-subtitle class="text-caption">
-                  Last Updated at:{{ new Date(announcement.updatedAt).toLocaleDateString() }}
-                </v-card-subtitle>
-              </v-card-item>
-              <v-card-text>
-                <p>{{ announcement.content }}</p>
-              </v-card-text>
-              <v-card-actions>
-                <v-btn
-                  @click="toggleLikeAnnouncement(announcement._id)"
-                  :color="getLikeColor(announcement)"
-                  variant="outlined"
-                >
-                  <v-icon start>mdi-thumb-up</v-icon>Like ({{ announcement.likeUsers.length }})
-                </v-btn>
-                <v-btn
-                  @click="viewAnnouncement(announcement._id)"
-                  color="secondary"
-                  variant="outlined"
-                >
-                  <v-icon start>mdi-comment-text</v-icon>Comments
-                </v-btn>
-                <v-spacer></v-spacer>
-                <v-btn
-                  v-if="canEditAnnouncements"
-                  color="primary"
-                  variant="outlined"
-                  @click="editAnnnouncement(announcement._id)"
-                >
-                  Edit
-                </v-btn>
-                <v-btn
-                  v-if="canEditAnnouncements"
-                  color="error"
-                  variant="outlined"
-                  @click="deleteAnnouncement(announcement._id)"
-                >
-                  Delete
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-window-item>
-
-      <!-- Members Tab -->
-      <v-window-item value="members">
-        <v-row>
-          <v-col cols="12">
-            <h2 class="text-h5 mb-4">Team Members ({{ teamMembers.length }})</h2>
-          </v-col>
-          <v-col v-for="member in teamMembers" :key="member.userId" cols="12" md="4">
-            <v-card class="mb-2" variant="outlined" :color="getRoleColor(member.role)">
-              <v-card-item>
-                <v-card-title>{{ member.username }}</v-card-title>
-                <v-card-subtitle>{{ member.role }}</v-card-subtitle>
-              </v-card-item>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-window-item>      <!-- Manage Tab -->
-      <v-window-item value="manage" v-if="canManageTaskGroups">
+      <!-- Manage Tab -->
+      <v-window-item value="task-groups" v-if="canManageTaskGroups">
         <v-row>
           <v-col cols="12">
             <div class="d-flex align-center justify-space-between mb-3">
@@ -962,8 +939,7 @@ const taskFilterOptions = [
             </v-card>
           </v-col>
         </v-row>
-
-        <!-- Task Groups List -->
+                <!-- Task Groups List -->
         <v-row v-if="taskGroups.length > 0">
           <v-col cols="12">
             <div class="d-flex align-center justify-space-between mb-3">
@@ -1064,6 +1040,182 @@ const taskFilterOptions = [
           </v-col>
         </v-row>
       </v-window-item>
+
+      <!-- Announcements Tab -->
+      <v-window-item value="announcements">
+        <v-row>
+          <v-col cols="12">
+            <h2 class="text-h5 mb-4">Team Announcements</h2>
+            <v-card v-if="announcements.length == 0" class="mb-4">
+              <v-card-text>
+                <p class="text-center text-grey">No announcements yet.</p>
+              </v-card-text>
+            </v-card>
+            <v-card
+              v-for="announcement in announcements"
+              :key="announcement._id"
+              class="mb-4 elevation-2"
+              variant="outlined"
+            >
+              <v-card-item>
+                <v-card-title>Author: {{ announcement.createdByUsername }} </v-card-title>
+                <v-card-title class="font-weight-bold">{{ announcement.title }}</v-card-title>
+                <v-card-subtitle v-if="announcement.subtitle" class="text-caption">
+                  {{ announcement.subtitle }}
+                </v-card-subtitle>
+                <v-card-subtitle class="text-caption">
+                  Last Updated at:{{ new Date(announcement.updatedAt).toLocaleDateString() }}
+                </v-card-subtitle>
+              </v-card-item>
+              <v-card-text>
+                <p>{{ announcement.content }}</p>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  @click="toggleLikeAnnouncement(announcement._id)"
+                  :color="getLikeColor(announcement)"
+                  variant="outlined"
+                >
+                  <v-icon start>mdi-thumb-up</v-icon>Like ({{ announcement.likeUsers.length }})
+                </v-btn>
+                <v-btn
+                  @click="viewAnnouncement(announcement._id)"
+                  color="secondary"
+                  variant="outlined"
+                >
+                  <v-icon start>mdi-comment-text</v-icon>Comments
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                  v-if="canEditAnnouncements"
+                  color="primary"
+                  variant="outlined"
+                  @click="editAnnnouncement(announcement._id)"
+                >
+                  Edit
+                </v-btn>
+                <v-btn
+                  v-if="canEditAnnouncements"
+                  color="error"
+                  variant="outlined"
+                  @click="deleteAnnouncement(announcement._id)"
+                >
+                  Delete
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-window-item>
+
+      <!-- Members Tab -->
+      <v-window-item value="members">
+        <v-row>
+          <v-col cols="12">
+            <div class="d-flex align-center justify-space-between mb-4">
+              <h2 class="text-h5">Team Members ({{ filteredMembers.length }})</h2>
+            </div>
+            
+            <!-- Search Box -->
+            <v-text-field
+              v-model="memberSearchQuery"
+              label="Search members..."
+              placeholder="Search by username or #role (e.g., #admin, #moderator, #the-pro)"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              clearable
+              hide-details
+              class="mb-4"
+            >
+              <template v-slot:append-inner>
+                <v-tooltip location="top">
+                  <template v-slot:activator="{ props }">
+                    <v-icon v-bind="props" color="grey">mdi-help-circle-outline</v-icon>
+                  </template>
+                  <div>
+                    <div><strong>Search Tips:</strong></div>
+                    <div>• Type username to search by name</div>
+                    <div>• Type #role to search by role</div>
+                    <div>• Examples: john, #admin, #moderator</div>
+                  </div>
+                </v-tooltip>
+              </template>
+            </v-text-field>
+          </v-col>
+          <v-col v-for="member in filteredMembers" :key="member.userId" cols="12" md="4">
+            <v-card 
+              class="mb-2" 
+              variant="outlined" 
+              :color="member.customRole ? (member.customRole.color || 'purple') : getRoleColor(member.role)"
+            >
+              <v-card-item>
+                <v-card-title>{{ member.username }}</v-card-title>
+                <v-card-subtitle>
+                  <!-- Show custom role if it exists, otherwise show base role -->
+                  <v-chip 
+                    v-if="member.customRole"
+                    :color="member.customRole.color || 'purple'" 
+                    size="small"
+                    variant="tonal"
+                  >
+                    <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
+                    {{ member.customRole.name }}
+                  </v-chip>
+                  <v-chip 
+                    v-else
+                    :color="getRoleColor(member.role)" 
+                    size="small"
+                    variant="tonal"
+                  >
+                    <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
+                    {{ member.role }}
+                  </v-chip>
+                </v-card-subtitle>
+              </v-card-item>
+            </v-card>
+          </v-col>
+        </v-row>
+        
+        <!-- No Results State -->
+        <v-row v-if="filteredMembers.length === 0 && memberSearchQuery">
+          <v-col cols="12">
+            <v-card class="text-center pa-6" variant="outlined">
+              <v-card-text>
+                <v-icon size="64" class="mb-4" color="grey">mdi-account-search</v-icon>
+                <h3 class="text-h6 mb-2">No Members Found</h3>
+                <p class="text-grey mb-2">
+                  No members match your search: "<strong>{{ memberSearchQuery }}</strong>"
+                </p>
+                <p class="text-caption text-grey">
+                  Try searching by username or use #role to search by role (e.g., #admin, #moderator)
+                </p>
+                <v-btn 
+                  color="primary" 
+                  variant="outlined" 
+                  @click="memberSearchQuery = ''"
+                  class="mt-2"
+                >
+                  Clear Search
+                </v-btn>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-window-item>
+
+      <!-- Management Tab -->
+      <v-window-item value="roles" v-if="canManageMembers || canManageRoles">
+        <RoleManagementTabs
+          :teamId="teamId"
+          :userProps="user"
+          :teamMembers="teamMembers"
+          @roles-updated="fetchTeamMembers"
+        />
+      </v-window-item>
+
+
+
     </v-window>
   </v-container>
 </template>

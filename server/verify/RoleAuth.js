@@ -1,4 +1,5 @@
 import UsersOfTeam from '../models/UsersOfTeam.js'
+import { DEFAULT_ROLE_PERMISSIONS, PERMISSION_MAPPING } from '../config/permissions.js'
 
 export const ROLES = {
   ADMIN: 'Admin',
@@ -6,39 +7,41 @@ export const ROLES = {
   MEMBER: 'Member'
 }
 
-export const PERMISSIONS = {
-  VIEW_TEAM: ['Admin', 'Moderator', 'Member'],
-  VIEW_TASKS: ['Admin', 'Moderator', 'Member'],
-  VIEW_ANNOUNCEMENTS: ['Admin', 'Moderator', 'Member'],
-  VIEW_MEMBERS: ['Admin', 'Moderator', 'Member'],
-  SUBMIT_TASKS: ['Admin', 'Moderator', 'Member'],
-
-  EDIT_ANNOUNCEMENTS: ['Admin', 'Moderator'],
-  VIEW_TASK_GROUPS: ['Admin', 'Moderator'],
-  CREATE_TASK_GROUPS: ['Admin', 'Moderator'],
-  EDIT_TASK_GROUPS: ['Admin', 'Moderator'],
-
-  ADD_MEMBERS: ['Admin'],
-  REMOVE_MEMBERS: ['Admin'],
-  DELETE_TEAMS: ['Admin'],
-  CREATE_SUB_TEAMS: ['Admin'],
-  CHANGE_MEMBER_ROLES: ['Admin'],
-
-  GLOBAL_ADMIN_ACCESS: ['admin']
-}
+// Simplified permission constants - use centralized config for actual permissions
+export const GLOBAL_ADMIN_ACCESS = ['admin']
 
 export const getUserCustomPermissions = async (userId, teamId) => {
   try {
-    const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
+    const userTeamRole = await UsersOfTeam.findOne({ userId, teamId }).populate('role_id')
     if (!userTeamRole) {
       return null
     }
 
-    const rolePermissions = getRoleDefaultPermissions(userTeamRole.role)
+    // Start with default role permissions
+    let rolePermissions = getRoleDefaultPermissions(userTeamRole.role)
+    
+    // If user has a custom role assigned, override with custom role permissions
+    if (userTeamRole.role_id && userTeamRole.role_id.permissions) {
+      const customRolePermissions = {}
+      
+      // Set all permissions to false first
+      Object.keys(rolePermissions).forEach(key => {
+        customRolePermissions[key] = false
+      })
+      
+      // Enable only the permissions defined in the custom role
+      userTeamRole.role_id.permissions.forEach(permission => {
+        customRolePermissions[permission] = true
+      })
+      
+      rolePermissions = customRolePermissions
+    }
+
     // Convert Mongoose subdocument to plain object to avoid metadata
     const customPermissions = userTeamRole.customPermissions ? userTeamRole.customPermissions.toObject() : {}
     const effectivePermissions = { ...rolePermissions }
 
+    // Apply individual custom permissions that override both default and custom role permissions
     Object.keys(customPermissions).forEach(permission => {
       if (customPermissions[permission] !== null && customPermissions[permission] !== undefined) {
         effectivePermissions[permission] = customPermissions[permission]
@@ -47,6 +50,7 @@ export const getUserCustomPermissions = async (userId, teamId) => {
 
     return {
       role: userTeamRole.role,
+      customRoleName: userTeamRole.role_id ? userTeamRole.role_id.name : null,
       ...effectivePermissions,
       isGlobalAdmin: false
     }
@@ -57,72 +61,28 @@ export const getUserCustomPermissions = async (userId, teamId) => {
 }
 
 export const getRoleDefaultPermissions = (role) => {
-  const basePermissions = {
-    canViewTeam: false,
-    canViewTasks: false,
-    canViewAnnouncements: false,
-    canViewMembers: false,
-    canSubmitTasks: false,
-    canEditAnnouncements: false,
-    canViewTaskGroups: false,
-    canCreateTaskGroups: false,
-    canEditTaskGroups: false,
-    canAddMembers: false,
-    canRemoveMembers: false,
-    canDeleteTeams: false,
-    canCreateSubTeams: false,
-    canChangeRoles: false,
-  }
+  // Use the centralized default permissions configuration
+  const permissions = DEFAULT_ROLE_PERMISSIONS[role] || []
+  
+  // Convert to object format for easy access
+  const permissionObject = {}
+  
+  // Initialize all permissions to false
+  Object.values(PERMISSION_MAPPING).forEach(permission => {
+    permissionObject[permission] = false
+  })
+  
+  // Set role-specific permissions to true
+  permissions.forEach(permission => {
+    permissionObject[permission] = true
+  })
 
-  switch (role) {
-    case 'Admin':
-      return {
-        ...basePermissions,
-        canViewTeam: true,
-        canViewTasks: true,
-        canViewAnnouncements: true,
-        canViewMembers: true,
-        canSubmitTasks: true,
-        canEditAnnouncements: true,
-        canViewTaskGroups: true,
-        canCreateTaskGroups: true,
-        canEditTaskGroups: true,
-        canAddMembers: true,
-        canRemoveMembers: true,
-        canDeleteTeams: true,
-        canCreateSubTeams: true,
-        canChangeRoles: true,
-      }
-    case 'Moderator':
-      return {
-        ...basePermissions,
-        canViewTeam: true,
-        canViewTasks: true,
-        canViewAnnouncements: true,
-        canViewMembers: true,
-        canSubmitTasks: true,
-        canEditAnnouncements: true,
-        canViewTaskGroups: true,
-        canCreateTaskGroups: true,
-        canEditTaskGroups: true,
-      }
-    case 'Member':
-      return {
-        ...basePermissions,
-        canViewTeam: true,
-        canViewTasks: true,
-        canViewAnnouncements: true,
-        canViewMembers: true,
-        canSubmitTasks: true,
-      }
-    default:
-      return basePermissions
-  }
+  return permissionObject
 }
 
 export const hasPermission = async (userId, teamId, permission, globalUsername = null) => {
   try {
-    if (globalUsername === 'admin' && PERMISSIONS.GLOBAL_ADMIN_ACCESS.includes('admin')) {
+    if (globalUsername === 'admin' && GLOBAL_ADMIN_ACCESS.includes('admin')) {
       return true
     }
 
@@ -131,24 +91,7 @@ export const hasPermission = async (userId, teamId, permission, globalUsername =
       return false
     }
 
-    const permissionMap = {
-      'VIEW_TEAM': 'canViewTeam',
-      'VIEW_TASKS': 'canViewTasks',
-      'VIEW_ANNOUNCEMENTS': 'canViewAnnouncements',
-      'VIEW_MEMBERS': 'canViewMembers',
-      'SUBMIT_TASKS': 'canSubmitTasks',
-      'EDIT_ANNOUNCEMENTS': 'canEditAnnouncements',
-      'VIEW_TASK_GROUPS': 'canViewTaskGroups',
-      'CREATE_TASK_GROUPS': 'canCreateTaskGroups',
-      'EDIT_TASK_GROUPS': 'canEditTaskGroups',
-      'ADD_MEMBERS': 'canAddMembers',
-      'REMOVE_MEMBERS': 'canRemoveMembers',
-      'DELETE_TEAMS': 'canDeleteTeams',
-      'CREATE_SUB_TEAMS': 'canCreateSubTeams',
-      'CHANGE_MEMBER_ROLES': 'canChangeRoles',
-    }
-
-    const permissionField = permissionMap[permission]
+    const permissionField = PERMISSION_MAPPING[permission]
     if (!permissionField) {
       console.warn(`Unknown permission: ${permission}`)
       return false
@@ -222,7 +165,7 @@ export const hasElevatedPrivileges = async (userId) => {
 
 export default {
   ROLES,
-  PERMISSIONS,
+  GLOBAL_ADMIN_ACCESS,
   hasPermission,
   requirePermission,
   getUserRoleInTeam,
