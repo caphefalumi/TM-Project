@@ -8,7 +8,7 @@ import Account from '../models/Account.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
-import { getUserRoleInTeam, hasPermission, ROLES } from '../verify/RoleAuth.js'
+import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
 
 export const getAllUsers = async (req, res) => {
   // Returns all users in the database by array
@@ -155,10 +155,7 @@ export const deleteUsersFromTeam = async (req, res) => {
   }
 }
 
-/**
- * Change a user's role in a team
- * Only admins can change roles
- */
+
 export const changeUserRole = async (req, res) => {
   try {
     const { teamId, userId } = req.params
@@ -213,34 +210,95 @@ export const getUserPermissions = async (req, res) => {
     const { teamId, userId } = req.params
     const requestingUsername = req.user.username
 
-    const userRole = await getUserRoleInTeam(userId, teamId)
-    if (!userRole) {
+    // Get user's custom permissions (role + custom permissions)
+    const customPermissions = await getUserCustomPermissions(userId, teamId)
+    if (!customPermissions) {
       return res.status(404).json({ message: 'User not found in team' })
     }
 
-    // Define permissions based on role
-    const permissions = {
-      role: userRole,
-      canViewTeam: true,
-      canViewTasks: true,
-      canViewAnnouncements: true,
-      canViewMembers: true,
-      canSubmitTasks: true,
-      canEditAnnouncements: ['Admin', 'Moderator'].includes(userRole),
-      canViewTaskGroups: ['Admin', 'Moderator'].includes(userRole),
-      canCreateTaskGroups: ['Admin', 'Moderator'].includes(userRole),
-      canEditTaskGroups: ['Admin', 'Moderator'].includes(userRole),
-      canAddMembers: userRole === 'Admin',
-      canRemoveMembers: userRole === 'Admin',
-      canDeleteTeams: userRole === 'Admin',
-      canCreateSubTeams: userRole === 'Admin',
-      canChangeRoles: userRole === 'Admin',
-      isGlobalAdmin: requestingUsername === 'admin'
-    }
-    console.log('User permissions:', { userId, teamId, permissions })
-    res.status(200).json(permissions)
+    // Add global admin flag
+    customPermissions.isGlobalAdmin = requestingUsername === 'admin'
+
+    console.log('User permissions:', { userId, teamId, permissions: customPermissions })
+    res.status(200).json(customPermissions)
   } catch (error) {
     console.error('Error getting user permissions:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+/**
+ * Update user's custom permissions in a team
+ * Only admins can update custom permissions
+ */
+export const updateUserPermissions = async (req, res) => {
+  try {
+    const { teamId, userId } = req.params
+    const { customPermissions } = req.body
+
+    // Check if target user exists in team
+    const targetUser = await UsersOfTeam.findOne({ userId, teamId })
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found in team' })
+    }
+
+    // Validate custom permissions structure
+    const validPermissions = [
+      'canViewTeam', 'canViewTasks', 'canViewAnnouncements', 'canViewMembers',
+      'canSubmitTasks', 'canEditAnnouncements', 'canViewTaskGroups',
+      'canCreateTaskGroups', 'canEditTaskGroups', 'canAddMembers',
+      'canRemoveMembers', 'canDeleteTeams', 'canCreateSubTeams', 'canChangeRoles'
+    ]
+
+    const invalidPermissions = Object.keys(customPermissions).filter(
+      perm => !validPermissions.includes(perm)
+    )
+
+    if (invalidPermissions.length > 0) {
+      return res.status(400).json({
+        message: 'Invalid permissions',
+        invalidPermissions,
+        validPermissions
+      })
+    }
+
+    // Update custom permissions
+    await UsersOfTeam.findOneAndUpdate(
+      { userId, teamId },
+      { customPermissions },
+      { new: true }
+    )
+
+    res.status(200).json({
+      message: 'Permissions updated successfully',
+      userId,
+      teamId,
+      customPermissions
+    })
+  } catch (error) {
+    console.error('Error updating user permissions:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+/**
+ * Get default permissions for a role (for UI reference)
+ */
+export const getRoleDefaultPermissionsAPI = async (req, res) => {
+  try {
+    const { role } = req.params
+
+    if (!Object.values(ROLES).includes(role)) {
+      return res.status(400).json({
+        message: 'Invalid role',
+        validRoles: Object.values(ROLES)
+      })
+    }
+
+    const defaultPermissions = getRoleDefaultPermissions(role)
+    res.status(200).json(defaultPermissions)
+  } catch (error) {
+    console.error('Error getting role default permissions:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -252,4 +310,6 @@ export default {
   deleteUsersFromTeam,
   changeUserRole,
   getUserPermissions,
+  updateUserPermissions,
+  getRoleDefaultPermissions,
 }

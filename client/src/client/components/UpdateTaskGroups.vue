@@ -99,6 +99,8 @@ const fetchTaskGroupDetails = async () => {
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'GET',
+        credentials: 'include',
+
         headers: {
           'Content-Type': 'application/json',
         },
@@ -159,6 +161,7 @@ const updateTaskGroup = async () => {
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -219,6 +222,7 @@ const deleteTaskGroup = async () => {
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'DELETE',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },

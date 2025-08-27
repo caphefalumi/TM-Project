@@ -60,6 +60,7 @@ const fetchTaskDetails = async () => {
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.task.taskGroupId}`,
       {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -78,6 +79,7 @@ const fetchTaskDetails = async () => {
     // Then, try to get the submission details
     const submissionResponse = await fetch(`${PORT}/api/tasks/submission/${props.task._id}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

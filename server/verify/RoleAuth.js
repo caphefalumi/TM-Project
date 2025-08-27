@@ -1,8 +1,5 @@
 import UsersOfTeam from '../models/UsersOfTeam.js'
 
-/**
- * Role-based permissions definitions
- */
 export const ROLES = {
   ADMIN: 'Admin',
   MODERATOR: 'Moderator',
@@ -10,64 +7,160 @@ export const ROLES = {
 }
 
 export const PERMISSIONS = {
-  // Member permissions (view-only)
   VIEW_TEAM: ['Admin', 'Moderator', 'Member'],
   VIEW_TASKS: ['Admin', 'Moderator', 'Member'],
   VIEW_ANNOUNCEMENTS: ['Admin', 'Moderator', 'Member'],
   VIEW_MEMBERS: ['Admin', 'Moderator', 'Member'],
   SUBMIT_TASKS: ['Admin', 'Moderator', 'Member'],
 
-  // Moderator permissions
   EDIT_ANNOUNCEMENTS: ['Admin', 'Moderator'],
   VIEW_TASK_GROUPS: ['Admin', 'Moderator'],
   CREATE_TASK_GROUPS: ['Admin', 'Moderator'],
   EDIT_TASK_GROUPS: ['Admin', 'Moderator'],
 
-  // Admin permissions
   ADD_MEMBERS: ['Admin'],
   REMOVE_MEMBERS: ['Admin'],
   DELETE_TEAMS: ['Admin'],
   CREATE_SUB_TEAMS: ['Admin'],
   CHANGE_MEMBER_ROLES: ['Admin'],
 
-  // Global admin permissions (username = 'admin')
   GLOBAL_ADMIN_ACCESS: ['admin']
 }
 
-/**
- * Check if user has permission for a specific action in a team
- * @param {string} userId - User ID
- * @param {string} teamId - Team ID
- * @param {string} permission - Permission to check
- * @param {string} globalUsername - Username for global admin check
- * @returns {Promise<boolean>} - True if user has permission
- */
+export const getUserCustomPermissions = async (userId, teamId) => {
+  try {
+    const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
+    if (!userTeamRole) {
+      return null
+    }
+
+    const rolePermissions = getRoleDefaultPermissions(userTeamRole.role)
+    // Convert Mongoose subdocument to plain object to avoid metadata
+    const customPermissions = userTeamRole.customPermissions ? userTeamRole.customPermissions.toObject() : {}
+    const effectivePermissions = { ...rolePermissions }
+
+    Object.keys(customPermissions).forEach(permission => {
+      if (customPermissions[permission] !== null && customPermissions[permission] !== undefined) {
+        effectivePermissions[permission] = customPermissions[permission]
+      }
+    })
+
+    return {
+      role: userTeamRole.role,
+      ...effectivePermissions,
+      isGlobalAdmin: false
+    }
+  } catch (error) {
+    console.error('Error getting user effective permissions:', error)
+    return null
+  }
+}
+
+export const getRoleDefaultPermissions = (role) => {
+  const basePermissions = {
+    canViewTeam: false,
+    canViewTasks: false,
+    canViewAnnouncements: false,
+    canViewMembers: false,
+    canSubmitTasks: false,
+    canEditAnnouncements: false,
+    canViewTaskGroups: false,
+    canCreateTaskGroups: false,
+    canEditTaskGroups: false,
+    canAddMembers: false,
+    canRemoveMembers: false,
+    canDeleteTeams: false,
+    canCreateSubTeams: false,
+    canChangeRoles: false,
+  }
+
+  switch (role) {
+    case 'Admin':
+      return {
+        ...basePermissions,
+        canViewTeam: true,
+        canViewTasks: true,
+        canViewAnnouncements: true,
+        canViewMembers: true,
+        canSubmitTasks: true,
+        canEditAnnouncements: true,
+        canViewTaskGroups: true,
+        canCreateTaskGroups: true,
+        canEditTaskGroups: true,
+        canAddMembers: true,
+        canRemoveMembers: true,
+        canDeleteTeams: true,
+        canCreateSubTeams: true,
+        canChangeRoles: true,
+      }
+    case 'Moderator':
+      return {
+        ...basePermissions,
+        canViewTeam: true,
+        canViewTasks: true,
+        canViewAnnouncements: true,
+        canViewMembers: true,
+        canSubmitTasks: true,
+        canEditAnnouncements: true,
+        canViewTaskGroups: true,
+        canCreateTaskGroups: true,
+        canEditTaskGroups: true,
+      }
+    case 'Member':
+      return {
+        ...basePermissions,
+        canViewTeam: true,
+        canViewTasks: true,
+        canViewAnnouncements: true,
+        canViewMembers: true,
+        canSubmitTasks: true,
+      }
+    default:
+      return basePermissions
+  }
+}
+
 export const hasPermission = async (userId, teamId, permission, globalUsername = null) => {
   try {
-    // Global admin check
     if (globalUsername === 'admin' && PERMISSIONS.GLOBAL_ADMIN_ACCESS.includes('admin')) {
       return true
     }
 
-    // Get user's role in the team
-    const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
-    if (!userTeamRole) {
+    const customPermissions = await getUserCustomPermissions(userId, teamId)
+    if (!customPermissions) {
       return false
     }
 
-    // Check if user's role has the required permission
-    return PERMISSIONS[permission]?.includes(userTeamRole.role) || false
+    const permissionMap = {
+      'VIEW_TEAM': 'canViewTeam',
+      'VIEW_TASKS': 'canViewTasks',
+      'VIEW_ANNOUNCEMENTS': 'canViewAnnouncements',
+      'VIEW_MEMBERS': 'canViewMembers',
+      'SUBMIT_TASKS': 'canSubmitTasks',
+      'EDIT_ANNOUNCEMENTS': 'canEditAnnouncements',
+      'VIEW_TASK_GROUPS': 'canViewTaskGroups',
+      'CREATE_TASK_GROUPS': 'canCreateTaskGroups',
+      'EDIT_TASK_GROUPS': 'canEditTaskGroups',
+      'ADD_MEMBERS': 'canAddMembers',
+      'REMOVE_MEMBERS': 'canRemoveMembers',
+      'DELETE_TEAMS': 'canDeleteTeams',
+      'CREATE_SUB_TEAMS': 'canCreateSubTeams',
+      'CHANGE_MEMBER_ROLES': 'canChangeRoles',
+    }
+
+    const permissionField = permissionMap[permission]
+    if (!permissionField) {
+      console.warn(`Unknown permission: ${permission}`)
+      return false
+    }
+
+    return customPermissions[permissionField] || false
   } catch (error) {
     console.error('Error checking permission:', error)
     return false
   }
 }
 
-/**
- * Middleware to check if user has specific permission in a team
- * @param {string} permission - Permission to check
- * @returns {Function} Express middleware
- */
 export const requirePermission = (permission) => {
   return async (req, res, next) => {
     try {
@@ -102,12 +195,7 @@ export const requirePermission = (permission) => {
   }
 }
 
-/**
- * Get user's role in a specific team
- * @param {string} userId - User ID
- * @param {string} teamId - Team ID
- * @returns {Promise<string|null>} - User's role or null if not found
- */
+
 export const getUserRoleInTeam = async (userId, teamId) => {
   try {
     const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
@@ -118,11 +206,7 @@ export const getUserRoleInTeam = async (userId, teamId) => {
   }
 }
 
-/**
- * Check if user is admin or moderator in any team
- * @param {string} userId - User ID
- * @returns {Promise<boolean>} - True if user has admin/moderator privileges
- */
+
 export const hasElevatedPrivileges = async (userId) => {
   try {
     const roles = await UsersOfTeam.find({
@@ -142,5 +226,7 @@ export default {
   hasPermission,
   requirePermission,
   getUserRoleInTeam,
-  hasElevatedPrivileges
+  hasElevatedPrivileges,
+  getUserCustomPermissions,
+  getRoleDefaultPermissions
 }
