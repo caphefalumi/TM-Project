@@ -12,7 +12,7 @@ import adminRoutes from './admin_routes.js'
 const router = express.Router()
 
 // Instead of defining all endpoints here, delegate them:
-router.use('/api/auth', authRoutes)            // /api/account/*
+router.use('/api/auth', authRoutes)            // /api/auth/*
 router.use('/api/users', userRoutes)              // /api/users/*
 router.use('/api/teams', teamRoutes)              // /api/teams/*
 router.use('/api/tasks', taskRoutes)              // /api/tasks/*

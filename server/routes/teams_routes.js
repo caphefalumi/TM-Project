@@ -6,8 +6,8 @@ import { authenticateAccessToken } from '../verify/JWTAuth.js'
 import { requirePermission } from '../verify/RoleAuth.js'
 
 const router = express.Router()
-import { addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam, changeUserRole, getUserPermissions } from './users.js'
-const { addTeamPro, deleteATeam, getTeamDetails, getRoles, getCategories, getTeamNameThatUserIsAdmin, getTeamThatUserIsMember } = Teams
+import { addUsersToTeam, getUsersOfTeam, deleteUsersFromTeam, changeUserRole, getUserPermissions, updateUserPermissions, getRoleDefaultPermissionsAPI } from './users.js'
+const { addTeamPro, deleteATeam, getTeamDetails, getRoles, getCategories, getTeamNameThatUserIsAdmin } = Teams
 const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement } = Announcements
 const { getTasksOfAUserInATeam, getAllTaskGroups, getTasksByGroupId, updateTaskGroup, deleteTaskGroup } = Tasks
 
@@ -41,5 +41,7 @@ router.delete('/:teamId/announcements/:announcementId', authenticateAccessToken,
 // Role Management
 router.put('/:teamId/members/:userId/role', authenticateAccessToken, requirePermission('CHANGE_MEMBER_ROLES'), changeUserRole)
 router.get('/:teamId/members/:userId/permissions', authenticateAccessToken, getUserPermissions)
+router.put('/:teamId/members/:userId/permissions', authenticateAccessToken, requirePermission('CHANGE_MEMBER_ROLES'), updateUserPermissions)
+router.get('/roles/:role/permissions', authenticateAccessToken, getRoleDefaultPermissionsAPI)
 
 export default router
