@@ -363,6 +363,19 @@ const registerWithOAuth = async () => {
             </v-form>
             <v-alert v-if="error" type="error" class="mt-2">{{ error }}</v-alert>
             <v-alert v-if="success" type="success" class="mt-2">{{ success }}</v-alert>
+            
+            <!-- Forgot Password Link -->
+            <div class="text-center mt-3 mb-2">
+              <v-btn 
+                variant="text" 
+                color="primary" 
+                size="small"
+                @click="$router.push('/forgot-password')"
+              >
+                Forgot Password?
+              </v-btn>
+            </div>
+            
             <v-row class="mt-2" align="center" justify="space-evenly">
               <v-col class="pa-0 text-right" cols="6">
                 <span>Don't have an account?</span>
