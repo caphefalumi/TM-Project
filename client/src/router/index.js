@@ -1,6 +1,8 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import Login from '../client/auth/Login.vue'
 import Register from '../client/auth/Register.vue'
+import ForgotPassword from '../client/auth/ForgotPassword.vue'
+import ResetPassword from '../client/auth/ResetPassword.vue'
 import TeamsView from '../client/views/TeamsView.vue'
 import TeamDetails from '../client/views/TeamDetails.vue'
 import Dashboard from '../client/views/Dashboard.vue'
@@ -18,6 +20,8 @@ const router = createRouter({
     { path: '/landing', component: LandingView, meta: { requiresAuth: false } },
     { path: '/login', component: Login, meta: { requiresAuth: false } },
     { path: '/register', component: Register, meta: { requiresAuth: false } },
+    { path: '/forgot-password', component: ForgotPassword, meta: { requiresAuth: false } },
+    { path: '/reset-password', component: ResetPassword, meta: { requiresAuth: false } },
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true } },
     { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true } },
     { path: '/about', component: AboutView, meta: { requiresAuth: true } },

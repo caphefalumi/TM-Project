@@ -4,7 +4,7 @@ import Tokens from './tokens.js'
 import JWTAuth from '../verify/JWTAuth.js'
 
 const router = express.Router()
-const { oAuthentication, oAuthenticationRegister, localRegister, localLogin, getUserIDAndEmailByName } = Authentication
+const { oAuthentication, oAuthenticationRegister, localRegister, localLogin, getUserIDAndEmailByName, forgotPassword, resetPassword, verifyToken } = Authentication
 const { addRefreshToken, revokeRefreshToken, renewAccessToken } = Tokens
 const { authenticateRefreshToken, authenticateAccessToken, authenticateAccessTokenOnly } = JWTAuth
 
@@ -30,5 +30,10 @@ router.get('/protected', authenticateAccessToken, (req, res) => {
 router.get('/login-protected', authenticateAccessTokenOnly, (req, res) => {
   res.status(200).json({ success: 'Login access token is valid', user: req.user })
 })
+
+// Password Reset
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-token', verifyToken);
+router.post('/reset-password', resetPassword);
 
 export default router

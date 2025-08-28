@@ -26,6 +26,12 @@ const accountSchema = new mongoose.Schema({
     enum: ['local', 'google'],
     required: true,
   },
+  passwordResetToken: {
+    type: String,
+  },
+  passwordResetExpires: {
+    type: Date,
+  },
   createdAt: {
     type: Date,
     immutable: true,
