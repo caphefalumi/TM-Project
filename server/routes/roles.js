@@ -170,10 +170,18 @@ export const assignCustomRoleToUser = async (req, res) => {
   try {
     const { teamId, userId } = req.params
     const { roleId, role } = req.body
+    const requestingUserId = req.user.userId
 
     // Validate input
     if (!role) {
       return res.status(400).json({ message: 'Role is required' })
+    }
+
+    // Prevent users from changing their own role
+    if (requestingUserId === userId) {
+      return res.status(403).json({
+        message: 'You cannot change your own role. Only other team members can change your role.'
+      })
     }
 
     // Check if user exists in team

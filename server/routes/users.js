@@ -218,6 +218,13 @@ export const changeUserRole = async (req, res) => {
       return res.status(400).json({ message: 'Role is required' })
     }
 
+    // Prevent users from changing their own role
+    if (requestingUserId === userId) {
+      return res.status(403).json({ 
+        message: 'You cannot change your own role. Only other team members can change your role.' 
+      })
+    }
+
     // If it's not a standard role, validate the custom role
     if (!Object.values(ROLES).includes(targetRole) && !roleId) {
       return res.status(400).json({
@@ -242,7 +249,7 @@ export const changeUserRole = async (req, res) => {
       }
     }
 
-    // Prevent self-demotion of last admin
+    // Prevent self-demotion of last admin (this is now redundant due to the self-role-change check above, but keeping for extra safety)
     if (requestingUserId === userId && targetUser.role === 'Admin' && targetRole !== 'Admin') {
       const adminCount = await UsersOfTeam.countDocuments({ teamId, role: 'Admin' })
       if (adminCount === 1) {

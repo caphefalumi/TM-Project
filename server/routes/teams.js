@@ -220,6 +220,7 @@ const getTeamThatUserIsMember = async (req, res) => {
   try {
     const teams = await UsersOfTeam.find({ userId })
       .populate('teamId', 'title category description _id parentTeamId role')
+      .populate('role_id', 'color icon name')
       .exec()
     if (teams.length === 0) {
       console.log(`No teams found for user with ID ${userId}`)
@@ -236,6 +237,29 @@ const getTeamThatUserIsMember = async (req, res) => {
     const teamsData = await Promise.all(
       validTeams.map(async (team) => {
         const progress = await getProgressBar(userId, team.teamId._id)
+
+        // Get role color - either from custom role or default based on base role
+        let roleColor = 'red' // Default color as requested
+        if (team.role_id && team.role_id.color) {
+          // Use custom role color from database
+          roleColor = team.role_id.color
+        } else {
+          // Use default colors based on base role
+          switch (team.role) {
+            case 'Admin':
+              roleColor = 'red'
+              break
+            case 'Moderator':
+              roleColor = 'orange'
+              break
+            case 'Member':
+              roleColor = 'blue'
+              break
+            default:
+              roleColor = 'grey'
+          }
+        }
+
         return {
           teamId: team.teamId._id,
           title: team.teamId.title,
@@ -244,6 +268,7 @@ const getTeamThatUserIsMember = async (req, res) => {
           category: team.teamId.category,
           description: team.teamId.description,
           role: team.role,
+          roleColor: roleColor,
           progress: progress,
         }
       }),
