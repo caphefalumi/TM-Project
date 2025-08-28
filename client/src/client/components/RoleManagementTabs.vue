@@ -114,10 +114,15 @@ const availableColors = [
 const availablePermissions = AVAILABLE_PERMISSIONS
 
 const filteredMembers = computed(() => {
+  let members = props.teamMembers
+
+  // Filter out the current user (they cannot change their own role)
+  members = members.filter((member) => member.userId !== props.userProps.userId)
+
   if (!searchQuery.value) {
-    return props.teamMembers
+    return members
   }
-  return props.teamMembers.filter((member) =>
+  return members.filter((member) =>
     member.username.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
 })
@@ -574,6 +579,11 @@ onMounted(async () => {
           <v-col cols="12">
             <h3 class="text-h6 mb-4">Assign Roles to Members</h3>
 
+            <!-- Info about role change restrictions -->
+            <v-alert type="info" class="mb-4">
+              <strong>Note:</strong> You cannot change your own role. Only other team members are shown below.
+            </v-alert>
+
             <!-- Search -->
             <v-text-field
               v-model="searchQuery"
@@ -587,7 +597,7 @@ onMounted(async () => {
           </v-col>
         </v-row>
         <!-- Members List -->
-        <v-row>
+        <v-row v-if="filteredMembers.length > 0">
           <v-col v-for="member in filteredMembers" :key="member.userId" cols="12" md="6" lg="4">
             <v-card class="mb-4" variant="outlined">
               <v-card-item>
@@ -635,6 +645,24 @@ onMounted(async () => {
                   Change Role
                 </v-btn>
               </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Empty State when no members can have their roles changed -->
+        <v-row v-else>
+          <v-col cols="12">
+            <v-card class="text-center pa-6" variant="outlined">
+              <v-card-text>
+                <v-icon size="64" class="mb-4" color="grey">mdi-account-lock</v-icon>
+                <h3 class="text-h6 mb-2">No Members Available</h3>
+                <p class="text-grey mb-0">
+                  {{ searchQuery ?
+                    'No members found matching your search that can have their roles changed.' :
+                    'There are no other team members whose roles you can change.'
+                  }}
+                </p>
+              </v-card-text>
             </v-card>
           </v-col>
         </v-row>

@@ -31,6 +31,7 @@ const {
   getRoles,
   getCategories,
   getTeamNameThatUserIsAdmin,
+  getTeamThatUserIsMember
 } = Teams
 const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement } =
   Announcements
@@ -55,7 +56,7 @@ router.delete(
   requirePermission('REMOVE_MEMBERS'),
   deleteUsersFromTeam,
 )
-router.get('/user/:userId/', getTeamNameThatUserIsAdmin)
+router.get('/user/:userId/', getTeamThatUserIsMember)
 router.get('/user/:userId/admin', getTeamNameThatUserIsAdmin)
 
 router.get('/:teamId', getTeamDetails)
