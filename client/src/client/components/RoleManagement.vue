@@ -88,8 +88,11 @@
                 class="mb-2"
               >
                 <template v-slot:prepend>
-                  <v-avatar :color="getRoleColor(member.role)" class="mr-3">
-                    <v-icon>{{ getRoleIcon(member.role) }}</v-icon>
+                  <v-avatar
+                    :color="member.customRole ? (member.customRole.color || 'purple') : getRoleColor(member.role)"
+                    class="mr-3"
+                  >
+                    <v-icon>{{ member.customRole ? (member.customRole.icon || 'mdi-star') : getRoleIcon(member.role) }}</v-icon>
                   </v-avatar>
                 </template>
 
@@ -98,11 +101,23 @@
                 </v-list-item-title>
 
                 <v-list-item-subtitle>
+                  <!-- Show custom role if it exists, otherwise show base role -->
                   <v-chip
+                    v-if="member.customRole"
+                    :color="member.customRole.color || 'purple'"
+                    size="small"
+                    variant="tonal"
+                  >
+                    <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
+                    {{ member.customRole.name }}
+                  </v-chip>
+                  <v-chip
+                    v-else
                     :color="getRoleColor(member.role)"
                     size="small"
                     variant="tonal"
                   >
+                    <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
                     {{ member.role }}
                   </v-chip>
                   <v-chip
@@ -443,18 +458,18 @@
           <v-icon class="mr-2" color="warning">mdi-alert</v-icon>
           Confirm Admin Role Assignment
         </v-card-title>
-        
+
         <v-card-text>
           <p class="mb-3">
-            Are you sure you want to make <strong>{{ pendingRoleChange.member.username }}</strong> 
+            Are you sure you want to make <strong>{{ pendingRoleChange.member.username }}</strong>
             the team <strong>Admin</strong>?
           </p>
-          
+
           <!-- Admin demotion warning -->
-          <v-alert 
-            v-if="isPromotingToAdmin && currentAdmin" 
-            type="warning" 
-            variant="tonal" 
+          <v-alert
+            v-if="isPromotingToAdmin && currentAdmin"
+            type="warning"
+            variant="tonal"
             class="mb-3"
           >
             <div class="font-weight-medium mb-2">
@@ -462,12 +477,12 @@
               Single Admin Policy
             </div>
             <div class="text-body-2">
-              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> 
-              will be automatically demoted to <strong>Member</strong> when 
+              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong>
+              will be automatically demoted to <strong>Member</strong> when
               <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
             </div>
           </v-alert>
-          
+
           <p class="text-caption text-warning">
             This action will immediately update permissions and access levels.
           </p>
@@ -568,7 +583,7 @@ const canChangeRoles = computed(() => hasPermission('canChangeRoles'))
 
 // Check if we're promoting someone to admin
 const isPromotingToAdmin = computed(() => {
-  return pendingRoleChange.value && 
+  return pendingRoleChange.value &&
          pendingRoleChange.value.newRole === 'Admin' &&
          pendingRoleChange.value.member.role !== 'Admin'
 })
@@ -576,8 +591,8 @@ const isPromotingToAdmin = computed(() => {
 // Find current admin that would be demoted
 const currentAdmin = computed(() => {
   if (!isPromotingToAdmin.value) return null
-  return props.teamMembers.find(member => 
-    member.role === 'Admin' && 
+  return props.teamMembers.find(member =>
+    member.role === 'Admin' &&
     member.userId !== pendingRoleChange.value.member.userId
   )
 })
@@ -620,14 +635,17 @@ const executeRoleChange = async (member, newRole) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      `${PORT}/api/teams/${props.teamId}/members/${member.userId}/role`,
+      `${PORT}/api/teams/${props.teamId}/members/${member.userId}/assign-role`,
       {
         method: 'PUT',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ newRole }),
+        body: JSON.stringify({
+          role: newRole,
+          roleId: null // Standard role assignment
+        }),
       }
     )
 
@@ -718,7 +736,6 @@ const openPermissionsDialog = async (member) => {
 
 
     const currentCustomPermissions = await response.json()
-    console.log("Permission:", currentCustomPermissions)
 
     // Initialize custom permissions with current values or null for defaults
     customPermissions.value = {

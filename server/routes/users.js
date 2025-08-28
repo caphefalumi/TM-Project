@@ -64,7 +64,7 @@ export const addUsersToTeam = async (req, res) => {
 
       // Prepare user data for creation
       const userData = { userId, username, teamId, role }
-      
+
       // If roleId is provided, validate it exists and belongs to the team
       if (roleId) {
         const customRole = await Role.findOne({ _id: roleId, team_id: teamId })
@@ -119,8 +119,8 @@ export const getUsersOfTeam = async (req, res) => {
 
     const users = await UsersOfTeam.find({ teamId })
       .select('userId username role role_id')
-      .populate('role_id', 'name permissions')
-    
+      .populate('role_id', 'name permissions icon color')
+
     if (users.length === 0) {
       return res.status(404).json({ message: 'No users found for this team' })
     }
@@ -133,7 +133,9 @@ export const getUsersOfTeam = async (req, res) => {
       customRole: user.role_id ? {
         id: user.role_id._id,
         name: user.role_id.name,
-        permissions: user.role_id.permissions
+        permissions: user.role_id.permissions,
+        icon: user.role_id.icon,
+        color: user.role_id.color
       } : null
     }))
 
@@ -152,16 +154,16 @@ export const deleteUsersFromTeam = async (req, res) => {
 
   const { teamId } = req.params
   const membersToRemove = req.body
-  
+
   if (!teamId) {
     return res.status(400).json({ error: 'Team ID is required in URL parameters' })
   }
-  
+
   if (!membersToRemove || !Array.isArray(membersToRemove)) {
     console.log('Users array is required', membersToRemove)
     return res.status(400).json({ error: 'Users array is required' })
   }
-  
+
   try {
     // Validate all users first
     for (const user of membersToRemove) {
@@ -181,14 +183,14 @@ export const deleteUsersFromTeam = async (req, res) => {
     // If all validations pass, proceed with deletions
     const deletePromises = membersToRemove.map(async (user) => {
       const { userId } = user
-      
+
       // Delete all tasks and submissions associated with the user in the team
       await Tasks.deleteMany({ userId, teamId })
       await TaskSubmissions.deleteMany({ userId, teamId })
 
       return UsersOfTeam.deleteOne({ userId, teamId })
     })
-    
+
     // If any delete operation fails, it will throw an error
     await Promise.all(deletePromises)
     console.log('Users deleted from team successfully')
@@ -249,13 +251,12 @@ export const changeUserRole = async (req, res) => {
       // Find current admin
       const currentAdmin = await UsersOfTeam.findOne({ teamId, role: 'Admin' })
       if (currentAdmin && currentAdmin.userId !== userId) {
-        // Demote current admin to Member
+        // Demote current admin to Member (preserve custom role if they have one)
         await UsersOfTeam.findOneAndUpdate(
           { userId: currentAdmin.userId, teamId },
-          { 
-            role: 'Member',
-            role_id: null, // Remove any custom role
-            customPermissions: {} // Reset custom permissions
+          {
+            role: 'Member'
+            // Keep role_id and customPermissions - only change the base role
           }
         )
         demotedAdmin = {
@@ -268,14 +269,20 @@ export const changeUserRole = async (req, res) => {
     }
 
     // Update the role and custom role assignment
+    const updateData = {
+      role: targetRole,
+      role_id: roleId || null,
+    }
+
+    // Only reset custom permissions when changing to a standard role (no custom role assigned)
+    // Keep individual permission overrides when assigning custom roles
+    if (!roleId) {
+      updateData.customPermissions = {}
+    }
+
     const updatedUser = await UsersOfTeam.findOneAndUpdate(
       { userId, teamId },
-      { 
-        role: targetRole,
-        role_id: roleId || null,
-        // Reset custom permissions when changing roles
-        customPermissions: {}
-      },
+      updateData,
       { new: true }
     ).populate('role_id')
 
@@ -291,7 +298,7 @@ export const changeUserRole = async (req, res) => {
           color: updatedUser.role_id.color
         } : null
       },
-      demotedAdmin: demotedAdmin // Include info about demoted admin if any
+      demotedAdmin: demotedAdmin
     })
   } catch (error) {
     console.error('Error changing user role:', error)

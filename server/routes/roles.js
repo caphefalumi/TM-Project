@@ -192,14 +192,12 @@ export const assignCustomRoleToUser = async (req, res) => {
     if (role === 'Admin' && userTeamRole.role !== 'Admin') {
       // Find current admin
       const currentAdmin = await UsersOfTeam.findOne({ teamId, role: 'Admin' })
-      if (currentAdmin && currentAdmin.userId !== userId) {
-        // Demote current admin to Member
+      if (currentAdmin && currentAdmin.userId !== userId) {        // Demote current admin to Member (preserve custom role if they have one)
         await UsersOfTeam.findOneAndUpdate(
           { userId: currentAdmin.userId, teamId },
           { 
-            role: 'Member',
-            role_id: null, // Remove any custom role
-            customPermissions: {} // Reset custom permissions
+            role: 'Member'
+            // Keep role_id and customPermissions - only change the base role
           }
         )
         demotedAdmin = {
@@ -209,19 +207,23 @@ export const assignCustomRoleToUser = async (req, res) => {
           newRole: 'Member'
         }
       }
+    }    // Update user's role assignment
+    const updateData = { 
+      role,
+      role_id: roleId || null,
     }
-
-    // Update user's role assignment
+    
+    // Only reset custom permissions when assigning a standard role (no custom role)
+    // Keep individual permission overrides when assigning custom roles
+    if (!roleId) {
+      updateData.customPermissions = {}
+    }
+    
     await UsersOfTeam.findOneAndUpdate(
       { userId, teamId },
-      { 
-        role,
-        role_id: roleId || null,
-        // Clear custom permissions when assigning a new role
-        customPermissions: {}
-      },
+      updateData,
       { new: true }
-    )    
+    )
     res.status(200).json({
       message: 'Role assigned successfully',
       userId,

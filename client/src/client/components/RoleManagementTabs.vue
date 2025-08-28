@@ -55,7 +55,7 @@ const confirmRoleDialog = ref(false)
 const permissionsViewDialog = ref(false)
 const selectedRoleForView = ref(null)
 
-// Available icons for custom roles  
+// Available icons for custom roles
 const availableIcons = [
   'mdi-star', 'mdi-crown', 'mdi-shield', 'mdi-account-star', 'mdi-medal',
   'mdi-fire', 'mdi-lightning-bolt', 'mdi-diamond', 'mdi-heart', 'mdi-star-circle',
@@ -111,15 +111,15 @@ const permissionsByCategory = computed(() => {
 
 // Check if there's a current admin in the team that would be demoted
 const isPromotingToAdmin = computed(() => {
-  return pendingRoleChange.value && 
+  return pendingRoleChange.value &&
          pendingRoleChange.value.roleType === 'Admin' &&
          pendingRoleChange.value.member.role !== 'Admin'
 })
 
 const currentAdmin = computed(() => {
   if (!isPromotingToAdmin.value) return null
-  return props.teamMembers.find(member => 
-    member.role === 'Admin' && 
+  return props.teamMembers.find(member =>
+    member.role === 'Admin' &&
     member.userId !== pendingRoleChange.value.member.userId
   )
 })
@@ -261,24 +261,14 @@ const assignRole = async (member, roleType, roleId = null) => {
   try {
     loading.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    
-    // Use different endpoints based on whether it's a custom role or not
-    let endpoint, body
-    if (roleId) {
-      // Custom role assignment - use assign-role endpoint
-      endpoint = `${PORT}/api/teams/${props.teamId}/members/${member.userId}/assign-role`
-      body = {
-        role: roleType,
-        roleId: roleId,
-      }
-    } else {
-      // Standard role assignment - use role endpoint
-      endpoint = `${PORT}/api/teams/${props.teamId}/members/${member.userId}/role`
-      body = {
-        newRole: roleType,
-      }
+
+    // Use unified endpoint for role assignment
+    const endpoint = `${PORT}/api/teams/${props.teamId}/members/${member.userId}/assign-role`
+    const body = {
+      role: roleType,
+      roleId: roleId || null,
     }
-    
+
     const response = await fetch(endpoint, {
       method: 'PUT',
       credentials: 'include',
@@ -294,7 +284,7 @@ const assignRole = async (member, roleType, roleId = null) => {
     }
 
     const result = await response.json()
-    
+
     // Handle admin demotion notification
     if (result.demotedAdmin && roleType === 'Admin') {
       success.value = true
@@ -303,7 +293,7 @@ const assignRole = async (member, roleType, roleId = null) => {
       success.value = true
       message.value = `Role assigned to ${member.username} successfully!`
     }
-    
+
     memberRoleDialog.value = false
     confirmRoleDialog.value = false
     emit('roles-updated')
@@ -356,7 +346,7 @@ const openCreateRoleDialog = () => {
 }
 
 const openEditRoleDialog = (role) => {
-  selectedRole.value = { 
+  selectedRole.value = {
     ...role,
     icon: role.icon || 'mdi-star',
     color: role.color || 'purple'
@@ -546,7 +536,7 @@ onMounted(async () => {
         <v-row class="mt-4">
           <v-col cols="12">
             <h3 class="text-h6 mb-4">Assign Roles to Members</h3>
-            
+
             <!-- Search -->
             <v-text-field
               v-model="searchQuery"
@@ -564,8 +554,8 @@ onMounted(async () => {
             <v-card class="mb-4" variant="outlined">
               <v-card-item>
                 <v-card-title class="d-flex align-center">
-                  <v-avatar 
-                    :color="member.customRole ? (member.customRole.color || 'purple') : getRoleColor(member.role)" 
+                  <v-avatar
+                    :color="member.customRole ? (member.customRole.color || 'purple') : getRoleColor(member.role)"
                     class="mr-3"
                   >
                     <v-icon>{{ member.customRole ? (member.customRole.icon || 'mdi-star') : getRoleIcon(member.role) }}</v-icon>
@@ -682,7 +672,7 @@ onMounted(async () => {
                 <div v-for="permission in role.permissions.slice(0, 6)" :key="permission">
                   • {{ availablePermissions.find(p => p.key === permission)?.label || permission }}
                 </div>                <div v-if="role.permissions.length > 6" class="mt-1">
-                  <span 
+                  <span
                     @click="openPermissionsViewDialog(role)"
                     style="cursor: pointer; color: #1976d2; text-decoration: underline;"
                   >
@@ -1002,7 +992,7 @@ onMounted(async () => {
           <v-icon class="mr-2" color="error">mdi-delete</v-icon>
           Delete Role
         </v-card-title>
-        
+
         <v-card-text>
           <p>Are you sure you want to delete the role <strong>{{ selectedRole.name }}</strong>?</p>
           <p class="text-caption text-error">
@@ -1034,7 +1024,7 @@ onMounted(async () => {
           <v-icon class="mr-2" color="primary">mdi-account-cog</v-icon>
           Change Role for {{ selectedMember.username }}
         </v-card-title>
-        
+
         <v-card-text>          <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Current Role</h4>
             <!-- Show custom role if it exists, otherwise show base role -->
@@ -1124,8 +1114,8 @@ onMounted(async () => {
     <v-dialog v-model="permissionsViewDialog" max-width="600px" persistent>
       <v-card v-if="selectedRoleForView">
         <v-card-title class="font-weight-bold text-h6 d-flex align-center">
-          <v-icon 
-            class="mr-2" 
+          <v-icon
+            class="mr-2"
             :color="selectedRoleForView.color || 'purple'"
           >
             {{ selectedRoleForView.icon || 'mdi-star' }}
@@ -1264,17 +1254,17 @@ onMounted(async () => {
           <v-icon class="mr-2" color="warning">mdi-alert</v-icon>
           Confirm Role Change
         </v-card-title>
-        
+
         <v-card-text>          <p class="mb-3">
-            Are you sure you want to change <strong>{{ pendingRoleChange.member.username }}</strong>'s role to 
+            Are you sure you want to change <strong>{{ pendingRoleChange.member.username }}</strong>'s role to
             <strong>{{ pendingRoleChange.roleName }}</strong>?
           </p>
-          
+
           <!-- Admin demotion warning -->
-          <v-alert 
-            v-if="isPromotingToAdmin && currentAdmin" 
-            type="warning" 
-            variant="tonal" 
+          <v-alert
+            v-if="isPromotingToAdmin && currentAdmin"
+            type="warning"
+            variant="tonal"
             class="mb-3"
           >
             <div class="font-weight-medium mb-2">
@@ -1282,12 +1272,12 @@ onMounted(async () => {
               Single Admin Policy
             </div>
             <div class="text-body-2">
-              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> 
-              will be automatically demoted to <strong>Member</strong> when 
+              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong>
+              will be automatically demoted to <strong>Member</strong> when
               <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
             </div>
           </v-alert>
-          
+
           <v-alert type="info" variant="tonal" class="mb-3"><div class="d-flex align-center">
               <div>
                 <div class="font-weight-medium">Current Role:</div>
@@ -1316,19 +1306,19 @@ onMounted(async () => {
               <div>
                 <div class="font-weight-medium">New Role:</div>
                 <v-chip
-                  :color="pendingRoleChange.roleId ? 
-                    (customRoles.find(r => r._id === pendingRoleChange.roleId)?.color || 'purple') : 
+                  :color="pendingRoleChange.roleId ?
+                    (customRoles.find(r => r._id === pendingRoleChange.roleId)?.color || 'purple') :
                     getRoleColor(pendingRoleChange.roleType)"
                   size="small"
                   variant="tonal"
                   class="mt-1"
                 >
-                  <v-icon 
-                    start 
+                  <v-icon
+                    start
                     size="small"
                   >
-                    {{ pendingRoleChange.roleId ? 
-                      (customRoles.find(r => r._id === pendingRoleChange.roleId)?.icon || 'mdi-star') : 
+                    {{ pendingRoleChange.roleId ?
+                      (customRoles.find(r => r._id === pendingRoleChange.roleId)?.icon || 'mdi-star') :
                       getRoleIcon(pendingRoleChange.roleType) }}
                   </v-icon>
                   {{ pendingRoleChange.roleName }}
@@ -1336,7 +1326,7 @@ onMounted(async () => {
               </div>
             </div>
           </v-alert>
-          
+
           <p class="text-caption text-warning">
             This action will immediately update the user's permissions and access level.
           </p>
