@@ -27,10 +27,10 @@ const selectedUsers = ref([])
 const filteredUsers = computed(() => {
   // Get array of existing team member user IDs
   const existingMemberIds = props.teamMembers.map(member => member.userId || member._id || member.id)
-  
+
   // Get array of already selected user IDs
   const selectedUserIds = selectedUsers.value.map(user => user.userId)
-  
+
   // Always exclude the current user, existing team members, and already selected users from results
   const availableUsers = listOfUsers.value.filter(
     (_user) => {
@@ -40,11 +40,11 @@ const filteredUsers = computed(() => {
       return !isCurrentUser && !isExistingMember && !isAlreadySelected
     }
   )
-  
+
   if (!searchUsernameField.value) {
     return availableUsers
   }
-  
+
   const _search = searchUsernameField.value.toLowerCase()
   const res = availableUsers.filter(
     (_user) => _user.username.toLowerCase().includes(_search)
@@ -97,9 +97,7 @@ const fetchUsers = async () => {
     // Map the response to the desired structure
     listOfUsers.value = res.map((user) => ({
       userId: user._id,
-      username: user.username,
-    }))
-    console.log('Fetched users:', listOfUsers.value)
+      username: user.username,    }))
   } catch (error) {
     console.error('Failed to fetch users:', error)
   }
@@ -119,12 +117,9 @@ const fetchRoles = async () => {
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
-    const defaultRoles = await response.json()
-
-    // Initialize with default roles
+    const defaultRoles = await response.json()    // Initialize with default roles
     listOfRoles.value = [...defaultRoles]
-    
-    console.log('Fetched default roles:', listOfRoles.value)
+
   } catch (error) {
     console.error('Failed to fetch roles:', error)
   }
@@ -133,7 +128,7 @@ const fetchRoles = async () => {
 // Function to fetch custom roles for the specific team
 const fetchCustomRoles = async () => {
   if (!props.teamId) return
-  
+
   try {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
@@ -147,21 +142,21 @@ const fetchCustomRoles = async () => {
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
-    
+
     const data = await response.json()
-    
+
     // Combine default roles with custom roles
     const defaultRoles = ['Admin', 'Moderator', 'Member']
     const customRoleOptions = data.roles.map(role => ({
       title: role.name,
       value: `custom:${role._id}` // Prefix to identify custom roles
     }))
-    
+
     listOfRoles.value = [
       ...defaultRoles,
       ...customRoleOptions
     ]
-    
+
     console.log('Fetched team roles:', data.roles)
     console.log('Combined role options:', listOfRoles.value)
   } catch (error) {
@@ -195,7 +190,7 @@ const sendMembersToServer = async () => {
     error.value = false
     message.value = 'Members added successfully!'
     console.log('Members added successfully:', result)
-    
+
     // Emit event to parent to refresh team members
     emit('members-added')
   } catch (error) {
@@ -255,7 +250,7 @@ const selectAUser = (selectedUser) => {
     username: selectedUser.username,
     teamId: props.teamId,
   }
-  
+
   // Check if the user is already selected
   const isAlreadySelected = selectedUsers.value.some((user) => user.userId === selectedUser.userId)
 
@@ -269,9 +264,7 @@ const selectAUser = (selectedUser) => {
 }
 
 const removeSelectedUser = (userId) => {
-  console.log('Removing user with ID:', userId)
   selectedUsers.value = selectedUsers.value.filter((user) => user.userId !== userId)
-  console.log('After remove:', selectedUsers.value)
 }
 
 const addUsers = async () => {
@@ -289,7 +282,7 @@ const addUsers = async () => {
   const role = newMemberData.value.role
   let roleId = null
   let finalRole = role
-  
+
   if (role.startsWith('custom:')) {
     roleId = role.replace('custom:', '')
     finalRole = 'Member' // Default role for users with custom role
@@ -338,7 +331,7 @@ const addUsers = async () => {
             required
           ></v-select>
         </v-expand-transition>
-        
+
         <!-- Display selected users using v-chip -->
         <div v-if="selectedUsers.length > 0" class="mb-4">
           <v-chip

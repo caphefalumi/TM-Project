@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePermissions } from '../services/permissionService.js'
 
 const router = useRouter()
+const { getRoleColor } = usePermissions()
 
 const user = ref({
   userId: '',
@@ -286,15 +288,6 @@ const getUserRole = (userId) => {
 const getUserName = (userId) => {
   const user = props.teamMembers.find((member) => member.userId === userId)
   return user ? user.username : 'Unknown'
-}
-
-const getRoleColor = (role) => {
-  switch (role) {
-    case 'Admin': return 'red'
-    case 'Moderator': return 'orange'
-    case 'Member': return 'primary'
-    default: return 'grey'
-  }
 }
 
 // Computed properties for preview
