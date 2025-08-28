@@ -243,6 +243,30 @@ export const changeUserRole = async (req, res) => {
       }
     }
 
+    // Single admin policy: If assigning Admin role, demote current admin to Member
+    let demotedAdmin = null
+    if (targetRole === 'Admin' && targetUser.role !== 'Admin') {
+      // Find current admin
+      const currentAdmin = await UsersOfTeam.findOne({ teamId, role: 'Admin' })
+      if (currentAdmin && currentAdmin.userId !== userId) {
+        // Demote current admin to Member
+        await UsersOfTeam.findOneAndUpdate(
+          { userId: currentAdmin.userId, teamId },
+          { 
+            role: 'Member',
+            role_id: null, // Remove any custom role
+            customPermissions: {} // Reset custom permissions
+          }
+        )
+        demotedAdmin = {
+          userId: currentAdmin.userId,
+          username: currentAdmin.username,
+          previousRole: 'Admin',
+          newRole: 'Member'
+        }
+      }
+    }
+
     // Update the role and custom role assignment
     const updatedUser = await UsersOfTeam.findOneAndUpdate(
       { userId, teamId },
@@ -266,7 +290,8 @@ export const changeUserRole = async (req, res) => {
           icon: updatedUser.role_id.icon,
           color: updatedUser.role_id.color
         } : null
-      }
+      },
+      demotedAdmin: demotedAdmin // Include info about demoted admin if any
     })
   } catch (error) {
     console.error('Error changing user role:', error)

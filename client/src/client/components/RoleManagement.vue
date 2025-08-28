@@ -435,6 +435,60 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Role Change Confirmation Dialog -->
+    <v-dialog v-model="confirmRoleDialog" max-width="500px" persistent>
+      <v-card v-if="pendingRoleChange">
+        <v-card-title class="font-weight-bold text-h6">
+          <v-icon class="mr-2" color="warning">mdi-alert</v-icon>
+          Confirm Admin Role Assignment
+        </v-card-title>
+        
+        <v-card-text>
+          <p class="mb-3">
+            Are you sure you want to make <strong>{{ pendingRoleChange.member.username }}</strong> 
+            the team <strong>Admin</strong>?
+          </p>
+          
+          <!-- Admin demotion warning -->
+          <v-alert 
+            v-if="isPromotingToAdmin && currentAdmin" 
+            type="warning" 
+            variant="tonal" 
+            class="mb-3"
+          >
+            <div class="font-weight-medium mb-2">
+              <v-icon class="mr-2">mdi-alert-circle</v-icon>
+              Single Admin Policy
+            </div>
+            <div class="text-body-2">
+              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> 
+              will be automatically demoted to <strong>Member</strong> when 
+              <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
+            </div>
+          </v-alert>
+          
+          <p class="text-caption text-warning">
+            This action will immediately update permissions and access levels.
+          </p>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="cancelRoleChange" variant="outlined" :disabled="loading">
+            Cancel
+          </v-btn>
+          <v-btn
+            @click="confirmRoleChangeDialog"
+            color="primary"
+            variant="elevated"
+            :loading="loading"
+          >
+            Confirm
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-dialog>
 </template>
 
@@ -491,6 +545,10 @@ const permissionSuccess = ref(false)
 const permissionError = ref(false)
 const permissionMessage = ref('')
 
+// Role change confirmation state
+const confirmRoleDialog = ref(false)
+const pendingRoleChange = ref(null)
+
 // Available roles for selection
 const availableRoles = ref([
   { label: 'Admin', value: 'Admin' },
@@ -507,6 +565,22 @@ const filteredMembers = computed(() => {
 })
 
 const canChangeRoles = computed(() => hasPermission('canChangeRoles'))
+
+// Check if we're promoting someone to admin
+const isPromotingToAdmin = computed(() => {
+  return pendingRoleChange.value && 
+         pendingRoleChange.value.newRole === 'Admin' &&
+         pendingRoleChange.value.member.role !== 'Admin'
+})
+
+// Find current admin that would be demoted
+const currentAdmin = computed(() => {
+  if (!isPromotingToAdmin.value) return null
+  return props.teamMembers.find(member => 
+    member.role === 'Admin' && 
+    member.userId !== pendingRoleChange.value.member.userId
+  )
+})
 
 // Methods
 const setUserFromProps = (userProps) => {
@@ -528,6 +602,18 @@ const fetchUserPermissions = async () => {
 const changeRole = async (member, newRole) => {
   if (newRole === member.role) return
 
+  // If promoting to admin, show confirmation dialog
+  if (newRole === 'Admin' && member.role !== 'Admin') {
+    pendingRoleChange.value = { member, newRole }
+    confirmRoleDialog.value = true
+    return
+  }
+
+  // For non-admin role changes, proceed directly
+  await executeRoleChange(member, newRole)
+}
+
+const executeRoleChange = async (member, newRole) => {
   changingRole.value = member.userId
   loading.value = true
 
@@ -548,13 +634,28 @@ const changeRole = async (member, newRole) => {
     const data = await response.json()
 
     if (response.ok) {
-      success.value = true
-      message.value = `Successfully changed ${member.username}'s role to ${newRole}`
+      // Handle admin demotion notification
+      if (data.demotedAdmin && newRole === 'Admin') {
+        success.value = true
+        message.value = `${member.username} is now the team Admin! ${data.demotedAdmin.username} has been automatically demoted to Member (only one Admin allowed per team).`
+      } else {
+        success.value = true
+        message.value = `Successfully changed ${member.username}'s role to ${newRole}`
+      }
 
       // Update the member's role in the local data
       const memberIndex = props.teamMembers.findIndex(m => m.userId === member.userId)
       if (memberIndex !== -1) {
         props.teamMembers[memberIndex].role = newRole
+      }
+
+      // If there was a demoted admin, update their role too
+      if (data.demotedAdmin) {
+        const demotedMemberIndex = props.teamMembers.findIndex(m => m.userId === data.demotedAdmin.userId)
+        if (demotedMemberIndex !== -1) {
+          props.teamMembers[demotedMemberIndex].role = 'Member'
+          props.teamMembers[demotedMemberIndex].customRole = null // Remove custom role
+        }
       }
 
       emit('roles-updated')
@@ -583,6 +684,19 @@ const changeRole = async (member, newRole) => {
     changingRole.value = null
     loading.value = false
   }
+}
+
+const confirmRoleChangeDialog = () => {
+  if (pendingRoleChange.value) {
+    executeRoleChange(pendingRoleChange.value.member, pendingRoleChange.value.newRole)
+    confirmRoleDialog.value = false
+    pendingRoleChange.value = null
+  }
+}
+
+const cancelRoleChange = () => {
+  confirmRoleDialog.value = false
+  pendingRoleChange.value = null
 }
 
 const openPermissionsDialog = async (member) => {

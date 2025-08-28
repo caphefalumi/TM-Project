@@ -109,6 +109,21 @@ const permissionsByCategory = computed(() => {
   return categories
 })
 
+// Check if there's a current admin in the team that would be demoted
+const isPromotingToAdmin = computed(() => {
+  return pendingRoleChange.value && 
+         pendingRoleChange.value.roleType === 'Admin' &&
+         pendingRoleChange.value.member.role !== 'Admin'
+})
+
+const currentAdmin = computed(() => {
+  if (!isPromotingToAdmin.value) return null
+  return props.teamMembers.find(member => 
+    member.role === 'Admin' && 
+    member.userId !== pendingRoleChange.value.member.userId
+  )
+})
+
 // Computed properties using permission service
 const canManageCustomRoles = computed(() => hasPermission('canManageCustomRoles'))
 const canChangeRoles = computed(() => hasPermission('canChangeRoles'))
@@ -279,8 +294,16 @@ const assignRole = async (member, roleType, roleId = null) => {
     }
 
     const result = await response.json()
-    success.value = true
-    message.value = `Role assigned to ${member.username} successfully!`
+    
+    // Handle admin demotion notification
+    if (result.demotedAdmin && roleType === 'Admin') {
+      success.value = true
+      message.value = `${member.username} is now the team Admin! ${result.demotedAdmin.username} has been automatically demoted to Member (only one Admin allowed per team).`
+    } else {
+      success.value = true
+      message.value = `Role assigned to ${member.username} successfully!`
+    }
+    
     memberRoleDialog.value = false
     confirmRoleDialog.value = false
     emit('roles-updated')
@@ -601,14 +624,14 @@ onMounted(async () => {
               <v-card-title class="text-subtitle-1">
                 <v-icon class="mr-2" color="red">mdi-crown</v-icon>
                 Admin
-              </v-card-title>
-              <v-card-text class="text-caption">
+              </v-card-title>              <v-card-text class="text-caption">
                 • Full access to all features<br>
                 • Add/remove members<br>
                 • Delete teams and members<br>
                 • Create sub-teams<br>
                 • Manage custom roles<br>
-                • All task and announcement permissions
+                • All task and announcement permissions<br>
+                <strong>• Only one Admin per team allowed</strong>
               </v-card-text>
             </v-card>
           </v-col>
@@ -1242,13 +1265,30 @@ onMounted(async () => {
           Confirm Role Change
         </v-card-title>
         
-        <v-card-text>
-          <p class="mb-3">
+        <v-card-text>          <p class="mb-3">
             Are you sure you want to change <strong>{{ pendingRoleChange.member.username }}</strong>'s role to 
             <strong>{{ pendingRoleChange.roleName }}</strong>?
           </p>
           
-          <v-alert type="info" variant="tonal" class="mb-3">            <div class="d-flex align-center">
+          <!-- Admin demotion warning -->
+          <v-alert 
+            v-if="isPromotingToAdmin && currentAdmin" 
+            type="warning" 
+            variant="tonal" 
+            class="mb-3"
+          >
+            <div class="font-weight-medium mb-2">
+              <v-icon class="mr-2">mdi-alert-circle</v-icon>
+              Single Admin Policy
+            </div>
+            <div class="text-body-2">
+              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> 
+              will be automatically demoted to <strong>Member</strong> when 
+              <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
+            </div>
+          </v-alert>
+          
+          <v-alert type="info" variant="tonal" class="mb-3"><div class="d-flex align-center">
               <div>
                 <div class="font-weight-medium">Current Role:</div>
                 <!-- Show custom role if it exists, otherwise show base role -->
