@@ -187,6 +187,28 @@ export const assignCustomRoleToUser = async (req, res) => {
       if (!customRole || customRole.team_id.toString() !== teamId) {
         return res.status(404).json({ message: 'Custom role not found' })
       }
+    }    // Single admin policy: If assigning Admin role, demote current admin to Member
+    let demotedAdmin = null
+    if (role === 'Admin' && userTeamRole.role !== 'Admin') {
+      // Find current admin
+      const currentAdmin = await UsersOfTeam.findOne({ teamId, role: 'Admin' })
+      if (currentAdmin && currentAdmin.userId !== userId) {
+        // Demote current admin to Member
+        await UsersOfTeam.findOneAndUpdate(
+          { userId: currentAdmin.userId, teamId },
+          { 
+            role: 'Member',
+            role_id: null, // Remove any custom role
+            customPermissions: {} // Reset custom permissions
+          }
+        )
+        demotedAdmin = {
+          userId: currentAdmin.userId,
+          username: currentAdmin.username,
+          previousRole: 'Admin',
+          newRole: 'Member'
+        }
+      }
     }
 
     // Update user's role assignment
@@ -199,14 +221,14 @@ export const assignCustomRoleToUser = async (req, res) => {
         customPermissions: {}
       },
       { new: true }
-    )
-
+    )    
     res.status(200).json({
       message: 'Role assigned successfully',
       userId,
       teamId,
       role,
-      customRoleId: roleId
+      customRoleId: roleId,
+      demotedAdmin: demotedAdmin // Include info about demoted admin if any
     })
   } catch (error) {
     console.error('Error assigning custom role:', error)
