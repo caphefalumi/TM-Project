@@ -249,20 +249,10 @@ const closeDialog = () => {
 }
 
 const selectAUser = (selectedUser) => {
-  // Handle custom roles
-  let role = newMemberData.value.role
-  let roleId = null
-  
-  if (role.startsWith('custom:')) {
-    roleId = role.replace('custom:', '')
-    role = 'Member' // Default role for users with custom role
-  }
-
+  // Just add the user without role assignment - roles will be assigned when adding to team
   const newMember = {
     userId: selectedUser.userId,
     username: selectedUser.username,
-    role: role,
-    roleId: roleId, // Add role_id for custom roles
     teamId: props.teamId,
   }
   
@@ -295,6 +285,27 @@ const addUsers = async () => {
     return
   }
 
+  // Assign the selected role to all users before sending to server
+  const role = newMemberData.value.role
+  let roleId = null
+  let finalRole = role
+  
+  if (role.startsWith('custom:')) {
+    roleId = role.replace('custom:', '')
+    finalRole = 'Member' // Default role for users with custom role
+  }
+
+  // Update all selected users with the role information
+  const usersWithRoles = selectedUsers.value.map(user => ({
+    ...user,
+    role: finalRole,
+    roleId: roleId
+  }))
+
+  // Temporarily update selectedUsers for sending to server
+  const originalSelectedUsers = [...selectedUsers.value]
+  selectedUsers.value = usersWithRoles
+
   loading.value = true
   console.log('Adding these users:', JSON.stringify(selectedUsers.value, null, 2))
   try {
@@ -305,6 +316,8 @@ const addUsers = async () => {
   } catch (error) {
     loading.value = false
     console.error('Failed to add members:', error)
+    // Restore original selectedUsers if there was an error
+    selectedUsers.value = originalSelectedUsers
   }
 }
 </script>

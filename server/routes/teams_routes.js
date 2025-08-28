@@ -19,7 +19,7 @@ router.get('/categories', getCategories)
 // Teams
 router.post('/', addTeamPro)
 router.post('/add', addUsersToTeam)
-router.delete('/teams/remove', deleteUsersFromTeam)
+router.delete('/:teamId/users/', authenticateAccessToken, requirePermission('REMOVE_MEMBERS'), deleteUsersFromTeam)
 router.get('/user/:userId/', getTeamNameThatUserIsAdmin)
 router.get('/user/:userId/admin', getTeamNameThatUserIsAdmin)
 

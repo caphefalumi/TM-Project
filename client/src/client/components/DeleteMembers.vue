@@ -76,10 +76,10 @@ const removeMembers = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const membersToRemove = selectedMembers.value.map((member) => ({
       userId: member.userId,
-      teamId: props.teamId,
     }))
-    const response = await fetch(`${PORT}/api/teams/remove`, {
+    const response = await fetch(`${PORT}/api/teams/${props.teamId}/users/`, {
       method: 'DELETE',
+      credentials: 'include', // Include cookies for authentication
       headers: {
         'Content-Type': 'application/json',
       },

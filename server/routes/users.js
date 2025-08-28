@@ -44,6 +44,7 @@ export const addUsersToTeam = async (req, res) => {
     for (const user of users) {
       const { teamId, userId, username, role, roleId } = user
       if (!teamId || !userId || !username || !role) {
+        console.log('Missing required fields for user:', user)
         throw new Error('TeamId, User ID, username, and role are required for each user')
       }
 
@@ -147,34 +148,47 @@ export const deleteUsersFromTeam = async (req, res) => {
   // Delete users from a team by user ID and team ID
   // Also delete all tasks and submissions associated with the user in the team
   // Returns a success message if users are deleted successfully
-  // Requires an array of userID and teamID in the request body
+  // Expects teamId in URL params and array of user objects in request body
 
+  const { teamId } = req.params
   const membersToRemove = req.body
+  
+  if (!teamId) {
+    return res.status(400).json({ error: 'Team ID is required in URL parameters' })
+  }
+  
   if (!membersToRemove || !Array.isArray(membersToRemove)) {
     console.log('Users array is required', membersToRemove)
     return res.status(400).json({ error: 'Users array is required' })
   }
+  
   try {
-    const deletePromises = membersToRemove.map(async (user) => {
-      const { userId, teamId } = user
-      if (!userId || !teamId) {
-        throw new Error('User ID and team ID are required for each user')
+    // Validate all users first
+    for (const user of membersToRemove) {
+      const { userId } = user
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID is required for each user' })
       }
 
       // Check if the user exists in the team
       const existingUser = await UsersOfTeam.findOne({ userId, teamId })
       if (!existingUser) {
         console.log(`User with ID ${userId} not found in team ${teamId}`)
-        return res
-          .status(404)
-          .json({ message: `User with ID ${userId} not found in team ${teamId}` })
+        return res.status(404).json({ message: `User with ID ${userId} not found in team ${teamId}` })
       }
+    }
+
+    // If all validations pass, proceed with deletions
+    const deletePromises = membersToRemove.map(async (user) => {
+      const { userId } = user
+      
       // Delete all tasks and submissions associated with the user in the team
       await Tasks.deleteMany({ userId, teamId })
       await TaskSubmissions.deleteMany({ userId, teamId })
 
       return UsersOfTeam.deleteOne({ userId, teamId })
     })
+    
     // If any delete operation fails, it will throw an error
     await Promise.all(deletePromises)
     console.log('Users deleted from team successfully')
