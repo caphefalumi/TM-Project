@@ -9,16 +9,16 @@ export const createRole = async (req, res) => {
     const { name, permissions, icon, color } = req.body
 
     if (!name || !Array.isArray(permissions)) {
-      return res.status(400).json({ 
-        message: 'Role name and permissions array are required' 
+      return res.status(400).json({
+        message: 'Role name and permissions array are required',
       })
     }
 
     // Check if role name already exists in this team
     const existingRole = await Role.findOne({ team_id: teamId, name })
     if (existingRole) {
-      return res.status(400).json({ 
-        message: 'Role name already exists in this team' 
+      return res.status(400).json({
+        message: 'Role name already exists in this team',
       })
     }
 
@@ -27,14 +27,14 @@ export const createRole = async (req, res) => {
       team_id: teamId,
       permissions,
       icon: icon || 'mdi-star',
-      color: color || 'purple'
+      color: color || 'purple',
     })
 
     await newRole.save()
 
     res.status(201).json({
       message: 'Role created successfully',
-      role: newRole
+      role: newRole,
     })
   } catch (error) {
     console.error('Error creating role:', error)
@@ -51,7 +51,7 @@ export const getRolesByTeam = async (req, res) => {
 
     res.status(200).json({
       message: 'Roles retrieved successfully',
-      roles
+      roles,
     })
   } catch (error) {
     console.error('Error getting roles:', error)
@@ -71,7 +71,7 @@ export const getRoleById = async (req, res) => {
 
     res.status(200).json({
       message: 'Role retrieved successfully',
-      role
+      role,
     })
   } catch (error) {
     console.error('Error getting role:', error)
@@ -92,14 +92,14 @@ export const updateRole = async (req, res) => {
 
     // Check if new name conflicts with existing roles in the same team
     if (name && name !== role.name) {
-      const existingRole = await Role.findOne({ 
-        team_id: role.team_id, 
+      const existingRole = await Role.findOne({
+        team_id: role.team_id,
         name,
-        _id: { $ne: roleId }
+        _id: { $ne: roleId },
       })
       if (existingRole) {
-        return res.status(400).json({ 
-          message: 'Role name already exists in this team' 
+        return res.status(400).json({
+          message: 'Role name already exists in this team',
         })
       }
     }
@@ -114,7 +114,7 @@ export const updateRole = async (req, res) => {
 
     res.status(200).json({
       message: 'Role updated successfully',
-      role
+      role,
     })
   } catch (error) {
     console.error('Error updating role:', error)
@@ -135,17 +135,18 @@ export const deleteRole = async (req, res) => {
     // Check if any users are assigned to this role
     const usersWithRole = await UsersOfTeam.find({ role_id: roleId })
     if (usersWithRole.length > 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Cannot delete role. Users are still assigned to this role.',
-        assignedUsers: usersWithRole.length
+        assignedUsers: usersWithRole.length,
       })
     }
 
     await Role.findByIdAndDelete(roleId)
 
     res.status(200).json({
-      message: 'Role deleted successfully'
-    })  } catch (error) {
+      message: 'Role deleted successfully',
+    })
+  } catch (error) {
     console.error('Error deleting role:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
@@ -156,7 +157,7 @@ export const getAvailablePermissions = async (req, res) => {
   try {
     res.status(200).json({
       message: 'Available permissions retrieved successfully',
-      permissions: AVAILABLE_PERMISSIONS
+      permissions: AVAILABLE_PERMISSIONS,
     })
   } catch (error) {
     console.error('Error getting available permissions:', error)
@@ -187,50 +188,47 @@ export const assignCustomRoleToUser = async (req, res) => {
       if (!customRole || customRole.team_id.toString() !== teamId) {
         return res.status(404).json({ message: 'Custom role not found' })
       }
-    }    // Single admin policy: If assigning Admin role, demote current admin to Member
+    } // Single admin policy: If assigning Admin role, demote current admin to Member
     let demotedAdmin = null
     if (role === 'Admin' && userTeamRole.role !== 'Admin') {
       // Find current admin
       const currentAdmin = await UsersOfTeam.findOne({ teamId, role: 'Admin' })
-      if (currentAdmin && currentAdmin.userId !== userId) {        // Demote current admin to Member (preserve custom role if they have one)
+      if (currentAdmin && currentAdmin.userId !== userId) {
+        // Demote current admin to Member (preserve custom role if they have one)
         await UsersOfTeam.findOneAndUpdate(
           { userId: currentAdmin.userId, teamId },
-          { 
-            role: 'Member'
+          {
+            role: 'Member',
             // Keep role_id and customPermissions - only change the base role
-          }
+          },
         )
         demotedAdmin = {
           userId: currentAdmin.userId,
           username: currentAdmin.username,
           previousRole: 'Admin',
-          newRole: 'Member'
+          newRole: 'Member',
         }
       }
-    }    // Update user's role assignment
-    const updateData = { 
+    } // Update user's role assignment
+    const updateData = {
       role,
       role_id: roleId || null,
     }
-    
+
     // Only reset custom permissions when assigning a standard role (no custom role)
     // Keep individual permission overrides when assigning custom roles
     if (!roleId) {
       updateData.customPermissions = {}
     }
-    
-    await UsersOfTeam.findOneAndUpdate(
-      { userId, teamId },
-      updateData,
-      { new: true }
-    )
+
+    await UsersOfTeam.findOneAndUpdate({ userId, teamId }, updateData, { new: true })
     res.status(200).json({
       message: 'Role assigned successfully',
       userId,
       teamId,
       role,
       customRoleId: roleId,
-      demotedAdmin: demotedAdmin // Include info about demoted admin if any
+      demotedAdmin: demotedAdmin, // Include info about demoted admin if any
     })
   } catch (error) {
     console.error('Error assigning custom role:', error)

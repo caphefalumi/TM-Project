@@ -8,7 +8,8 @@
               <v-icon class="mr-2" color="primary">mdi-lock-reset</v-icon>
               Reset Password
             </h2>
-          </v-card-title>          <v-card-text>
+          </v-card-title>
+          <v-card-text>
             <div v-if="error" class="text-center py-8">
               <v-icon size="64" color="error" class="mb-4">mdi-alert-circle</v-icon>
               <h3 class="text-h5 mb-2 text-error">Invalid token</h3>
@@ -26,9 +27,7 @@
             </div>
 
             <v-form v-else @submit.prevent="handleResetPassword" v-model="formValid">
-              <p class="text-body-1 mb-4 text-center">
-                Enter your new password below.
-              </p>
+              <p class="text-body-1 mb-4 text-center">Enter your new password below.</p>
 
               <v-text-field
                 v-model="password"
@@ -105,22 +104,22 @@ const showConfirmPassword = ref(false)
 const token = ref('')
 
 const passwordRules = [
-  v => !!v || 'Password is required',
-  v => v.length >= 8 || 'Password must be at least 8 characters long',
-  v => /(?=.*[a-z])/.test(v) || 'Password must contain at least one lowercase letter',
-  v => /(?=.*[A-Z])/.test(v) || 'Password must contain at least one uppercase letter',
-  v => /(?=.*\d)/.test(v) || 'Password must contain at least one number'
+  (v) => !!v || 'Password is required',
+  (v) => v.length >= 8 || 'Password must be at least 8 characters long',
+  (v) => /(?=.*[a-z])/.test(v) || 'Password must contain at least one lowercase letter',
+  (v) => /(?=.*[A-Z])/.test(v) || 'Password must contain at least one uppercase letter',
+  (v) => /(?=.*\d)/.test(v) || 'Password must contain at least one number',
 ]
 
 const confirmPasswordRules = [
-  v => !!v || 'Please confirm your password',
-  v => v === password.value || 'Passwords do not match'
+  (v) => !!v || 'Please confirm your password',
+  (v) => v === password.value || 'Passwords do not match',
 ]
 
 onMounted(async () => {
   // Get token from URL query parameters
   token.value = route.query.token
-  
+
   if (!token.value) {
     error.value = true
     return
@@ -160,18 +159,18 @@ const handleResetPassword = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         token: token.value,
-        password: password.value 
+        password: password.value,
       }),
     })
 
     if (response.ok) {
       success.value = true
-      
+
       password.value = ''
       confirmPassword.value = ''
-      
+
       setTimeout(() => {
         router.push('/login')
       }, 3000)

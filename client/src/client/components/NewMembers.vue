@@ -26,29 +26,27 @@ const selectedUsers = ref([])
 // Computed property to filter users based on the search input and exclude current user, existing team members, and selected users
 const filteredUsers = computed(() => {
   // Get array of existing team member user IDs
-  const existingMemberIds = props.teamMembers.map(member => member.userId || member._id || member.id)
+  const existingMemberIds = props.teamMembers.map(
+    (member) => member.userId || member._id || member.id,
+  )
 
   // Get array of already selected user IDs
-  const selectedUserIds = selectedUsers.value.map(user => user.userId)
+  const selectedUserIds = selectedUsers.value.map((user) => user.userId)
 
   // Always exclude the current user, existing team members, and already selected users from results
-  const availableUsers = listOfUsers.value.filter(
-    (_user) => {
-      const isCurrentUser = _user.userId === user.value.userId
-      const isExistingMember = existingMemberIds.includes(_user.userId)
-      const isAlreadySelected = selectedUserIds.includes(_user.userId)
-      return !isCurrentUser && !isExistingMember && !isAlreadySelected
-    }
-  )
+  const availableUsers = listOfUsers.value.filter((_user) => {
+    const isCurrentUser = _user.userId === user.value.userId
+    const isExistingMember = existingMemberIds.includes(_user.userId)
+    const isAlreadySelected = selectedUserIds.includes(_user.userId)
+    return !isCurrentUser && !isExistingMember && !isAlreadySelected
+  })
 
   if (!searchUsernameField.value) {
     return availableUsers
   }
 
   const _search = searchUsernameField.value.toLowerCase()
-  const res = availableUsers.filter(
-    (_user) => _user.username.toLowerCase().includes(_search)
-  )
+  const res = availableUsers.filter((_user) => _user.username.toLowerCase().includes(_search))
 
   return res.slice(0, 5) // Limit to 5 results
 })
@@ -97,7 +95,8 @@ const fetchUsers = async () => {
     // Map the response to the desired structure
     listOfUsers.value = res.map((user) => ({
       userId: user._id,
-      username: user.username,    }))
+      username: user.username,
+    }))
   } catch (error) {
     console.error('Failed to fetch users:', error)
   }
@@ -117,9 +116,8 @@ const fetchRoles = async () => {
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
-    const defaultRoles = await response.json()    // Initialize with default roles
+    const defaultRoles = await response.json() // Initialize with default roles
     listOfRoles.value = [...defaultRoles]
-
   } catch (error) {
     console.error('Failed to fetch roles:', error)
   }
@@ -147,15 +145,12 @@ const fetchCustomRoles = async () => {
 
     // Combine default roles with custom roles
     const defaultRoles = ['Admin', 'Moderator', 'Member']
-    const customRoleOptions = data.roles.map(role => ({
+    const customRoleOptions = data.roles.map((role) => ({
       title: role.name,
-      value: `custom:${role._id}` // Prefix to identify custom roles
+      value: `custom:${role._id}`, // Prefix to identify custom roles
     }))
 
-    listOfRoles.value = [
-      ...defaultRoles,
-      ...customRoleOptions
-    ]
+    listOfRoles.value = [...defaultRoles, ...customRoleOptions]
 
     console.log('Fetched team roles:', data.roles)
     console.log('Combined role options:', listOfRoles.value)
@@ -220,7 +215,7 @@ watch(
     if (newTeamId) {
       fetchCustomRoles()
     }
-  }
+  },
 )
 
 // Watch for team members changes to update available users
@@ -229,7 +224,7 @@ watch(
   () => {
     // Team members updated, filtered users will be recalculated automatically
   },
-  { deep: true }
+  { deep: true },
 )
 
 const closeDialog = () => {
@@ -289,10 +284,10 @@ const addUsers = async () => {
   }
 
   // Update all selected users with the role information
-  const usersWithRoles = selectedUsers.value.map(user => ({
+  const usersWithRoles = selectedUsers.value.map((user) => ({
     ...user,
     role: finalRole,
-    roleId: roleId
+    roleId: roleId,
   }))
 
   // Temporarily update selectedUsers for sending to server
@@ -345,7 +340,7 @@ const addUsers = async () => {
             {{ user.username }}
           </v-chip>
         </div>
-          <!-- Search field for usernames -->
+        <!-- Search field for usernames -->
         <v-text-field
           v-model="searchUsernameField"
           label="Username"
@@ -353,12 +348,9 @@ const addUsers = async () => {
           variant="outlined"
           class="mt-2"
           required
-        ></v-text-field><!-- Display filtered users -->
-        <v-list
-          v-if="filteredUsers.length > 0"
-          max-height="200"
-          class="filtered-users-list"
-        >
+        ></v-text-field
+        ><!-- Display filtered users -->
+        <v-list v-if="filteredUsers.length > 0" max-height="200" class="filtered-users-list">
           <v-list-item
             v-for="user in filteredUsers"
             :key="user.userId"

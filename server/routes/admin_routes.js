@@ -24,6 +24,11 @@ router.get('/announcements', authenticateAccessToken, checkAdminAccess, getAllAn
 router.post('/notify', authenticateAccessToken, checkAdminAccess, sendNotificationToUser)
 router.delete('/teams/:teamId', authenticateAccessToken, checkAdminAccess, deleteTeamAsAdmin)
 router.delete('/users/:userId', authenticateAccessToken, checkAdminAccess, deleteUserAsAdmin)
-router.delete('/announcements/:announcementId', authenticateAccessToken, checkAdminAccess, deleteAnnouncementAsAdmin)
+router.delete(
+  '/announcements/:announcementId',
+  authenticateAccessToken,
+  checkAdminAccess,
+  deleteAnnouncementAsAdmin,
+)
 
 export default router

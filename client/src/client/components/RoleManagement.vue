@@ -22,11 +22,11 @@
                     Admin
                   </v-card-title>
                   <v-card-text class="text-caption">
-                    • Full access to all features<br>
-                    • Add/remove members<br>
-                    • Delete teams and members<br>
-                    • Create sub-teams<br>
-                    • Access admin panel<br>
+                    • Full access to all features<br />
+                    • Add/remove members<br />
+                    • Delete teams and members<br />
+                    • Create sub-teams<br />
+                    • Access admin panel<br />
                     • Manage custom permissions
                   </v-card-text>
                 </v-card>
@@ -38,10 +38,10 @@
                     Moderator
                   </v-card-title>
                   <v-card-text class="text-caption">
-                    • Edit announcements<br>
-                    • View task groups<br>
-                    • Create new task groups<br>
-                    • Edit task groups<br>
+                    • Edit announcements<br />
+                    • View task groups<br />
+                    • Create new task groups<br />
+                    • Edit task groups<br />
                     • Cannot add/remove members
                   </v-card-text>
                 </v-card>
@@ -53,10 +53,10 @@
                     Member
                   </v-card-title>
                   <v-card-text class="text-caption">
-                    • View-only access<br>
-                    • Submit tasks<br>
-                    • View announcements<br>
-                    • View team members<br>
+                    • View-only access<br />
+                    • Submit tasks<br />
+                    • View announcements<br />
+                    • View team members<br />
                     • No special permissions
                   </v-card-text>
                 </v-card>
@@ -82,17 +82,21 @@
 
             <!-- Members list -->
             <v-list>
-              <v-list-item
-                v-for="member in filteredMembers"
-                :key="member.userId"
-                class="mb-2"
-              >
+              <v-list-item v-for="member in filteredMembers" :key="member.userId" class="mb-2">
                 <template v-slot:prepend>
                   <v-avatar
-                    :color="member.customRole ? (member.customRole.color || 'purple') : getRoleColor(member.role)"
+                    :color="
+                      member.customRole
+                        ? member.customRole.color || 'purple'
+                        : getRoleColor(member.role)
+                    "
                     class="mr-3"
                   >
-                    <v-icon>{{ member.customRole ? (member.customRole.icon || 'mdi-star') : getRoleIcon(member.role) }}</v-icon>
+                    <v-icon>{{
+                      member.customRole
+                        ? member.customRole.icon || 'mdi-star'
+                        : getRoleIcon(member.role)
+                    }}</v-icon>
                   </v-avatar>
                 </template>
 
@@ -111,12 +115,7 @@
                     <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
                     {{ member.customRole.name }}
                   </v-chip>
-                  <v-chip
-                    v-else
-                    :color="getRoleColor(member.role)"
-                    size="small"
-                    variant="tonal"
-                  >
+                  <v-chip v-else :color="getRoleColor(member.role)" size="small" variant="tonal">
                     <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
                     {{ member.role }}
                   </v-chip>
@@ -163,9 +162,7 @@
                 </template>
 
                 <template v-slot:append v-else-if="member.userId === user.userId">
-                  <v-chip color="info" size="small" variant="outlined">
-                    You
-                  </v-chip>
+                  <v-chip color="info" size="small" variant="outlined"> You </v-chip>
                 </template>
               </v-list-item>
             </v-list>
@@ -175,9 +172,7 @@
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="closeDialog" variant="outlined" :disabled="loading">
-          Close
-        </v-btn>
+        <v-btn @click="closeDialog" variant="outlined" :disabled="loading"> Close </v-btn>
       </v-card-actions>
     </v-card>
 
@@ -189,7 +184,8 @@
           Custom Permissions for {{ selectedMember.username }}
         </v-card-title>
         <v-card-subtitle>
-          Role: {{ selectedMember.role }} | Override default permissions by checking/unchecking boxes
+          Role: {{ selectedMember.role }} | Override default permissions by checking/unchecking
+          boxes
         </v-card-subtitle>
 
         <v-card-text>
@@ -347,7 +343,9 @@
             </v-expansion-panel>
 
             <!-- Management Permissions (Admin and Moderator) -->
-            <v-expansion-panel v-if="selectedMember.role === 'Admin' || selectedMember.role === 'Moderator'">
+            <v-expansion-panel
+              v-if="selectedMember.role === 'Admin' || selectedMember.role === 'Moderator'"
+            >
               <v-expansion-panel-title>
                 <v-icon class="mr-2">mdi-shield-crown</v-icon>
                 Management Permissions
@@ -422,10 +420,12 @@
           <!-- Default Values Info -->
           <v-alert type="info" variant="tonal" class="mb-4">
             <v-icon class="mr-2">mdi-information</v-icon>
-            <strong>Default (Role-based):</strong> Permissions are enabled by default based on the user's role.
-            <br>
-            <strong>Custom Override:</strong> Check/uncheck to override the default role permissions.
-            <br>
+            <strong>Default (Role-based):</strong> Permissions are enabled by default based on the
+            user's role.
+            <br />
+            <strong>Custom Override:</strong> Check/uncheck to override the default role
+            permissions.
+            <br />
             <strong>Gray (Indeterminate):</strong> Using default role permission.
           </v-alert>
         </v-card-text>
@@ -461,8 +461,9 @@
 
         <v-card-text>
           <p class="mb-3">
-            Are you sure you want to make <strong>{{ pendingRoleChange.member.username }}</strong>
-            the team <strong>Admin</strong>?
+            Are you sure you want to make
+            <strong>{{ pendingRoleChange.member.username }}</strong> the team
+            <strong>Admin</strong>?
           </p>
 
           <!-- Admin demotion warning -->
@@ -477,8 +478,8 @@
               Single Admin Policy
             </div>
             <div class="text-body-2">
-              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong>
-              will be automatically demoted to <strong>Member</strong> when
+              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> will
+              be automatically demoted to <strong>Member</strong> when
               <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
             </div>
           </v-alert>
@@ -490,9 +491,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="cancelRoleChange" variant="outlined" :disabled="loading">
-            Cancel
-          </v-btn>
+          <v-btn @click="cancelRoleChange" variant="outlined" :disabled="loading"> Cancel </v-btn>
           <v-btn
             @click="confirmRoleChangeDialog"
             color="primary"
@@ -509,7 +508,11 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { permissionService, usePermissions, AVAILABLE_PERMISSIONS } from '../services/permissionService.js'
+import {
+  permissionService,
+  usePermissions,
+  AVAILABLE_PERMISSIONS,
+} from '../services/permissionService.js'
 
 const props = defineProps({
   dialog: {
@@ -574,8 +577,8 @@ const availableRoles = ref([
 // Computed properties
 const filteredMembers = computed(() => {
   if (!searchQuery.value) return props.teamMembers
-  return props.teamMembers.filter(member =>
-    member.username.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return props.teamMembers.filter((member) =>
+    member.username.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
 })
 
@@ -583,17 +586,18 @@ const canChangeRoles = computed(() => hasPermission('canChangeRoles'))
 
 // Check if we're promoting someone to admin
 const isPromotingToAdmin = computed(() => {
-  return pendingRoleChange.value &&
-         pendingRoleChange.value.newRole === 'Admin' &&
-         pendingRoleChange.value.member.role !== 'Admin'
+  return (
+    pendingRoleChange.value &&
+    pendingRoleChange.value.newRole === 'Admin' &&
+    pendingRoleChange.value.member.role !== 'Admin'
+  )
 })
 
 // Find current admin that would be demoted
 const currentAdmin = computed(() => {
   if (!isPromotingToAdmin.value) return null
-  return props.teamMembers.find(member =>
-    member.role === 'Admin' &&
-    member.userId !== pendingRoleChange.value.member.userId
+  return props.teamMembers.find(
+    (member) => member.role === 'Admin' && member.userId !== pendingRoleChange.value.member.userId,
   )
 })
 
@@ -644,9 +648,9 @@ const executeRoleChange = async (member, newRole) => {
         },
         body: JSON.stringify({
           role: newRole,
-          roleId: null // Standard role assignment
+          roleId: null, // Standard role assignment
         }),
-      }
+      },
     )
 
     const data = await response.json()
@@ -662,14 +666,16 @@ const executeRoleChange = async (member, newRole) => {
       }
 
       // Update the member's role in the local data
-      const memberIndex = props.teamMembers.findIndex(m => m.userId === member.userId)
+      const memberIndex = props.teamMembers.findIndex((m) => m.userId === member.userId)
       if (memberIndex !== -1) {
         props.teamMembers[memberIndex].role = newRole
       }
 
       // If there was a demoted admin, update their role too
       if (data.demotedAdmin) {
-        const demotedMemberIndex = props.teamMembers.findIndex(m => m.userId === data.demotedAdmin.userId)
+        const demotedMemberIndex = props.teamMembers.findIndex(
+          (m) => m.userId === data.demotedAdmin.userId,
+        )
         if (demotedMemberIndex !== -1) {
           props.teamMembers[demotedMemberIndex].role = 'Member'
           props.teamMembers[demotedMemberIndex].customRole = null // Remove custom role
@@ -731,9 +737,8 @@ const openPermissionsDialog = async (member) => {
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     )
-
 
     const currentCustomPermissions = await response.json()
 
@@ -779,7 +784,7 @@ const updatePermission = (permission, value) => {
 }
 
 const resetToDefaults = () => {
-  Object.keys(customPermissions.value).forEach(key => {
+  Object.keys(customPermissions.value).forEach((key) => {
     customPermissions.value[key] = null
   })
 }
@@ -791,7 +796,7 @@ const savePermissions = async () => {
     const success = await permissionService.updateUserPermissions(
       props.teamId,
       selectedMember.value.userId,
-      customPermissions.value
+      customPermissions.value,
     )
 
     if (success) {
@@ -799,7 +804,9 @@ const savePermissions = async () => {
       permissionMessage.value = `Successfully updated permissions for ${selectedMember.value.username}`
 
       // Update local member data
-      const memberIndex = props.teamMembers.findIndex(m => m.userId === selectedMember.value.userId)
+      const memberIndex = props.teamMembers.findIndex(
+        (m) => m.userId === selectedMember.value.userId,
+      )
       if (memberIndex !== -1) {
         props.teamMembers[memberIndex].customPermissions = { ...customPermissions.value }
       }
@@ -847,7 +854,7 @@ watch(
     if (newVal) {
       fetchUserPermissions()
     }
-  }
+  },
 )
 
 onMounted(() => {

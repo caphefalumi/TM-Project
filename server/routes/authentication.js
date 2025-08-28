@@ -133,24 +133,26 @@ const localLogin = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    
+    const { email } = req.body
+
     if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+      return res.status(400).json({ error: 'Email is required' })
     }
 
-    const account = await Account.findOne({ email });
+    const account = await Account.findOne({ email })
 
     if (!account) {
-        return res.status(404).json({ error: 'No account found with that email address' })
+      return res.status(404).json({ error: 'No account found with that email address' })
     }
 
-    const token = jwt.sign({ id: account._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' })
+    const token = jwt.sign({ id: account._id }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '15m',
+    })
     account.passwordResetToken = token
     account.passwordResetExpires = Date.now() + 900000 // 15 minutes from now
     await account.save()
 
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`
     const mailOptions = {
       from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
       to: account.email,
@@ -183,39 +185,43 @@ const forgotPassword = async (req, res) => {
     }
 
     try {
-        await sendEmail(mailOptions);
-        res.json({ message: 'If an account with that email exists, a password reset link has been sent' });
+      await sendEmail(mailOptions)
+      res.json({
+        message: 'If an account with that email exists, a password reset link has been sent',
+      })
     } catch (err) {
-        console.error('Failed to send password reset email:', err);
-        res.status(500).json({ error: 'Failed to send password reset email. Please try again later.' })
+      console.error('Failed to send password reset email:', err)
+      res
+        .status(500)
+        .json({ error: 'Failed to send password reset email. Please try again later.' })
     }
   } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({ error: 'An error occurred while processing your request' });
+    console.error('Forgot password error:', error)
+    res.status(500).json({ error: 'An error occurred while processing your request' })
   }
 }
 
 const verifyToken = async (req, res) => {
-  const { token } = req.body;
+  const { token } = req.body
   if (!token) {
-    return res.status(400).json({ error: 'Token is required' });
+    return res.status(400).json({ error: 'Token is required' })
   }
   const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
   const account = await Account.findOne({
     _id: decodedToken.id,
     passwordResetToken: token,
     passwordResetExpires: { $gt: Date.now() },
-  });
+  })
   if (!account) {
-      console.log('account not found or token expired')
-      return res.status(401).json({ error: 'Invalid or expired password reset token' })
+    console.log('account not found or token expired')
+    return res.status(401).json({ error: 'Invalid or expired password reset token' })
   }
-  return res.status(200).json({ success: 'Token is valid' });
+  return res.status(200).json({ success: 'Token is valid' })
 }
 
 const resetPassword = async (req, res) => {
-  const { token, password } = req.body;
-  
+  const { token, password } = req.body
+
   try {
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
     console.log(decodedToken)
@@ -225,7 +231,7 @@ const resetPassword = async (req, res) => {
       _id: decodedToken.id,
       passwordResetToken: token,
       passwordResetExpires: { $gt: Date.now() },
-    });
+    })
 
     if (!account) {
       console.log('account not found or token expired')
@@ -279,5 +285,5 @@ export default {
   localLogin,
   forgotPassword,
   resetPassword,
-  verifyToken
+  verifyToken,
 }

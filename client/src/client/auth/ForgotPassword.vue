@@ -11,7 +11,13 @@
           </v-card-title>
 
           <v-card-text>
-            <v-alert v-if="success" type="success" class="mb-4" closable @click:close="success = false">
+            <v-alert
+              v-if="success"
+              type="success"
+              class="mb-4"
+              closable
+              @click:close="success = false"
+            >
               {{ message }}
             </v-alert>
             <v-alert v-if="error" type="error" class="mb-4" closable @click:close="error = false">
@@ -78,8 +84,8 @@ const formValid = ref(false)
 
 // Validation rules
 const emailRules = [
-  v => !!v || 'Email is required',
-  v => /.+@.+\..+/.test(v) || 'Email must be valid'
+  (v) => !!v || 'Email is required',
+  (v) => /.+@.+\..+/.test(v) || 'Email must be valid',
 ]
 
 const handleForgotPassword = async () => {
@@ -104,7 +110,7 @@ const handleForgotPassword = async () => {
     if (response.ok) {
       success.value = true
       message.value = data.message || 'Password reset link has been sent to your email'
-      
+
       // Optionally redirect to login after a delay
       setTimeout(() => {
         router.push('/login')

@@ -5,7 +5,7 @@ import routes from './routes/index.js'
 import connectDB from './config/db.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import ExpressMongoSanitize from "express-mongo-sanitize"
+import ExpressMongoSanitize from 'express-mongo-sanitize'
 
 const app = express()
 app.use(
@@ -17,23 +17,23 @@ app.use(
 connectDB()
 
 app.use((req, _res, next) => {
-	Object.defineProperty(req, 'query', {
-		...Object.getOwnPropertyDescriptor(req, 'query'),
-		value: req.query,
-		writable: true,
-	})
+  Object.defineProperty(req, 'query', {
+    ...Object.getOwnPropertyDescriptor(req, 'query'),
+    value: req.query,
+    writable: true,
+  })
 
-	next()
+  next()
 })
 app.use(ExpressMongoSanitize())
 app.use((req, _res, next) => {
-	Object.defineProperty(req, 'query', {
-		...Object.getOwnPropertyDescriptor(req, 'query'),
-		value: req.query,
-		writable: false,
-	})
+  Object.defineProperty(req, 'query', {
+    ...Object.getOwnPropertyDescriptor(req, 'query'),
+    value: req.query,
+    writable: false,
+  })
 
-	next()
+  next()
 })
 // Increase payload size limit for image uploads
 app.use(express.json({ limit: '10mb' }))

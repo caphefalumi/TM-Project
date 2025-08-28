@@ -4,7 +4,7 @@ import { DEFAULT_ROLE_PERMISSIONS, PERMISSION_MAPPING } from '../config/permissi
 export const ROLES = {
   ADMIN: 'Admin',
   MODERATOR: 'Moderator',
-  MEMBER: 'Member'
+  MEMBER: 'Member',
 }
 
 // Simplified permission constants - use centralized config for actual permissions
@@ -19,30 +19,32 @@ export const getUserCustomPermissions = async (userId, teamId) => {
 
     // Start with default role permissions
     let rolePermissions = getRoleDefaultPermissions(userTeamRole.role)
-    
+
     // If user has a custom role assigned, override with custom role permissions
     if (userTeamRole.role_id && userTeamRole.role_id.permissions) {
       const customRolePermissions = {}
-      
+
       // Set all permissions to false first
-      Object.keys(rolePermissions).forEach(key => {
+      Object.keys(rolePermissions).forEach((key) => {
         customRolePermissions[key] = false
       })
-      
+
       // Enable only the permissions defined in the custom role
-      userTeamRole.role_id.permissions.forEach(permission => {
+      userTeamRole.role_id.permissions.forEach((permission) => {
         customRolePermissions[permission] = true
       })
-      
+
       rolePermissions = customRolePermissions
     }
 
     // Convert Mongoose subdocument to plain object to avoid metadata
-    const customPermissions = userTeamRole.customPermissions ? userTeamRole.customPermissions.toObject() : {}
+    const customPermissions = userTeamRole.customPermissions
+      ? userTeamRole.customPermissions.toObject()
+      : {}
     const effectivePermissions = { ...rolePermissions }
 
     // Apply individual custom permissions that override both default and custom role permissions
-    Object.keys(customPermissions).forEach(permission => {
+    Object.keys(customPermissions).forEach((permission) => {
       if (customPermissions[permission] !== null && customPermissions[permission] !== undefined) {
         effectivePermissions[permission] = customPermissions[permission]
       }
@@ -52,7 +54,7 @@ export const getUserCustomPermissions = async (userId, teamId) => {
       role: userTeamRole.role,
       customRoleName: userTeamRole.role_id ? userTeamRole.role_id.name : null,
       ...effectivePermissions,
-      isGlobalAdmin: false
+      isGlobalAdmin: false,
     }
   } catch (error) {
     console.error('Error getting user effective permissions:', error)
@@ -63,17 +65,17 @@ export const getUserCustomPermissions = async (userId, teamId) => {
 export const getRoleDefaultPermissions = (role) => {
   // Use the centralized default permissions configuration
   const permissions = DEFAULT_ROLE_PERMISSIONS[role] || []
-  
+
   // Convert to object format for easy access
   const permissionObject = {}
-  
+
   // Initialize all permissions to false
-  Object.values(PERMISSION_MAPPING).forEach(permission => {
+  Object.values(PERMISSION_MAPPING).forEach((permission) => {
     permissionObject[permission] = false
   })
-  
+
   // Set role-specific permissions to true
-  permissions.forEach(permission => {
+  permissions.forEach((permission) => {
     permissionObject[permission] = true
   })
 
@@ -126,7 +128,7 @@ export const requirePermission = (permission) => {
         return res.status(403).json({
           message: 'Insufficient permissions for this action',
           requiredPermission: permission,
-          userRole: await getUserRoleInTeam(userId, teamId)
+          userRole: await getUserRoleInTeam(userId, teamId),
         })
       }
 
@@ -138,7 +140,6 @@ export const requirePermission = (permission) => {
   }
 }
 
-
 export const getUserRoleInTeam = async (userId, teamId) => {
   try {
     const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
@@ -149,12 +150,11 @@ export const getUserRoleInTeam = async (userId, teamId) => {
   }
 }
 
-
 export const hasElevatedPrivileges = async (userId) => {
   try {
     const roles = await UsersOfTeam.find({
       userId,
-      role: { $in: ['Admin', 'Moderator'] }
+      role: { $in: ['Admin', 'Moderator'] },
     })
     return roles.length > 0
   } catch (error) {
@@ -171,5 +171,5 @@ export default {
   getUserRoleInTeam,
   hasElevatedPrivileges,
   getUserCustomPermissions,
-  getRoleDefaultPermissions
+  getRoleDefaultPermissions,
 }

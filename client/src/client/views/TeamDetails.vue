@@ -144,10 +144,10 @@ watch(
     if (newTab && route.query.tab !== newTab) {
       router.push({
         path: route.path,
-        query: { ...route.query, tab: newTab }
+        query: { ...route.query, tab: newTab },
       })
     }
-  }
+  },
 )
 
 // Watch for URL query parameter changes
@@ -158,7 +158,7 @@ watch(
       activeTab.value = newTab
     }
   },
-  { immediate: true } // Run immediately to sync with initial URL
+  { immediate: true }, // Run immediately to sync with initial URL
 )
 
 onMounted(async () => {
@@ -166,7 +166,7 @@ onMounted(async () => {
   if (!route.query.tab) {
     router.replace({
       path: route.path,
-      query: { ...route.query, tab: 'tasks' }
+      query: { ...route.query, tab: 'tasks' },
     })
   }
   await initializeTeamData()
@@ -195,10 +195,10 @@ const updateRoleFlags = () => {
   // Role flags are now handled by the permission service
   // Keep for backward compatibility if needed elsewhere
   const userRole = userPermissions.value.role || 'Member'
-  console.log('Role flags updated:', { 
-    isAdmin: isAdmin(), 
-    isModerator: isModerator(), 
-    role: userRole 
+  console.log('Role flags updated:', {
+    isAdmin: isAdmin(),
+    isModerator: isModerator(),
+    role: userRole,
   })
 }
 
@@ -503,13 +503,13 @@ const filteredMembers = computed(() => {
   }
 
   const query = memberSearchQuery.value.toLowerCase().trim()
-  
+
   // If query starts with #, search by role
   if (query.startsWith('#')) {
     const roleQuery = query.slice(1) // Remove the # symbol
     if (!roleQuery) return teamMembers.value // If just # without role name, show all
-    
-    return teamMembers.value.filter(member => {
+
+    return teamMembers.value.filter((member) => {
       // Check custom role first, then base role
       if (member.customRole) {
         return member.customRole.name.toLowerCase().includes(roleQuery)
@@ -517,11 +517,9 @@ const filteredMembers = computed(() => {
       return member.role.toLowerCase().includes(roleQuery)
     })
   }
-  
+
   // Otherwise, search by username
-  return teamMembers.value.filter(member =>
-    member.username.toLowerCase().includes(query)
-  )
+  return teamMembers.value.filter((member) => member.username.toLowerCase().includes(query))
 })
 
 const taskFilterOptions = [
@@ -690,7 +688,12 @@ const taskFilterOptions = [
           </v-col>
 
           <!-- Announcements tab actions -->
-          <v-col cols="12" md="6" lg="4" v-if="activeTab === 'announcements' && canCreateAnnouncements">
+          <v-col
+            cols="12"
+            md="6"
+            lg="4"
+            v-if="activeTab === 'announcements' && canCreateAnnouncements"
+          >
             <v-btn
               v-tooltip:bottom="'Add new announcement'"
               @click="newAnnouncementsDialog = !newAnnouncementsDialog"
@@ -717,7 +720,7 @@ const taskFilterOptions = [
                 <v-icon start>mdi-account-plus</v-icon>
                 Add Members
               </v-btn>
-            </v-col>   
+            </v-col>
             <v-col cols="12" md="6" lg="4" v-if="canManageMembers">
               <v-btn
                 v-tooltip:bottom="'Remove team members'"
@@ -731,7 +734,6 @@ const taskFilterOptions = [
                 Remove Members
               </v-btn>
             </v-col>
-
           </template>
         </v-row>
       </v-col>
@@ -939,7 +941,7 @@ const taskFilterOptions = [
             </v-card>
           </v-col>
         </v-row>
-                <!-- Task Groups List -->
+        <!-- Task Groups List -->
         <v-row v-if="taskGroups.length > 0">
           <v-col cols="12">
             <div class="d-flex align-center justify-space-between mb-3">
@@ -1115,7 +1117,7 @@ const taskFilterOptions = [
             <div class="d-flex align-center justify-space-between mb-4">
               <h2 class="text-h5">Team Members ({{ filteredMembers.length }})</h2>
             </div>
-            
+
             <!-- Search Box -->
             <v-text-field
               v-model="memberSearchQuery"
@@ -1144,30 +1146,27 @@ const taskFilterOptions = [
             </v-text-field>
           </v-col>
           <v-col v-for="member in filteredMembers" :key="member.userId" cols="12" md="4">
-            <v-card 
-              class="mb-2" 
-              variant="outlined" 
-              :color="member.customRole ? (member.customRole.color || 'purple') : getRoleColor(member.role)"
+            <v-card
+              class="mb-2"
+              variant="outlined"
+              :color="
+                member.customRole ? member.customRole.color || 'purple' : getRoleColor(member.role)
+              "
             >
               <v-card-item>
                 <v-card-title>{{ member.username }}</v-card-title>
                 <v-card-subtitle>
                   <!-- Show custom role if it exists, otherwise show base role -->
-                  <v-chip 
+                  <v-chip
                     v-if="member.customRole"
-                    :color="member.customRole.color || 'purple'" 
+                    :color="member.customRole.color || 'purple'"
                     size="small"
                     variant="tonal"
                   >
                     <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
                     {{ member.customRole.name }}
                   </v-chip>
-                  <v-chip 
-                    v-else
-                    :color="getRoleColor(member.role)" 
-                    size="small"
-                    variant="tonal"
-                  >
+                  <v-chip v-else :color="getRoleColor(member.role)" size="small" variant="tonal">
                     <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
                     {{ member.role }}
                   </v-chip>
@@ -1176,7 +1175,7 @@ const taskFilterOptions = [
             </v-card>
           </v-col>
         </v-row>
-        
+
         <!-- No Results State -->
         <v-row v-if="filteredMembers.length === 0 && memberSearchQuery">
           <v-col cols="12">
@@ -1185,14 +1184,16 @@ const taskFilterOptions = [
                 <v-icon size="64" class="mb-4" color="grey">mdi-account-search</v-icon>
                 <h3 class="text-h6 mb-2">No Members Found</h3>
                 <p class="text-grey mb-2">
-                  No members match your search: "<strong>{{ memberSearchQuery }}</strong>"
+                  No members match your search: "<strong>{{ memberSearchQuery }}</strong
+                  >"
                 </p>
                 <p class="text-caption text-grey">
-                  Try searching by username or use #role to search by role (e.g., #admin, #moderator)
+                  Try searching by username or use #role to search by role (e.g., #admin,
+                  #moderator)
                 </p>
-                <v-btn 
-                  color="primary" 
-                  variant="outlined" 
+                <v-btn
+                  color="primary"
+                  variant="outlined"
                   @click="memberSearchQuery = ''"
                   class="mt-2"
                 >
@@ -1213,9 +1214,6 @@ const taskFilterOptions = [
           @roles-updated="fetchTeamMembers"
         />
       </v-window-item>
-
-
-
     </v-window>
   </v-container>
 </template>
