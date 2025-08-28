@@ -3,8 +3,6 @@ import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 import Tasks from '../models/Tasks.js'
 
-
-
 const getCategories = async (req, res) => {
   // Returns an array of enum categories from the Teams schema
 

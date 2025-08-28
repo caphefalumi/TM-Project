@@ -126,17 +126,19 @@ export const getUsersOfTeam = async (req, res) => {
     }
 
     // Transform the data to include custom role information
-    const transformedUsers = users.map(user => ({
+    const transformedUsers = users.map((user) => ({
       userId: user.userId,
       username: user.username,
       role: user.role, // Default role (Admin/Moderator/Member)
-      customRole: user.role_id ? {
-        id: user.role_id._id,
-        name: user.role_id.name,
-        permissions: user.role_id.permissions,
-        icon: user.role_id.icon,
-        color: user.role_id.color
-      } : null
+      customRole: user.role_id
+        ? {
+            id: user.role_id._id,
+            name: user.role_id.name,
+            permissions: user.role_id.permissions,
+            icon: user.role_id.icon,
+            color: user.role_id.color,
+          }
+        : null,
     }))
 
     return res.status(200).json(transformedUsers)
@@ -176,7 +178,9 @@ export const deleteUsersFromTeam = async (req, res) => {
       const existingUser = await UsersOfTeam.findOne({ userId, teamId })
       if (!existingUser) {
         console.log(`User with ID ${userId} not found in team ${teamId}`)
-        return res.status(404).json({ message: `User with ID ${userId} not found in team ${teamId}` })
+        return res
+          .status(404)
+          .json({ message: `User with ID ${userId} not found in team ${teamId}` })
       }
     }
 
@@ -201,7 +205,6 @@ export const deleteUsersFromTeam = async (req, res) => {
   }
 }
 
-
 export const changeUserRole = async (req, res) => {
   try {
     const { teamId, userId } = req.params
@@ -219,7 +222,7 @@ export const changeUserRole = async (req, res) => {
     if (!Object.values(ROLES).includes(targetRole) && !roleId) {
       return res.status(400).json({
         message: 'Invalid role or missing custom role ID',
-        validRoles: Object.values(ROLES)
+        validRoles: Object.values(ROLES),
       })
     }
 
@@ -233,7 +236,9 @@ export const changeUserRole = async (req, res) => {
     if (roleId) {
       const customRole = await Role.findById(roleId)
       if (!customRole || customRole.team_id.toString() !== teamId) {
-        return res.status(404).json({ message: 'Custom role not found or does not belong to this team' })
+        return res
+          .status(404)
+          .json({ message: 'Custom role not found or does not belong to this team' })
       }
     }
 
@@ -255,15 +260,15 @@ export const changeUserRole = async (req, res) => {
         await UsersOfTeam.findOneAndUpdate(
           { userId: currentAdmin.userId, teamId },
           {
-            role: 'Member'
+            role: 'Member',
             // Keep role_id and customPermissions - only change the base role
-          }
+          },
         )
         demotedAdmin = {
           userId: currentAdmin.userId,
           username: currentAdmin.username,
           previousRole: 'Admin',
-          newRole: 'Member'
+          newRole: 'Member',
         }
       }
     }
@@ -280,25 +285,25 @@ export const changeUserRole = async (req, res) => {
       updateData.customPermissions = {}
     }
 
-    const updatedUser = await UsersOfTeam.findOneAndUpdate(
-      { userId, teamId },
-      updateData,
-      { new: true }
-    ).populate('role_id')
+    const updatedUser = await UsersOfTeam.findOneAndUpdate({ userId, teamId }, updateData, {
+      new: true,
+    }).populate('role_id')
 
     res.status(200).json({
       message: 'Role updated successfully',
       user: {
         userId: updatedUser.userId,
         role: updatedUser.role,
-        customRole: updatedUser.role_id ? {
-          id: updatedUser.role_id._id,
-          name: updatedUser.role_id.name,
-          icon: updatedUser.role_id.icon,
-          color: updatedUser.role_id.color
-        } : null
+        customRole: updatedUser.role_id
+          ? {
+              id: updatedUser.role_id._id,
+              name: updatedUser.role_id.name,
+              icon: updatedUser.role_id.icon,
+              color: updatedUser.role_id.color,
+            }
+          : null,
       },
-      demotedAdmin: demotedAdmin
+      demotedAdmin: demotedAdmin,
     })
   } catch (error) {
     console.error('Error changing user role:', error)
@@ -350,29 +355,25 @@ export const updateUserPermissions = async (req, res) => {
     const validPermissions = Object.values(PERMISSIONS)
 
     const invalidPermissions = Object.keys(customPermissions).filter(
-      perm => !validPermissions.includes(perm)
+      (perm) => !validPermissions.includes(perm),
     )
 
     if (invalidPermissions.length > 0) {
       return res.status(400).json({
         message: 'Invalid permissions',
         invalidPermissions,
-        validPermissions
+        validPermissions,
       })
     }
 
     // Update custom permissions
-    await UsersOfTeam.findOneAndUpdate(
-      { userId, teamId },
-      { customPermissions },
-      { new: true }
-    )
+    await UsersOfTeam.findOneAndUpdate({ userId, teamId }, { customPermissions }, { new: true })
 
     res.status(200).json({
       message: 'Permissions updated successfully',
       userId,
       teamId,
-      customPermissions
+      customPermissions,
     })
   } catch (error) {
     console.error('Error updating user permissions:', error)
@@ -390,7 +391,7 @@ export const getRoleDefaultPermissionsAPI = async (req, res) => {
     if (!Object.values(ROLES).includes(role)) {
       return res.status(400).json({
         message: 'Invalid role',
-        validRoles: Object.values(ROLES)
+        validRoles: Object.values(ROLES),
       })
     }
 

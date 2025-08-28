@@ -7,56 +7,146 @@
 export const PERMISSIONS = {
   // View permissions
   VIEW_TEAM: 'canViewTeam',
-  VIEW_TASKS: 'canViewTasks', 
+  VIEW_TASKS: 'canViewTasks',
   VIEW_ANNOUNCEMENTS: 'canViewAnnouncements',
   VIEW_MEMBERS: 'canViewMembers',
   VIEW_TASK_GROUPS: 'canViewTaskGroups',
-  
+
   // Task permissions
   SUBMIT_TASKS: 'canSubmitTasks',
   CREATE_TASK_GROUPS: 'canCreateTaskGroups',
   EDIT_TASK_GROUPS: 'canEditTaskGroups',
   DELETE_TASK_GROUPS: 'canDeleteTaskGroups',
   ASSIGN_TASKS: 'canAssignTasks',
-  
+
   // Announcement permissions
   EDIT_ANNOUNCEMENTS: 'canEditAnnouncements',
   DELETE_ANNOUNCEMENTS: 'canDeleteAnnouncements',
-  
+
   // Member management permissions
   ADD_MEMBERS: 'canAddMembers',
   REMOVE_MEMBERS: 'canRemoveMembers',
   CHANGE_MEMBER_ROLES: 'canChangeRoles',
-  
+
   // Advanced management permissions
   DELETE_TEAMS: 'canDeleteTeams',
   CREATE_SUB_TEAMS: 'canCreateSubTeams',
-  MANAGE_CUSTOM_ROLES: 'canManageCustomRoles'
+  MANAGE_CUSTOM_ROLES: 'canManageCustomRoles',
 }
 
 export const AVAILABLE_PERMISSIONS = [
-  { key: 'canViewTeam', label: 'View Team', category: 'View', description: 'Can view team details and members' },
-  { key: 'canViewTasks', label: 'View Tasks', category: 'View', description: 'Can view team tasks' },
-  { key: 'canViewAnnouncements', label: 'View Announcements', category: 'View', description: 'Can view team announcements' },
-  { key: 'canViewMembers', label: 'View Members', category: 'View', description: 'Can view team member list' },
-  { key: 'canViewTaskGroups', label: 'View Task Groups', category: 'View', description: 'Can view task groups' },
-  
-  { key: 'canSubmitTasks', label: 'Submit Tasks', category: 'Tasks', description: 'Can submit task assignments' },
-  { key: 'canCreateTaskGroups', label: 'Create Task Groups', category: 'Tasks', description: 'Can create new task groups' },
-  { key: 'canEditTaskGroups', label: 'Edit Task Groups', category: 'Tasks', description: 'Can modify existing task groups' },
-  { key: 'canDeleteTaskGroups', label: 'Delete Task Groups', category: 'Tasks', description: 'Can delete task groups' },
-  { key: 'canAssignTasks', label: 'Assign Tasks', category: 'Tasks', description: 'Can assign tasks to members' },
-  
-  { key: 'canEditAnnouncements', label: 'Edit Announcements', category: 'Announcements', description: 'Can create, edit and delete announcements' },
-  { key: 'canDeleteAnnouncements', label: 'Delete Announcements', category: 'Announcements', description: 'Can delete announcements' },
-  
-  { key: 'canAddMembers', label: 'Add Members', category: 'Members', description: 'Can add new members to the team' },
-  { key: 'canRemoveMembers', label: 'Remove Members', category: 'Members', description: 'Can remove members from the team' },
-  { key: 'canChangeRoles', label: 'Change Roles', category: 'Members', description: 'Can change member roles and permissions' },
-  
-  { key: 'canDeleteTeams', label: 'Delete Teams', category: 'Management', description: 'Can delete the entire team' },
-  { key: 'canCreateSubTeams', label: 'Create Sub-teams', category: 'Management', description: 'Can create sub-teams' },
-  { key: 'canManageCustomRoles', label: 'Manage Custom Roles', category: 'Management', description: 'Can create and manage custom roles' },
+  {
+    key: 'canViewTeam',
+    label: 'View Team',
+    category: 'View',
+    description: 'Can view team details and members',
+  },
+  {
+    key: 'canViewTasks',
+    label: 'View Tasks',
+    category: 'View',
+    description: 'Can view team tasks',
+  },
+  {
+    key: 'canViewAnnouncements',
+    label: 'View Announcements',
+    category: 'View',
+    description: 'Can view team announcements',
+  },
+  {
+    key: 'canViewMembers',
+    label: 'View Members',
+    category: 'View',
+    description: 'Can view team member list',
+  },
+  {
+    key: 'canViewTaskGroups',
+    label: 'View Task Groups',
+    category: 'View',
+    description: 'Can view task groups',
+  },
+
+  {
+    key: 'canSubmitTasks',
+    label: 'Submit Tasks',
+    category: 'Tasks',
+    description: 'Can submit task assignments',
+  },
+  {
+    key: 'canCreateTaskGroups',
+    label: 'Create Task Groups',
+    category: 'Tasks',
+    description: 'Can create new task groups',
+  },
+  {
+    key: 'canEditTaskGroups',
+    label: 'Edit Task Groups',
+    category: 'Tasks',
+    description: 'Can modify existing task groups',
+  },
+  {
+    key: 'canDeleteTaskGroups',
+    label: 'Delete Task Groups',
+    category: 'Tasks',
+    description: 'Can delete task groups',
+  },
+  {
+    key: 'canAssignTasks',
+    label: 'Assign Tasks',
+    category: 'Tasks',
+    description: 'Can assign tasks to members',
+  },
+
+  {
+    key: 'canEditAnnouncements',
+    label: 'Edit Announcements',
+    category: 'Announcements',
+    description: 'Can create, edit and delete announcements',
+  },
+  {
+    key: 'canDeleteAnnouncements',
+    label: 'Delete Announcements',
+    category: 'Announcements',
+    description: 'Can delete announcements',
+  },
+
+  {
+    key: 'canAddMembers',
+    label: 'Add Members',
+    category: 'Members',
+    description: 'Can add new members to the team',
+  },
+  {
+    key: 'canRemoveMembers',
+    label: 'Remove Members',
+    category: 'Members',
+    description: 'Can remove members from the team',
+  },
+  {
+    key: 'canChangeRoles',
+    label: 'Change Roles',
+    category: 'Members',
+    description: 'Can change member roles and permissions',
+  },
+
+  {
+    key: 'canDeleteTeams',
+    label: 'Delete Teams',
+    category: 'Management',
+    description: 'Can delete the entire team',
+  },
+  {
+    key: 'canCreateSubTeams',
+    label: 'Create Sub-teams',
+    category: 'Management',
+    description: 'Can create sub-teams',
+  },
+  {
+    key: 'canManageCustomRoles',
+    label: 'Manage Custom Roles',
+    category: 'Management',
+    description: 'Can create and manage custom roles',
+  },
 ]
 
 class PermissionService {
@@ -84,7 +174,7 @@ class PermissionService {
     if (this.isGlobalAdmin) {
       return true
     }
-    
+
     return this.userPermissions[permission] || false
   }
 
@@ -94,7 +184,7 @@ class PermissionService {
    * @returns {boolean} - Whether user has any permission
    */
   hasAnyPermission(permissions) {
-    return permissions.some(permission => this.hasPermission(permission))
+    return permissions.some((permission) => this.hasPermission(permission))
   }
 
   /**
@@ -103,7 +193,7 @@ class PermissionService {
    * @returns {boolean} - Whether user has all permissions
    */
   hasAllPermissions(permissions) {
-    return permissions.every(permission => this.hasPermission(permission))
+    return permissions.every((permission) => this.hasPermission(permission))
   }
 
   /**
@@ -144,17 +234,17 @@ class PermissionService {
    */
   getPermissionsByCategory() {
     const categorized = {}
-    
-    AVAILABLE_PERMISSIONS.forEach(permission => {
+
+    AVAILABLE_PERMISSIONS.forEach((permission) => {
       if (!categorized[permission.category]) {
         categorized[permission.category] = []
       }
       categorized[permission.category].push({
         ...permission,
-        hasPermission: this.hasPermission(permission.key)
+        hasPermission: this.hasPermission(permission.key),
       })
     })
-    
+
     return categorized
   }
 
@@ -167,16 +257,13 @@ class PermissionService {
   async fetchUserPermissions(teamId, userId) {
     try {
       const PORT = import.meta.env.VITE_API_PORT
-      const response = await fetch(
-        `${PORT}/api/teams/${teamId}/members/${userId}/permissions`,
-        {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
+      const response = await fetch(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
       if (response.ok) {
         const permissions = await response.json()
@@ -202,17 +289,14 @@ class PermissionService {
   async updateUserPermissions(teamId, userId, customPermissions) {
     try {
       const PORT = import.meta.env.VITE_API_PORT
-      const response = await fetch(
-        `${PORT}/api/teams/${teamId}/members/${userId}/permissions`,
-        {
-          method: 'PUT',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ customPermissions }),
-        }
-      )
+      const response = await fetch(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customPermissions }),
+      })
 
       return response.ok
     } catch (error) {
@@ -258,10 +342,14 @@ class PermissionService {
    */
   getRoleIcon(role) {
     switch (role) {
-      case 'Admin': return 'mdi-crown'
-      case 'Moderator': return 'mdi-shield-account'
-      case 'Member': return 'mdi-account'
-      default: return 'mdi-help'
+      case 'Admin':
+        return 'mdi-crown'
+      case 'Moderator':
+        return 'mdi-shield-account'
+      case 'Member':
+        return 'mdi-account'
+      default:
+        return 'mdi-help'
     }
   }
 
@@ -272,10 +360,14 @@ class PermissionService {
    */
   getRoleColor(role) {
     switch (role) {
-      case 'Admin': return 'red'
-      case 'Moderator': return 'orange' 
-      case 'Member': return 'blue'
-      default: return 'grey'
+      case 'Admin':
+        return 'red'
+      case 'Moderator':
+        return 'orange'
+      case 'Member':
+        return 'blue'
+      default:
+        return 'grey'
     }
   }
 
@@ -286,7 +378,7 @@ class PermissionService {
    */
   hasCustomPermissions(member) {
     if (!member.customPermissions) return false
-    return Object.values(member.customPermissions).some(value => value !== null)
+    return Object.values(member.customPermissions).some((value) => value !== null)
   }
 }
 
@@ -305,7 +397,7 @@ export const usePermissions = () => {
     getCustomRoleName: () => permissionService.getCustomRoleName(),
     getRoleIcon: (role) => permissionService.getRoleIcon(role),
     getRoleColor: (role) => permissionService.getRoleColor(role),
-    hasCustomPermissions: (member) => permissionService.hasCustomPermissions(member)
+    hasCustomPermissions: (member) => permissionService.hasCustomPermissions(member),
   }
 }
 

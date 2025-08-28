@@ -11,15 +11,15 @@ export default defineConfig({
     },
   },
   server: {
-		port: 5173,
-		hmr: {
-			overlay: false,
-		},
-	},
-	preview: {
-		port: 5173,
-	},
-	build: {
-		chunkSizeWarningLimit: 1600,
-	},
+    port: 5173,
+    hmr: {
+      overlay: false,
+    },
+  },
+  preview: {
+    port: 5173,
+  },
+  build: {
+    chunkSizeWarningLimit: 1600,
+  },
 })

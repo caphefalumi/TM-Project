@@ -1,6 +1,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { permissionService, usePermissions, AVAILABLE_PERMISSIONS } from '../services/permissionService.js'
+import {
+  permissionService,
+  usePermissions,
+  AVAILABLE_PERMISSIONS,
+} from '../services/permissionService.js'
 
 const props = defineProps({
   teamId: {
@@ -41,7 +45,7 @@ const newRole = ref({
   name: '',
   permissions: [],
   icon: 'mdi-star',
-  color: 'purple'
+  color: 'purple',
 })
 
 // Member role assignment state
@@ -57,11 +61,31 @@ const selectedRoleForView = ref(null)
 
 // Available icons for custom roles
 const availableIcons = [
-  'mdi-star', 'mdi-crown', 'mdi-shield', 'mdi-account-star', 'mdi-medal',
-  'mdi-fire', 'mdi-lightning-bolt', 'mdi-diamond', 'mdi-heart', 'mdi-star-circle',
-  'mdi-trophy', 'mdi-rocket', 'mdi-flash', 'mdi-shield-star', 'mdi-account-circle',
-  'mdi-palette', 'mdi-wrench', 'mdi-cog', 'mdi-tools', 'mdi-hammer',
-  'mdi-briefcase', 'mdi-folder-star', 'mdi-flag', 'mdi-star-box', 'mdi-gift'
+  'mdi-star',
+  'mdi-crown',
+  'mdi-shield',
+  'mdi-account-star',
+  'mdi-medal',
+  'mdi-fire',
+  'mdi-lightning-bolt',
+  'mdi-diamond',
+  'mdi-heart',
+  'mdi-star-circle',
+  'mdi-trophy',
+  'mdi-rocket',
+  'mdi-flash',
+  'mdi-shield-star',
+  'mdi-account-circle',
+  'mdi-palette',
+  'mdi-wrench',
+  'mdi-cog',
+  'mdi-tools',
+  'mdi-hammer',
+  'mdi-briefcase',
+  'mdi-folder-star',
+  'mdi-flag',
+  'mdi-star-box',
+  'mdi-gift',
 ]
 
 // Available colors for custom roles
@@ -83,7 +107,7 @@ const availableColors = [
   { name: 'Brown', value: 'brown' },
   { name: 'Blue Grey', value: 'blue-grey' },
   { name: 'Pink', value: 'pink' },
-  { name: 'Red', value: 'red' }
+  { name: 'Red', value: 'red' },
 ]
 
 // Available permissions - use centralized config
@@ -93,14 +117,14 @@ const filteredMembers = computed(() => {
   if (!searchQuery.value) {
     return props.teamMembers
   }
-  return props.teamMembers.filter(member =>
-    member.username.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return props.teamMembers.filter((member) =>
+    member.username.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
 })
 
 const permissionsByCategory = computed(() => {
   const categories = {}
-  availablePermissions.forEach(permission => {
+  availablePermissions.forEach((permission) => {
     if (!categories[permission.category]) {
       categories[permission.category] = []
     }
@@ -111,16 +135,17 @@ const permissionsByCategory = computed(() => {
 
 // Check if there's a current admin in the team that would be demoted
 const isPromotingToAdmin = computed(() => {
-  return pendingRoleChange.value &&
-         pendingRoleChange.value.roleType === 'Admin' &&
-         pendingRoleChange.value.member.role !== 'Admin'
+  return (
+    pendingRoleChange.value &&
+    pendingRoleChange.value.roleType === 'Admin' &&
+    pendingRoleChange.value.member.role !== 'Admin'
+  )
 })
 
 const currentAdmin = computed(() => {
   if (!isPromotingToAdmin.value) return null
-  return props.teamMembers.find(member =>
-    member.role === 'Admin' &&
-    member.userId !== pendingRoleChange.value.member.userId
+  return props.teamMembers.find(
+    (member) => member.role === 'Admin' && member.userId !== pendingRoleChange.value.member.userId,
   )
 })
 
@@ -143,7 +168,8 @@ const fetchCustomRoles = async () => {
 
     if (!response.ok) {
       throw new Error('Failed to fetch custom roles')
-    }    const data = await response.json()
+    }
+    const data = await response.json()
     customRoles.value = data.roles || []
   } catch (err) {
     console.error('Error fetching custom roles:', err)
@@ -195,19 +221,22 @@ const updateCustomRole = async () => {
   try {
     loading.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`,
+      {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: selectedRole.value.name,
+          permissions: selectedRole.value.permissions,
+          icon: selectedRole.value.icon,
+          color: selectedRole.value.color,
+        }),
       },
-      body: JSON.stringify({
-        name: selectedRole.value.name,
-        permissions: selectedRole.value.permissions,
-        icon: selectedRole.value.icon,
-        color: selectedRole.value.color,
-      }),
-    })
+    )
 
     if (!response.ok) {
       throw new Error('Failed to update custom role')
@@ -231,13 +260,16 @@ const deleteCustomRole = async () => {
   try {
     loading.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`,
+      {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    })
+    )
 
     if (!response.ok) {
       throw new Error('Failed to delete custom role')
@@ -311,7 +343,7 @@ const confirmRoleChange = (member, roleType, roleId = null) => {
     member,
     roleType,
     roleId,
-    roleName: roleId ? customRoles.value.find(r => r._id === roleId)?.name : roleType
+    roleName: roleId ? customRoles.value.find((r) => r._id === roleId)?.name : roleType,
   }
   confirmRoleDialog.value = true
 }
@@ -321,7 +353,7 @@ const executeRoleChange = () => {
     assignRole(
       pendingRoleChange.value.member,
       pendingRoleChange.value.roleType,
-      pendingRoleChange.value.roleId
+      pendingRoleChange.value.roleId,
     )
   }
 }
@@ -336,7 +368,7 @@ const resetNewRole = () => {
     name: '',
     permissions: [],
     icon: 'mdi-star',
-    color: 'purple'
+    color: 'purple',
   }
 }
 
@@ -349,7 +381,7 @@ const openEditRoleDialog = (role) => {
   selectedRole.value = {
     ...role,
     icon: role.icon || 'mdi-star',
-    color: role.color || 'purple'
+    color: role.color || 'purple',
   }
   editRoleDialog.value = true
 }
@@ -376,18 +408,21 @@ const closePermissionsViewDialog = () => {
 
 const getPermissionsByCategory = (category) => {
   if (!selectedRoleForView.value || !selectedRoleForView.value.permissions) return []
-    return selectedRoleForView.value.permissions.filter(permission => {
-    const permissionObj = availablePermissions.find(p => p.key === permission)
+  return selectedRoleForView.value.permissions.filter((permission) => {
+    const permissionObj = availablePermissions.find((p) => p.key === permission)
     return permissionObj && permissionObj.category.toLowerCase() === category.toLowerCase()
   })
 }
 
 // Watch for teamId changes
-watch(() => props.teamId, (newTeamId) => {
-  if (newTeamId) {
-    fetchCustomRoles()
-  }
-})
+watch(
+  () => props.teamId,
+  (newTeamId) => {
+    if (newTeamId) {
+      fetchCustomRoles()
+    }
+  },
+)
 
 // Initialize
 onMounted(async () => {
@@ -441,23 +476,22 @@ onMounted(async () => {
           <v-col cols="12">
             <div class="d-flex justify-space-between align-center mb-4">
               <h3 class="text-h6">Custom Roles ({{ customRoles.length }})</h3>
-              <v-btn
-                @click="openCreateRoleDialog"
-                color="primary"
-                variant="elevated"
-              >
+              <v-btn @click="openCreateRoleDialog" color="primary" variant="elevated">
                 <v-icon start>mdi-plus</v-icon>
                 Create Custom Role
               </v-btn>
             </div>
           </v-col>
-        </v-row>        <!-- Custom Roles List -->
+        </v-row>
+        <!-- Custom Roles List -->
         <v-row v-if="customRoles.length > 0">
           <v-col v-for="role in customRoles" :key="role._id" cols="12" md="6" lg="4">
             <v-card class="mb-4" variant="outlined">
               <v-card-item>
                 <v-card-title class="d-flex align-center">
-                  <v-icon class="mr-2" :color="role.color || 'purple'">{{ role.icon || 'mdi-star' }}</v-icon>
+                  <v-icon class="mr-2" :color="role.color || 'purple'">{{
+                    role.icon || 'mdi-star'
+                  }}</v-icon>
                   {{ role.name }}
                 </v-card-title>
                 <v-card-subtitle>
@@ -474,14 +508,17 @@ onMounted(async () => {
                     color="purple"
                     variant="outlined"
                   >
-                    {{ availablePermissions.find(p => p.key === permission)?.label || permission }}
-                  </v-chip>                  <v-chip
+                    {{
+                      availablePermissions.find((p) => p.key === permission)?.label || permission
+                    }}
+                  </v-chip>
+                  <v-chip
                     v-if="role.permissions.length > 3"
                     size="small"
                     variant="text"
                     color="blue"
                     @click="openPermissionsViewDialog(role)"
-                    style="cursor: pointer;"
+                    style="cursor: pointer"
                   >
                     +{{ role.permissions.length - 3 }} more
                   </v-chip>
@@ -548,20 +585,29 @@ onMounted(async () => {
               clearable
             ></v-text-field>
           </v-col>
-        </v-row>        <!-- Members List -->
+        </v-row>
+        <!-- Members List -->
         <v-row>
           <v-col v-for="member in filteredMembers" :key="member.userId" cols="12" md="6" lg="4">
             <v-card class="mb-4" variant="outlined">
               <v-card-item>
                 <v-card-title class="d-flex align-center">
                   <v-avatar
-                    :color="member.customRole ? (member.customRole.color || 'purple') : getRoleColor(member.role)"
+                    :color="
+                      member.customRole
+                        ? member.customRole.color || 'purple'
+                        : getRoleColor(member.role)
+                    "
                     class="mr-3"
                   >
-                    <v-icon>{{ member.customRole ? (member.customRole.icon || 'mdi-star') : getRoleIcon(member.role) }}</v-icon>
+                    <v-icon>{{
+                      member.customRole
+                        ? member.customRole.icon || 'mdi-star'
+                        : getRoleIcon(member.role)
+                    }}</v-icon>
                   </v-avatar>
-                  {{ member.username }}
-                </v-card-title><v-card-subtitle>
+                  {{ member.username }} </v-card-title
+                ><v-card-subtitle>
                   <!-- Show custom role if it exists, otherwise show base role -->
                   <v-chip
                     v-if="member.customRole"
@@ -572,12 +618,7 @@ onMounted(async () => {
                     <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
                     {{ member.customRole.name }}
                   </v-chip>
-                  <v-chip
-                    v-else
-                    :color="getRoleColor(member.role)"
-                    size="small"
-                    variant="tonal"
-                  >
+                  <v-chip v-else :color="getRoleColor(member.role)" size="small" variant="tonal">
                     <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
                     {{ member.role }}
                   </v-chip>
@@ -614,13 +655,14 @@ onMounted(async () => {
               <v-card-title class="text-subtitle-1">
                 <v-icon class="mr-2" color="red">mdi-crown</v-icon>
                 Admin
-              </v-card-title>              <v-card-text class="text-caption">
-                • Full access to all features<br>
-                • Add/remove members<br>
-                • Delete teams and members<br>
-                • Create sub-teams<br>
-                • Manage custom roles<br>
-                • All task and announcement permissions<br>
+              </v-card-title>
+              <v-card-text class="text-caption">
+                • Full access to all features<br />
+                • Add/remove members<br />
+                • Delete teams and members<br />
+                • Create sub-teams<br />
+                • Manage custom roles<br />
+                • All task and announcement permissions<br />
                 <strong>• Only one Admin per team allowed</strong>
               </v-card-text>
             </v-card>
@@ -632,11 +674,11 @@ onMounted(async () => {
                 Moderator
               </v-card-title>
               <v-card-text class="text-caption">
-                • Edit announcements<br>
-                • View task groups<br>
-                • Create new task groups<br>
-                • Edit task groups<br>
-                • Assign tasks<br>
+                • Edit announcements<br />
+                • View task groups<br />
+                • Create new task groups<br />
+                • Edit task groups<br />
+                • Assign tasks<br />
                 • Cannot add/remove members
               </v-card-text>
             </v-card>
@@ -648,10 +690,10 @@ onMounted(async () => {
                 Member
               </v-card-title>
               <v-card-text class="text-caption">
-                • View-only access<br>
-                • Submit tasks<br>
-                • View announcements<br>
-                • View team members<br>
+                • View-only access<br />
+                • Submit tasks<br />
+                • View announcements<br />
+                • View team members<br />
                 • No special permissions
               </v-card-text>
             </v-card>
@@ -662,19 +704,24 @@ onMounted(async () => {
         <v-row v-if="customRoles.length > 0" class="mt-4">
           <v-col cols="12">
             <h4 class="text-subtitle-1 mb-4">Custom Roles</h4>
-          </v-col>          <v-col v-for="role in customRoles" :key="role._id" cols="12" md="6" lg="4">
+          </v-col>
+          <v-col v-for="role in customRoles" :key="role._id" cols="12" md="6" lg="4">
             <v-card :color="(role.color || 'purple') + '-lighten-1'" variant="tonal">
               <v-card-title class="text-subtitle-1">
-                <v-icon class="mr-2" :color="role.color || 'purple'">{{ role.icon || 'mdi-star' }}</v-icon>
+                <v-icon class="mr-2" :color="role.color || 'purple'">{{
+                  role.icon || 'mdi-star'
+                }}</v-icon>
                 {{ role.name }}
               </v-card-title>
               <v-card-text class="text-caption">
                 <div v-for="permission in role.permissions.slice(0, 6)" :key="permission">
-                  • {{ availablePermissions.find(p => p.key === permission)?.label || permission }}
-                </div>                <div v-if="role.permissions.length > 6" class="mt-1">
+                  •
+                  {{ availablePermissions.find((p) => p.key === permission)?.label || permission }}
+                </div>
+                <div v-if="role.permissions.length > 6" class="mt-1">
                   <span
                     @click="openPermissionsViewDialog(role)"
-                    style="cursor: pointer; color: #1976d2; text-decoration: underline;"
+                    style="cursor: pointer; color: #1976d2; text-decoration: underline"
                   >
                     ... and {{ role.permissions.length - 6 }} more permissions
                   </span>
@@ -693,7 +740,7 @@ onMounted(async () => {
           <v-icon class="mr-2" color="primary">mdi-plus</v-icon>
           Create Custom Role
         </v-card-title>
-          <v-card-text>
+        <v-card-text>
           <v-text-field
             v-model="newRole.name"
             label="Role Name"
@@ -709,12 +756,7 @@ onMounted(async () => {
               <h4 class="text-subtitle-1 mb-3">Choose Icon</h4>
               <v-menu>
                 <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    variant="outlined"
-                    class="mb-2"
-                    block
-                  >
+                  <v-btn v-bind="props" variant="outlined" class="mb-2" block>
                     <v-icon start :color="newRole.color">{{ newRole.icon }}</v-icon>
                     Select Icon
                   </v-btn>
@@ -791,17 +833,14 @@ onMounted(async () => {
                   {{ category }} Permissions
                   <v-spacer></v-spacer>
                   <v-chip size="small" variant="outlined">
-                    {{ permissions.filter(p => newRole.permissions.includes(p.key)).length }}/{{ permissions.length }}
+                    {{ permissions.filter((p) => newRole.permissions.includes(p.key)).length }}/{{
+                      permissions.length
+                    }}
                   </v-chip>
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
                   <v-row>
-                    <v-col
-                      v-for="permission in permissions"
-                      :key="permission.key"
-                      cols="12"
-                      md="6"
-                    >
+                    <v-col v-for="permission in permissions" :key="permission.key" cols="12" md="6">
                       <v-checkbox
                         v-model="newRole.permissions"
                         :value="permission.key"
@@ -843,7 +882,7 @@ onMounted(async () => {
           <v-icon class="mr-2" color="primary">mdi-pencil</v-icon>
           Edit Role: {{ selectedRole.name }}
         </v-card-title>
-          <v-card-text>
+        <v-card-text>
           <v-text-field
             v-model="selectedRole.name"
             label="Role Name"
@@ -858,12 +897,7 @@ onMounted(async () => {
               <h4 class="text-subtitle-1 mb-3">Choose Icon</h4>
               <v-menu>
                 <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    variant="outlined"
-                    class="mb-2"
-                    block
-                  >
+                  <v-btn v-bind="props" variant="outlined" class="mb-2" block>
                     <v-icon start :color="selectedRole.color">{{ selectedRole.icon }}</v-icon>
                     Select Icon
                   </v-btn>
@@ -940,17 +974,14 @@ onMounted(async () => {
                   {{ category }} Permissions
                   <v-spacer></v-spacer>
                   <v-chip size="small" variant="outlined">
-                    {{ permissions.filter(p => selectedRole.permissions.includes(p.key)).length }}/{{ permissions.length }}
+                    {{
+                      permissions.filter((p) => selectedRole.permissions.includes(p.key)).length
+                    }}/{{ permissions.length }}
                   </v-chip>
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
                   <v-row>
-                    <v-col
-                      v-for="permission in permissions"
-                      :key="permission.key"
-                      cols="12"
-                      md="6"
-                    >
+                    <v-col v-for="permission in permissions" :key="permission.key" cols="12" md="6">
                       <v-checkbox
                         v-model="selectedRole.permissions"
                         :value="permission.key"
@@ -994,9 +1025,13 @@ onMounted(async () => {
         </v-card-title>
 
         <v-card-text>
-          <p>Are you sure you want to delete the role <strong>{{ selectedRole.name }}</strong>?</p>
+          <p>
+            Are you sure you want to delete the role <strong>{{ selectedRole.name }}</strong
+            >?
+          </p>
           <p class="text-caption text-error">
-            This action cannot be undone. Members with this role will be reverted to the default Member role.
+            This action cannot be undone. Members with this role will be reverted to the default
+            Member role.
           </p>
         </v-card-text>
 
@@ -1005,12 +1040,7 @@ onMounted(async () => {
           <v-btn @click="deleteRoleDialog = false" variant="outlined" :disabled="loading">
             Cancel
           </v-btn>
-          <v-btn
-            @click="deleteCustomRole"
-            color="error"
-            variant="elevated"
-            :loading="loading"
-          >
+          <v-btn @click="deleteCustomRole" color="error" variant="elevated" :loading="loading">
             Delete Role
           </v-btn>
         </v-card-actions>
@@ -1025,7 +1055,8 @@ onMounted(async () => {
           Change Role for {{ selectedMember.username }}
         </v-card-title>
 
-        <v-card-text>          <div class="mb-4">
+        <v-card-text>
+          <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Current Role</h4>
             <!-- Show custom role if it exists, otherwise show base role -->
             <v-chip
@@ -1037,12 +1068,7 @@ onMounted(async () => {
               <v-icon start>{{ selectedMember.customRole.icon || 'mdi-star' }}</v-icon>
               {{ selectedMember.customRole.name }}
             </v-chip>
-            <v-chip
-              v-else
-              :color="getRoleColor(selectedMember.role)"
-              size="large"
-              variant="tonal"
-            >
+            <v-chip v-else :color="getRoleColor(selectedMember.role)" size="large" variant="tonal">
               <v-icon start>{{ getRoleIcon(selectedMember.role) }}</v-icon>
               {{ selectedMember.role }}
             </v-chip>
@@ -1050,10 +1076,14 @@ onMounted(async () => {
 
           <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Assign Default Role</h4>
-            <v-row>              <v-col cols="12" md="4">                <v-card
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-card
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
-                  :color="!selectedMember.customRole && selectedMember.role === 'Member' ? 'primary' : ''"
+                  :color="
+                    !selectedMember.customRole && selectedMember.role === 'Member' ? 'primary' : ''
+                  "
                   @click="confirmRoleChange(selectedMember, 'Member')"
                 >
                   <v-icon size="40" color="primary">mdi-account</v-icon>
@@ -1064,7 +1094,11 @@ onMounted(async () => {
                 <v-card
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
-                  :color="!selectedMember.customRole && selectedMember.role === 'Moderator' ? 'orange' : ''"
+                  :color="
+                    !selectedMember.customRole && selectedMember.role === 'Moderator'
+                      ? 'orange'
+                      : ''
+                  "
                   @click="confirmRoleChange(selectedMember, 'Moderator')"
                 >
                   <v-icon size="40" color="orange">mdi-shield-account</v-icon>
@@ -1075,7 +1109,9 @@ onMounted(async () => {
                 <v-card
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
-                  :color="!selectedMember.customRole && selectedMember.role === 'Admin' ? 'red' : ''"
+                  :color="
+                    !selectedMember.customRole && selectedMember.role === 'Admin' ? 'red' : ''
+                  "
                   @click="confirmRoleChange(selectedMember, 'Admin')"
                 >
                   <v-icon size="40" color="red">mdi-crown</v-icon>
@@ -1086,14 +1122,18 @@ onMounted(async () => {
           </div>
 
           <div v-if="customRoles.length > 0" class="mb-4">
-            <h4 class="text-subtitle-1 mb-3">Assign Custom Role</h4>            <v-row>
-              <v-col v-for="role in customRoles" :key="role._id" cols="12" md="6">                <v-card
+            <h4 class="text-subtitle-1 mb-3">Assign Custom Role</h4>
+            <v-row>
+              <v-col v-for="role in customRoles" :key="role._id" cols="12" md="6">
+                <v-card
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
-                  :color="selectedMember.customRole?._id === role._id ? (role.color || 'purple') : ''"
+                  :color="selectedMember.customRole?._id === role._id ? role.color || 'purple' : ''"
                   @click="confirmRoleChange(selectedMember, role.name, role._id)"
                 >
-                  <v-icon size="40" :color="role.color || 'purple'">{{ role.icon || 'mdi-star' }}</v-icon>
+                  <v-icon size="40" :color="role.color || 'purple'">{{
+                    role.icon || 'mdi-star'
+                  }}</v-icon>
                   <div class="text-subtitle-2 mt-2">{{ role.name }}</div>
                   <div class="text-caption">{{ role.permissions.length }} permissions</div>
                 </v-card>
@@ -1107,24 +1147,20 @@ onMounted(async () => {
           <v-btn @click="memberRoleDialog = false" variant="outlined" :disabled="loading">
             Cancel
           </v-btn>
-        </v-card-actions>      </v-card>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
 
     <!-- Permissions View Dialog -->
     <v-dialog v-model="permissionsViewDialog" max-width="600px" persistent>
       <v-card v-if="selectedRoleForView">
         <v-card-title class="font-weight-bold text-h6 d-flex align-center">
-          <v-icon
-            class="mr-2"
-            :color="selectedRoleForView.color || 'purple'"
-          >
+          <v-icon class="mr-2" :color="selectedRoleForView.color || 'purple'">
             {{ selectedRoleForView.icon || 'mdi-star' }}
           </v-icon>
           {{ selectedRoleForView.name }} Permissions
         </v-card-title>
-        <v-card-subtitle>
-          View all permissions assigned to this custom role
-        </v-card-subtitle>
+        <v-card-subtitle> View all permissions assigned to this custom role </v-card-subtitle>
 
         <v-card-text>
           <div class="mb-3">
@@ -1150,10 +1186,15 @@ onMounted(async () => {
                     class="ma-1"
                   >
                     <v-icon start size="small">mdi-check</v-icon>
-                    {{ availablePermissions.find(p => p.key === permission)?.label || permission }}
+                    {{
+                      availablePermissions.find((p) => p.key === permission)?.label || permission
+                    }}
                   </v-chip>
                 </v-chip-group>
-                <div v-if="getPermissionsByCategory('view').length === 0" class="text-caption text-grey">
+                <div
+                  v-if="getPermissionsByCategory('view').length === 0"
+                  class="text-caption text-grey"
+                >
                   No view permissions assigned
                 </div>
               </v-expansion-panel-text>
@@ -1176,10 +1217,15 @@ onMounted(async () => {
                     class="ma-1"
                   >
                     <v-icon start size="small">mdi-check</v-icon>
-                    {{ availablePermissions.find(p => p.key === permission)?.label || permission }}
+                    {{
+                      availablePermissions.find((p) => p.key === permission)?.label || permission
+                    }}
                   </v-chip>
                 </v-chip-group>
-                <div v-if="getPermissionsByCategory('action').length === 0" class="text-caption text-grey">
+                <div
+                  v-if="getPermissionsByCategory('action').length === 0"
+                  class="text-caption text-grey"
+                >
                   No action permissions assigned
                 </div>
               </v-expansion-panel-text>
@@ -1202,10 +1248,15 @@ onMounted(async () => {
                     class="ma-1"
                   >
                     <v-icon start size="small">mdi-check</v-icon>
-                    {{ availablePermissions.find(p => p.key === permission)?.label || permission }}
+                    {{
+                      availablePermissions.find((p) => p.key === permission)?.label || permission
+                    }}
                   </v-chip>
                 </v-chip-group>
-                <div v-if="getPermissionsByCategory('management').length === 0" class="text-caption text-grey">
+                <div
+                  v-if="getPermissionsByCategory('management').length === 0"
+                  class="text-caption text-grey"
+                >
                   No management permissions assigned
                 </div>
               </v-expansion-panel-text>
@@ -1217,7 +1268,8 @@ onMounted(async () => {
                 <v-icon class="mr-2">mdi-format-list-bulleted</v-icon>
                 All Permissions ({{ selectedRoleForView.permissions.length }})
               </v-expansion-panel-title>
-              <v-expansion-panel-text>                <v-list density="compact">
+              <v-expansion-panel-text>
+                <v-list density="compact">
                   <v-list-item
                     v-for="permission in selectedRoleForView.permissions"
                     :key="permission"
@@ -1227,10 +1279,15 @@ onMounted(async () => {
                       <v-icon color="success" size="small">mdi-check-circle</v-icon>
                     </template>
                     <v-list-item-title class="text-body-2">
-                      {{ availablePermissions.find(p => p.key === permission)?.label || permission }}
+                      {{
+                        availablePermissions.find((p) => p.key === permission)?.label || permission
+                      }}
                     </v-list-item-title>
                     <v-list-item-subtitle class="text-caption">
-                      {{ availablePermissions.find(p => p.key === permission)?.description || 'Custom permission' }}
+                      {{
+                        availablePermissions.find((p) => p.key === permission)?.description ||
+                        'Custom permission'
+                      }}
                     </v-list-item-subtitle>
                   </v-list-item>
                 </v-list>
@@ -1243,7 +1300,8 @@ onMounted(async () => {
           <v-spacer></v-spacer>
           <v-btn @click="closePermissionsViewDialog" color="primary" variant="outlined">
             Close
-          </v-btn>        </v-card-actions>
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -1255,9 +1313,11 @@ onMounted(async () => {
           Confirm Role Change
         </v-card-title>
 
-        <v-card-text>          <p class="mb-3">
-            Are you sure you want to change <strong>{{ pendingRoleChange.member.username }}</strong>'s role to
-            <strong>{{ pendingRoleChange.roleName }}</strong>?
+        <v-card-text>
+          <p class="mb-3">
+            Are you sure you want to change <strong>{{ pendingRoleChange.member.username }}</strong
+            >'s role to <strong>{{ pendingRoleChange.roleName }}</strong
+            >?
           </p>
 
           <!-- Admin demotion warning -->
@@ -1272,13 +1332,14 @@ onMounted(async () => {
               Single Admin Policy
             </div>
             <div class="text-body-2">
-              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong>
-              will be automatically demoted to <strong>Member</strong> when
+              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> will
+              be automatically demoted to <strong>Member</strong> when
               <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
             </div>
           </v-alert>
 
-          <v-alert type="info" variant="tonal" class="mb-3"><div class="d-flex align-center">
+          <v-alert type="info" variant="tonal" class="mb-3"
+            ><div class="d-flex align-center">
               <div>
                 <div class="font-weight-medium">Current Role:</div>
                 <!-- Show custom role if it exists, otherwise show base role -->
@@ -1289,16 +1350,21 @@ onMounted(async () => {
                   variant="tonal"
                   class="mt-1"
                 >
-                  <v-icon start size="small">{{ pendingRoleChange.member.customRole.icon || 'mdi-star' }}</v-icon>
+                  <v-icon start size="small">{{
+                    pendingRoleChange.member.customRole.icon || 'mdi-star'
+                  }}</v-icon>
                   {{ pendingRoleChange.member.customRole.name }}
-                </v-chip>                <v-chip
+                </v-chip>
+                <v-chip
                   v-else
                   :color="getRoleColor(pendingRoleChange.member.role)"
                   size="small"
                   variant="tonal"
                   class="mt-1"
                 >
-                  <v-icon start size="small">{{ getRoleIcon(pendingRoleChange.member.role) }}</v-icon>
+                  <v-icon start size="small">{{
+                    getRoleIcon(pendingRoleChange.member.role)
+                  }}</v-icon>
                   {{ pendingRoleChange.member.role }}
                 </v-chip>
               </div>
@@ -1306,20 +1372,23 @@ onMounted(async () => {
               <div>
                 <div class="font-weight-medium">New Role:</div>
                 <v-chip
-                  :color="pendingRoleChange.roleId ?
-                    (customRoles.find(r => r._id === pendingRoleChange.roleId)?.color || 'purple') :
-                    getRoleColor(pendingRoleChange.roleType)"
+                  :color="
+                    pendingRoleChange.roleId
+                      ? customRoles.find((r) => r._id === pendingRoleChange.roleId)?.color ||
+                        'purple'
+                      : getRoleColor(pendingRoleChange.roleType)
+                  "
                   size="small"
                   variant="tonal"
                   class="mt-1"
                 >
-                  <v-icon
-                    start
-                    size="small"
-                  >
-                    {{ pendingRoleChange.roleId ?
-                      (customRoles.find(r => r._id === pendingRoleChange.roleId)?.icon || 'mdi-star') :
-                      getRoleIcon(pendingRoleChange.roleType) }}
+                  <v-icon start size="small">
+                    {{
+                      pendingRoleChange.roleId
+                        ? customRoles.find((r) => r._id === pendingRoleChange.roleId)?.icon ||
+                          'mdi-star'
+                        : getRoleIcon(pendingRoleChange.roleType)
+                    }}
                   </v-icon>
                   {{ pendingRoleChange.roleName }}
                 </v-chip>
@@ -1334,15 +1403,8 @@ onMounted(async () => {
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="cancelRoleChange" variant="outlined" :disabled="loading">
-            Cancel
-          </v-btn>
-          <v-btn
-            @click="executeRoleChange"
-            color="primary"
-            variant="elevated"
-            :loading="loading"
-          >
+          <v-btn @click="cancelRoleChange" variant="outlined" :disabled="loading"> Cancel </v-btn>
+          <v-btn @click="executeRoleChange" color="primary" variant="elevated" :loading="loading">
             Confirm Change
           </v-btn>
         </v-card-actions>

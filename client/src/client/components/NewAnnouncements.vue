@@ -54,7 +54,7 @@ const createAnnouncement = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include', 
+      credentials: 'include',
       body: JSON.stringify({
         title: titleField.value,
         subtitle: subtitleField.value,

@@ -10,7 +10,8 @@ const RoleSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Teams',
     required: true,
-  },  permissions: {
+  },
+  permissions: {
     type: [String],
     default: [],
     enum: [
@@ -20,23 +21,23 @@ const RoleSchema = new mongoose.Schema({
       'canViewAnnouncements',
       'canViewMembers',
       'canViewTaskGroups',
-      
+
       // Task permissions
       'canSubmitTasks',
       'canCreateTaskGroups',
       'canEditTaskGroups',
       'canDeleteTaskGroups',
       'canAssignTasks',
-      
+
       // Announcement permissions
       'canEditAnnouncements',
       'canDeleteAnnouncements',
-      
+
       // Member management permissions
       'canAddMembers',
       'canRemoveMembers',
       'canChangeRoles',
-      
+
       // Advanced management permissions
       'canDeleteTeams',
       'canCreateSubTeams',
