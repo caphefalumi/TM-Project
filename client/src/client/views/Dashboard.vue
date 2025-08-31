@@ -1,8 +1,7 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
-import { VCalendar } from 'vuetify/labs/VCalendar'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -16,39 +15,25 @@ const user = ref({
 
 const tasks = ref([])
 const loading = ref(false)
-const selectedDate = ref(new Date())
-const selectedDates = ref([new Date()]) // Array for VCalendar v-model
-const calendarType = ref('month') // 'month', 'week', 'day'
 
-// Watch for selectedDate changes
-watch(
-  selectedDate,
-  (newDate, oldDate) => {
-    console.log('Selected date changed from', oldDate, 'to', newDate)
-    // Update the selectedDates array for VCalendar
-    selectedDates.value = [newDate]
-  },
-  { deep: true },
-)
+// Filter and sort controls
+const filters = ref({
+  submitted: false,
+  highPriority: false,
+  pending: false
+})
 
-// Watch for selectedDates changes (from VCalendar)
-watch(
-  selectedDates,
-  (newDates, oldDates) => {
-    if (newDates && newDates.length > 0) {
-      // Update selectedDate when VCalendar selection changes
-      selectedDate.value = newDates[0]
-    }
-  },
-  { deep: true },
-)
+const sortBy = ref('priority') // 'priority', 'weighted', 'startDate', 'dueDate'
+const sortOrder = ref('asc') // 'asc' or 'desc'
+
+const sortOptions = [
+  { value: 'priority', title: 'By Priority' },
+  { value: 'weighted', title: 'By Weight' },
+  { value: 'startDate', title: 'By Start Date' },
+  { value: 'dueDate', title: 'By Due Date' }
+]
 
 onMounted(async () => {
-  // Initialize selected date to today
-  selectedDate.value = new Date()
-  selectedDates.value = [new Date()] // Initialize array for VCalendar
-  console.log('Dashboard mounted, selected date:', selectedDate.value)
-
   const userToken = await getUserByAccessToken()
   if (userToken) {
     setUserToUserToken(userToken)
@@ -77,6 +62,17 @@ const getPriorityColor = (priority) => {
   return colors[priority] || 'grey-darken-3'
 }
 
+const getPriorityValue = (priority) => {
+  const values = {
+    Urgent: 5,
+    High: 4,
+    Medium: 3,
+    Low: 2,
+    Optional: 1,
+  }
+  return values[priority] || 0
+}
+
 const getTaskColor = (task) => {
   if (task.submitted === true) {
     return 'success'
@@ -95,80 +91,61 @@ const getTaskIcon = (task) => {
   }
 }
 
-// Format tasks for calendar display
-const calendarTasks = computed(() => {
-  // Helper function to format date in local timezone as YYYY-MM-DD
-  const formatLocalDate = (d) => {
-    const year = d.getFullYear()
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+// Filtered and sorted tasks
+const filteredAndSortedTasks = computed(() => {
+  let filtered = [...tasks.value]
+  
+  // Apply filters
+  if (filters.value.submitted) {
+    filtered = filtered.filter(task => task.submitted === true)
   }
-
-  return tasks.value.map((task) => ({
-    ...task,
-    date: formatLocalDate(new Date(task.dueDate)), // Use local date formatting instead of ISO
-    color: getTaskColor(task),
-    icon: getTaskIcon(task),
-    isOverdue: !task.submitted && new Date(task.dueDate) < new Date(),
-  }))
-})
-
-// Group tasks by date for easier calendar rendering
-const tasksByDate = computed(() => {
-  const grouped = {}
-  calendarTasks.value.forEach((task) => {
-    if (!grouped[task.date]) {
-      grouped[task.date] = []
+  
+  if (filters.value.highPriority) {
+    filtered = filtered.filter(task => task.priority === 'High' || task.priority === 'Urgent')
+  }
+  
+  if (filters.value.pending) {
+    const currentDate = new Date()
+    filtered = filtered.filter(task => {
+      const startDate = new Date(task.startDate)
+      const dueDate = new Date(task.dueDate)
+      return !task.submitted && currentDate >= startDate && currentDate <= dueDate
+    })
+  }
+  
+  // Apply sorting
+  filtered.sort((a, b) => {
+    let aValue, bValue
+    
+    switch (sortBy.value) {
+      case 'priority':
+        aValue = getPriorityValue(a.priority)
+        bValue = getPriorityValue(b.priority)
+        break
+      case 'weighted':
+        aValue = a.weighted
+        bValue = b.weighted
+        break
+      case 'startDate':
+        aValue = new Date(a.startDate)
+        bValue = new Date(b.startDate)
+        break
+      case 'dueDate':
+        aValue = new Date(a.dueDate)
+        bValue = new Date(b.dueDate)
+        break
+      default:
+        return 0
     }
-    grouped[task.date].push(task)
+    
+    if (sortOrder.value === 'desc') {
+      return bValue > aValue ? 1 : bValue < aValue ? -1 : 0
+    } else {
+      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
+    }
   })
-  return grouped
-})
-
-// Get tasks for a specific date
-const getTasksForDate = (date) => {
-  let dateStr
-
-  // Helper function to format date in local timezone as YYYY-MM-DD
-  const formatLocalDate = (d) => {
-    const year = d.getFullYear()
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  // Handle different date formats from VCalendar
-  if (typeof date === 'string') {
-    dateStr = date
-  } else if (date instanceof Date) {
-    dateStr = formatLocalDate(date) // Use local date formatting instead of ISO
-  } else if (date && typeof date === 'object' && date.date) {
-    // VCalendar sometimes passes { date: "YYYY-MM-DD" }
-    dateStr = typeof date.date === 'string' ? date.date : formatLocalDate(new Date(date.date))
-  } else {
-    // Fallback: try to convert to Date first
-    dateStr = formatLocalDate(new Date(date))
-  }
-
-  console.log('getTasksForDate called with:', date)
-  console.log('Converted to dateStr:', dateStr)
-  console.log('Available task dates:', Object.keys(tasksByDate.value))
-  console.log('Tasks for this date:', tasksByDate.value[dateStr] || [])
-
-  return tasksByDate.value[dateStr] || []
-}
-
-// Calendar events for VCalendar
-const calendarEvents = computed(() => {
-  return tasks.value.map((task) => ({
-    title: task.submitted ? `✓ ${task.title}` : task.title,
-    start: new Date(task.dueDate),
-    end: new Date(task.dueDate),
-    color: getTaskColor(task),
-    task: task,
-    allDay: true,
-  }))
+  
+  return filtered
 })
 
 // Task statistics
@@ -227,64 +204,22 @@ const navigateToTeam = (task) => {
 // Format date for display
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'long',
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
   })
 }
 
-// Handle calendar event click
-const onEventClick = (event) => {
-  console.log('Event clicked:', event)
-  if (event && event.task) {
-    navigateToTeam(event.task)
-  }
+// Clear all filters
+const clearFilters = () => {
+  filters.value.submitted = false
+  filters.value.highPriority = false
+  filters.value.pending = false
 }
 
-// Handle date click on calendar day
-const onDateClick = (event) => {
-  console.log('Date click event:', event)
-
-  // Try to extract date from the clicked element
-  const target = event.target
-  console.log('Clicked target:', target)
-  console.log('Target textContent:', target.textContent)
-
-  const dateText = target.textContent
-  if (dateText && !isNaN(dateText) && dateText.length <= 2) {
-    const currentMonth = selectedDate.value.getMonth()
-    const currentYear = selectedDate.value.getFullYear()
-    const clickedDate = new Date(currentYear, currentMonth, parseInt(dateText))
-
-    console.log('Current selected date:', selectedDate.value)
-    console.log('Extracted day number:', parseInt(dateText))
-    console.log('Constructed clicked date:', clickedDate)
-    console.log('Clicked date string:', clickedDate.toDateString())
-    console.log('Clicked date ISO string:', clickedDate.toISOString().split('T')[0])
-
-    selectedDate.value = clickedDate
-
-    // Force a check of tasks for this date
-    console.log('Tasks for clicked date:', getTasksForDate(clickedDate))
-    return
-  }
-
-  console.log('Could not extract date from click event')
-}
-
-// Handle date change (when selectedDates is updated via v-model)
-const onDateChange = (newDates) => {
-  console.log('Date changed via v-model to:', newDates)
-  // Update selectedDate when VCalendar v-model changes
-  if (newDates && newDates.length > 0) {
-    selectedDate.value = new Date(newDates[0])
-  }
-}
-const onCalendarChange = (interval) => {
-  console.log('Calendar interval changed:', interval)
-  // Force reactivity update by triggering a re-render
-  // The calendar should automatically update, but we can add logic here if needed
+// Toggle sort order
+const toggleSortOrder = () => {
+  sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
 }
 </script>
 
@@ -371,8 +306,82 @@ const onCalendarChange = (interval) => {
         <v-card variant="outlined">
           <v-card-title class="d-flex align-center justify-space-between">
             <div class="d-flex align-center">
-              <v-icon class="mr-2">mdi-calendar</v-icon>
-              Task Calendar
+              <v-icon class="mr-2">mdi-table</v-icon>
+              Tasks Table
+            </div>
+            <div class="d-flex align-center gap-2">
+              <!-- Filter Section -->
+              <v-menu :close-on-content-click="false">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="outlined"
+                    :color="(filters.submitted || filters.highPriority || filters.pending) ? 'primary' : 'default'"
+                  >
+                    <v-icon start>mdi-filter</v-icon>
+                    Filter
+                    <v-badge
+                      v-if="filters.submitted || filters.highPriority || filters.pending"
+                      :content="Number(filters.submitted) + Number(filters.highPriority) + Number(filters.pending)"
+                      color="primary"
+                      inline
+                    ></v-badge>
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item>
+                    <v-checkbox
+                      v-model="filters.submitted"
+                      label="Submitted Tasks"
+                      hide-details
+                    ></v-checkbox>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-checkbox
+                      v-model="filters.highPriority"
+                      label="High Priority (High & Urgent)"
+                      hide-details
+                    ></v-checkbox>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-checkbox
+                      v-model="filters.pending"
+                      label="Pending (Within Date Range)"
+                      hide-details
+                    ></v-checkbox>
+                  </v-list-item>
+                  <v-divider class="my-2"></v-divider>
+                  <v-list-item>
+                    <v-btn
+                      @click="clearFilters"
+                      variant="text"
+                      size="small"
+                      color="error"
+                      block
+                    >
+                      Clear Filters
+                    </v-btn>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+
+              <!-- Sort Section -->
+              <v-select
+                v-model="sortBy"
+                :items="sortOptions"
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="min-width: 150px;"
+              ></v-select>
+              
+              <v-btn
+                @click="toggleSortOrder"
+                variant="outlined"
+                :color="sortOrder === 'desc' ? 'primary' : 'default'"
+              >
+                <v-icon>{{ sortOrder === 'desc' ? 'mdi-sort-descending' : 'mdi-sort-ascending' }}</v-icon>
+              </v-btn>
             </div>
           </v-card-title>
 
@@ -383,182 +392,122 @@ const onCalendarChange = (interval) => {
               <p class="mt-4 text-h6">Loading your tasks...</p>
             </div>
 
-            <!-- Calendar Component -->
-            <div v-else class="calendar-container">
-              <v-calendar
-                v-model="selectedDates"
-                :view-mode="calendarType"
-                :events="calendarEvents"
-                @click:event="onEventClick"
-                @click="onDateClick"
-                @update:model-value="onDateChange"
-                @change="onCalendarChange"
-                color="blue-darken-2"
-                class="custom-vcalendar"
+            <!-- Tasks Table -->
+            <div v-else-if="filteredAndSortedTasks.length > 0">
+              <v-data-table
+                :headers="[
+                  { title: 'Title', key: 'title', sortable: false, width: '22%' },
+                  { title: 'Category', key: 'category', sortable: false, width: '16%' },
+                  { title: 'Priority', key: 'priority', sortable: false, width: '12%' },
+                  { title: 'Weighted', key: 'weighted', sortable: false, width: '10%' },
+                  { title: 'Start Date', key: 'startDate', sortable: false, width: '12%' },
+                  { title: 'Due Date', key: 'dueDate', sortable: false, width: '12%' },
+                  { title: 'Submitted', key: 'submitted', sortable: false, width: '8%' },
+                  { title: 'Actions', key: 'action', sortable: false, width: '8%' }
+                ]"
+                :items="filteredAndSortedTasks"
+                class="tasks-table"
+                hide-default-footer
+                :items-per-page="-1" 
               >
-                <!-- Custom event slot -->
-                <template #event="{ event }">
-                  <div class="calendar-event-wrapper">
-                    <v-chip
-                      :color="event.color"
-                      size="small"
-                      :class="[
-                        'task-calendar-chip',
-                        { 'completed-task-chip': event.task.submitted },
-                      ]"
-                      @click.stop="onEventClick(event)"
-                    >
-                      <v-icon start size="12">{{ getTaskIcon(event.task) }}</v-icon>
-                      {{
-                        event.title.length > 12 ? event.title.substring(0, 12) + '...' : event.title
-                      }}
-                    </v-chip>
+                <!-- Showing all tasks in the table -->
+                <!-- Title Column -->
+                <template #item.title="{ item }">
+                  <div class="d-flex align-center">
+                    <div>
+                      <div class="font-weight-medium">{{ item.title }}</div>
+                      <div v-if="item.description" class="text-caption text-grey">
+                        {{ item.description.length > 50 ? item.description.substring(0, 50) + '...' : item.description }}
+                      </div>
+                    </div>
                   </div>
                 </template>
-              </v-calendar>
-            </div>
 
-            <!-- Legend -->
-            <div class="mt-4">
-              <v-divider class="mb-3"></v-divider>
-              <div class="d-flex flex-wrap gap-4">
-                <div class="d-flex align-center">
-                  <v-chip color="success" size="small" class="mr-2">
-                    <v-icon start>mdi-check-circle</v-icon>
-                    Completed
+                <!-- Category Column -->
+                <template #item.category="{ item }">
+                  <v-chip size="small" variant="outlined">{{ item.category }}</v-chip>
+                </template>
+
+                <!-- Priority Column -->
+                <template #item.priority="{ item }">
+                  <v-chip :color="getPriorityColor(item.priority)" size="small">
+                    {{ item.priority }}
                   </v-chip>
-                </div>
-                <div class="d-flex align-center">
-                  <v-chip color="red-darken-2" size="small" class="mr-2">
-                    <v-icon start>mdi-alert-circle</v-icon>
-                    Urgent
-                  </v-chip>
-                </div>
-                <div class="d-flex align-center">
-                  <v-chip color="orange-darken-1" size="small" class="mr-2">
-                    <v-icon start>mdi-clock-outline</v-icon>
-                    High
-                  </v-chip>
-                </div>
-                <div class="d-flex align-center">
-                  <v-chip color="green-darken-1" size="small" class="mr-2">
-                    <v-icon start>mdi-clock-outline</v-icon>
-                    Medium
-                  </v-chip>
-                </div>
-                <div class="d-flex align-center">
-                  <v-chip color="blue-darken-1" size="small" class="mr-2">
-                    <v-icon start>mdi-clock-outline</v-icon>
-                    Low
-                  </v-chip>
-                </div>
-                <div class="d-flex align-center">
-                  <v-chip color="grey-darken-3" size="small" class="mr-2">
-                    <v-icon start>mdi-clock-outline</v-icon>
-                    Optional
-                  </v-chip>
-                </div>
+                </template>
+
+                <!-- Weight Column -->
+                <template #item.weighted="{ item }">
+                    <div class="text-body-2">{{ item.weighted }}</div>
+                </template>
+
+                <!-- Start Date Column -->
+                <template #item.startDate="{ item }">
+                  <div class="text-body-2">{{ formatDate(item.startDate) }}</div>
+                </template>
+
+                <!-- Due Date Column -->
+                <template #item.dueDate="{ item }">
+                  <div class="text-body-2" :class="{ 'text-error': new Date(item.dueDate) < new Date() && !item.submitted }">
+                    {{ formatDate(item.dueDate) }}
+                  </div>
+                </template>
+
+                <!-- Submitted Column -->
+                <template #item.submitted="{ item }">
+                  <v-icon
+                    :color="item.submitted ? 'success' : 'error'"
+                    size="20"
+                  >
+                    {{ item.submitted ? 'mdi-check' : 'mdi-close' }}
+                  </v-icon>
+                </template>
+
+                <!-- Actions Column -->
+                <template #item.action="{ item }">
+                  <v-btn
+                    @click="navigateToTeam(item)"
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                  >
+                    <v-icon start>mdi-open-in-new</v-icon>
+                  </v-btn>
+                </template>
+              </v-data-table>
+
+              <!-- Results Summary -->
+              <div class="mt-4 text-center">
+                <v-chip color="primary" variant="outlined">
+                  Showing {{ filteredAndSortedTasks.length }} of {{ tasks.length }} tasks
+                </v-chip>
               </div>
             </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
 
-    <!-- Debug Information (temporary) -->
-    <v-row v-if="tasks.length > 0" class="mt-2">
-      <v-col cols="12">
-        <v-card variant="outlined" color="info" class="pa-2">
-          <v-card-text>
-            <small>
-              <strong>Debug Info:</strong>
-              Total tasks: {{ tasks.length }} | Selected date:
-              {{ selectedDate ? formatDate(selectedDate) : 'None' }} | Selected date ISO:
-              {{ selectedDate ? selectedDate.toISOString().split('T')[0] : 'None' }} | Tasks for
-              selected date: {{ selectedDate ? getTasksForDate(selectedDate).length : 0 }}
-              <br />
-              <strong>Available task dates:</strong> {{ Object.keys(tasksByDate).join(', ') }}
-            </small>
-            <!-- Test buttons -->
-            <div class="mt-2">
-              <v-btn size="x-small" color="primary" @click="selectedDate = new Date()" class="mr-2">
-                Set to Today
+            <!-- No Tasks State -->
+            <div v-else-if="tasks.length === 0" class="text-center py-8">
+              <v-icon size="64" class="mb-4" color="grey">mdi-table-off</v-icon>
+              <h3 class="text-h5 mb-2">No Tasks Found</h3>
+              <p class="text-grey mb-4">
+                You don't have any tasks assigned yet. Tasks will appear here when they're assigned to you.
+              </p>
+              <v-btn color="primary" @click="router.push('/teams')" size="large">
+                <v-icon start>mdi-account-group</v-icon>
+                View Teams
               </v-btn>
             </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
 
-    <!-- Selected Date Tasks (if any) -->
-    <v-row v-if="selectedDate && getTasksForDate(selectedDate).length > 0" class="mt-6">
-      <v-col cols="12">
-        <v-card variant="outlined">
-          <v-card-title class="d-flex align-center">
-            <v-icon class="mr-2">mdi-format-list-bulleted</v-icon>
-            Tasks for {{ formatDate(selectedDate) }}
-            <v-spacer></v-spacer>
-            <v-chip color="primary" variant="outlined" size="small">
-              {{ getTasksForDate(selectedDate).length }} task{{
-                getTasksForDate(selectedDate).length !== 1 ? 's' : ''
-              }}
-            </v-chip>
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col
-                v-for="task in getTasksForDate(selectedDate)"
-                :key="task._id"
-                cols="12"
-                md="6"
-                lg="4"
-              >
-                <v-card
-                  class="task-detail-card"
-                  variant="outlined"
-                  @click="navigateToTeam(task)"
-                  :ripple="true"
-                >
-                  <v-card-item>
-                    <v-card-title class="d-flex align-center">
-                      <v-icon :color="getTaskColor(task)" class="mr-2">
-                        {{ getTaskIcon(task) }}
-                      </v-icon>
-                      <span class="text-truncate">{{ task.title }}</span>
-                      <v-spacer></v-spacer>
-                      <v-chip :color="getTaskColor(task)" size="small">
-                        {{ task.priority }}
-                      </v-chip>
-                    </v-card-title>
-                    <v-card-subtitle>
-                      {{ task.category }} • Due: {{ new Date(task.dueDate).toLocaleDateString() }}
-                    </v-card-subtitle>
-                  </v-card-item>
-                  <v-card-text v-if="task.description">
-                    <p class="text-body-2">{{ task.description }}</p>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-btn
-                      :color="getTaskColor(task)"
-                      variant="outlined"
-                      size="small"
-                      @click.stop="navigateToTeam(task)"
-                    >
-                      <v-icon start>mdi-open-in-new</v-icon>
-                      Open Team
-                    </v-btn>
-                    <v-spacer></v-spacer>
-                    <v-chip
-                      :color="task.submitted ? 'success' : 'warning'"
-                      size="small"
-                      variant="flat"
-                    >
-                      {{ task.submitted ? 'Submitted' : 'Pending' }}
-                    </v-chip>
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-            </v-row>
+            <!-- No Filtered Results -->
+            <div v-else class="text-center py-8">
+              <v-icon size="64" class="mb-4" color="grey">mdi-filter-off</v-icon>
+              <h3 class="text-h5 mb-2">No Tasks Match Filters</h3>
+              <p class="text-grey mb-4">
+                Try adjusting your filters to see more tasks.
+              </p>
+              <v-btn color="primary" @click="clearFilters" variant="outlined">
+                <v-icon start>mdi-close</v-icon>
+                Clear Filters
+              </v-btn>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -568,7 +517,7 @@ const onCalendarChange = (interval) => {
     <v-row v-if="!loading && tasks.length === 0" class="mt-6">
       <v-col cols="12">
         <v-card class="text-center pa-8" variant="outlined">
-          <v-icon size="64" class="mb-4" color="grey">mdi-calendar-blank</v-icon>
+          <v-icon size="64" class="mb-4" color="grey">mdi-table-off</v-icon>
           <h3 class="text-h5 mb-2">No Tasks Found</h3>
           <p class="text-grey mb-4">
             You don't have any tasks assigned yet. Tasks will appear here when they're assigned to
@@ -585,62 +534,8 @@ const onCalendarChange = (interval) => {
 </template>
 
 <style scoped>
-.custom-vcalendar {
+.tasks-table {
   width: 100%;
-  min-height: 600px;
-}
-
-.day-content {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 100px;
-  padding: 4px;
-}
-
-.tasks-in-day {
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.task-chip {
-  font-size: 10px !important;
-  height: 18px !important;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  max-width: 100%;
-}
-
-.task-chip:hover {
-  transform: scale(1.05);
-  opacity: 0.8;
-}
-
-.task-calendar-chip {
-  font-size: 11px !important;
-  height: 24px !important;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin: 1px;
-  max-width: 100%;
-}
-
-.task-calendar-chip:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
-}
-
-/* Completed task styling - bright green background with black text */
-
-.completed-task-chip .v-icon {
-  color: #000000 !important; /* Black icon */
-}
-
-.calendar-event-wrapper {
-  width: 100%;
-  padding: 1px;
 }
 
 .task-detail-card {
@@ -654,65 +549,49 @@ const onCalendarChange = (interval) => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.calendar-container {
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-/* Custom Vuetify VCalendar styling */
-:deep(.v-calendar) {
+/* Data table customization */
+:deep(.v-data-table) {
   border-radius: 8px;
 }
 
-:deep(.v-calendar .v-btn) {
-  margin: 2px;
+:deep(.v-data-table .v-data-table__th) {
+  font-weight: 600;
+  color: rgba(var(--v-theme-on-surface), 0.87);
+  padding: 12px 16px !important;
 }
 
-:deep(.v-calendar-daily) {
-  border: 1px solid rgba(0, 0, 0, 0.12);
+:deep(.v-data-table .v-data-table__td) {
+  padding: 12px 16px !important;
+  vertical-align: middle;
 }
 
-:deep(.v-calendar-weekly) {
-  border: 1px solid rgba(0, 0, 0, 0.12);
+:deep(.v-data-table tbody tr) {
+  transition: all 0.2s ease;
 }
 
-:deep(.v-calendar-monthly) {
-  border: 1px solid rgba(0, 0, 0, 0.12);
+:deep(.v-data-table tbody tr:hover) {
+  background-color: rgba(var(--v-theme-primary), 0.04) !important;
 }
 
-:deep(.v-calendar-daily .v-calendar-daily__day) {
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
+:deep(.v-data-table table) {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 900px; /* Ensure table maintains minimum width */
 }
 
-:deep(.v-calendar-weekly .v-calendar-weekly__day) {
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-:deep(.v-calendar-monthly .v-calendar-monthly__day) {
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  min-height: 120px;
-}
-
-:deep(.v-calendar-monthly .v-calendar-monthly__day:hover) {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-:deep(.v-calendar .v-calendar-daily__day-label),
-:deep(.v-calendar .v-calendar-weekly__day-label),
-:deep(.v-calendar .v-calendar-monthly__day-label) {
+/* Text overrides for overdue dates */
+.text-error {
+  color: rgb(var(--v-theme-error)) !important;
   font-weight: 500;
 }
 
-/* Today highlighting */
-:deep(.v-calendar .v-calendar-daily__day.v-calendar-daily__day--today),
-:deep(.v-calendar .v-calendar-weekly__day.v-calendar-weekly__day--today),
-:deep(.v-calendar .v-calendar-monthly__day.v-calendar-monthly__day--today) {
-  background-color: rgba(var(--v-theme-primary), 0.1);
+/* Filter and sort controls */
+.gap-2 > * + * {
+  margin-left: 8px;
 }
 
-/* Event styling */
-:deep(.v-calendar .v-calendar-event) {
-  margin: 1px;
-  border-radius: 4px;
+/* Ensure proper spacing in title column */
+.d-flex.align-center {
+  align-items: center;
 }
 </style>
