@@ -50,18 +50,6 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'canCreateSubTeams',
     'canManageCustomRoles',
   ],
-  Moderator: [
-    'canViewTeam',
-    'canViewTasks',
-    'canViewAnnouncements',
-    'canViewMembers',
-    'canViewTaskGroups',
-    'canSubmitTasks',
-    'canCreateTaskGroups',
-    'canEditTaskGroups',
-    'canAssignTasks',
-    'canEditAnnouncements',
-  ],
   Member: [
     'canViewTeam',
     'canViewTasks',

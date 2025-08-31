@@ -144,10 +144,10 @@ const fetchCustomRoles = async () => {
     const data = await response.json()
 
     // Combine default roles with custom roles
-    const defaultRoles = ['Admin', 'Moderator', 'Member']
+    const defaultRoles = ['Admin', 'Member']
     const customRoleOptions = data.roles.map((role) => ({
       title: role.name,
-      value: `custom:${role._id}`, // Prefix to identify custom roles
+      value: `custom:${role._id}`,
     }))
 
     listOfRoles.value = [...defaultRoles, ...customRoleOptions]

@@ -696,22 +696,6 @@ onMounted(async () => {
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
-            <v-card color="orange-lighten-1" variant="tonal">
-              <v-card-title class="text-subtitle-1">
-                <v-icon class="mr-2" color="orange">mdi-shield-account</v-icon>
-                Moderator
-              </v-card-title>
-              <v-card-text class="text-caption">
-                • Edit announcements<br />
-                • View task groups<br />
-                • Create new task groups<br />
-                • Edit task groups<br />
-                • Assign tasks<br />
-                • Cannot add/remove members
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="4">
             <v-card color="blue-lighten-1" variant="tonal">
               <v-card-title class="text-subtitle-1">
                 <v-icon class="mr-2" color="blue">mdi-account</v-icon>
@@ -1116,21 +1100,6 @@ onMounted(async () => {
                 >
                   <v-icon size="40" color="primary">mdi-account</v-icon>
                   <div class="text-subtitle-2 mt-2">Member</div>
-                </v-card>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-card
-                  class="text-center pa-4 cursor-pointer"
-                  variant="outlined"
-                  :color="
-                    !selectedMember.customRole && selectedMember.role === 'Moderator'
-                      ? 'orange'
-                      : ''
-                  "
-                  @click="confirmRoleChange(selectedMember, 'Moderator')"
-                >
-                  <v-icon size="40" color="orange">mdi-shield-account</v-icon>
-                  <div class="text-subtitle-2 mt-2">Moderator</div>
                 </v-card>
               </v-col>
               <v-col cols="12" md="4">
