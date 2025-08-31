@@ -114,16 +114,18 @@ const localRegister = async (req, res) => {
 const localLogin = async (req, res) => {
   const { username, password } = req.body
   if (!username || !password) {
+    console.log('Missing fields:', { username, password })
     return res.status(400).json({ error: 'All fields are required.' })
   }
-  const account = await Account.findOne({ username, provider: 'local' })
+  const account = await Account.findOne({ username })
   if (!account) {
-    // console.log("No Account")
+    console.log("No Account")
     return res.status(400).json({ error: 'Invalid username or password' })
   }
 
   const isMatch = await bcrypt.compare(password, account.password)
   if (!isMatch) {
+    console.log('Password mismatch')
     return res.status(400).json({ error: 'Invalid username or password' })
   } else {
     // console.log('Matched!')
