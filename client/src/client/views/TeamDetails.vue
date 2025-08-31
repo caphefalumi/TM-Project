@@ -21,7 +21,7 @@ const route = useRoute()
 const router = useRouter()
 
 // Use permission composables
-const { hasPermission, isAdmin, isModerator, getRoleIcon, getRoleColor } = usePermissions()
+const { hasPermission, isAdmin, getRoleIcon, getRoleColor } = usePermissions()
 
 const userPermissions = ref({})
 
@@ -197,7 +197,6 @@ const updateRoleFlags = () => {
   const userRole = userPermissions.value.role || 'Member'
   console.log('Role flags updated:', {
     isAdmin: isAdmin(),
-    isModerator: isModerator(),
     role: userRole,
   })
 }
@@ -1122,7 +1121,7 @@ const taskFilterOptions = [
             <v-text-field
               v-model="memberSearchQuery"
               label="Search members..."
-              placeholder="Search by username or #role (e.g., #admin, #moderator, #the-pro)"
+              placeholder="Search by username or #role (e.g., #admin, #the-pro)"
               prepend-inner-icon="mdi-magnify"
               variant="outlined"
               density="compact"
@@ -1139,7 +1138,7 @@ const taskFilterOptions = [
                     <div><strong>Search Tips:</strong></div>
                     <div>• Type username to search by name</div>
                     <div>• Type #role to search by role</div>
-                    <div>• Examples: john, #admin, #moderator</div>
+                    <div>• Examples: john, #admin</div>
                   </div>
                 </v-tooltip>
               </template>
@@ -1188,8 +1187,7 @@ const taskFilterOptions = [
                   >"
                 </p>
                 <p class="text-caption text-grey">
-                  Try searching by username or use #role to search by role (e.g., #admin,
-                  #moderator)
+                  Try searching by username or use #role to search by role (e.g., #admin)
                 </p>
                 <v-btn
                   color="primary"

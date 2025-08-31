@@ -3,7 +3,6 @@ import { DEFAULT_ROLE_PERMISSIONS, PERMISSION_MAPPING } from '../config/permissi
 
 export const ROLES = {
   ADMIN: 'Admin',
-  MODERATOR: 'Moderator',
   MEMBER: 'Member',
 }
 
@@ -154,7 +153,7 @@ export const hasElevatedPrivileges = async (userId) => {
   try {
     const roles = await UsersOfTeam.find({
       userId,
-      role: { $in: ['Admin', 'Moderator'] },
+      role: { $in: ['Admin'] },
     })
     return roles.length > 0
   } catch (error) {

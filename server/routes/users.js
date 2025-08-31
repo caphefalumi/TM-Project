@@ -129,7 +129,7 @@ export const getUsersOfTeam = async (req, res) => {
     const transformedUsers = users.map((user) => ({
       userId: user.userId,
       username: user.username,
-      role: user.role, // Default role (Admin/Moderator/Member)
+      role: user.role, // Default role (Admin/Member)
       customRole: user.role_id
         ? {
             id: user.role_id._id,

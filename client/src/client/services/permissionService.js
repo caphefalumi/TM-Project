@@ -221,14 +221,6 @@ class PermissionService {
   }
 
   /**
-   * Check if user is moderator or higher
-   * @returns {boolean} - Whether user is moderator or admin
-   */
-  isModerator() {
-    return this.isAdmin() || this.getRole() === 'Moderator'
-  }
-
-  /**
    * Get permissions grouped by category
    * @returns {Object} - Permissions grouped by category
    */
@@ -344,8 +336,6 @@ class PermissionService {
     switch (role) {
       case 'Admin':
         return 'mdi-crown'
-      case 'Moderator':
-        return 'mdi-shield-account'
       case 'Member':
         return 'mdi-account'
       default:
@@ -362,8 +352,6 @@ class PermissionService {
     switch (role) {
       case 'Admin':
         return 'red'
-      case 'Moderator':
-        return 'orange'
       case 'Member':
         return 'blue'
       default:
@@ -392,7 +380,6 @@ export const usePermissions = () => {
     hasAnyPermission: (permissions) => permissionService.hasAnyPermission(permissions),
     hasAllPermissions: (permissions) => permissionService.hasAllPermissions(permissions),
     isAdmin: () => permissionService.isAdmin(),
-    isModerator: () => permissionService.isModerator(),
     getRole: () => permissionService.getRole(),
     getCustomRoleName: () => permissionService.getCustomRoleName(),
     getRoleIcon: (role) => permissionService.getRoleIcon(role),

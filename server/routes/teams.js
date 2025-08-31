@@ -249,9 +249,6 @@ const getTeamThatUserIsMember = async (req, res) => {
             case 'Admin':
               roleColor = 'red'
               break
-            case 'Moderator':
-              roleColor = 'orange'
-              break
             case 'Member':
               roleColor = 'blue'
               break

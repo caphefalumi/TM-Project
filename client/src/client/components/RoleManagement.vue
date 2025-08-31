@@ -32,21 +32,6 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="4">
-                <v-card color="orange-lighten-1" variant="tonal">
-                  <v-card-title class="text-subtitle-1">
-                    <v-icon class="mr-2" color="orange">mdi-shield-account</v-icon>
-                    Moderator
-                  </v-card-title>
-                  <v-card-text class="text-caption">
-                    • Edit announcements<br />
-                    • View task groups<br />
-                    • Create new task groups<br />
-                    • Edit task groups<br />
-                    • Cannot add/remove members
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="12" md="4">
                 <v-card color="blue-lighten-1" variant="tonal">
                   <v-card-title class="text-subtitle-1">
                     <v-icon class="mr-2" color="blue">mdi-account</v-icon>
@@ -342,9 +327,8 @@
               </v-expansion-panel-text>
             </v-expansion-panel>
 
-            <!-- Management Permissions (Admin and Moderator) -->
-            <v-expansion-panel
-              v-if="selectedMember.role === 'Admin' || selectedMember.role === 'Moderator'"
+            <!-- Management Permissions (Admin only) -->
+            <v-expansion-panel v-if="selectedMember.role === 'Admin'">
             >
               <v-expansion-panel-title>
                 <v-icon class="mr-2">mdi-shield-crown</v-icon>
@@ -570,7 +554,6 @@ const pendingRoleChange = ref(null)
 // Available roles for selection
 const availableRoles = ref([
   { label: 'Admin', value: 'Admin' },
-  { label: 'Moderator', value: 'Moderator' },
   { label: 'Member', value: 'Member' },
 ])
 
