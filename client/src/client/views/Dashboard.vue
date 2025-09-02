@@ -304,85 +304,95 @@ const toggleSortOrder = () => {
     <v-row>
       <v-col cols="12">
         <v-card variant="outlined">
-          <v-card-title class="d-flex align-center justify-space-between">
-            <div class="d-flex align-center">
-              <v-icon class="mr-2">mdi-table</v-icon>
-              Tasks Table
-            </div>
-            <div class="d-flex align-center gap-2">
-              <!-- Filter Section -->
-              <v-menu :close-on-content-click="false">
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    variant="outlined"
-                    :color="(filters.submitted || filters.highPriority || filters.pending) ? 'primary' : 'default'"
-                  >
-                    <v-icon start>mdi-filter</v-icon>
-                    Filter
-                    <v-badge
-                      v-if="filters.submitted || filters.highPriority || filters.pending"
-                      :content="Number(filters.submitted) + Number(filters.highPriority) + Number(filters.pending)"
-                      color="primary"
-                      inline
-                    ></v-badge>
-                  </v-btn>
-                </template>
-                <v-list>
-                  <v-list-item>
-                    <v-checkbox
-                      v-model="filters.submitted"
-                      label="Submitted Tasks"
-                      hide-details
-                    ></v-checkbox>
-                  </v-list-item>
-                  <v-list-item>
-                    <v-checkbox
-                      v-model="filters.highPriority"
-                      label="High Priority (High & Urgent)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-list-item>
-                  <v-list-item>
-                    <v-checkbox
-                      v-model="filters.pending"
-                      label="Pending (Within Date Range)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-list-item>
-                  <v-divider class="my-2"></v-divider>
-                  <v-list-item>
-                    <v-btn
-                      @click="clearFilters"
-                      variant="text"
-                      size="small"
-                      color="error"
-                      block
-                    >
-                      Clear Filters
-                    </v-btn>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
+          <v-card-title class="pb-2">
+            <v-container fluid class="pa-0">
+              <v-row class="align-center">
+                <!-- Title Section -->
+                <v-col cols="12" md="6">
+                  <div class="d-flex align-center">
+                    <v-icon class="mr-2">mdi-table</v-icon>
+                    Tasks Table
+                  </div>
+                </v-col>
+                
+                <!-- Filter and Sort Controls -->
+                <v-col cols="12" md="6">
+                  <div class="d-flex align-center gap-2 justify-end justify-md-end">
+                    <!-- Filter Section -->
+                    <v-menu :close-on-content-click="false">
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          variant="outlined"
+                          :color="(filters.submitted || filters.highPriority || filters.pending) ? 'primary' : 'default'"
+                        >
+                          <v-icon start>mdi-filter</v-icon>
+                          Filter
+                          <v-badge
+                            v-if="filters.submitted || filters.highPriority || filters.pending"
+                            :content="Number(filters.submitted) + Number(filters.highPriority) + Number(filters.pending)"
+                            color="primary"
+                            inline
+                          ></v-badge>
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item>
+                          <v-checkbox
+                            v-model="filters.submitted"
+                            label="Submitted Tasks"
+                            hide-details
+                          ></v-checkbox>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-checkbox
+                            v-model="filters.highPriority"
+                            label="High Priority (High & Urgent)"
+                            hide-details
+                          ></v-checkbox>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-checkbox
+                            v-model="filters.pending"
+                            label="Pending (Within Date Range)"
+                            hide-details
+                          ></v-checkbox>
+                        </v-list-item>
+                        <v-divider class="my-2"></v-divider>
+                        <v-list-item>
+                          <v-btn
+                            @click="clearFilters"
+                            variant="text"
+                            color="error"
+                            block
+                          >
+                            Clear Filters
+                          </v-btn>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
 
-              <!-- Sort Section -->
-              <v-select
-                v-model="sortBy"
-                :items="sortOptions"
-                density="compact"
-                variant="outlined"
-                hide-details
-                style="min-width: 150px;"
-              ></v-select>
-              
-              <v-btn
-                @click="toggleSortOrder"
-                variant="outlined"
-                :color="sortOrder === 'desc' ? 'primary' : 'default'"
-              >
-                <v-icon>{{ sortOrder === 'desc' ? 'mdi-sort-descending' : 'mdi-sort-ascending' }}</v-icon>
-              </v-btn>
-            </div>
+                    <!-- Sort Section -->
+                    <v-select
+                      v-model="sortBy"
+                      :items="sortOptions"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      style="min-width: 130px; max-width: 150px;"
+                    ></v-select>
+                    
+                    <v-btn
+                      @click="toggleSortOrder"
+                      variant="outlined"
+                      :color="sortOrder === 'desc' ? 'primary' : 'default'"
+                    >
+                      <v-icon>{{ sortOrder === 'desc' ? 'mdi-sort-descending' : 'mdi-sort-ascending' }}</v-icon>
+                    </v-btn>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-container>
           </v-card-title>
 
           <v-card-text>
@@ -588,6 +598,22 @@ const toggleSortOrder = () => {
 /* Filter and sort controls */
 .gap-2 > * + * {
   margin-left: 8px;
+}
+
+/* Mobile responsive controls */
+@media (max-width: 960px) {
+  .gap-2 {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  
+  .gap-2 > * + * {
+    margin-left: 0;
+  }
+  
+  .justify-end {
+    justify-content: flex-start !important;
+  }
 }
 
 /* Ensure proper spacing in title column */
