@@ -283,53 +283,6 @@ const submitATask = async (req, res) => {
   }
 }
 
-const calculateFinishedWeightedTaskOfAUser = async (req, res) => {
-  // Calculate the total weight of finished tasks of a user
-  // Return the total weight of finished tasks
-
-  try {
-    const { userId, teamId } = req.params
-
-    if (!userId || !teamId) {
-      return res.status(400).json({ message: 'User ID and Team ID are required' })
-    }
-    const tasks = await Tasks.find({ userId, teamId, submitted: true })
-    if (tasks.length === 0) {
-      return res.status(404).json({
-        message: 'No finished tasks found for this user in the specified team',
-      })
-    }
-    // Calculate the total weight of finished tasks
-    const totalFinishedWeight = tasks.reduce((sum, task) => sum + task.weighted, 0)
-    return res.status(200).json({ totalFinishedWeight })
-  } catch (error) {
-    console.error('Error calculating finished tasks weight:', error)
-    return res.status(500).json({ message: 'Internal server error' })
-  }
-}
-
-const calculateTotalTaskWeightedOfAUser = async (req, res) => {
-  // Calculate the total weighted tasks of a user
-
-  try {
-    const { userId, teamId } = req.params
-
-    if (!userId || !teamId) {
-      return res.status(400).json({ message: 'User ID and Team ID are required' })
-    }
-
-    const tasks = await Tasks.find({ userId, teamId })
-    if (tasks.length === 0) {
-      return res.status(404).json({ message: 'No tasks found for this user in the specified team' })
-    }
-    // Calculate the total weighted tasks
-    const totalWeighted = tasks.reduce((sum, task) => sum + task.weighted, 0)
-    return res.status(200).json({ totalWeighted })
-  } catch (error) {
-    console.error('Error calculating total weighted tasks:', error)
-    return res.status(500).json({ message: 'Internal server error' })
-  }
-}
 
 const getTasksByGroupId = async (req, res) => {
   // Get all tasks in a task group for admin view

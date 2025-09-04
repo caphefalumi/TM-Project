@@ -3,7 +3,7 @@ import Teams from './teams.js'
 import Announcements from './announcements.js'
 import Tasks from './tasks.js'
 import { authenticateAccessToken } from '../verify/JWTAuth.js'
-import { requirePermission } from '../verify/RoleAuth.js'
+import { requirePermission, requireAdmin } from '../verify/RoleAuth.js'
 
 const router = express.Router()
 import {
@@ -13,7 +13,6 @@ import {
   changeUserRole,
   getUserPermissions,
   updateUserPermissions,
-  getRoleDefaultPermissionsAPI,
 } from './users.js'
 import {
   createRole,
@@ -21,14 +20,12 @@ import {
   updateRole,
   deleteRole,
   getRoleById,
-  getAvailablePermissions,
   assignCustomRoleToUser,
 } from './roles.js'
 const {
   addTeamPro,
   deleteATeam,
   getTeamDetails,
-  getRoles,
   getCategories,
   getTeamNameThatUserIsAdmin,
   getTeamThatUserIsMember
@@ -44,48 +41,45 @@ const {
 } = Tasks
 
 // Metadata
-router.get('/roles', getRoles)
 router.get('/categories', getCategories)
 
 // Teams
 router.post('/', addTeamPro)
-router.post('/add', addUsersToTeam)
+router.post('/:teamId/users/', authenticateAccessToken, requirePermission('ADD_MEMBERS'), addUsersToTeam)
 router.delete(
   '/:teamId/users/',
   authenticateAccessToken,
   requirePermission('REMOVE_MEMBERS'),
   deleteUsersFromTeam,
 )
-router.get('/user/:userId/', getTeamThatUserIsMember)
-router.get('/user/:userId/admin', getTeamNameThatUserIsAdmin)
+router.get('/', authenticateAccessToken, getTeamThatUserIsMember)
+router.get('/admin', authenticateAccessToken, getTeamNameThatUserIsAdmin)
 
-router.get('/:teamId', getTeamDetails)
-router.delete('/:teamId', deleteATeam)
+router.get('/:teamId', authenticateAccessToken, getTeamDetails)
+router.delete('/:teamId', authenticateAccessToken, requireAdmin, deleteATeam)
 router.get('/:teamId/users', getUsersOfTeam)
 // Tasks inside team
 router.get('/:teamId/:userId/tasks', getTasksOfAUserInATeam)
 router.get(
   '/:teamId/task-groups',
   authenticateAccessToken,
-  requirePermission('VIEW_TASK_GROUPS'),
   getAllTaskGroups,
 )
 router.get(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
-  requirePermission('VIEW_TASK_GROUPS'),
   getTasksByGroupId,
 )
 router.put(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
-  requirePermission('EDIT_TASK_GROUPS'),
+  requirePermission('MANAGE_TASKS'),
   updateTaskGroup,
 )
 router.delete(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
-  requirePermission('EDIT_TASK_GROUPS'),
+  requirePermission('MANAGE_TASKS'),
   deleteTaskGroup,
 )
 
@@ -94,19 +88,19 @@ router.get('/:teamId/announcements', getAnnouncementsOfTeam)
 router.post(
   '/:teamId/announcements',
   authenticateAccessToken,
-  requirePermission('EDIT_ANNOUNCEMENTS'),
+  requirePermission('MANAGE_ANNOUNCEMENTS'),
   addAnnouncement,
 )
 router.put(
   '/:teamId/announcements/:announcementId',
   authenticateAccessToken,
-  requirePermission('EDIT_ANNOUNCEMENTS'),
+  requirePermission('MANAGE_ANNOUNCEMENTS'),
   updateAnnouncement,
 )
 router.delete(
   '/:teamId/announcements/:announcementId',
   authenticateAccessToken,
-  requirePermission('EDIT_ANNOUNCEMENTS'),
+  requirePermission('DELETE_ANNOUNCEMENTS'),
   deleteAnnouncement,
 )
 
@@ -114,23 +108,22 @@ router.delete(
 router.put(
   '/:teamId/members/:userId/role',
   authenticateAccessToken,
-  requirePermission('CHANGE_MEMBER_ROLES'),
+  requireAdmin,
   changeUserRole,
 )
 router.get('/:teamId/members/:userId/permissions', authenticateAccessToken, getUserPermissions)
 router.put(
   '/:teamId/members/:userId/permissions',
   authenticateAccessToken,
-  requirePermission('CHANGE_MEMBER_ROLES'),
+  requireAdmin,
   updateUserPermissions,
 )
-router.get('/roles/:role/permissions', authenticateAccessToken, getRoleDefaultPermissionsAPI)
 
 // Custom Roles Management for Teams
 router.post(
   '/:teamId/roles',
   authenticateAccessToken,
-  requirePermission('CHANGE_MEMBER_ROLES'),
+  requireAdmin,
   createRole,
 )
 router.get('/:teamId/roles', authenticateAccessToken, getRolesByTeam)
@@ -138,22 +131,21 @@ router.get('/:teamId/roles/:roleId', authenticateAccessToken, getRoleById)
 router.put(
   '/:teamId/roles/:roleId',
   authenticateAccessToken,
-  requirePermission('CHANGE_MEMBER_ROLES'),
+  requireAdmin,
   updateRole,
 )
 router.delete(
   '/:teamId/roles/:roleId',
   authenticateAccessToken,
-  requirePermission('CHANGE_MEMBER_ROLES'),
+  requireAdmin,
   deleteRole,
 )
 
 // Additional Role Management Endpoints
-router.get('/permissions/available', authenticateAccessToken, getAvailablePermissions)
 router.put(
   '/:teamId/members/:userId/assign-role',
   authenticateAccessToken,
-  requirePermission('CHANGE_MEMBER_ROLES'),
+  requireAdmin,
   assignCustomRoleToUser,
 )
 

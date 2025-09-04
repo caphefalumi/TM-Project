@@ -20,23 +20,6 @@ const getCategories = async (req, res) => {
   }
 }
 
-const getRoles = async (req, res) => {
-  // Returns an array of enum roles from the UsersOfTeam schema
-
-  try {
-    const roles = UsersOfTeam.schema.path('role').enumValues
-    if (!roles || roles.length === 0) {
-      console.log('No roles found')
-      return res.status(404).json({ error: 'No roles found' })
-    }
-    // console.log('Roles:', roles)
-    return res.status(200).json(roles)
-  } catch (error) {
-    console.error('Error fetching roles:', error)
-    throw error
-  }
-}
-
 const addUserToTeam = async (userId, username, teamId, role) => {
   try {
     const userOfTeam = new UsersOfTeam({
@@ -169,7 +152,7 @@ const getParentsTeam = async (parentTeamId) => {
 }
 
 const getTeamNameThatUserIsAdmin = async (req, res) => {
-  const { userId } = req.params
+  const { userId } = req.user
   console.log('User ID to GetTeams:', userId)
 
   try {
@@ -212,7 +195,7 @@ const getTeamThatUserIsMember = async (req, res) => {
   // Get all teams that the user is a member of, include admins
   // Return an array of team objects with teamId, title, category, and description, full breadcrumps
   // Also returns a progress bar for each team
-  const { userId } = req.params
+  const { userId } = req.user
   if (!userId) {
     return res.status(400).json({ error: 'User ID is required' })
   }
@@ -229,10 +212,9 @@ const getTeamThatUserIsMember = async (req, res) => {
     // Filter out teams where teamId is null (orphaned records)
     const validTeams = teams.filter((team) => team.teamId !== null)
     if (validTeams.length === 0) {
-      console.log(`No valid teams found for user with ID ${userId}`)
       return res.status(200).json([])
     }
-
+    console.log(teams)
     // Use Promise.all to wait for all async operations to complete
     const teamsData = await Promise.all(
       validTeams.map(async (team) => {
@@ -402,7 +384,6 @@ export default {
   getTeamNameThatUserIsAdmin,
   getTeamThatUserIsMember,
   getCategories,
-  getRoles,
   deleteATeam,
   getProgressBar,
 }

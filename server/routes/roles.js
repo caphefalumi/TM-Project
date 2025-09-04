@@ -1,6 +1,5 @@
 import Role from '../models/Role.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
-import { AVAILABLE_PERMISSIONS, DEFAULT_ROLE_PERMISSIONS } from '../config/permissions.js'
 
 // Create a new custom role for a team
 export const createRole = async (req, res) => {
@@ -132,19 +131,26 @@ export const deleteRole = async (req, res) => {
       return res.status(404).json({ message: 'Role not found' })
     }
 
-    // Check if any users are assigned to this role
+    // Find users assigned to this role and reassign them to Member
     const usersWithRole = await UsersOfTeam.find({ role_id: roleId })
+    
     if (usersWithRole.length > 0) {
-      return res.status(400).json({
-        message: 'Cannot delete role. Users are still assigned to this role.',
-        assignedUsers: usersWithRole.length,
-      })
+      // Reassign all users with this custom role to Member role
+      await UsersOfTeam.updateMany(
+        { role_id: roleId },
+        { 
+          role: 'Member',
+          role_id: null,
+          customPermissions: {} // Clear any custom permissions
+        }
+      )
     }
 
     await Role.findByIdAndDelete(roleId)
 
     res.status(200).json({
       message: 'Role deleted successfully',
+      reassignedUsers: usersWithRole.length,
     })
   } catch (error) {
     console.error('Error deleting role:', error)
@@ -152,18 +158,6 @@ export const deleteRole = async (req, res) => {
   }
 }
 
-// Get available permissions for UI
-export const getAvailablePermissions = async (req, res) => {
-  try {
-    res.status(200).json({
-      message: 'Available permissions retrieved successfully',
-      permissions: AVAILABLE_PERMISSIONS,
-    })
-  } catch (error) {
-    console.error('Error getting available permissions:', error)
-    res.status(500).json({ message: 'Internal server error' })
-  }
-}
 
 // Assign custom role to user
 export const assignCustomRoleToUser = async (req, res) => {
@@ -193,24 +187,10 @@ export const assignCustomRoleToUser = async (req, res) => {
         return res.status(404).json({ message: 'Custom role not found' })
       }
     }
+
+    // Multiple admins are now allowed - no auto-demotion logic needed
     let demotedAdmin = null
-    if (role === 'Admin' && userTeamRole.role !== 'Admin') {
-      const currentAdmin = await UsersOfTeam.findOne({ teamId, role: 'Admin' })
-      if (currentAdmin && currentAdmin.userId !== userId) {
-        await UsersOfTeam.findOneAndUpdate(
-          { userId: currentAdmin.userId, teamId },
-          {
-            role: 'Member',
-          },
-        )
-        demotedAdmin = {
-          userId: currentAdmin.userId,
-          username: currentAdmin.username,
-          previousRole: 'Admin',
-          newRole: 'Member',
-        }
-      }
-    }
+
     const updateData = {
       role,
       role_id: roleId || null,

@@ -15,34 +15,41 @@ const RoleSchema = new mongoose.Schema({
     type: [String],
     default: [],
     enum: [
-      // View permissions
+      // Basic permissions
       'canViewTeam',
       'canViewTasks',
       'canViewAnnouncements',
       'canViewMembers',
       'canViewTaskGroups',
-
-      // Task permissions
       'canSubmitTasks',
-      'canCreateTaskGroups',
-      'canEditTaskGroups',
-      'canDeleteTaskGroups',
+
+      // Tasks group permissions
+      'canManageTasks',
+      'canDeleteTasks',
       'canAssignTasks',
 
-      // Announcement permissions
-      'canEditAnnouncements',
+      // Announcements group permissions
+      'canManageAnnouncements',
       'canDeleteAnnouncements',
 
-      // Member management permissions
+      // Members group permissions
       'canAddMembers',
       'canRemoveMembers',
-      'canChangeRoles',
-
-      // Advanced management permissions
-      'canDeleteTeams',
-      'canCreateSubTeams',
-      'canManageCustomRoles',
+      
+      // Note: Admin-only permissions (canDeleteTeams, canCreateSubTeams, canManageCustomRoles)
+      // are excluded from custom roles and can only be held by Admins
     ],
+    validate: {
+      validator: function(permissions) {
+        // Prevent admin-only permissions from being assigned to custom roles
+        const adminOnlyPermissions = ['canDeleteTeams', 'canCreateSubTeams', 'canManageCustomRoles']
+        const hasAdminOnlyPermissions = permissions.some(permission => 
+          adminOnlyPermissions.includes(permission)
+        )
+        return !hasAdminOnlyPermissions
+      },
+      message: 'Custom roles cannot have admin-only permissions (canDeleteTeams, canCreateSubTeams, canManageCustomRoles)'
+    }
   },
   icon: {
     type: String,

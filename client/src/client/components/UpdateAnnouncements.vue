@@ -70,12 +70,12 @@ const updateAnnouncement = async () => {
   loading.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/update/announcements`, {
+    const response = await fetch(`${PORT}/api/teams/${props.teamId}/announcements/${props.announcement._id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include', // Add credentials for auth
+      credentials: 'include',
       body: JSON.stringify({
         id: props.announcement._id,
         title: titleField.value,

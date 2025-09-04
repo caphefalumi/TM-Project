@@ -129,7 +129,12 @@ const filteredMembers = computed(() => {
 
 const permissionsByCategory = computed(() => {
   const categories = {}
-  availablePermissions.forEach((permission) => {
+  // Filter out admin-only permissions AND basic permissions for custom roles
+  const availableForCustomRoles = availablePermissions.filter(permission =>
+    permission.category !== 'Admin Only' && permission.category !== 'Basic'
+  )
+
+  availableForCustomRoles.forEach((permission) => {
     if (!categories[permission.category]) {
       categories[permission.category] = []
     }
@@ -138,25 +143,6 @@ const permissionsByCategory = computed(() => {
   return categories
 })
 
-// Check if there's a current admin in the team that would be demoted
-const isPromotingToAdmin = computed(() => {
-  return (
-    pendingRoleChange.value &&
-    pendingRoleChange.value.roleType === 'Admin' &&
-    pendingRoleChange.value.member.role !== 'Admin'
-  )
-})
-
-const currentAdmin = computed(() => {
-  if (!isPromotingToAdmin.value) return null
-  return props.teamMembers.find(
-    (member) => member.role === 'Admin' && member.userId !== pendingRoleChange.value.member.userId,
-  )
-})
-
-// Computed properties using permission service
-const canManageCustomRoles = computed(() => hasPermission('canManageCustomRoles'))
-const canChangeRoles = computed(() => hasPermission('canChangeRoles'))
 
 // Methods
 const fetchCustomRoles = async () => {
@@ -322,14 +308,8 @@ const assignRole = async (member, roleType, roleId = null) => {
 
     const result = await response.json()
 
-    // Handle admin demotion notification
-    if (result.demotedAdmin && roleType === 'Admin') {
-      success.value = true
-      message.value = `${member.username} is now the team Admin! ${result.demotedAdmin.username} has been automatically demoted to Member (only one Admin allowed per team).`
-    } else {
-      success.value = true
-      message.value = `Role assigned to ${member.username} successfully!`
-    }
+    success.value = true
+    message.value = `Role assigned to ${member.username} successfully!`
 
     memberRoleDialog.value = false
     confirmRoleDialog.value = false
@@ -675,8 +655,6 @@ onMounted(async () => {
             <h3 class="text-h6 mb-4">Role Permissions Overview</h3>
           </v-col>
         </v-row>
-
-        <!-- Default Roles -->
         <v-row>
           <v-col cols="12" md="4">
             <v-card color="red-lighten-1" variant="tonal">
@@ -687,11 +665,11 @@ onMounted(async () => {
               <v-card-text class="text-caption">
                 • Full access to all features<br />
                 • Add/remove members<br />
-                • Delete teams and members<br />
+                • Delete teams and sub-teams<br />
                 • Create sub-teams<br />
                 • Manage custom roles<br />
                 • All task and announcement permissions<br />
-                <strong>• Only one Admin per team allowed</strong>
+                <strong>• Multiple Admins allowed per team</strong>
               </v-card-text>
             </v-card>
           </v-col>
@@ -702,11 +680,13 @@ onMounted(async () => {
                 Member
               </v-card-title>
               <v-card-text class="text-caption">
-                • View-only access<br />
-                • Submit tasks<br />
-                • View announcements<br />
+                <strong>Basic permissions (automatically granted):</strong><br />
+                • View team details<br />
+                • View tasks and announcements<br />
+                • Submit task assignments<br />
                 • View team members<br />
-                • No special permissions
+                • Assigned by default when added by non-Admin<br />
+                • Can receive additional custom permissions
               </v-card-text>
             </v-card>
           </v-col>
@@ -835,6 +815,10 @@ onMounted(async () => {
 
           <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Select Permissions</h4>
+            <v-alert type="info" variant="tonal" class="mb-3">
+              <v-icon start>mdi-information</v-icon>
+              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements, View Members, View Task Groups, Submit Tasks) are automatically granted to all users and cannot be modified.
+            </v-alert>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel
                 v-for="(permissions, category) in permissionsByCategory"
@@ -976,6 +960,10 @@ onMounted(async () => {
 
           <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Update Permissions</h4>
+            <v-alert type="info" variant="tonal" class="mb-3">
+              <v-icon start>mdi-information</v-icon>
+              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements, View Members, View Task Groups, Submit Tasks) are automatically granted to all users and cannot be modified.
+            </v-alert>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel
                 v-for="(permissions, category) in permissionsByCategory"
@@ -1317,26 +1305,8 @@ onMounted(async () => {
             >?
           </p>
 
-          <!-- Admin demotion warning -->
-          <v-alert
-            v-if="isPromotingToAdmin && currentAdmin"
-            type="warning"
-            variant="tonal"
-            class="mb-3"
-          >
-            <div class="font-weight-medium mb-2">
-              <v-icon class="mr-2">mdi-alert-circle</v-icon>
-              Single Admin Policy
-            </div>
-            <div class="text-body-2">
-              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> will
-              be automatically demoted to <strong>Member</strong> when
-              <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
-            </div>
-          </v-alert>
-
-          <v-alert type="info" variant="tonal" class="mb-3"
-            ><div class="d-flex align-center">
+          <v-alert type="info" variant="tonal" class="mb-3">
+            <div class="d-flex align-center">
               <div>
                 <div class="font-weight-medium">Current Role:</div>
                 <!-- Show custom role if it exists, otherwise show base role -->
