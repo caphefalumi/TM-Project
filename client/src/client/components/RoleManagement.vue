@@ -24,10 +24,11 @@
                   <v-card-text class="text-caption">
                     • Full access to all features<br />
                     • Add/remove members<br />
-                    • Delete teams and members<br />
+                    • Delete teams and sub-teams<br />
                     • Create sub-teams<br />
-                    • Access admin panel<br />
-                    • Manage custom permissions
+                    • Manage custom roles<br />
+                    • Change other users' roles<br />
+                    <strong>• Multiple Admins allowed per team</strong>
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -38,11 +39,12 @@
                     Member
                   </v-card-title>
                   <v-card-text class="text-caption">
-                    • View-only access<br />
-                    • Submit tasks<br />
-                    • View announcements<br />
+                    • Basic team access<br />
+                    • View tasks and announcements<br />
+                    • Submit task assignments<br />
                     • View team members<br />
-                    • No special permissions
+                    • Assigned Member role by default<br />
+                    • Can be assigned custom permissions
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -267,11 +269,11 @@
                     <div class="permission-item d-flex align-center justify-space-between">
                       <span class="permission-label">Edit Announcements</span>
                       <v-btn
-                        :icon="getPermissionIcon('canEditAnnouncements')"
-                        :color="getPermissionColor('canEditAnnouncements')"
+                        :icon="getPermissionIcon('canManageAnnouncements')"
+                        :color="getPermissionColor('canManageAnnouncements')"
                         size="small"
                         variant="text"
-                        @click="updatePermission('canEditAnnouncements')"
+                        @click="updatePermission('canManageAnnouncements')"
                       ></v-btn>
                     </div>
                   </v-col>
@@ -301,25 +303,25 @@
                   </v-col>
                   <v-col cols="12" md="6">
                     <div class="permission-item d-flex align-center justify-space-between">
-                      <span class="permission-label">Create Task Groups</span>
+                      <span class="permission-label">Create and Edit Tasks</span>
                       <v-btn
-                        :icon="getPermissionIcon('canCreateTaskGroups')"
-                        :color="getPermissionColor('canCreateTaskGroups')"
+                        :icon="getPermissionIcon('canManageTasks')"
+                        :color="getPermissionColor('canManageTasks')"
                         size="small"
                         variant="text"
-                        @click="updatePermission('canCreateTaskGroups')"
+                        @click="updatePermission('canManageTasks')"
                       ></v-btn>
                     </div>
                   </v-col>
                   <v-col cols="12" md="6">
                     <div class="permission-item d-flex align-center justify-space-between">
-                      <span class="permission-label">Edit Task Groups</span>
+                      <span class="permission-label">Delete Tasks</span>
                       <v-btn
-                        :icon="getPermissionIcon('canEditTaskGroups')"
-                        :color="getPermissionColor('canEditTaskGroups')"
+                        :icon="getPermissionIcon('canDeleteTasks')"
+                        :color="getPermissionColor('canDeleteTasks')"
                         size="small"
                         variant="text"
-                        @click="updatePermission('canEditTaskGroups')"
+                        @click="updatePermission('canDeleteTasks')"
                       ></v-btn>
                     </div>
                   </v-col>
@@ -384,18 +386,6 @@
                       ></v-btn>
                     </div>
                   </v-col>
-                  <v-col cols="12" md="6">
-                    <div class="permission-item d-flex align-center justify-space-between">
-                      <span class="permission-label">Change Member Roles</span>
-                      <v-btn
-                        :icon="getPermissionIcon('canChangeRoles')"
-                        :color="getPermissionColor('canChangeRoles')"
-                        size="small"
-                        variant="text"
-                        @click="updatePermission('canChangeRoles')"
-                      ></v-btn>
-                    </div>
-                  </v-col>
                 </v-row>
               </v-expansion-panel-text>
             </v-expansion-panel>
@@ -446,29 +436,22 @@
         <v-card-text>
           <p class="mb-3">
             Are you sure you want to make
-            <strong>{{ pendingRoleChange.member.username }}</strong> the team
+            <strong>{{ pendingRoleChange.member.username }}</strong> a team
             <strong>Admin</strong>?
           </p>
 
-          <!-- Admin demotion warning -->
-          <v-alert
-            v-if="isPromotingToAdmin && currentAdmin"
-            type="warning"
-            variant="tonal"
-            class="mb-3"
-          >
+          <v-alert type="info" variant="tonal" class="mb-3">
             <div class="font-weight-medium mb-2">
-              <v-icon class="mr-2">mdi-alert-circle</v-icon>
-              Single Admin Policy
+              <v-icon class="mr-2">mdi-information</v-icon>
+              Admin Privileges
             </div>
             <div class="text-body-2">
-              Only one Admin is allowed per team. <strong>{{ currentAdmin.username }}</strong> will
-              be automatically demoted to <strong>Member</strong> when
-              <strong>{{ pendingRoleChange.member.username }}</strong> becomes Admin.
+              This user will gain full admin privileges including the ability to manage roles,
+              add/remove members, and access all team features. Multiple admins are allowed per team.
             </div>
           </v-alert>
 
-          <p class="text-caption text-warning">
+          <p class="text-caption text-info">
             This action will immediately update permissions and access levels.
           </p>
         </v-card-text>
@@ -565,25 +548,6 @@ const filteredMembers = computed(() => {
   )
 })
 
-const canChangeRoles = computed(() => hasPermission('canChangeRoles'))
-
-// Check if we're promoting someone to admin
-const isPromotingToAdmin = computed(() => {
-  return (
-    pendingRoleChange.value &&
-    pendingRoleChange.value.newRole === 'Admin' &&
-    pendingRoleChange.value.member.role !== 'Admin'
-  )
-})
-
-// Find current admin that would be demoted
-const currentAdmin = computed(() => {
-  if (!isPromotingToAdmin.value) return null
-  return props.teamMembers.find(
-    (member) => member.role === 'Admin' && member.userId !== pendingRoleChange.value.member.userId,
-  )
-})
-
 // Methods
 const setUserFromProps = (userProps) => {
   user.value.userId = userProps.userId
@@ -604,14 +568,14 @@ const fetchUserPermissions = async () => {
 const changeRole = async (member, newRole) => {
   if (newRole === member.role) return
 
-  // If promoting to admin, show confirmation dialog
+  // Show confirmation dialog for admin role changes
   if (newRole === 'Admin' && member.role !== 'Admin') {
     pendingRoleChange.value = { member, newRole }
     confirmRoleDialog.value = true
     return
   }
 
-  // For non-admin role changes, proceed directly
+  // For all other role changes, proceed directly
   await executeRoleChange(member, newRole)
 }
 
@@ -639,30 +603,13 @@ const executeRoleChange = async (member, newRole) => {
     const data = await response.json()
 
     if (response.ok) {
-      // Handle admin demotion notification
-      if (data.demotedAdmin && newRole === 'Admin') {
-        success.value = true
-        message.value = `${member.username} is now the team Admin! ${data.demotedAdmin.username} has been automatically demoted to Member (only one Admin allowed per team).`
-      } else {
-        success.value = true
-        message.value = `Successfully changed ${member.username}'s role to ${newRole}`
-      }
+      success.value = true
+      message.value = `Successfully changed ${member.username}'s role to ${newRole}`
 
       // Update the member's role in the local data
       const memberIndex = props.teamMembers.findIndex((m) => m.userId === member.userId)
       if (memberIndex !== -1) {
         props.teamMembers[memberIndex].role = newRole
-      }
-
-      // If there was a demoted admin, update their role too
-      if (data.demotedAdmin) {
-        const demotedMemberIndex = props.teamMembers.findIndex(
-          (m) => m.userId === data.demotedAdmin.userId,
-        )
-        if (demotedMemberIndex !== -1) {
-          props.teamMembers[demotedMemberIndex].role = 'Member'
-          props.teamMembers[demotedMemberIndex].customRole = null // Remove custom role
-        }
       }
 
       emit('roles-updated')
@@ -734,13 +681,14 @@ const openPermissionsDialog = async (member) => {
       canSubmitTasks: currentCustomPermissions.canSubmitTasks ?? null,
       canEditAnnouncements: currentCustomPermissions.canEditAnnouncements ?? null,
       canViewTaskGroups: currentCustomPermissions.canViewTaskGroups ?? null,
-      canCreateTaskGroups: currentCustomPermissions.canCreateTaskGroups ?? null,
-      canEditTaskGroups: currentCustomPermissions.canEditTaskGroups ?? null,
+      canManageTasks: currentCustomPermissions.canManageTasks ?? null,
+      canDeleteTasks: currentCustomPermissions.canDeleteTasks ?? null,
+      canManageAnnouncements: currentCustomPermissions.canManageAnnouncements ?? null,
+      canDeleteAnnouncements: currentCustomPermissions.canDeleteAnnouncements ?? null,
       canAddMembers: currentCustomPermissions.canAddMembers ?? null,
       canRemoveMembers: currentCustomPermissions.canRemoveMembers ?? null,
       canDeleteTeams: currentCustomPermissions.canDeleteTeams ?? null,
       canCreateSubTeams: currentCustomPermissions.canCreateSubTeams ?? null,
-      canChangeRoles: currentCustomPermissions.canChangeRoles ?? null,
     }
 
     originalPermissions.value = { ...customPermissions.value }

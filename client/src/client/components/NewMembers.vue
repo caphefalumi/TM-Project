@@ -7,7 +7,7 @@ const user = ref({
   email: '',
 })
 const newMemberData = ref({
-  role: '',
+  role: 'Member',
 })
 
 const success = ref(false)
@@ -54,7 +54,7 @@ const filteredUsers = computed(() => {
 const resetForm = () => {
   searchUsernameField.value = ''
   selectedUsers.value = []
-  newMemberData.value.role = ''
+  newMemberData.value.role = 'Member' // Reset to default Member role
 }
 
 const props = defineProps({
@@ -73,6 +73,10 @@ const props = defineProps({
   teamMembers: {
     type: Array,
     default: () => [],
+  },
+  roleUpdateTrigger: {
+    type: Number,
+    default: 0,
   },
 })
 
@@ -102,29 +106,10 @@ const fetchUsers = async () => {
   }
 }
 
+
+
+// Function to fetch roles for the specific team
 const fetchRoles = async () => {
-  try {
-    // First get default roles
-    const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/roles`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
-    }
-    const defaultRoles = await response.json() // Initialize with default roles
-    listOfRoles.value = [...defaultRoles]
-  } catch (error) {
-    console.error('Failed to fetch roles:', error)
-  }
-}
-
-// Function to fetch custom roles for the specific team
-const fetchCustomRoles = async () => {
   if (!props.teamId) return
 
   try {
@@ -144,10 +129,26 @@ const fetchCustomRoles = async () => {
     const data = await response.json()
 
     // Combine default roles with custom roles
-    const defaultRoles = ['Admin', 'Member']
+    const defaultRoles = [
+      {
+        title: 'Admin',
+        value: 'Admin',
+        icon: 'mdi-crown',
+        color: 'red'
+      },
+      {
+        title: 'Member',
+        value: 'Member', 
+        icon: 'mdi-account',
+        color: 'blue'
+      }
+    ]
     const customRoleOptions = data.roles.map((role) => ({
       title: role.name,
-      value: `custom:${role._id}`,
+      value: `custom:${role._id}`, // Use unique identifier for custom roles
+      roleId: role._id,
+      icon: role.icon || 'mdi-star',
+      color: role.color || 'purple'
     }))
 
     listOfRoles.value = [...defaultRoles, ...customRoleOptions]
@@ -162,8 +163,9 @@ const fetchCustomRoles = async () => {
 const sendMembersToServer = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/add`, {
+    const response = await fetch(`${PORT}/api/teams/${props.teamId}/users`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -203,8 +205,7 @@ const setUserFromProps = (userProps) => {
 
 onMounted(async () => {
   setUserFromProps(props.userProps)
-  await fetchRoles()
-  await fetchCustomRoles() // Fetch custom roles for this team
+  await fetchRoles() // Fetch custom roles for this team
   await fetchUsers()
 })
 
@@ -213,8 +214,16 @@ watch(
   () => props.teamId,
   (newTeamId) => {
     if (newTeamId) {
-      fetchCustomRoles()
+      fetchRoles()
     }
+  },
+)
+
+// Watch for role updates to refresh the role list
+watch(
+  () => props.roleUpdateTrigger,
+  () => {
+    fetchRoles()
   },
 )
 
@@ -267,28 +276,38 @@ const addUsers = async () => {
     error.value = true
     message.value = 'Please select at least one user to add.'
     return
-  } else if (newMemberData.value.role === '') {
-    error.value = true
-    message.value = 'Please select a role.'
-    return
   }
 
-  // Assign the selected role to all users before sending to server
-  const role = newMemberData.value.role
+  // Find the selected role object from the list
+  const selectedRoleObj = listOfRoles.value.find(r => r.value === newMemberData.value.role)
+  
   let roleId = null
-  let finalRole = role
+  let isCustomRole = false
 
-  if (role.startsWith('custom:')) {
-    roleId = role.replace('custom:', '')
-    finalRole = 'Member' // Default role for users with custom role
+  // Check if it's a custom role (starts with 'custom:')
+  if (selectedRoleObj && selectedRoleObj.value.startsWith('custom:')) {
+    // For custom roles, only send the role ID
+    roleId = selectedRoleObj.roleId
+    isCustomRole = true
+  } else {
+    // For default roles (Admin/Member), send the role name as roleId for backend compatibility
+    roleId = newMemberData.value.role // 'Admin' or 'Member'
+    isCustomRole = false
   }
 
-  // Update all selected users with the role information
+  console.log('Selected role info:', {
+    selectedValue: newMemberData.value.role,
+    selectedRoleObj,
+    roleId,
+    isCustomRole
+  })
+
+  // Update all selected users with only the role ID
   const usersWithRoles = selectedUsers.value.map((user) => ({
     ...user,
-    role: finalRole,
     roleId: roleId,
   }))
+  console.log("usersWithRoles:", usersWithRoles)
 
   // Temporarily update selectedUsers for sending to server
   const originalSelectedUsers = [...selectedUsers.value]
@@ -311,73 +330,176 @@ const addUsers = async () => {
 </script>
 
 <template>
-  <v-dialog v-model="props.dialog" max-width="600px" closable>
-    <v-card>
-      <v-card-title class="font-weight-bold text-center text-h5 mb-2 mt-2">
+  <v-dialog v-model="props.dialog" max-width="700px" persistent>
+    <v-card class="elevation-8">
+      <!-- Header -->
+      <v-card-title class="text-h5 font-weight-bold text-center py-6 bg-primary text-white">
+        <v-icon start size="large">mdi-account-plus</v-icon>
         Add Team Members
       </v-card-title>
-      <v-card-text>
-        <v-expand-transition>
+
+      <v-card-text class="pa-6">
+        <!-- Role Selection -->
+        <div class="mb-6">
+          <h3 class="text-h6 mb-3 d-flex align-center">
+            <v-icon start color="primary">mdi-account-cog</v-icon>
+            Select Role for New Members
+          </h3>
           <v-select
             v-model="newMemberData.role"
             :items="listOfRoles"
-            label="Role"
+            item-title="title"
+            item-value="value"
+            label="Assign Role"
             variant="outlined"
+            density="comfortable"
             required
-          ></v-select>
-        </v-expand-transition>
+            prepend-inner-icon="mdi-shield-account"
+          >
+            <template v-slot:selection="{ item }">
+              <v-chip
 
-        <!-- Display selected users using v-chip -->
-        <div v-if="selectedUsers.length > 0" class="mb-4">
-          <v-chip
-            v-for="(user, index) in selectedUsers"
-            :key="user.userId"
-            class="ma-1"
-            closable
-            @click:close="removeSelectedUser(user.userId)"
-            color="primary"
-          >
-            {{ user.username }}
-          </v-chip>
+                :color="item.raw.color || 'blue'"
+                variant="tonal"
+              >
+                <v-icon start>
+                  {{ item.raw.icon || 'mdi-account' }}
+                </v-icon>
+                {{ item.raw.title }}
+              </v-chip>
+            </template>
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props">
+                <template v-slot:prepend>
+                  <v-icon :color="item.raw.color || 'blue'">
+                    {{ item.raw.icon || 'mdi-account' }}
+                  </v-icon>
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
         </div>
-        <!-- Search field for usernames -->
-        <v-text-field
-          v-model="searchUsernameField"
-          label="Username"
-          placeholder="Search for username..."
-          variant="outlined"
-          class="mt-2"
-          required
-        ></v-text-field
-        ><!-- Display filtered users -->
-        <v-list v-if="filteredUsers.length > 0" max-height="200" class="filtered-users-list">
-          <v-list-item
-            v-for="user in filteredUsers"
-            :key="user.userId"
-            @click="selectAUser(user)"
-            class="cursor-pointer"
-          >
-            <v-list-item-title>{{ user.username }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
+
+        <!-- Selected Users Display -->
+        <div v-if="selectedUsers.length > 0" class="mb-6">
+          <h3 class="text-h6 mb-3 d-flex align-center">
+            <v-icon start color="success">mdi-account-check</v-icon>
+            Selected Members ({{ selectedUsers.length }})
+          </h3>
+          <v-card variant="outlined" class="pa-3">
+            <v-chip-group>
+              <v-chip
+                v-for="(user, index) in selectedUsers"
+                :key="user.userId"
+                class="ma-1"
+                closable
+                @click:close="removeSelectedUser(user.userId)"
+                color="success"
+                variant="tonal"
+                size="large"
+              >
+                <v-icon start>mdi-account</v-icon>
+                {{ user.username }}
+              </v-chip>
+            </v-chip-group>
+          </v-card>
+        </div>
+
+        <!-- User Search -->
+        <div class="mb-4">
+          <h3 class="text-h6 mb-3 d-flex align-center">
+            <v-icon start color="primary">mdi-account-search</v-icon>
+            Search Users
+          </h3>
+          <v-text-field
+            v-model="searchUsernameField"
+            label="Search for users to add..."
+            placeholder="Type username to search"
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            class="mb-2"
+          ></v-text-field>
+
+          <!-- Search Results -->
+          <v-card v-if="filteredUsers.length > 0" variant="outlined" class="search-results">
+            <v-card-subtitle class="py-2 bg-grey-lighten-4">
+              <v-icon start size="small">mdi-account-multiple</v-icon>
+              Available Users ({{ filteredUsers.length }})
+            </v-card-subtitle>
+            <v-list density="compact" max-height="250" class="overflow-y-auto">
+              <v-list-item
+                v-for="user in filteredUsers"
+                :key="user.userId"
+                @click="selectAUser(user)"
+                class="cursor-pointer"
+                prepend-icon="mdi-account-plus-outline"
+              >
+                <v-list-item-title class="font-weight-medium">{{ user.username }}</v-list-item-title>
+                <template v-slot:append>
+                  <v-btn icon size="small" variant="text" color="primary">
+                    <v-icon>mdi-plus</v-icon>
+                  </v-btn>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-card>
+
+          <!-- No Results Message -->
+          <v-card v-else-if="searchUsernameField" variant="outlined" class="text-center pa-4">
+            <v-icon size="48" color="grey">mdi-account-search-outline</v-icon>
+            <div class="text-body-1 mt-2">No users found matching "{{ searchUsernameField }}"</div>
+            <div class="text-caption text-grey">Try a different search term</div>
+          </v-card>
+
+          <!-- Initial State Message -->
+          <v-card v-else variant="outlined" class="text-center pa-4">
+            <v-icon size="48" color="primary">mdi-account-search</v-icon>
+            <div class="text-body-1 mt-2">Search for users to add to your team</div>
+            <div class="text-caption text-grey">Start typing a username to see available users</div>
+          </v-card>
+        </div>
+
+        <!-- Status Messages -->
+        <v-expand-transition>
+          <div v-if="success || error">
+            <v-alert 
+              :type="success ? 'success' : 'error'" 
+              :text="message"
+              variant="tonal"
+              class="mb-4"
+            >
+              <template v-slot:prepend>
+                <v-icon>{{ success ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+              </template>
+            </v-alert>
+          </div>
+        </v-expand-transition>
       </v-card-text>
-      <v-card-text>
-        <v-alert v-if="success" type="success">{{ message }}</v-alert>
-        <v-alert v-if="error" type="error">{{ message }}</v-alert>
-      </v-card-text>
-      <v-card-actions>
+
+      <!-- Actions -->
+      <v-card-actions class="pa-6 bg-grey-lighten-5">
         <v-spacer></v-spacer>
-        <v-btn @click="emit('update:dialog', false)" variant="outlined" :disabled="loading">
+        <v-btn 
+          @click="emit('update:dialog', false)" 
+          variant="outlined" 
+          :disabled="loading"
+          size="large"
+        >
+          <v-icon start>mdi-close</v-icon>
           Cancel
         </v-btn>
         <v-btn
           color="primary"
           @click="addUsers"
-          variant="outlined"
-          :disabled="loading"
+          variant="elevated"
+          :disabled="loading || selectedUsers.length === 0"
           :loading="loading"
+          size="large"
         >
-          Add Members
+          <v-icon start>mdi-account-plus</v-icon>
+          Add {{ selectedUsers.length }} Member{{ selectedUsers.length !== 1 ? 's' : '' }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -387,5 +509,36 @@ const addUsers = async () => {
 <style scoped>
 .filtered-users-list {
   overflow-y: auto;
+}
+
+.search-results {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cursor-pointer:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.v-chip {
+  transition: all 0.2s ease;
+}
+
+.v-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.v-card {
+  border-radius: 12px;
+}
+
+.v-btn {
+  border-radius: 8px;
 }
 </style>

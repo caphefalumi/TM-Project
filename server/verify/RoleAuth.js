@@ -1,5 +1,5 @@
 import UsersOfTeam from '../models/UsersOfTeam.js'
-import { DEFAULT_ROLE_PERMISSIONS, PERMISSION_MAPPING } from '../config/permissions.js'
+import { PERMISSIONS, ROLE_PERMISSIONS } from '../config/permissions.js'
 
 export const ROLES = {
   ADMIN: 'Admin',
@@ -63,13 +63,32 @@ export const getUserCustomPermissions = async (userId, teamId) => {
 
 export const getRoleDefaultPermissions = (role) => {
   // Use the centralized default permissions configuration
-  const permissions = DEFAULT_ROLE_PERMISSIONS[role] || []
+  const permissions = ROLE_PERMISSIONS[role] || []
 
   // Convert to object format for easy access
   const permissionObject = {}
 
-  // Initialize all permissions to false
-  Object.values(PERMISSION_MAPPING).forEach((permission) => {
+  // Initialize all available permissions to false
+  const allPermissions = [
+    'canViewTeam',
+    'canViewTasks',
+    'canViewAnnouncements',
+    'canViewMembers',
+    'canViewTaskGroups',
+    'canSubmitTasks',
+    'canManageTasks',
+    'canDeleteTasks',
+    'canAssignTasks',
+    'canManageAnnouncements',
+    'canDeleteAnnouncements',
+    'canAddMembers',
+    'canRemoveMembers',
+    'canDeleteTeams',
+    'canCreateSubTeams',
+    'canManageCustomRoles'
+  ]
+
+  allPermissions.forEach((permission) => {
     permissionObject[permission] = false
   })
 
@@ -92,7 +111,7 @@ export const hasPermission = async (userId, teamId, permission, globalUsername =
       return false
     }
 
-    const permissionField = PERMISSION_MAPPING[permission]
+    const permissionField = PERMISSIONS[permission]
     if (!permissionField) {
       console.warn(`Unknown permission: ${permission}`)
       return false
@@ -103,6 +122,30 @@ export const hasPermission = async (userId, teamId, permission, globalUsername =
     console.error('Error checking permission:', error)
     return false
   }
+}
+
+export const requireAdmin = (req, res, next) => {
+  const userId = req.user?.userId
+  const teamId = req.params.teamId || req.body.teamId
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Authentication required' })
+  }
+
+  if (!teamId) {
+    return res.status(400).json({ message: 'Team ID is required' })
+  }
+  UsersOfTeam.findOne({ userId, teamId })
+    .then((userTeam) => {
+      if (!userTeam || userTeam.role !== ROLES.ADMIN) {
+        return res.status(403).json({ message: 'Admin access required' })
+      }
+      next()
+    })
+    .catch((error) => {
+      console.error('Error checking admin role:', error)
+      return res.status(500).json({ message: 'Internal server error' })
+    })
 }
 
 export const requirePermission = (permission) => {
@@ -123,7 +166,7 @@ export const requirePermission = (permission) => {
 
       const allowed = await hasPermission(userId, teamId, permission, globalUsername)
 
-      if (!allowed) {
+      if (!allowed && userId.role !== ROLES.ADMIN) {
         return res.status(403).json({
           message: 'Insufficient permissions for this action',
           requiredPermission: permission,

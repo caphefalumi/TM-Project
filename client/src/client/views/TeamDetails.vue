@@ -21,7 +21,17 @@ const route = useRoute()
 const router = useRouter()
 
 // Use permission composables
-const { hasPermission, isAdmin, getRoleIcon, getRoleColor } = usePermissions()
+const {
+  hasPermission,
+  isAdmin,
+  getRoleIcon,
+  getRoleColor,
+  canAccessAnnouncements,
+  canAccessTasks,
+  canAccessMembers,
+  canAddTeamMembers,
+  canCustomizeRolesForNewMembers
+} = usePermissions()
 
 const userPermissions = ref({})
 
@@ -40,6 +50,7 @@ const team = ref({
 
 const userLoaded = ref(false)
 const newTaskDialog = ref(false)
+const roleUpdateTrigger = ref(0)
 
 const viewAnnouncementDialog = ref(false)
 const deleteAnnouncementDialog = ref(false)
@@ -79,12 +90,18 @@ const activeTab = ref(route.query.tab || 'tasks')
 const teamId = ref(route.params.teamId)
 
 // Computed properties for permissions - using centralized permission service
-const canCreateTasks = computed(() => hasPermission('canCreateTaskGroups'))
-const canCreateAnnouncements = computed(() => hasPermission('canEditAnnouncements'))
-const canManageMembers = computed(() => hasPermission('canAddMembers'))
+const canCreateTasks = computed(() => hasPermission('canManageTasks'))
+const canCreateAnnouncements = computed(() => hasPermission('canManageAnnouncements'))
+const canManageMembers = computed(() => hasPermission('canAddMembers') || hasPermission('canRemoveMembers'))
 const canManageTaskGroups = computed(() => hasPermission('canViewTaskGroups'))
-const canEditAnnouncements = computed(() => hasPermission('canEditAnnouncements'))
-const canManageRoles = computed(() => hasPermission('canChangeRoles'))
+const canEditAnnouncements = computed(() => hasPermission('canManageAnnouncements'))
+
+// UI Feature Access - Users see features only if they have at least one permission from the group
+const showAnnouncementsFeature = computed(() => canAccessAnnouncements())
+const showTasksFeature = computed(() => canAccessTasks())
+const showMembersFeature = computed(() => canAccessMembers())
+const showAddMembersButton = computed(() => canAddTeamMembers())
+const allowCustomRoleSelection = computed(() => canCustomizeRolesForNewMembers())
 
 // Function to initialize/reload team data
 const initializeTeamData = async () => {
@@ -299,6 +316,12 @@ const fetchTeamMembers = async () => {
   } catch (error) {
     console.error('Failed to fetch team members:', error)
   }
+}
+
+// Handle roles updated - refresh team members and update role trigger for NewMembers
+const handleRolesUpdated = async () => {
+  await fetchTeamMembers()
+  roleUpdateTrigger.value += 1 // Increment trigger to update role list in NewMembers
 }
 
 const editAnnnouncement = (announcementId) => {
@@ -610,6 +633,8 @@ const taskFilterOptions = [
       :userProps="user"
       :teamId="teamId"
       :teamMembers="teamMembers"
+      :roleUpdateTrigger="roleUpdateTrigger"
+      :allowCustomRoleSelection="allowCustomRoleSelection"
       @members-added="fetchTeamMembers"
     />
     <!-- Delete Members Dialog -->
@@ -640,7 +665,7 @@ const taskFilterOptions = [
       :userProps="user"
       :teamId="teamId"
       :teamMembers="teamMembers"
-      @roles-updated="fetchTeamMembers"
+      @roles-updated="handleRolesUpdated"
     />
 
     <!-- Team navigation tabs with action buttons -->
@@ -655,15 +680,15 @@ const taskFilterOptions = [
             <v-icon start>mdi-folder-multiple</v-icon>
             Task Groups
           </v-tab>
-          <v-tab value="announcements">
+          <v-tab value="announcements" v-if="showAnnouncementsFeature">
             <v-icon start>mdi-bullhorn</v-icon>
             Announcements
           </v-tab>
-          <v-tab value="members">
+          <v-tab value="members" v-if="showMembersFeature">
             <v-icon start>mdi-account-group</v-icon>
             Members
           </v-tab>
-          <v-tab value="roles" v-if="canManageMembers || canManageRoles">
+          <v-tab value="roles" v-if="isAdmin()">
             <v-icon start>mdi-account-key</v-icon>
             Roles
           </v-tab>
@@ -707,7 +732,7 @@ const taskFilterOptions = [
           </v-col>
 
           <template v-if="activeTab === 'members'">
-            <v-col cols="12" md="6" lg="4" v-if="canManageMembers">
+            <v-col cols="12" md="6" lg="4" v-if="showAddMembersButton">
               <v-btn
                 v-tooltip:bottom="'Add team members'"
                 @click="addMembersDialog = true"
@@ -1209,7 +1234,7 @@ const taskFilterOptions = [
           :teamId="teamId"
           :userProps="user"
           :teamMembers="teamMembers"
-          @roles-updated="fetchTeamMembers"
+          @roles-updated="handleRolesUpdated"
         />
       </v-window-item>
     </v-window>

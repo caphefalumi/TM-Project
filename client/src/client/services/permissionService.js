@@ -14,19 +14,17 @@ export const PERMISSIONS = {
 
   // Task permissions
   SUBMIT_TASKS: 'canSubmitTasks',
-  CREATE_TASK_GROUPS: 'canCreateTaskGroups',
-  EDIT_TASK_GROUPS: 'canEditTaskGroups',
-  DELETE_TASK_GROUPS: 'canDeleteTaskGroups',
+  MANAGE_TASKS: 'canManageTasks',
+  DELETE_TASKS: 'canDeleteTasks',
   ASSIGN_TASKS: 'canAssignTasks',
 
   // Announcement permissions
-  EDIT_ANNOUNCEMENTS: 'canEditAnnouncements',
+  MANAGE_ANNOUNCEMENTS: 'canManageAnnouncements',
   DELETE_ANNOUNCEMENTS: 'canDeleteAnnouncements',
 
   // Member management permissions
   ADD_MEMBERS: 'canAddMembers',
   REMOVE_MEMBERS: 'canRemoveMembers',
-  CHANGE_MEMBER_ROLES: 'canChangeRoles',
 
   // Advanced management permissions
   DELETE_TEAMS: 'canDeleteTeams',
@@ -35,60 +33,56 @@ export const PERMISSIONS = {
 }
 
 export const AVAILABLE_PERMISSIONS = [
+  // View permissions - basic permissions all users should have
   {
     key: 'canViewTeam',
     label: 'View Team',
-    category: 'View',
-    description: 'Can view team details and members',
+    category: 'Basic',
+    description: 'Can view team details',
   },
   {
     key: 'canViewTasks',
     label: 'View Tasks',
-    category: 'View',
+    category: 'Basic',
     description: 'Can view team tasks',
   },
   {
     key: 'canViewAnnouncements',
     label: 'View Announcements',
-    category: 'View',
+    category: 'Basic',
     description: 'Can view team announcements',
   },
   {
     key: 'canViewMembers',
     label: 'View Members',
-    category: 'View',
+    category: 'Basic',
     description: 'Can view team member list',
   },
   {
     key: 'canViewTaskGroups',
     label: 'View Task Groups',
-    category: 'View',
+    category: 'Basic',
     description: 'Can view task groups',
   },
-
   {
     key: 'canSubmitTasks',
     label: 'Submit Tasks',
-    category: 'Tasks',
+    category: 'Basic',
     description: 'Can submit task assignments',
   },
+
+  // Tasks group permissions
   {
-    key: 'canCreateTaskGroups',
-    label: 'Create Task Groups',
+    key: 'canManageTasks',
+    label: 'Create and Edit Tasks',
     category: 'Tasks',
-    description: 'Can create new task groups',
+    description: 'Can create and edit tasks',
   },
   {
-    key: 'canEditTaskGroups',
-    label: 'Edit Task Groups',
+    key: 'canDeleteTasks',
+    label: 'Delete Tasks',
     category: 'Tasks',
-    description: 'Can modify existing task groups',
-  },
-  {
-    key: 'canDeleteTaskGroups',
-    label: 'Delete Task Groups',
-    category: 'Tasks',
-    description: 'Can delete task groups',
+    description: 'Can delete tasks',
   },
   {
     key: 'canAssignTasks',
@@ -97,11 +91,12 @@ export const AVAILABLE_PERMISSIONS = [
     description: 'Can assign tasks to members',
   },
 
+  // Announcements group permissions
   {
-    key: 'canEditAnnouncements',
-    label: 'Edit Announcements',
+    key: 'canManageAnnouncements',
+    label: 'Create and Edit Announcements',
     category: 'Announcements',
-    description: 'Can create, edit and delete announcements',
+    description: 'Can create and edit announcements',
   },
   {
     key: 'canDeleteAnnouncements',
@@ -110,6 +105,7 @@ export const AVAILABLE_PERMISSIONS = [
     description: 'Can delete announcements',
   },
 
+  // Members group permissions
   {
     key: 'canAddMembers',
     label: 'Add Members',
@@ -122,30 +118,25 @@ export const AVAILABLE_PERMISSIONS = [
     category: 'Members',
     description: 'Can remove members from the team',
   },
-  {
-    key: 'canChangeRoles',
-    label: 'Change Roles',
-    category: 'Members',
-    description: 'Can change member roles and permissions',
-  },
 
+  // Admin-only privileges (cannot be assigned to custom roles)
   {
     key: 'canDeleteTeams',
     label: 'Delete Teams',
-    category: 'Management',
-    description: 'Can delete the entire team',
+    category: 'Admin Only',
+    description: 'Can delete the entire team (Admin privilege only)',
   },
   {
     key: 'canCreateSubTeams',
     label: 'Create Sub-teams',
-    category: 'Management',
-    description: 'Can create sub-teams',
+    category: 'Admin Only',
+    description: 'Can create sub-teams (Admin privilege only)',
   },
   {
     key: 'canManageCustomRoles',
     label: 'Manage Custom Roles',
-    category: 'Management',
-    description: 'Can create and manage custom roles',
+    category: 'Admin Only',
+    description: 'Can create and manage custom roles (Admin privilege only)',
   },
 ]
 
@@ -218,6 +209,65 @@ class PermissionService {
    */
   isAdmin() {
     return this.isGlobalAdmin || this.getRole() === 'Admin'
+  }
+
+  /**
+   * Check if user can access announcements feature
+   * @returns {boolean} - Whether user can see announcements in UI
+   */
+  canAccessAnnouncements() {
+    return this.hasAnyPermission([
+      'canManageAnnouncements',
+      'canDeleteAnnouncements'
+    ]) || this.isAdmin()
+  }
+
+  /**
+   * Check if user can access tasks feature
+   * @returns {boolean} - Whether user can see tasks management in UI
+   */
+  canAccessTasks() {
+    return this.hasAnyPermission([
+      'canManageTasks',
+      'canDeleteTasks'
+    ]) || this.isAdmin()
+  }
+
+  /**
+   * Check if user can access members feature
+   * @returns {boolean} - Whether user can see member management in UI
+   */
+  canAccessMembers() {
+    return this.hasAnyPermission([
+      'canAddMembers',
+      'canRemoveMembers'
+    ]) || this.isAdmin()
+  }
+
+  /**
+   * Check if user can add members to team
+   * @returns {boolean} - Whether user can add members
+   */
+  canAddTeamMembers() {
+    return this.isAdmin()
+  }
+
+  /**
+   * Check if user can customize roles when adding members
+   * @returns {boolean} - Whether user can assign custom roles
+   */
+  canCustomizeRolesForNewMembers() {
+    return this.isAdmin()
+  }
+
+  /**
+   * Get available permissions for custom roles (excluding admin-only and basic permissions)
+   * @returns {Array} - Array of permissions that can be assigned to custom roles
+   */
+  getAvailablePermissionsForCustomRoles() {
+    return AVAILABLE_PERMISSIONS.filter(permission =>
+      permission.category !== 'Admin Only' && permission.category !== 'Basic'
+    )
   }
 
   /**
@@ -385,6 +435,12 @@ export const usePermissions = () => {
     getRoleIcon: (role) => permissionService.getRoleIcon(role),
     getRoleColor: (role) => permissionService.getRoleColor(role),
     hasCustomPermissions: (member) => permissionService.hasCustomPermissions(member),
+    canAccessAnnouncements: () => permissionService.canAccessAnnouncements(),
+    canAccessTasks: () => permissionService.canAccessTasks(),
+    canAccessMembers: () => permissionService.canAccessMembers(),
+    canAddTeamMembers: () => permissionService.canAddTeamMembers(),
+    canCustomizeRolesForNewMembers: () => permissionService.canCustomizeRolesForNewMembers(),
+    getAvailablePermissionsForCustomRoles: () => permissionService.getAvailablePermissionsForCustomRoles(),
   }
 }
 

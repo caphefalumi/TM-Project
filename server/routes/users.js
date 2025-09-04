@@ -30,68 +30,96 @@ export const getAllUsers = async (req, res) => {
   }
 }
 export const addUsersToTeam = async (req, res) => {
-  // Add users to a team
+  const { users } = req.body
+  const requestingUserId = req.user.userId // always trust JWT-authenticated user
 
-  const { users, addedByUserId } = req.body // Expect addedByUserId to track who added the users
-  console.log(users)
-  if (!users || !Array.isArray(users)) {
-    return res.status(400).json({ error: 'Team ID and users array are required' })
+  if (!users || !Array.isArray(users) || users.length === 0) {
+    return res.status(400).json({ error: 'Users array is required' })
   }
 
   try {
+    const { teamId } = users[0] // all users have same teamId
+    if (!teamId) {
+      return res.status(400).json({ error: 'Team ID is required' })
+    }
+
+    // Check team exists
+    const teamExists = await Teams.exists({ _id: teamId })
+    if (!teamExists) {
+      return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
+    }
+
+    // Check if requesting user is admin in this team
+    const requesterInTeam = await UsersOfTeam.findOne({ userId: requestingUserId, teamId })
+    const isRequestingUserAdmin = requesterInTeam?.role === 'Admin'
+
     const addedUsers = []
+    const usersToInsert = []
 
     for (const user of users) {
-      const { teamId, userId, username, role, roleId } = user
-      if (!teamId || !userId || !username || !role) {
+      const { userId, username, roleId } = user
+      if (!userId || !username) {
         console.log('Missing required fields for user:', user)
-        throw new Error('TeamId, User ID, username, and role are required for each user')
+        continue
       }
 
-      // Check that no duplicate userId is added to the same team
+      // Skip duplicate members
       const existingUser = await UsersOfTeam.findOne({ userId, teamId })
       if (existingUser) {
-        console.log(`User with ID ${userId} is already added to team ${teamId}`)
-        continue // Skip this user but continue with others
+        console.log(`User with ID ${userId} already in team ${teamId}`)
+        continue
       }
 
-      // Check there is a team with the given teamId
-      const teamExists = await Teams.exists({ _id: teamId })
-      if (!teamExists) {
-        console.log(`Team with ID ${teamId} does not exist`)
-        return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
-      }
+      // Determine actual role
+      let actualRole = 'Member'
+      let actualRoleId = null
 
-      // Prepare user data for creation
-      const userData = { userId, username, teamId, role }
-
-      // If roleId is provided, validate it exists and belongs to the team
-      if (roleId) {
-        const customRole = await Role.findOne({ _id: roleId, team_id: teamId })
-        if (!customRole) {
-          console.log(`Custom role ${roleId} not found for team ${teamId}`)
-          return res.status(400).json({ message: `Invalid custom role for team` })
+      if (isRequestingUserAdmin && roleId) {
+        if (roleId === 'Admin' || roleId === 'Member') {
+          actualRole = roleId
+        } else {
+          // custom role
+          const customRole = await Role.findOne({ _id: roleId, team_id: teamId })
+          if (!customRole) {
+            console.log(`Custom role ${roleId} not found for team ${teamId}`)
+            return res.status(400).json({ message: `Invalid custom role for team` })
+          }
+          actualRole = customRole.name
+          actualRoleId = roleId
         }
-        userData.role_id = roleId
       }
 
-      console.log('Creating user in team:', userData)
-      const newUserOfTeam = await UsersOfTeam.create(userData)
-      addedUsers.push({ userId, teamId, username, role, customRole: roleId ? true : false })
+      // Prepare data for bulk insert
+      usersToInsert.push({
+        userId,
+        username,
+        teamId,
+        role: actualRole,
+        role_id: actualRoleId,
+      })
 
-      // Create notification for the added user (if not adding themselves)
-      if (addedByUserId && userId !== addedByUserId) {
-        try {
-          await createTeamMemberAddedNotification(userId, teamId, addedByUserId)
-          console.log(`Notification created for user ${userId} being added to team ${teamId}`)
-        } catch (notificationError) {
-          console.error('Error creating team member added notification:', notificationError)
-          // Don't fail the user addition if notification creation fails
-        }
+      addedUsers.push({
+        userId,
+        teamId,
+        username,
+        role: actualRole,
+        customRole: !!actualRoleId,
+        addedByAdmin: isRequestingUserAdmin,
+      })
+
+      // Notification (async, don’t block)
+      if (userId !== requestingUserId) {
+        createTeamMemberAddedNotification(userId, teamId, requestingUserId)
+          .then(() => console.log(`Notification sent for ${userId}`))
+          .catch(err => console.error('Notification error:', err))
       }
     }
 
-    console.log('Users added to team successfully')
+    // Bulk insert
+    if (usersToInsert.length > 0) {
+      await UsersOfTeam.insertMany(usersToInsert)
+    }
+
     return res.status(200).json({
       message: 'Users added to team successfully',
       addedUsers: addedUsers.length,
@@ -249,7 +277,7 @@ export const changeUserRole = async (req, res) => {
       }
     }
 
-    // Prevent self-demotion of last admin (this is now redundant due to the self-role-change check above, but keeping for extra safety)
+    // Prevent self-demotion if user is the last admin (safety check)
     if (requestingUserId === userId && targetUser.role === 'Admin' && targetRole !== 'Admin') {
       const adminCount = await UsersOfTeam.countDocuments({ teamId, role: 'Admin' })
       if (adminCount === 1) {
@@ -257,28 +285,8 @@ export const changeUserRole = async (req, res) => {
       }
     }
 
-    // Single admin policy: If assigning Admin role, demote current admin to Member
+    // Multiple admins are now allowed - no auto-demotion logic needed
     let demotedAdmin = null
-    if (targetRole === 'Admin' && targetUser.role !== 'Admin') {
-      // Find current admin
-      const currentAdmin = await UsersOfTeam.findOne({ teamId, role: 'Admin' })
-      if (currentAdmin && currentAdmin.userId !== userId) {
-        // Demote current admin to Member (preserve custom role if they have one)
-        await UsersOfTeam.findOneAndUpdate(
-          { userId: currentAdmin.userId, teamId },
-          {
-            role: 'Member',
-            // Keep role_id and customPermissions - only change the base role
-          },
-        )
-        demotedAdmin = {
-          userId: currentAdmin.userId,
-          username: currentAdmin.username,
-          previousRole: 'Admin',
-          newRole: 'Member',
-        }
-      }
-    }
 
     // Update the role and custom role assignment
     const updateData = {
@@ -388,27 +396,7 @@ export const updateUserPermissions = async (req, res) => {
   }
 }
 
-/**
- * Get default permissions for a role (for UI reference)
- */
-export const getRoleDefaultPermissionsAPI = async (req, res) => {
-  try {
-    const { role } = req.params
 
-    if (!Object.values(ROLES).includes(role)) {
-      return res.status(400).json({
-        message: 'Invalid role',
-        validRoles: Object.values(ROLES),
-      })
-    }
-
-    const defaultPermissions = getRoleDefaultPermissions(role)
-    res.status(200).json(defaultPermissions)
-  } catch (error) {
-    console.error('Error getting role default permissions:', error)
-    res.status(500).json({ message: 'Internal server error' })
-  }
-}
 
 export default {
   getAllUsers,

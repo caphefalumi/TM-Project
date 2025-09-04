@@ -16,10 +16,8 @@ const UsersOfTeamSchema = new mongoose.Schema({
     required: true,
   },
   role: {
-    // admin, member
     type: String,
     required: true,
-    enum: ['Admin', 'Member'],
   },
   role_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -38,19 +36,17 @@ const UsersOfTeamSchema = new mongoose.Schema({
 
       // Task permissions
       canSubmitTasks: { type: Boolean, default: null },
-      canCreateTaskGroups: { type: Boolean, default: null },
-      canEditTaskGroups: { type: Boolean, default: null },
-      canDeleteTaskGroups: { type: Boolean, default: null },
+      canManageTasks: { type: Boolean, default: null },
+      canDeleteTasks: { type: Boolean, default: null },
       canAssignTasks: { type: Boolean, default: null },
 
       // Announcement permissions
-      canEditAnnouncements: { type: Boolean, default: null },
+      canManageAnnouncements: { type: Boolean, default: null },
       canDeleteAnnouncements: { type: Boolean, default: null },
 
       // Member management permissions
       canAddMembers: { type: Boolean, default: null },
       canRemoveMembers: { type: Boolean, default: null },
-      canChangeRoles: { type: Boolean, default: null },
 
       // Advanced management permissions
       canDeleteTeams: { type: Boolean, default: null },
