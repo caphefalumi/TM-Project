@@ -89,6 +89,7 @@ const fetchUsers = async () => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        credentials: 'include', // Important: sends refresh token cookie
       },
     })
 
@@ -119,6 +120,7 @@ const fetchRoles = async () => {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        credentials: 'include', // Important: sends refresh token cookie
       },
     })
 
@@ -169,6 +171,7 @@ const sendMembersToServer = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: sends refresh token cookie
       body: JSON.stringify({
         users: selectedUsers.value,
         addedByUserId: props.userProps.userId,
