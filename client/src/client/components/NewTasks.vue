@@ -242,7 +242,7 @@ const createTask = async () => {
     userId: user.value.userId,
     assignedUsers: selectedUsers.value, // Include selected users
   }
-  console.log('Submitting task:', submittedData)
+  console.log('Creating task:', submittedData)
   try {
     const PORT = import.meta.env.VITE_API_PORT
     // Ensure description exists even if empty
@@ -251,6 +251,7 @@ const createTask = async () => {
     }
     const response = await fetch(`${PORT}/api/tasks/create`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

@@ -309,6 +309,7 @@ const submitTaskResponse = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/tasks/submit`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

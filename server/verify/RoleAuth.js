@@ -68,27 +68,14 @@ export const getRoleDefaultPermissions = (role) => {
   // Convert to object format for easy access
   const permissionObject = {}
 
-  // Initialize all available permissions to false
-  const allPermissions = [
-    'canViewTeam',
-    'canViewTasks',
-    'canViewAnnouncements',
-    'canViewMembers',
-    'canViewTaskGroups',
-    'canSubmitTasks',
-    'canManageTasks',
-    'canDeleteTasks',
-    'canAssignTasks',
-    'canManageAnnouncements',
-    'canDeleteAnnouncements',
-    'canAddMembers',
-    'canRemoveMembers',
-    'canDeleteTeams',
-    'canCreateSubTeams',
-    'canManageCustomRoles'
-  ]
+  // Get all available permissions from the ROLE_PERMISSIONS config
+  const allPermissions = new Set()
+  Object.values(ROLE_PERMISSIONS).forEach(rolePermissions => {
+    rolePermissions.forEach(permission => allPermissions.add(permission))
+  })
 
-  allPermissions.forEach((permission) => {
+  // Initialize all available permissions to false
+  Array.from(allPermissions).forEach((permission) => {
     permissionObject[permission] = false
   })
 

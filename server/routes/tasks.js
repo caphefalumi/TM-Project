@@ -94,45 +94,55 @@ const addTaskToUsers = async (req, res) => {
     // Generate a unique group ID for this batch of tasks
     const taskGroupId = `task-group-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
 
+    // Basic validation
     if (
-      !assignedUsers ||
+      !Array.isArray(assignedUsers) ||
+      assignedUsers.length === 0 ||
       !teamId ||
       !title ||
       !category ||
       !priority ||
+      weighted === undefined ||
       !startDate ||
       !dueDate ||
-      weighted === undefined ||
       !design
     ) {
-      console.log('Missing required fields:', {
-        assignedUsers,
-        teamId,
-        title,
-        category,
-        priority,
-        startDate,
-        dueDate,
-        weighted,
-        design,
+      return res.status(400).json({
+        message:
+          'Missing required fields: assignedUsers[], teamId, title, category, priority, weighted, startDate, dueDate, and design are required',
       })
-      return res.status(400).json({ message: 'Missing required fields' })
     }
-    // assignedUsers is an array of user IDs
-    // design is an array of fields
-    if (!Array.isArray(assignedUsers) || assignedUsers.length === 0) {
-      return res.status(400).json({ message: 'Assigned users must be a non-empty array' })
+
+    // Validate date fields
+    const start = new Date(startDate)
+    const due = new Date(dueDate)
+    if (isNaN(start) || isNaN(due)) {
+      return res.status(400).json({ message: 'Invalid startDate or dueDate' })
     }
-    // Check if the team exists
+
+    // Validate design format
+    if (!design.fields || !Array.isArray(design.fields)) {
+      return res.status(400).json({ message: 'Invalid design format. Must contain fields array' })
+    }
+
+    // Check if the team exists first
     const teamExists = await Teams.exists({ _id: teamId })
     if (!teamExists) {
       return res.status(404).json({ message: 'Team not found' })
     }
+
     // Check if all assigned users are part of the team
     const usersOfTeam = await UsersOfTeam.find({ teamId, userId: { $in: assignedUsers } })
-    if (usersOfTeam.length !== assignedUsers.length) {
-      return res.status(404).json({ message: 'Some assigned users are not part of the team' })
+    const foundIds = usersOfTeam.map((u) => u.userId.toString())
+    const missingUsers = assignedUsers.filter((u) => !foundIds.includes(u.toString()))
+
+    if (missingUsers.length > 0) {
+      return res.status(404).json({
+        message: 'Some assigned users are not part of the team',
+        missingUsers,
+      })
     }
+
     // Create tasks for each assigned user
     const tasks = assignedUsers.map((userId) => ({
       userId,
@@ -145,25 +155,29 @@ const addTaskToUsers = async (req, res) => {
       tags,
       priority,
       weighted,
-      startDate: new Date(startDate), // Convert to Date object
-      dueDate: new Date(dueDate),
+      startDate: start,
+      dueDate: due,
     }))
+
     // Insert all tasks into the database
     const newTasks = await Tasks.insertMany(tasks)
-    if (newTasks.length === 0) {
+
+    if (!newTasks || newTasks.length === 0) {
       return res.status(500).json({ message: 'Failed to add tasks' })
     }
-    console.log('Tasks added successfully:', newTasks)
+
     return res.status(201).json({
       message: 'Tasks added successfully',
       taskGroupId, // Return the group ID for frontend reference
       tasksCreated: newTasks.length,
+      tasks: newTasks
     })
   } catch (error) {
     console.error('Error adding task:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
 
 const submitATask = async (req, res) => {
   // Submit a task by marking a task as submitted and creating a TaskSubmission record

@@ -253,6 +253,7 @@ const fetchTeamDetails = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -1229,7 +1230,7 @@ const taskFilterOptions = [
       </v-window-item>
 
       <!-- Management Tab -->
-      <v-window-item value="roles" v-if="canManageMembers || canManageRoles">
+      <v-window-item value="roles" v-if="canManageMembers || isAdmin()">
         <RoleManagementTabs
           :teamId="teamId"
           :userProps="user"
