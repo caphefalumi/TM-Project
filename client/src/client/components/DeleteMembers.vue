@@ -83,6 +83,7 @@ const removeMembers = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: sends refresh token cookie
       body: JSON.stringify(membersToRemove),
     })
 
