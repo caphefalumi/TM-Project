@@ -8,11 +8,12 @@ const router = express.Router()
 
 router.post(
   '/create',
-  requirePermission('CREATE_TASK_GROUPS'),
+  authenticateAccessToken,
+  requirePermission('MANAGE_TASKS'),
   addTaskToUsers,
 )
-router.post('/submit', submitATask)
-router.get('/submission/:taskId', getTaskSubmission)
+router.post('/submit', authenticateAccessToken, submitATask)
+router.get('/submission/:taskId', authenticateAccessToken, getTaskSubmission)
 router.get('/:userId', getTasksOfAUser)
 // Metadata
 

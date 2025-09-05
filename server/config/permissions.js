@@ -1,4 +1,4 @@
-// Centralized permissions configuration that matches the frontend
+// Centralized permissions configuration
 export const PERMISSIONS = {
   // Task permissions
   MANAGE_TASKS: 'canManageTasks',
@@ -13,32 +13,27 @@ export const PERMISSIONS = {
   REMOVE_MEMBERS: 'canRemoveMembers',
 }
 
+// Membership permissions (own dictionary)
+export const MEMBERSHIP_PERMISSIONS = {
+  VIEW_TEAM: 'canViewTeam',
+  VIEW_TASKS: 'canViewTasks',
+  VIEW_ANNOUNCEMENTS: 'canViewAnnouncements',
+  VIEW_MEMBERS: 'canViewMembers',
+  VIEW_TASK_GROUPS: 'canViewTaskGroups',
+  SUBMIT_TASKS: 'canSubmitTasks',
+}
+
 // Define role-based default permissions
 export const ROLE_PERMISSIONS = {
   Admin: [
-    'canViewTeam',
-    'canViewTasks', 
-    'canViewAnnouncements',
-    'canViewMembers',
-    'canViewTaskGroups',
-    'canSubmitTasks',
-    'canManageTasks',
-    'canDeleteTasks',
+    ...Object.values(MEMBERSHIP_PERMISSIONS),
+    ...Object.values(PERMISSIONS),
     'canAssignTasks',
-    'canManageAnnouncements',
-    'canDeleteAnnouncements',
-    'canAddMembers',
-    'canRemoveMembers',
     'canDeleteTeams',
     'canCreateSubTeams',
-    'canManageCustomRoles'
+    'canManageCustomRoles',
   ],
   Member: [
-    'canViewTeam',
-    'canViewTasks',
-    'canViewAnnouncements', 
-    'canViewMembers',
-    'canViewTaskGroups',
-    'canSubmitTasks'
-  ]
+    ...Object.values(MEMBERSHIP_PERMISSIONS),
+  ],
 }
