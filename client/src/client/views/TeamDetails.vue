@@ -49,6 +49,10 @@ const team = ref({
 })
 
 const userLoaded = ref(false)
+const isLoadingTasks = ref(true)
+const isLoadingAnnouncements = ref(true)
+const isLoadingMembers = ref(true)
+const isLoadingTeamDetails = ref(true)
 const newTaskDialog = ref(false)
 const roleUpdateTrigger = ref(0)
 
@@ -105,6 +109,12 @@ const allowCustomRoleSelection = computed(() => canCustomizeRolesForNewMembers()
 
 // Function to initialize/reload team data
 const initializeTeamData = async () => {
+  // Set all loading states to true
+  isLoadingTasks.value = true
+  isLoadingAnnouncements.value = true
+  isLoadingMembers.value = true
+  isLoadingTeamDetails.value = true
+
   const userFromToken = await getUserByAccessToken()
   if (userFromToken) {
     setUserToUserToken(userFromToken)
@@ -220,6 +230,7 @@ const updateRoleFlags = () => {
 
 const fetchTeamTasks = async () => {
   try {
+    isLoadingTasks.value = true
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
       // '/api/teams/:teamId/:userId/tasks'
@@ -245,11 +256,14 @@ const fetchTeamTasks = async () => {
   } catch (error) {
     console.error('Failed to fetch team tasks:', error)
     tasks.value = []
+  } finally {
+    isLoadingTasks.value = false
   }
 }
 
 const fetchTeamDetails = async () => {
   try {
+    isLoadingTeamDetails.value = true
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
       method: 'GET',
@@ -269,11 +283,14 @@ const fetchTeamDetails = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch team details:', error)
+  } finally {
+    isLoadingTeamDetails.value = false
   }
 }
 
 const fetchAnnouncements = async () => {
   try {
+    isLoadingAnnouncements.value = true
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}/announcements`, {
       method: 'GET',
@@ -293,11 +310,14 @@ const fetchAnnouncements = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch announcements:', error)
+  } finally {
+    isLoadingAnnouncements.value = false
   }
 }
 
 const fetchTeamMembers = async () => {
   try {
+    isLoadingMembers.value = true
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}/users`, {
       method: 'GET',
@@ -316,11 +336,14 @@ const fetchTeamMembers = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch team members:', error)
+  } finally {
+    isLoadingMembers.value = false
   }
 }
 
 // Handle roles updated - refresh team members and update role trigger for NewMembers
 const handleRolesUpdated = async () => {
+  isLoadingMembers.value = true
   await fetchTeamMembers()
   roleUpdateTrigger.value += 1 // Increment trigger to update role list in NewMembers
 }
@@ -553,19 +576,117 @@ const taskFilterOptions = [
 </script>
 
 <template>
-  <v-container fluid v-if="userLoaded">
-    <!-- Header with back button -->
-    <v-row class="align-center">
-      <v-col cols="auto">
-        <v-btn icon @click="goBackToTeams" variant="text">
-          <v-icon>mdi-arrow-left</v-icon>
-        </v-btn>
-      </v-col>
-      <v-col>
-        <h1 class="text-h4 font-weight-bold">{{ team.title }}</h1>
-        <p class="text-grey">{{ team.description }}</p>
-      </v-col>
-    </v-row>
+  <v-container fluid>
+    <!-- Loading state for entire page -->
+    <div v-if="!userLoaded">
+      <!-- Header skeleton -->
+      <v-row class="align-center">
+        <v-col cols="auto">
+          <v-skeleton-loader
+            type="button"
+            width="40px"
+            height="40px"
+          ></v-skeleton-loader>
+        </v-col>
+        <v-col>
+          <v-skeleton-loader
+            type="heading"
+            width="300px"
+            class="mb-2"
+          ></v-skeleton-loader>
+          <v-skeleton-loader
+            type="text"
+            width="400px"
+          ></v-skeleton-loader>
+        </v-col>
+      </v-row>
+
+      <!-- Tabs skeleton -->
+      <v-row class="align-center mb-6 mt-6">
+        <v-col cols="12">
+          <v-skeleton-loader
+            type="chip@5"
+            class="mb-4"
+          ></v-skeleton-loader>
+          <v-row class="mt-4">
+            <v-col cols="12" md="6" lg="4">
+              <v-skeleton-loader
+                type="button"
+                height="56px"
+                class="w-100"
+              ></v-skeleton-loader>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+
+      <!-- Content skeleton -->
+      <v-row>
+        <v-col v-for="n in 6" :key="`skeleton-${n}`" cols="12" md="6" lg="4">
+          <v-card class="mb-4 elevation-2">
+            <v-card-item>
+              <v-skeleton-loader
+                type="list-item-two-line"
+              ></v-skeleton-loader>
+            </v-card-item>
+            <v-card-text>
+              <v-skeleton-loader
+                type="paragraph"
+              ></v-skeleton-loader>
+              <v-skeleton-loader
+                type="text"
+                width="100px"
+                class="mb-2"
+              ></v-skeleton-loader>
+              <div class="d-flex justify-space-between">
+                <v-skeleton-loader
+                  type="text"
+                  width="80px"
+                ></v-skeleton-loader>
+                <v-skeleton-loader
+                  type="text"
+                  width="80px"
+                ></v-skeleton-loader>
+              </div>
+            </v-card-text>
+            <v-card-actions>
+              <v-skeleton-loader
+                type="chip"
+                width="100px"
+              ></v-skeleton-loader>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- Actual content when loaded -->
+    <div v-else>
+      <!-- Header with back button -->
+      <v-row class="align-center">
+        <v-col cols="auto">
+          <v-btn icon @click="goBackToTeams" variant="text">
+            <v-icon>mdi-arrow-left</v-icon>
+          </v-btn>
+        </v-col>
+        <v-col>
+          <div v-if="isLoadingTeamDetails">
+            <v-skeleton-loader
+              type="heading"
+              width="300px"
+              class="mb-2"
+            ></v-skeleton-loader>
+            <v-skeleton-loader
+              type="text"
+              width="400px"
+            ></v-skeleton-loader>
+          </div>
+          <div v-else>
+            <h1 class="text-h4 font-weight-bold">{{ team.title }}</h1>
+            <p class="text-grey">{{ team.description }}</p>
+          </div>
+        </v-col>
+      </v-row>
 
     <!-- New Tasks Dialog -->
     <NewTasks
@@ -768,57 +889,147 @@ const taskFilterOptions = [
     <v-window v-model="activeTab">
       <!-- Tasks Tab -->
       <v-window-item value="tasks">
-        <!-- Tasks Header and Controls -->
-        <v-row v-if="userLoaded">
-          <v-col cols="12">
-            <div class="d-flex align-center justify-space-between mb-4">
-              <h2 class="text-h5">Your Tasks ({{ filteredAndSortedTasks.length }})</h2>
-            </div>
-          </v-col>
+        <!-- Loading State for Tasks -->
+        <div v-if="isLoadingTasks">
+          <!-- Header skeleton -->
+          <v-row>
+            <v-col cols="12">
+              <v-skeleton-loader
+                type="heading"
+                width="200px"
+                class="mb-4"
+              ></v-skeleton-loader>
+            </v-col>
 
-          <!-- Search and Filter Controls -->
-          <v-col cols="12">
-            <v-row>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="taskSearchQuery"
-                  label="Search by task name"
-                  placeholder="e.g., Project Report"
-                  prepend-inner-icon="mdi-magnify"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  hide-details
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="taskTagSearchQuery"
-                  label="Search by tags"
-                  placeholder="e.g., urgent development"
-                  prepend-inner-icon="mdi-tag-multiple"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  hide-details
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-select
-                  v-model="taskFilterType"
-                  :items="taskFilterOptions"
-                  label="Filter tasks"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                ></v-select>
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
+            <!-- Search controls skeleton -->
+            <v-col cols="12">
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-skeleton-loader
+                    type="text-field"
+                    height="40px"
+                  ></v-skeleton-loader>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-skeleton-loader
+                    type="text-field"
+                    height="40px"
+                  ></v-skeleton-loader>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-skeleton-loader
+                    type="text-field"
+                    height="40px"
+                  ></v-skeleton-loader>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
 
-        <!-- Tasks Grid -->
-        <v-row v-if="paginatedTasks.length > 0 && userLoaded">
+          <!-- Tasks skeleton grid -->
+          <v-row>
+            <v-col v-for="n in 6" :key="`task-skeleton-${n}`" cols="12" md="6" lg="4">
+              <v-card class="mb-4 elevation-2">
+                <v-card-item>
+                  <v-skeleton-loader
+                    type="list-item-two-line"
+                  ></v-skeleton-loader>
+                  <div class="d-flex gap-2 mt-2">
+                    <v-skeleton-loader
+                      type="chip"
+                      width="60px"
+                    ></v-skeleton-loader>
+                    <v-skeleton-loader
+                      type="chip"
+                      width="80px"
+                    ></v-skeleton-loader>
+                  </div>
+                </v-card-item>
+                <v-card-text>
+                  <v-skeleton-loader
+                    type="paragraph"
+                    max-width="100%"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="text"
+                    width="100px"
+                    class="mb-2"
+                  ></v-skeleton-loader>
+                  <div class="d-flex justify-space-between">
+                    <v-skeleton-loader
+                      type="text"
+                      width="80px"
+                    ></v-skeleton-loader>
+                    <v-skeleton-loader
+                      type="text"
+                      width="80px"
+                    ></v-skeleton-loader>
+                  </div>
+                </v-card-text>
+                <v-card-actions>
+                  <v-skeleton-loader
+                    type="chip"
+                    width="100px"
+                  ></v-skeleton-loader>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Actual Tasks Content -->
+        <div v-else>
+          <!-- Tasks Header and Controls -->
+          <v-row v-if="userLoaded">
+            <v-col cols="12">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <h2 class="text-h5">Your Tasks ({{ filteredAndSortedTasks.length }})</h2>
+              </div>
+            </v-col>
+
+            <!-- Search and Filter Controls -->
+            <v-col cols="12">
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="taskSearchQuery"
+                    label="Search by task name"
+                    placeholder="e.g., Project Report"
+                    prepend-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    hide-details
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="taskTagSearchQuery"
+                    label="Search by tags"
+                    placeholder="e.g., urgent development"
+                    prepend-inner-icon="mdi-tag-multiple"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    hide-details
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-select
+                    v-model="taskFilterType"
+                    :items="taskFilterOptions"
+                    label="Filter tasks"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                  ></v-select>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
+
+          <!-- Tasks Grid -->
+          <v-row v-if="paginatedTasks.length > 0 && userLoaded">
           <v-col v-for="task in paginatedTasks" :key="task._id" cols="12" md="6" lg="4">
             <v-card class="mb-4 elevation-2 project-card" @click="submitTask(task._id)">
               <v-card-item>
@@ -890,30 +1101,190 @@ const taskFilterOptions = [
             <v-alert type="info" class="text-center"> No tasks found. </v-alert>
           </v-col>
         </v-row>
+        </div>
       </v-window-item>
 
       <!-- Manage Tab -->
       <v-window-item value="task-groups" v-if="canManageTaskGroups">
-        <v-row>
-          <v-col cols="12">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <h2 class="text-h5 mb-4">Manage Team - Task Groups</h2>
-              <v-btn
-                color="primary"
-                variant="outlined"
-                size="small"
-                @click="getTaskGroups"
-                :loading="refreshingTaskGroups"
-              >
-                <v-icon start>mdi-refresh</v-icon>
-                Refresh
-              </v-btn>
-            </div>
-          </v-col>
-        </v-row>
+        <!-- Loading State for Task Groups -->
+        <div v-if="refreshingTaskGroups">
+          <v-row>
+            <v-col cols="12">
+              <div class="d-flex align-center justify-space-between mb-3">
+                <v-skeleton-loader
+                  type="heading"
+                  width="300px"
+                ></v-skeleton-loader>
+                <v-skeleton-loader
+                  type="button"
+                  width="100px"
+                  height="32px"
+                ></v-skeleton-loader>
+              </div>
+            </v-col>
+          </v-row>
 
-        <!-- Task Groups Overview -->
-        <v-row v-if="taskGroups.length > 0">
+          <!-- Overview skeleton -->
+          <v-row>
+            <v-col cols="12">
+              <v-card class="mb-4" variant="outlined">
+                <v-card-title class="d-flex align-center">
+                  <v-skeleton-loader
+                    type="text"
+                    width="200px"
+                  ></v-skeleton-loader>
+                </v-card-title>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="6" md="3" v-for="n in 4" :key="`overview-skeleton-${n}`">
+                      <v-card class="text-center pa-3" variant="tonal">
+                        <v-card-title>
+                          <v-skeleton-loader
+                            type="text"
+                            width="40px"
+                            class="mx-auto"
+                          ></v-skeleton-loader>
+                        </v-card-title>
+                        <v-card-subtitle>
+                          <v-skeleton-loader
+                            type="text"
+                            width="80px"
+                            class="mx-auto"
+                          ></v-skeleton-loader>
+                        </v-card-subtitle>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- Task groups skeleton -->
+          <v-row>
+            <v-col cols="12">
+              <v-skeleton-loader
+                type="heading"
+                width="150px"
+                class="mb-3"
+              ></v-skeleton-loader>
+            </v-col>
+            <v-col v-for="n in 6" :key="`taskgroup-skeleton-${n}`" cols="12" md="6" lg="4">
+              <v-card class="mb-4 elevation-2" variant="outlined">
+                <v-card-item>
+                  <v-card-title class="d-flex align-center">
+                    <v-skeleton-loader
+                      type="text"
+                      width="200px"
+                    ></v-skeleton-loader>
+                    <v-spacer></v-spacer>
+                    <v-skeleton-loader
+                      type="chip"
+                      width="60px"
+                    ></v-skeleton-loader>
+                  </v-card-title>
+                  <v-skeleton-loader
+                    type="text"
+                    width="150px"
+                    class="mb-1"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="text"
+                    width="120px"
+                  ></v-skeleton-loader>
+                </v-card-item>
+
+                <v-card-text>
+                  <!-- Progress skeleton -->
+                  <div class="mb-3">
+                    <div class="d-flex justify-space-between mb-1">
+                      <v-skeleton-loader
+                        type="text"
+                        width="60px"
+                        height="12px"
+                      ></v-skeleton-loader>
+                      <v-skeleton-loader
+                        type="text"
+                        width="30px"
+                        height="12px"
+                      ></v-skeleton-loader>
+                    </div>
+                    <v-skeleton-loader
+                      type="divider"
+                      height="8px"
+                      class="rounded"
+                    ></v-skeleton-loader>
+                  </div>
+
+                  <!-- Statistics skeleton -->
+                  <v-row class="text-center">
+                    <v-col cols="6">
+                      <v-skeleton-loader
+                        type="text"
+                        width="30px"
+                        class="mx-auto mb-1"
+                      ></v-skeleton-loader>
+                      <v-skeleton-loader
+                        type="text"
+                        width="60px"
+                        class="mx-auto"
+                        height="12px"
+                      ></v-skeleton-loader>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-skeleton-loader
+                        type="text"
+                        width="30px"
+                        class="mx-auto mb-1"
+                      ></v-skeleton-loader>
+                      <v-skeleton-loader
+                        type="text"
+                        width="60px"
+                        class="mx-auto"
+                        height="12px"
+                      ></v-skeleton-loader>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-skeleton-loader
+                    type="button"
+                    width="80px"
+                  ></v-skeleton-loader>
+                  <v-spacer></v-spacer>
+                  <v-skeleton-loader
+                    type="chip"
+                    width="80px"
+                  ></v-skeleton-loader>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Actual Task Groups Content -->
+        <div v-else>
+          <v-row>
+            <v-col cols="12">
+              <div class="d-flex align-center justify-space-between mb-3">
+                <h2 class="text-h5 mb-4">Manage Team - Task Groups</h2>
+                <v-btn
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  @click="getTaskGroups"
+                  :loading="refreshingTaskGroups"
+                >
+                  <v-icon start>mdi-refresh</v-icon>
+                  Refresh
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Task Groups Overview -->
+          <v-row v-if="taskGroups.length > 0">
           <v-col cols="12">
             <v-card class="mb-4" variant="outlined">
               <v-card-title class="d-flex align-center">
@@ -1066,24 +1437,95 @@ const taskFilterOptions = [
             </v-card>
           </v-col>
         </v-row>
+        </div>
       </v-window-item>
 
       <!-- Announcements Tab -->
       <v-window-item value="announcements">
-        <v-row>
-          <v-col cols="12">
-            <h2 class="text-h5 mb-4">Team Announcements</h2>
-            <v-card v-if="announcements.length == 0" class="mb-4">
-              <v-card-text>
-                <p class="text-center text-grey">No announcements yet.</p>
-              </v-card-text>
-            </v-card>
-            <v-card
-              v-for="announcement in announcements"
-              :key="announcement._id"
-              class="mb-4 elevation-2"
-              variant="outlined"
-            >
+        <!-- Loading State for Announcements -->
+        <div v-if="isLoadingAnnouncements">
+          <v-row>
+            <v-col cols="12">
+              <v-skeleton-loader
+                type="heading"
+                width="250px"
+                class="mb-4"
+              ></v-skeleton-loader>
+            </v-col>
+          </v-row>
+
+          <!-- Announcement skeletons -->
+          <v-row>
+            <v-col cols="12" v-for="n in 3" :key="`announcement-skeleton-${n}`">
+              <v-card class="mb-4 elevation-2" variant="outlined">
+                <v-card-item>
+                  <v-skeleton-loader
+                    type="list-item"
+                    class="mb-2"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="heading"
+                    width="300px"
+                    class="mb-1"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="text"
+                    width="200px"
+                    class="mb-1"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="text"
+                    width="150px"
+                  ></v-skeleton-loader>
+                </v-card-item>
+                <v-card-text>
+                  <v-skeleton-loader
+                    type="paragraph"
+                    max-width="100%"
+                  ></v-skeleton-loader>
+                </v-card-text>
+                <v-card-actions>
+                  <v-skeleton-loader
+                    type="button"
+                    width="80px"
+                    class="mr-2"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="button"
+                    width="100px"
+                  ></v-skeleton-loader>
+                  <v-spacer></v-spacer>
+                  <v-skeleton-loader
+                    type="button"
+                    width="60px"
+                    class="mr-2"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="button"
+                    width="70px"
+                  ></v-skeleton-loader>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Actual Announcements Content -->
+        <div v-else>
+          <v-row>
+            <v-col cols="12">
+              <h2 class="text-h5 mb-4">Team Announcements</h2>
+              <v-card v-if="announcements.length == 0" class="mb-4">
+                <v-card-text>
+                  <p class="text-center text-grey">No announcements yet.</p>
+                </v-card-text>
+              </v-card>
+              <v-card
+                v-for="announcement in announcements"
+                :key="announcement._id"
+                class="mb-4 elevation-2"
+                variant="outlined"
+              >
               <v-card-item>
                 <v-card-title>Author: {{ announcement.createdByUsername }} </v-card-title>
                 <v-card-title class="font-weight-bold">{{ announcement.title }}</v-card-title>
@@ -1133,28 +1575,69 @@ const taskFilterOptions = [
             </v-card>
           </v-col>
         </v-row>
+        </div>
       </v-window-item>
 
       <!-- Members Tab -->
       <v-window-item value="members">
-        <v-row>
-          <v-col cols="12">
-            <div class="d-flex align-center justify-space-between mb-4">
-              <h2 class="text-h5">Team Members ({{ filteredMembers.length }})</h2>
-            </div>
+        <!-- Loading State for Members -->
+        <div v-if="isLoadingMembers">
+          <v-row>
+            <v-col cols="12">
+              <v-skeleton-loader
+                type="heading"
+                width="200px"
+                class="mb-4"
+              ></v-skeleton-loader>
 
-            <!-- Search Box -->
-            <v-text-field
-              v-model="memberSearchQuery"
-              label="Search members..."
-              placeholder="Search by username or #role (e.g., #admin, #the-pro)"
-              prepend-inner-icon="mdi-magnify"
-              variant="outlined"
-              density="compact"
-              clearable
-              hide-details
-              class="mb-4"
-            >
+              <!-- Search box skeleton -->
+              <v-skeleton-loader
+                type="text-field"
+                height="40px"
+                class="mb-4"
+              ></v-skeleton-loader>
+            </v-col>
+          </v-row>
+
+          <!-- Members skeleton grid -->
+          <v-row>
+            <v-col v-for="n in 8" :key="`member-skeleton-${n}`" cols="12" md="4">
+              <v-card class="mb-2" variant="outlined">
+                <v-card-item>
+                  <v-skeleton-loader
+                    type="list-item"
+                    class="mb-2"
+                  ></v-skeleton-loader>
+                  <v-skeleton-loader
+                    type="chip"
+                    width="80px"
+                  ></v-skeleton-loader>
+                </v-card-item>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Actual Members Content -->
+        <div v-else>
+          <v-row>
+            <v-col cols="12">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <h2 class="text-h5">Team Members ({{ filteredMembers.length }})</h2>
+              </div>
+
+              <!-- Search Box -->
+              <v-text-field
+                v-model="memberSearchQuery"
+                label="Search members..."
+                placeholder="Search by username or #role (e.g., #admin, #the-pro)"
+                prepend-inner-icon="mdi-magnify"
+                variant="outlined"
+                density="compact"
+                clearable
+                hide-details
+                class="mb-4"
+              >
               <template v-slot:append-inner>
                 <v-tooltip location="top">
                   <template v-slot:activator="{ props }">
@@ -1227,6 +1710,7 @@ const taskFilterOptions = [
             </v-card>
           </v-col>
         </v-row>
+        </div>
       </v-window-item>
 
       <!-- Management Tab -->
@@ -1239,6 +1723,7 @@ const taskFilterOptions = [
         />
       </v-window-item>
     </v-window>
+    </div>
   </v-container>
 </template>
 
@@ -1291,5 +1776,25 @@ const taskFilterOptions = [
 /* Staggered animation for multiple items */
 .scroll-x-move {
   transition: transform 0.6s ease;
+}
+
+/* Skeleton Loading Styles */
+.v-skeleton-loader {
+  background: transparent;
+}
+
+.v-skeleton-loader .v-skeleton-loader__bone {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>
