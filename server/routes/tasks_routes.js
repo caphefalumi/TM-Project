@@ -8,7 +8,6 @@ const router = express.Router()
 
 router.post(
   '/create',
-  authenticateAccessToken,
   requirePermission('CREATE_TASK_GROUPS'),
   addTaskToUsers,
 )
