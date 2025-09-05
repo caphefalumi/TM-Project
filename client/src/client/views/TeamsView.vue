@@ -174,7 +174,7 @@ const getProgressColor = (percentage) => {
   <!-- Main content area -->
 
   <v-container fluid>
-    <v-row class="align-center mb-6">
+    <v-row id="tour-teams-overview" class="align-center mb-6">
       <v-col justify="center" cols="12">
         <div v-if="!userLoaded">
           <v-skeleton-loader
@@ -202,7 +202,7 @@ const getProgressColor = (percentage) => {
       </v-col>
     </v-row>
 
-    <v-row justify="center">
+    <v-row id="tour-team-options" justify="center">
       <v-col cols="12" md="4">
         <v-card
           class="mb-4 project-card rounded-lg"
@@ -259,7 +259,7 @@ const getProgressColor = (percentage) => {
     </v-row>
 
     <!-- Search Bar -->
-    <v-row v-if="!isLoadingTeams && userTeams.length > 0" justify="center" class="mb-4">
+    <v-row id="tour-team-search" v-if="!isLoadingTeams && userTeams.length > 0" justify="center" class="mb-4">
       <v-col cols="12" md="6" lg="4">
         <v-text-field
           v-model="searchQuery"
@@ -367,6 +367,7 @@ const getProgressColor = (percentage) => {
                 :style="{ 'transition-delay': `${index * 75}ms` }"
               >
                 <v-card
+                  id="tour-team-card"
                   class="team-card rounded-lg elevation-1 flex-fill"
                   flat
                   @click="navigateToTeam(team.teamId)"

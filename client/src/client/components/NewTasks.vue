@@ -343,6 +343,7 @@ const getFieldPreviewValue = (field) => {
 
 <template>
   <v-dialog
+    id="tour-new-task-dialog"
     :model-value="props.dialog"
     @update:model-value="closeDialog"
     max-width="1400px"
@@ -359,7 +360,7 @@ const getFieldPreviewValue = (field) => {
       <v-card-text class="pa-0">
         <v-row no-gutters class="fill-height">
           <!-- Left Side - Task Creation Form -->
-          <v-col cols="6" class="pa-4 border-end">
+          <v-col id="tour-task-form" cols="6" class="pa-4 border-end">
             <div class="task-creation-side">
               <h3 class="text-h6 mb-4">Task Details</h3>
 
@@ -708,7 +709,7 @@ const getFieldPreviewValue = (field) => {
           </v-col>
 
           <!-- Right Side - Preview -->
-          <v-col cols="6" class="pa-4 bg-grey-lighten-5">
+          <v-col id="tour-task-preview" cols="6" class="pa-4 bg-grey-lighten-5">
             <div class="task-preview-side">
               <h3 class="text-h6 mb-4">Task Preview</h3>
 

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
+import { startAppTour } from '../scripts/tour.js'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -94,16 +95,16 @@ const getTaskIcon = (task) => {
 // Filtered and sorted tasks
 const filteredAndSortedTasks = computed(() => {
   let filtered = [...tasks.value]
-  
+
   // Apply filters
   if (filters.value.submitted) {
     filtered = filtered.filter(task => task.submitted === true)
   }
-  
+
   if (filters.value.highPriority) {
     filtered = filtered.filter(task => task.priority === 'High' || task.priority === 'Urgent')
   }
-  
+
   if (filters.value.pending) {
     const currentDate = new Date()
     filtered = filtered.filter(task => {
@@ -112,11 +113,11 @@ const filteredAndSortedTasks = computed(() => {
       return !task.submitted && currentDate >= startDate && currentDate <= dueDate
     })
   }
-  
+
   // Apply sorting
   filtered.sort((a, b) => {
     let aValue, bValue
-    
+
     switch (sortBy.value) {
       case 'priority':
         aValue = getPriorityValue(a.priority)
@@ -137,14 +138,14 @@ const filteredAndSortedTasks = computed(() => {
       default:
         return 0
     }
-    
+
     if (sortOrder.value === 'desc') {
       return bValue > aValue ? 1 : bValue < aValue ? -1 : 0
     } else {
       return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
     }
   })
-  
+
   return filtered
 })
 
@@ -226,12 +227,22 @@ const toggleSortOrder = () => {
 <template>
   <v-container fluid class="pa-6">
     <!-- Header Section -->
-    <v-row class="align-center mb-6">
+    <v-row id="tour-dashboard-welcome" class="align-center mb-6">
       <v-col cols="12" md="8">
         <h1 class="text-h4 font-weight-bold">Hi, {{ user.username }}!</h1>
         <p class="text-h6 text-grey">Here's your task overview and calendar</p>
       </v-col>
       <v-col cols="12" md="4" class="text-right">
+        <v-btn
+          @click="() => startAppTour(router)"
+          color="success"
+          size="large"
+          variant="outlined"
+          class="mr-2"
+        >
+          <v-icon start>mdi-map-marker-path</v-icon>
+          Start Tour
+        </v-btn>
         <v-btn
           @click="fetchTasks"
           :loading="loading"
@@ -246,7 +257,7 @@ const toggleSortOrder = () => {
     </v-row>
 
     <!-- Task Statistics Cards -->
-    <v-row class="mb-6">
+    <v-row id="tour-task-stats" class="mb-6">
       <v-col cols="6" md="3">
         <v-card class="text-center pa-4" color="primary" variant="tonal">
           <v-card-title class="text-h3 font-weight-bold">{{ taskStats.total }}</v-card-title>
@@ -274,7 +285,7 @@ const toggleSortOrder = () => {
     </v-row>
 
     <!-- Progress Overview -->
-    <v-row class="mb-6">
+    <v-row id="tour-progress-overview" class="mb-6">
       <v-col cols="12">
         <v-card variant="outlined">
           <v-card-title class="d-flex align-center">
@@ -303,7 +314,7 @@ const toggleSortOrder = () => {
     <!-- Calendar Section -->
     <v-row>
       <v-col cols="12">
-        <v-card variant="outlined">
+        <v-card id="tour-tasks-table" variant="outlined">
           <v-card-title class="pb-2">
             <v-container fluid class="pa-0">
               <v-row class="align-center">
@@ -314,10 +325,10 @@ const toggleSortOrder = () => {
                     Tasks Table
                   </div>
                 </v-col>
-                
+
                 <!-- Filter and Sort Controls -->
                 <v-col cols="12" md="6">
-                  <div class="d-flex align-center gap-2 justify-end justify-md-end">
+                  <div id="tour-task-filters" class="d-flex align-center gap-2 justify-end justify-md-end">
                     <!-- Filter Section -->
                     <v-menu :close-on-content-click="false">
                       <template v-slot:activator="{ props }">
@@ -381,7 +392,7 @@ const toggleSortOrder = () => {
                       hide-details
                       style="min-width: 130px; max-width: 150px;"
                     ></v-select>
-                    
+
                     <v-btn
                       @click="toggleSortOrder"
                       variant="outlined"
@@ -418,7 +429,7 @@ const toggleSortOrder = () => {
                 :items="filteredAndSortedTasks"
                 class="tasks-table"
                 hide-default-footer
-                :items-per-page="-1" 
+                :items-per-page="-1"
               >
                 <!-- Showing all tasks in the table -->
                 <!-- Title Column -->
@@ -606,11 +617,11 @@ const toggleSortOrder = () => {
     flex-wrap: wrap;
     gap: 8px !important;
   }
-  
+
   .gap-2 > * + * {
     margin-left: 0;
   }
-  
+
   .justify-end {
     justify-content: flex-start !important;
   }

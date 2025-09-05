@@ -294,7 +294,7 @@ const registerWithOAuth = async () => {
   <v-container class="fill-height" fluid>
     <v-row align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
-        <v-card class="pa-6" elevation="8">
+        <v-card id="tour-login-form" class="pa-6" elevation="8">
           <v-card-title class="text-h5 text-center position-relative mb-2">
             <v-btn
               icon

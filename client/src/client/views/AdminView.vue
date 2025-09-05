@@ -322,7 +322,7 @@ const getBreadcrumbs = (team) => {
     <v-container fluid>
       <v-row>
         <v-col cols="12">
-          <h1 class="text-h4 mb-4">
+          <h1 id="tour-admin-panel" class="text-h4 mb-4">
             <v-icon class="mr-2">mdi-shield-crown</v-icon>
             Admin Panel
           </h1>
@@ -334,15 +334,15 @@ const getBreadcrumbs = (team) => {
 
           <!-- Tabs -->
           <v-tabs v-model="currentTab" class="mb-4">
-            <v-tab value="teams">
+            <v-tab id="tour-admin-teams" value="teams">
               <v-icon class="mr-2">mdi-briefcase-variant</v-icon>
               Teams ({{ teams.length }})
             </v-tab>
-            <v-tab value="users">
+            <v-tab id="tour-admin-users" value="users">
               <v-icon class="mr-2">mdi-account-group</v-icon>
               Users ({{ users.length }})
             </v-tab>
-            <v-tab value="announcements">
+            <v-tab id="tour-admin-announcements" value="announcements">
               <v-icon class="mr-2">mdi-bullhorn</v-icon>
               Announcements ({{ announcements.length }})
             </v-tab>
