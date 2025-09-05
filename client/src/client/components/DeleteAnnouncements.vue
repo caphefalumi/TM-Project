@@ -17,6 +17,7 @@ const deleteAnnouncement = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: sends refresh token cookie
     })
 
     const result = await response.json()
