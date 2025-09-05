@@ -13,6 +13,7 @@ const router = useRouter()
 const userLoaded = ref(false)
 const teamsThatUserIsAdmin = ref([])
 const userTeams = ref([])
+const isLoadingTeams = ref(true)
 
 // --- User State ---
 const user = ref({
@@ -23,14 +24,17 @@ const user = ref({
 
 onMounted(async () => {
   userLoaded.value = false
+  isLoadingTeams.value = true
   const userFromToken = await getUserByAccessToken()
   if (userFromToken) {
     setUserToUserToken(userFromToken)
     await getTeamThatUserIsAdmin()
     await fetchUserTeams()
     userLoaded.value = true
+    isLoadingTeams.value = false
   } else {
     user.value.username = 'Guest'
+    isLoadingTeams.value = false
   }
 })
 
@@ -134,8 +138,10 @@ const fetchUserTeams = async () => {
 }
 
 const handleTeamUpdated = async () => {
+  isLoadingTeams.value = true
   await getTeamThatUserIsAdmin()
   await fetchUserTeams()
+  isLoadingTeams.value = false
 }
 
 const navigateToTeam = (teamId) => {
@@ -170,8 +176,21 @@ const getProgressColor = (percentage) => {
   <v-container fluid>
     <v-row class="align-center mb-6">
       <v-col justify="center" cols="12">
-        <h1 class="text-h4 welcome-header">Welcome Back, {{ user.username }}!</h1>
-        <p class="text-grey">Here's a look at your current teams.</p>
+        <div v-if="!userLoaded">
+          <v-skeleton-loader
+            type="heading"
+            width="300px"
+            class="mb-2"
+          ></v-skeleton-loader>
+          <v-skeleton-loader
+            type="text"
+            width="250px"
+          ></v-skeleton-loader>
+        </div>
+        <div v-else>
+          <h1 class="text-h4 welcome-header">Welcome Back, {{ user.username }}!</h1>
+          <p class="text-grey">Here's a look at your current teams.</p>
+        </div>
       </v-col>
     </v-row>
 
@@ -240,7 +259,7 @@ const getProgressColor = (percentage) => {
     </v-row>
 
     <!-- Search Bar -->
-    <v-row v-if="userTeams.length > 0" justify="center" class="mb-4">
+    <v-row v-if="!isLoadingTeams && userTeams.length > 0" justify="center" class="mb-4">
       <v-col cols="12" md="6" lg="4">
         <v-text-field
           v-model="searchQuery"
@@ -255,7 +274,77 @@ const getProgressColor = (percentage) => {
       </v-col>
     </v-row>
 
-    <v-row v-if="userTeams.length > 0" class="mb-6">
+    <!-- Loading Skeleton -->
+    <v-row v-if="isLoadingTeams" class="mb-6">
+      <div class="teams-container w-100">
+        <div class="w-100">
+          <v-col
+            v-for="n in 6"
+            :key="`skeleton-${n}`"
+            cols="12"
+            sm="6"
+            md="4"
+            class="d-flex"
+          >
+            <v-card class="team-card rounded-lg elevation-1 flex-fill" flat>
+              <v-card-item>
+                <v-skeleton-loader
+                  type="list-item-two-line"
+                  class="mb-2"
+                ></v-skeleton-loader>
+              </v-card-item>
+              <v-card-text>
+                <v-skeleton-loader
+                  type="paragraph"
+                  max-width="100%"
+                ></v-skeleton-loader>
+              </v-card-text>
+
+              <!-- Progress Section Skeleton -->
+              <v-card-text class="pt-0">
+                <div class="progress-section">
+                  <div class="progress-label mb-2">
+                    <v-skeleton-loader
+                      type="text"
+                      width="80px"
+                      height="12px"
+                    ></v-skeleton-loader>
+                    <v-skeleton-loader
+                      type="text"
+                      width="30px"
+                      height="12px"
+                    ></v-skeleton-loader>
+                  </div>
+                  <v-skeleton-loader
+                    type="divider"
+                    height="8px"
+                    class="rounded"
+                  ></v-skeleton-loader>
+                </div>
+              </v-card-text>
+
+              <v-divider></v-divider>
+              <v-card-actions class="pa-4">
+                <v-skeleton-loader
+                  type="chip"
+                  width="60px"
+                ></v-skeleton-loader>
+                <v-spacer></v-spacer>
+                <v-skeleton-loader
+                  type="button"
+                  width="32px"
+                  height="32px"
+                  class="rounded-circle"
+                ></v-skeleton-loader>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </div>
+      </div>
+    </v-row>
+
+    <!-- Teams Content -->
+    <v-row v-else-if="!isLoadingTeams && userTeams.length > 0" class="mb-6">
       <!-- No results message when search returns no teams -->
       <v-col v-if="filteredTeams.length === 0" cols="12" class="text-center">
         <v-alert type="info">
@@ -347,7 +436,7 @@ const getProgressColor = (percentage) => {
 
     <!-- Pagination -->
     <v-row
-      v-if="userTeams.length > 0 && filteredTeams.length > teamsPerPage"
+      v-if="!isLoadingTeams && userTeams.length > 0 && filteredTeams.length > teamsPerPage"
       justify="center"
       class="mb-6"
     >
@@ -362,7 +451,7 @@ const getProgressColor = (percentage) => {
         ></v-pagination>
       </v-col>
     </v-row>
-    <v-row v-if="userTeams.length === 0" class="mb-6">
+    <v-row v-if="!isLoadingTeams && userTeams.length === 0" class="mb-6">
       <v-col cols="12" class="text-center">
         <v-alert type="info">You are not a member of any teams yet.</v-alert>
       </v-col>
@@ -513,5 +602,25 @@ const getProgressColor = (percentage) => {
 
 .progress-bar:hover {
   transform: scaleY(1.2);
+}
+
+/* Skeleton Loading Styles */
+.v-skeleton-loader {
+  background: transparent;
+}
+
+.v-skeleton-loader .v-skeleton-loader__bone {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>
