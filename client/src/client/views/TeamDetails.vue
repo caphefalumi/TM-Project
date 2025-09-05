@@ -681,7 +681,7 @@ const taskFilterOptions = [
               width="400px"
             ></v-skeleton-loader>
           </div>
-          <div v-else>
+          <div id="tour-team-header" v-else>
             <h1 class="text-h4 font-weight-bold">{{ team.title }}</h1>
             <p class="text-grey">{{ team.description }}</p>
           </div>
@@ -793,7 +793,7 @@ const taskFilterOptions = [
     <!-- Team navigation tabs with action buttons -->
     <v-row class="align-center mb-6">
       <v-col cols="12">
-        <v-tabs v-model="activeTab" align-tabs="start">
+        <v-tabs id="tour-team-tabs" v-model="activeTab" align-tabs="start">
           <v-tab value="tasks">
             <v-icon start>mdi-clipboard-text</v-icon>
             Tasks
@@ -817,7 +817,7 @@ const taskFilterOptions = [
         </v-tabs>
 
         <!-- Action buttons row based on active tab -->
-        <v-row class="mt-4">
+        <v-row id="tour-team-actions" class="mt-4">
           <!-- Tasks tab actions -->
           <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && canCreateTasks">
             <v-btn
@@ -978,7 +978,7 @@ const taskFilterOptions = [
         </div>
 
         <!-- Actual Tasks Content -->
-        <div v-else>
+        <div id="tour-tasks-content" v-else>
           <!-- Tasks Header and Controls -->
           <v-row v-if="userLoaded">
             <v-col cols="12">
@@ -989,7 +989,7 @@ const taskFilterOptions = [
 
             <!-- Search and Filter Controls -->
             <v-col cols="12">
-              <v-row>
+              <v-row id="tour-task-search">
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="taskSearchQuery"
@@ -1511,7 +1511,7 @@ const taskFilterOptions = [
         </div>
 
         <!-- Actual Announcements Content -->
-        <div v-else>
+        <div id="tour-announcements" v-else>
           <v-row>
             <v-col cols="12">
               <h2 class="text-h5 mb-4">Team Announcements</h2>
@@ -1619,7 +1619,7 @@ const taskFilterOptions = [
         </div>
 
         <!-- Actual Members Content -->
-        <div v-else>
+        <div id="tour-members" v-else>
           <v-row>
             <v-col cols="12">
               <div class="d-flex align-center justify-space-between mb-4">

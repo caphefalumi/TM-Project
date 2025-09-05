@@ -54,7 +54,7 @@ const features = [
 <template>
   <div class="landing-page">
     <!-- Hero Section -->
-    <section class="hero-section">
+    <section id="tour-landing-hero" class="hero-section">
       <div class="hero-background"></div>
       <v-container class="hero-container">
         <v-row justify="center" align="center" class="min-height">
@@ -82,6 +82,7 @@ const features = [
               </div>
               <div class="cta-section">
                 <v-btn
+                  id="tour-get-started-btn"
                   @click="navigateToLogin"
                   color="primary"
                   size="x-large"
@@ -107,7 +108,7 @@ const features = [
     </section>
 
     <!-- Features Section -->
-    <section class="features-section">
+    <section id="tour-landing-features" class="features-section">
       <v-container>
         <v-row justify="center" class="mb-12">
           <v-col cols="12" class="text-center">
@@ -151,7 +152,7 @@ const features = [
     </section>
 
     <!-- How It Works Section -->
-    <section class="how-it-works-section">
+    <section id="tour-landing-steps" class="how-it-works-section">
       <v-container>
         <v-row justify="center" class="mb-12">
           <v-col cols="12" class="text-center">
