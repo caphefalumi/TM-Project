@@ -40,6 +40,14 @@ const sendToHomePage = async () => {
   console.log('Authenticate:', authenticate.value)
   if (authenticate.value) {
     sessionStorage.setItem('isLoggedIn', true)
+
+    // Store current user info in localStorage for cross-tab detection
+    localStorage.setItem('currentUser', JSON.stringify({
+      userId: userId.value,
+      username: username.value,
+      timestamp: Date.now()
+    }))
+
     setTimeout(() => router.push('/home'), 1500)
   } else {
     error.value = 'Authentication failed. Please try again.'
