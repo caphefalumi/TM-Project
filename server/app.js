@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-dotenv.config()
+dotenv.config({ silent: true })
 import express from 'express'
 import routes from './routes/index.js'
 import connectDB from './config/db.js'
@@ -11,7 +11,7 @@ const app = express()
 app.use(
   cors({
     origin: ['http://localhost:5173', 'http://localhost:5174', 'https://tm-demo-gamma.vercel.app'],
-    credentials: true, // CRITICAL for cookies to work
+    credentials: true,
   }),
 )
 connectDB()
