@@ -11,6 +11,11 @@ import UsersOfTeam from '../models/UsersOfTeam.js'
 import Role from '../models/Role.js'
 import { PERMISSIONS } from '../config/permissions.js'
 import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
+import JWTAuth from '../verify/JWTAuth.js'
+import SessionManager from '../scripts/sessionManager.js'
+import RefreshToken from '../models/RefreshToken.js'
+
+const { generateAccessToken, generateRefreshToken } = JWTAuth
 
 export const getAllUsers = async (req, res) => {
   // Returns all users in the database by array
@@ -248,8 +253,8 @@ export const changeUserRole = async (req, res) => {
 
     // Prevent users from changing their own role
     if (requestingUserId === userId) {
-      return res.status(403).json({ 
-        message: 'You cannot change your own role. Only other team members can change your role.' 
+      return res.status(403).json({
+        message: 'You cannot change your own role. Only other team members can change your role.'
       })
     }
 
@@ -398,6 +403,152 @@ export const updateUserPermissions = async (req, res) => {
 
 
 
+export const updateUserProfile = async (req, res) => {
+  try {
+    const requestingUserId = req.user.userId // from JWT token
+    const { username, email } = req.body
+    const sessionId = req.cookies.sessionId
+
+    if (!username || !email) {
+      return res.status(400).json({ error: 'Username and email are required' })
+    }
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Session not found' })
+    }
+
+    // Check if username already exists (excluding current user)
+    const existingUser = await Account.findOne({
+      username,
+      _id: { $ne: requestingUserId }
+    })
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' })
+    }
+
+    // Check if email already exists (excluding current user)
+    const existingEmail = await Account.findOne({
+      email,
+      _id: { $ne: requestingUserId }
+    })
+    if (existingEmail) {
+      return res.status(400).json({ error: 'Email already exists' })
+    }
+
+    // Update the user profile
+    const updatedUser = await Account.findByIdAndUpdate(
+      requestingUserId,
+      { username, email },
+      { new: true, runValidators: true }
+    ).select('_id username email')
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    // Also update username in all team memberships
+    await UsersOfTeam.updateMany(
+      { userId: requestingUserId },
+      { username: username }
+    )
+
+    // Generate new tokens with updated user data
+    const newUserData = {
+      userId: updatedUser._id.toString(),
+      username: updatedUser.username,
+      email: updatedUser.email
+    }
+
+    const newAccessToken = generateAccessToken(newUserData)
+    const newRefreshToken = generateRefreshToken(newUserData)
+
+    // Update the current session with new refresh token
+    await SessionManager.updateSessionToken(sessionId, newRefreshToken)
+
+    // Update refresh token in database
+    await RefreshToken.findOneAndUpdate(
+      { userId: requestingUserId },
+      {
+        token: newRefreshToken,
+        updatedAt: new Date()
+      },
+      { new: true }
+    )
+
+    // Set new cookies
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      path: '/',
+    })
+
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 19 * 60 * 1000, // 19 minutes
+      path: '/',
+    })
+
+    console.log('Updated username in team memberships and renewed tokens', {
+      userId: requestingUserId,
+      username,
+      email
+    })
+
+    res.status(200).json({
+      success: 'Profile updated successfully',
+      user: {
+        userId: updatedUser._id,
+        username: updatedUser.username,
+        email: updatedUser.email
+      }
+    })
+  } catch (error) {
+    console.error('Error updating profile:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export const deleteUserAccount = async (req, res) => {
+  try {
+    const requestingUserId = req.user.userId // from JWT token
+
+    // Find the user first
+    const user = await Account.findById(requestingUserId)
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    // Import SessionManager for session cleanup
+    const SessionManager = await import('../scripts/sessionManager.js')
+
+    // Remove user from all teams
+    await UsersOfTeam.deleteMany({ userId: requestingUserId })
+
+    // Delete user's task submissions
+    await TaskSubmissions.deleteMany({ userId: requestingUserId })
+
+    // Remove user from any custom roles they might have created
+    await Role.deleteMany({ created_by: requestingUserId })
+
+    // Revoke all user sessions
+    await SessionManager.default.revokeAllUserSessions(requestingUserId, 'account_deletion')
+
+    // Finally delete the user account
+    await Account.findByIdAndDelete(requestingUserId)
+
+    res.status(200).json({
+      success: 'Account deleted successfully'
+    })
+  } catch (error) {
+    console.error('Error deleting account:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
 export default {
   getAllUsers,
   addUsersToTeam,
@@ -407,4 +558,6 @@ export default {
   getUserPermissions,
   updateUserPermissions,
   getRoleDefaultPermissions,
+  updateUserProfile,
+  deleteUserAccount,
 }
