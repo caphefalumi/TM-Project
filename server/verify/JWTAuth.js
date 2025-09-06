@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-dotenv.config({ path: './src/server/.env' })
+dotenv.config({ silent: true })
 import jwt from 'jsonwebtoken'
 import RefreshToken from '../models/RefreshToken.js'
 
