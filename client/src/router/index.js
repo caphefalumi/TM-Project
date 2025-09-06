@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../client/auth/Login.vue'
 import Register from '../client/auth/Register.vue'
 import ForgotPassword from '../client/auth/ForgotPassword.vue'
@@ -8,6 +8,7 @@ import TeamDetails from '../client/views/TeamDetails.vue'
 import Dashboard from '../client/views/Dashboard.vue'
 import AdminView from '../client/views/AdminView.vue'
 import LandingView from '../client/views/LandingView.vue'
+import AccountView from '../client/views/AccountView.vue'
 import AuthStore from '../client/scripts/authStore.js'
 import AboutView from '../client/views/AboutView.vue'
 
@@ -26,6 +27,7 @@ const router = createRouter({
     { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true } },
     { path: '/about', component: AboutView, meta: { requiresAuth: true } },
     { path: '/home', component: Dashboard, meta: { requiresAuth: true } },
+    { path: '/account', component: AccountView, meta: { requiresAuth: true } },
     { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
   ],
 })

@@ -2,6 +2,7 @@ import express from 'express'
 import Authentication from './authentication.js'
 import Tokens from './tokens.js'
 import JWTAuth from '../verify/JWTAuth.js'
+import { ipSecurityMiddleware, concurrentSessionMiddleware } from '../verify/SecurityMiddleware.js'
 
 const router = express.Router()
 const {
@@ -32,7 +33,7 @@ router.delete('/tokens/refresh', revokeRefreshToken)
 router.get('/tokens/access', authenticateRefreshToken, renewAccessToken)
 
 // Protected routes
-router.get('/protected', authenticateAccessToken, (req, res) => {
+router.get('/protected', authenticateAccessToken, ipSecurityMiddleware, concurrentSessionMiddleware, (req, res) => {
   res.status(200).json({ success: 'Access token is valid', user: req.user })
 })
 

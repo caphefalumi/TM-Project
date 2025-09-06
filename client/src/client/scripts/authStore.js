@@ -1,3 +1,5 @@
+import sessionService from './sessionService.js'
+
 const refreshAccessToken = async () => {
   const PORT = import.meta.env.VITE_API_PORT
   try {
@@ -7,8 +9,10 @@ const refreshAccessToken = async () => {
       credentials: 'include', // Important for cookies - sends refresh token
     })
 
+    // Check for security warnings
+    sessionService.checkSecurityHeaders(response)
+
     if (response.ok) {
-      const data = await response.json()
       console.log('Access token refreshed successfully')
       return true
     } else {
@@ -30,6 +34,9 @@ const getUserByAccessToken = async (retryCount = 0) => {
     })
 
     console.log('Response from Auth Store:', response.ok, 'Status:', response.status)
+
+    // Check for security warnings
+    sessionService.checkSecurityHeaders(response)
 
     if (response.ok) {
       const data = await response.json()
@@ -58,7 +65,41 @@ const getUserByAccessToken = async (retryCount = 0) => {
   }
 }
 
+// Logout function with session cleanup
+const logout = async () => {
+  const PORT = import.meta.env.VITE_API_PORT
+  try {
+    // Get current user to get userId
+    const user = await getUserByAccessToken()
+    if (!user) {
+      console.warn('No user found for logout')
+      return { success: true, message: 'Already logged out' }
+    }
+
+    const response = await fetch(`${PORT}/api/auth/tokens/refresh`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ userId: user.userId }),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      sessionService.clearWarnings()
+      console.log('Logged out successfully:', data.message)
+      return { success: true, message: data.message }
+    } else {
+      console.error('Logout failed:', response.statusText)
+      return { success: false, error: 'Logout failed' }
+    }
+  } catch (error) {
+    console.error('Error during logout:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 export default {
   getUserByAccessToken,
   refreshAccessToken,
+  logout,
 }

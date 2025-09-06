@@ -102,24 +102,9 @@ onUnmounted(() => {
   <v-app>
     <!-- Only show SideBar on authenticated routes -->
     <SideBar v-if="showSidebar"></SideBar>
-
     <!-- Main content area -->
-    <v-main :class="{ 'with-sidebar': showSidebar }">
+    <v-main>
       <router-view></router-view>
     </v-main>
   </v-app>
 </template>
-
-<style>
-/* Adjust layout based on sidebar visibility */
-.with-sidebar {
-  padding-left: 256px; /* Adjust based on your sidebar width */
-}
-
-@media (max-width: 1200px) {
-  /* On mobile/small screens, don't add padding since sidebar will be overlay */
-  .with-sidebar {
-    padding-left: 0;
-  }
-}
-</style>
