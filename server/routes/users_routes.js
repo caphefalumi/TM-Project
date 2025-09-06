@@ -1,6 +1,6 @@
 import express from 'express'
 import { authenticateAccessToken } from '../verify/JWTAuth.js'
-import { getAllUsers } from './users.js'
+import { getAllUsers, updateUserProfile, deleteUserAccount } from './users.js'
 const router = express.Router()
 
 router.get('/', authenticateAccessToken, (req, res) => {
@@ -10,5 +10,7 @@ router.get('/', authenticateAccessToken, (req, res) => {
   })
 })
 router.get('/all', getAllUsers)
+router.put('/profile', authenticateAccessToken, updateUserProfile)
+router.delete('/account', authenticateAccessToken, deleteUserAccount)
 
 export default router

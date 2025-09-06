@@ -8,6 +8,7 @@ import taskRoutes from './tasks_routes.js'
 import announcementRoutes from './announcements_routes.js'
 import notificationRoutes from './notifications_routes.js'
 import adminRoutes from './admin_routes.js'
+import sessionRoutes from './sessions_routes.js'
 import { rateLimit } from 'express-rate-limit'
 const router = express.Router()
 
@@ -28,5 +29,6 @@ router.use('/api/tasks', taskRoutes) // /api/tasks/*
 router.use('/api/announcements', announcementRoutes) // /api/announcements/*
 router.use('/api/notifications', notificationRoutes) // /api/notifications/*
 router.use('/api/admin', adminRoutes) // /api/admin/*
+router.use('/api/sessions', sessionRoutes) // /api/sessions/*
 
 export default router

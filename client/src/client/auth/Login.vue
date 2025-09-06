@@ -28,7 +28,7 @@ const success = ref('')
 
 const sendToHomePage = async () => {
   // Send to home if user already has an account
-  setTimeout(() => (success.value = 'Sending to Home page'), 500)
+  setTimeout(() => (success.value = 'Creating secure session...'), 500)
   await getUserId(username.value)
   console.log('User ID:', userId.value)
   await getUserEmail(username.value)
@@ -48,6 +48,7 @@ const sendToHomePage = async () => {
       timestamp: Date.now()
     }))
 
+    success.value = 'Session created successfully!'
     setTimeout(() => router.push('/home'), 1500)
   } else {
     error.value = 'Authentication failed. Please try again.'

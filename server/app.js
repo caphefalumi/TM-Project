@@ -6,6 +6,7 @@ import connectDB from './config/db.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import ExpressMongoSanitize from 'express-mongo-sanitize'
+import SessionCleanup from './scripts/sessionCleanup.js'
 
 const app = express()
 app.use(
@@ -42,6 +43,9 @@ app.use(cookieParser())
 app.use(routes)
 
 const PORT = process.env.PORT || 3000
+
+// Start session cleanup scheduler
+SessionCleanup.startScheduler()
 
 // For local development
 app.listen(PORT, () => {
