@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NotificationCenter from './NotificationCenter.vue'
@@ -21,6 +21,10 @@ const user = ref({
 
 const drawer = ref(null)
 
+const originalUserId = ref('')
+
+let storageListener = null
+
 onMounted(async () => {
   const userData = await getUserByAccessToken()
   user.value = await getUserByAccessToken()
@@ -28,17 +32,66 @@ onMounted(async () => {
     user.value.userId = userData.userId
     user.value.username = userData.username
     user.value.email = userData.email
+
+    originalUserId.value = userData.userId
+
+    localStorage.setItem('currentUser', JSON.stringify({
+      userId: userData.userId,
+      username: userData.username,
+      timestamp: Date.now()
+    }))
   } else {
     user.value.username = 'Guest'
     user.value.email = ''
   }
+
+  setupCrossTabDetection()
 })
+
+onUnmounted(() => {
+  if (storageListener) {
+    window.removeEventListener('storage', storageListener)
+  }
+})
+
+const setupCrossTabDetection = () => {
+  storageListener = (event) => {
+    // Only listen for changes to currentUser
+    if (event.key === 'currentUser' && event.newValue) {
+      try {
+        const newUserData = JSON.parse(event.newValue)
+
+        // If a different user has logged in (different userId)
+        if (originalUserId.value && newUserData.userId !== originalUserId.value) {
+          // Show popup message
+          if (confirm(`Another user (${newUserData.username}) has logged in. This page will reload to update the session.`)) {
+            // Force reload the page
+            window.location.reload()
+          } else {
+            // If user cancels, still reload for security
+            setTimeout(() => {
+              window.location.reload()
+            }, 2000)
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing user data from localStorage:', error)
+      }
+    }
+  }
+
+  window.addEventListener('storage', storageListener)
+}
 
 const logout = async () => {
   try {
     drawer.value = false // Close the drawer
     console.log('Logging out user:', user.value.username)
     sessionStorage.removeItem('isLoggedIn')
+
+    // Clear the current user from localStorage
+    localStorage.removeItem('currentUser')
+
     // Revoke refresh token from database and clear cookies
     await revokeRefreshToken()
 
@@ -48,6 +101,9 @@ const logout = async () => {
       username: 'Guest',
       email: '',
     }
+
+    // Clear original user ID
+    originalUserId.value = ''
 
     console.log('Logout successful, redirecting to login page')
     // Redirect to the login page
