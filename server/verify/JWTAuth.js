@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config({ silent: true })
 import jwt from 'jsonwebtoken'
-import RefreshToken from '../models/RefreshToken.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 
 function generateAccessToken(user) {
   console.log('Generating access token for user:', user)
@@ -42,13 +42,10 @@ export const authenticateAccessToken = async (req, res, next) => {
   try {
     const user = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
-    // Check refresh token for non-revoked status
-    const storedToken = await RefreshToken.findOne({
-      userId: user.userId,
-      revoked: false,
-    })
+    // Check if user has active refresh tokens (session-like check)
+    const activeTokens = await RefreshTokenManager.getUserActiveTokens(user.userId)
 
-    if (!storedToken) {
+    if (activeTokens.length === 0) {
       return res.status(403).json({ message: 'No valid session found' })
     } else {
       req.user = user
@@ -86,17 +83,15 @@ export const authenticateRefreshToken = async (req, res, next) => {
     const user = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET)
 
     // Check if refresh token exists in database and is not revoked
-    const storedToken = await RefreshToken.findOne({
-      userId: user.userId,
-      token: token,
-      revoked: false,
-    })
+    const storedToken = await RefreshTokenManager.getTokenByString(token)
 
     if (!storedToken) {
       return res.status(403).json({ error: 'Refresh token not found or revoked' })
-    } else if (storedToken.expiresAt < new Date()) {
-      return res.status(403).json({ error: 'Refresh token has expired' })
     } else {
+      // Update token activity when used
+      const currentIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']
+      await RefreshTokenManager.updateTokenActivity(token, currentIP)
+
       console.log('User from refresh token:', user)
       req.user = user
       next()

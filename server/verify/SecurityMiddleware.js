@@ -58,6 +58,5 @@ export const ipRateLimit = (maxRequests = 60, windowMs = 60000) => {
 
 export default {
   ipSecurityMiddleware,
-  concurrentSessionMiddleware,
-  sessionRateLimit
+  ipRateLimit
 }

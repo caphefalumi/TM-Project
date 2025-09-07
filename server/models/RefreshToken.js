@@ -9,6 +9,37 @@ const refreshTokenSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // Login activity tracking
+  ipAddress: {
+    type: String,
+    required: true,
+  },
+  userAgent: {
+    type: String,
+    required: true,
+  },
+  loginLocation: {
+    type: String,
+    default: 'Unknown',
+  },
+  device: {
+    type: String,
+    default: 'Unknown',
+  },
+  browser: {
+    type: String,
+    default: 'Unknown',
+  },
+  // Activity tracking
+  lastActivity: {
+    type: Date,
+    default: () => Date.now(),
+  },
+  activityCount: {
+    type: Number,
+    default: 1,
+  },
+  // Token lifecycle
   createdAt: {
     type: Date,
     default: () => Date.now(),
@@ -23,6 +54,11 @@ const refreshTokenSchema = new mongoose.Schema({
   },
   revokedAt: {
     type: Date,
+    default: null,
+  },
+  revokedReason: {
+    type: String,
+    enum: ['user_logout', 'security', 'expired', 'admin', 'suspicious_activity'],
     default: null,
   },
 })

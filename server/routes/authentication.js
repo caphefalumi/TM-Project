@@ -2,7 +2,7 @@ import Account from '../models/Account.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import sendEmail from '../scripts/mailer.js'
-import SessionManager from '../scripts/sessionManager.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import 'dotenv/config'
 const getUserIDAndEmailByName = async (req, res) => {
   const { username } = req.params
@@ -118,7 +118,7 @@ const localLogin = async (req, res) => {
     console.log('Missing fields:', { username, password })
     return res.status(400).json({ error: 'All fields are required.' })
   }
-  
+
   const account = await Account.findOne({ username })
   if (!account) {
     console.log("No Account")
@@ -132,11 +132,11 @@ const localLogin = async (req, res) => {
   }
 
   // Check for suspicious activity before allowing login
-  const suspiciousActivity = await SessionManager.checkSuspiciousActivity(account._id)
+  const suspiciousActivity = await RefreshTokenManager.checkSuspiciousActivity(account._id)
   if (suspiciousActivity.isSuspicious) {
-    console.log(`Suspicious activity detected for user ${account._id}: ${suspiciousActivity.uniqueIPs} different IPs`)
-    // Optionally revoke all existing sessions or require additional verification
-    // await SessionManager.revokeAllUserSessions(account._id, 'security')
+    console.log(`Suspicious activity detected for user ${account._id}: ${suspiciousActivity.recentUniqueIPs} different IPs in last 24 hours`)
+    // Optionally revoke all existing tokens or require additional verification
+    // await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
   }
 
   // Create user object for token generation
@@ -146,17 +146,12 @@ const localLogin = async (req, res) => {
     email: account.email
   }
 
-  // Set session data in request for token middleware
+  // Set user data and activity tracking info in request for token middleware
   req.body.user = user
-  req.sessionData = {
-    userId: account._id,
-    ipAddress: req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'],
-    userAgent: req.headers['user-agent'] || 'Unknown'
-  }
 
   console.log('User authenticated successfully')
-  return res.status(200).json({ 
-    success: 'User is authorized', 
+  return res.status(200).json({
+    success: 'User is authorized',
     user: {
       userId: account._id,
       username: account.username,
