@@ -13,7 +13,7 @@ function generateAccessToken(user) {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: '19m', // 19 minutes
+      expiresIn: '15m', // 15 minutes
     },
   )
 }
@@ -28,7 +28,7 @@ const generateRefreshToken = (user) => {
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: '12h', // 12 hours
+      expiresIn: '7d', // 7 days
     },
   )
 }
