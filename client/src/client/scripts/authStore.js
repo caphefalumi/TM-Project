@@ -1,5 +1,3 @@
-import sessionService from './sessionService.js'
-
 const refreshAccessToken = async () => {
   const PORT = import.meta.env.VITE_API_PORT
   try {
@@ -8,9 +6,6 @@ const refreshAccessToken = async () => {
       method: 'GET',
       credentials: 'include', // Important for cookies - sends refresh token
     })
-
-    // Check for security warnings
-    sessionService.checkSecurityHeaders(response)
 
     if (response.ok) {
       console.log('Access token refreshed successfully')
@@ -34,9 +29,6 @@ const getUserByAccessToken = async (retryCount = 0) => {
     })
 
     console.log('Response from Auth Store:', response.ok, 'Status:', response.status)
-
-    // Check for security warnings
-    sessionService.checkSecurityHeaders(response)
 
     if (response.ok) {
       const data = await response.json()
@@ -85,7 +77,6 @@ const logout = async () => {
 
     if (response.ok) {
       const data = await response.json()
-      sessionService.clearWarnings()
       console.log('Logged out successfully:', data.message)
       return { success: true, message: data.message }
     } else {

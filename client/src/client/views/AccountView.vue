@@ -119,7 +119,6 @@
           <SessionManager
             @session-revoked="handleSessionRevoked"
             @sessions-revoked="handleSessionsRevoked"
-            @security-review-requested="handleSecurityReview"
             @show-message="showMessage"
           />
         </div>
@@ -129,20 +128,20 @@
           <h3>Security Actions</h3>
           <div class="actions-grid">
             <div class="action-card">
-              <div class="action-icon">🚨</div>
+              <div class="action-icon">🔒</div>
               <div class="action-content">
-                <h4>Security Alert</h4>
-                <p>End all sessions if you suspect unauthorized access</p>
-                <button @click="openEmergencyLogout" class="btn-danger">Emergency Logout</button>
+                <h4>Change Password</h4>
+                <p>Update your account password for better security</p>
+                <button @click="changePassword" class="btn-primary">Change Password</button>
               </div>
             </div>
 
             <div class="action-card">
-              <div class="action-icon">📊</div>
+              <div class="action-icon">🗑️</div>
               <div class="action-content">
-                <h4>Activity Log</h4>
-                <p>Review your recent account activity and logins</p>
-                <button @click="openActivityLog" class="btn-secondary">View Activity</button>
+                <h4>Delete Account</h4>
+                <p>Permanently delete your account and all associated data</p>
+                <button @click="openDeleteAccount" class="btn-danger">Delete Account</button>
               </div>
             </div>
           </div>
@@ -154,14 +153,6 @@
     <div v-if="message" :class="['message', message.type]">
       {{ message.text }}
     </div>
-
-    <!-- Security Warning Component -->
-    <SecurityWarning
-      @review-sessions="switchToSecurity"
-      @manage-sessions="switchToSecurity"
-      @secure-account="switchToSecurity"
-      @logout="handleLogout"
-    />
 
     <!-- Password Reset Popup -->
     <div v-if="showPasswordResetPopup" class="popup-overlay" @click="closePasswordResetPopup">
@@ -372,15 +363,13 @@
 
 <script>
 import SessionManager from '../components/SessionManager.vue'
-import SecurityWarning from '../components/SecurityWarning.vue'
 import sessionService from '../scripts/sessionService.js'
 import AuthStore from '../scripts/authStore.js'
 
 export default {
   name: 'AccountView',
   components: {
-    SessionManager,
-    SecurityWarning
+    SessionManager
   },
   data() {
     return {
@@ -400,17 +389,13 @@ export default {
       showPasswordResetPopup: false,
       showEditProfilePopup: false,
       showDeleteAccountPopup: false,
-      showActivityLogPopup: false,
-      showEmergencyLogoutPopup: false,
       editForm: {
         username: '',
         email: ''
       },
       deleteConfirmation: '',
       isSaving: false,
-      isDeleting: false,
-      isLoggingOut: false,
-      activityLog: []
+      isDeleting: false
     }
   },
   computed: {
