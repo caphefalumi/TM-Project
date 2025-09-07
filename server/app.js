@@ -6,9 +6,10 @@ import connectDB from './config/db.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import ExpressMongoSanitize from 'express-mongo-sanitize'
-import SessionCleanup from './scripts/sessionCleanup.js'
-
+import { initTokenCleanup } from './scripts/tokenCleanup.js'
+import requestIp from 'request-ip'
 const app = express()
+app.use(requestIp.mw())
 app.use(
   cors({
     origin: ['http://localhost:5173', 'http://localhost:5174', 'https://tm-demo-gamma.vercel.app'],
@@ -44,8 +45,8 @@ app.use(routes)
 
 const PORT = process.env.PORT || 3000
 
-// Start session cleanup scheduler
-SessionCleanup.startScheduler()
+// Start token cleanup scheduler
+initTokenCleanup()
 
 // For local development
 app.listen(PORT, () => {

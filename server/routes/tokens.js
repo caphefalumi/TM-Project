@@ -1,16 +1,15 @@
-import RefreshToken from '../models/RefreshToken.js'
-import SessionManager from '../scripts/sessionManager.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import JWTAuth from '../verify/JWTAuth.js'
 
 const { generateAccessToken, generateRefreshToken } = JWTAuth
 
-const addRefreshToken = async (req, res, next) => {
+const addRefreshToken = async (req, res) => {
   // Middleware to:
   // 1. Add refresh token to cookie
-  // 2. Create NEW refresh token in database (revoke any existing ones for fresh login)
-  // 3. Create session with session ID
+  // 2. Create NEW refresh token in database with activity tracking
 
   const { user } = req.body
+
   if (!user) {
     return res.status(400).json({ error: 'User data is required' })
   }
@@ -19,10 +18,7 @@ const addRefreshToken = async (req, res, next) => {
   const accessToken = generateAccessToken(user)
 
   try {
-    // Create session and get session ID
-    const session = await SessionManager.createSession(user.userId, refreshToken, req)
-
-    // Set cookies with session ID
+    // Set cookies
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
@@ -38,36 +34,26 @@ const addRefreshToken = async (req, res, next) => {
       maxAge: 19 * 60 * 1000, // 19 minutes
       path: '/',
     })
-
-    // Set session ID cookie
-    res.cookie('sessionId', session.sessionId, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-      maxAge: 12 * 60 * 60 * 1000, // 12 hours
-      path: '/',
-    })
-
-    // Clean up old refresh tokens for this user
-    await RefreshToken.deleteMany({ userId: user.userId })
-
-    // Create new refresh token record
-    const newRefreshToken = new RefreshToken({
+    console.log(req.headers['x-forwarded-for'])
+    console.log(req.socket.remoteAddress)
+    console.log(req.clientIp)
+    // Create new refresh token with activity tracking
+    await RefreshTokenManager.createRefreshToken({
       userId: user.userId,
       token: refreshToken,
-      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
-      revoked: false,
+      ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      userAgent: req.get('User-Agent'),
+      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000) // 12 hours
     })
-    await newRefreshToken.save()
 
-    console.log('New session and tokens created for user:', user.userId)
+
+    console.log('New tokens created for user:', user.userId)
     res.status(200).json({
       success: 'Session created successfully',
-      accessToken,
-      sessionId: session.sessionId
+      accessToken
     })
   } catch (error) {
-    console.error('Error creating session and tokens:', error)
+    console.error('Error creating tokens:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -91,7 +77,6 @@ const revokeRefreshToken = async (req, res) => {
   // Mark refresh token as revoked in database, clear cookies, and revoke session
   // This is called when user logout or when refresh token needs to be invalidated
 
-  const sessionId = req.cookies.sessionId
   const { userId } = req.body
 
   // Clear all cookies immediately
@@ -114,7 +99,7 @@ const revokeRefreshToken = async (req, res) => {
     sameSite: 'None',
   })
 
-  console.log('Revoking session and refresh token for user:', userId)
+  console.log('Revoking refresh tokens for user:', userId)
 
   if (!userId) {
     console.error('User ID is required to revoke refresh token')
@@ -122,26 +107,10 @@ const revokeRefreshToken = async (req, res) => {
   }
 
   try {
-    // Revoke session if session ID is provided
-    if (sessionId) {
-      await SessionManager.revokeSession(sessionId, 'logout')
-    }
+    // Revoke all user's refresh tokens
+    const result = await RefreshTokenManager.revokeAllUserTokens(userId, 'user_logout')
 
-    // Mark the refresh token as revoked
-    const result = await RefreshToken.updateOne(
-      { userId },
-      {
-        revoked: true,
-        revokedAt: new Date(),
-      },
-    )
-
-    if (result.matchedCount === 0) {
-      console.log('Refresh token not found for user:', userId)
-      return res.status(404).json({ message: 'Refresh token not found' })
-    }
-
-    console.log('Session and refresh token revoked successfully for user:', userId)
+    console.log('Refresh tokens revoked successfully for user:', userId)
     res.status(200).json({
       success: 'Session terminated successfully',
       message: 'User logged out successfully',

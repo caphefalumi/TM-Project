@@ -1,8 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config({ silent: true })
 import jwt from 'jsonwebtoken'
-import RefreshToken from '../models/RefreshToken.js'
-import SessionManager from '../scripts/sessionManager.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 
 function generateAccessToken(user) {
   console.log('Generating access token for user:', user)
@@ -37,29 +36,17 @@ const generateRefreshToken = (user) => {
 export const authenticateAccessToken = async (req, res, next) => {
   // Authenticate token middleware from cookie with session validation
   const token = req.cookies.accessToken
-  const sessionId = req.cookies.sessionId
-  
+
   if (token == null) return res.sendStatus(401) // 401: not sending token
   if (sessionId == null) return res.status(401).json({ error: 'Session not found' })
 
   try {
     const user = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
-    // Validate session
-    const session = await SessionManager.validateSession(sessionId, user.userId)
-    if (!session) {
-      return res.status(403).json({ error: 'Invalid or expired session' })
-    }
+    // Check if user has active refresh tokens (session-like check)
+    const activeTokens = await RefreshTokenManager.getUserActiveTokens(user.userId)
 
-    // Check refresh token for non-revoked status
-    const storedToken = await RefreshToken.findOne({
-      userId: user.userId,
-      revoked: false,
-    })
-
-    if (!storedToken) {
-      // Revoke session if refresh token is invalid
-      await SessionManager.revokeSession(sessionId, 'security')
+    if (activeTokens.length === 0) {
       return res.status(403).json({ message: 'No valid session found' })
     } else {
       // Update session activity
@@ -95,8 +82,7 @@ export const authenticateAccessTokenOnly = async (req, res, next) => {
 export const authenticateRefreshToken = async (req, res, next) => {
   // Authenticate refresh token middleware from cookie with session validation
   const token = req.cookies.refreshToken
-  const sessionId = req.cookies.sessionId
-  
+
   if (token == null) return res.sendStatus(401) // 401: not sending token
   if (sessionId == null) return res.status(401).json({ error: 'Session not found' })
 
@@ -112,21 +98,17 @@ export const authenticateRefreshToken = async (req, res, next) => {
     }
 
     // Check if refresh token exists in database and is not revoked
-    const storedToken = await RefreshToken.findOne({
-      userId: user.userId,
-      token: token,
-      revoked: false,
-    })
-    
+    const storedToken = await RefreshTokenManager.getTokenByString(token)
+
     if (!storedToken) {
       // Revoke session if refresh token is invalid
       await SessionManager.revokeSession(sessionId, 'security')
       return res.status(403).json({ error: 'Refresh token not found or revoked' })
-    } else if (storedToken.expiresAt < new Date()) {
-      // Revoke session if refresh token is expired
-      await SessionManager.revokeSession(sessionId, 'timeout')
-      return res.status(403).json({ error: 'Refresh token has expired' })
     } else {
+      // Update token activity when used
+      const currentIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']
+      await RefreshTokenManager.updateTokenActivity(token, currentIP)
+
       console.log('User from refresh token:', user)
       req.user = user
       req.sessionId = sessionId

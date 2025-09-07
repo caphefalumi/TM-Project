@@ -1,114 +1,77 @@
 <template>
   <div class="session-manager">
-    <div v-if="!embedded" class="session-header">
+    <div class="section-header">
       <h3>Active Sessions</h3>
-      <p class="session-subtitle">Manage your active login sessions across different devices</p>
-    </div>
-    <div v-else class="session-header-embedded">
-      <h4>Active Sessions</h4>
+      <span class="session-count">{{ sessions.length }} active</span>
     </div>
 
-    <!-- Security Status -->
-    <div v-if="securityCheck.isSuspicious" class="security-alert warning">
-      <div class="alert-icon">⚠️</div>
-      <div class="alert-content">
-        <h4>Suspicious Activity Detected</h4>
-        <p>{{ securityCheck.sessionCount }} sessions from {{ securityCheck.uniqueIPs }} different locations</p>
-        <button @click="handleSecurityAction" class="btn-primary">Review & Secure</button>
-      </div>
-    </div>
-
-    <!-- Current Session Info -->
-    <div v-if="currentSession" class="current-session">
-      <h4>Current Session</h4>
-      <div class="session-card current">
-        <div class="session-info">
-          <div class="session-primary">
-            <span class="device-icon">💻</span>
-            <div>
-              <div class="browser-name">{{ formatSessionInfo(currentSession).browserInfo }}</div>
-              <div class="location">{{ formatSessionInfo(currentSession).locationInfo }}</div>
-            </div>
-          </div>
-          <div class="session-meta">
-            <div class="timestamp">
-              Last active: {{ formatSessionInfo(currentSession).lastActivityFormatted }}
-            </div>
-            <div class="session-status current-badge">Current Session</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Other Sessions -->
-    <div v-if="otherSessions.length > 0" class="other-sessions">
-      <div class="section-header">
-        <h4>Other Sessions ({{ otherSessions.length }})</h4>
-        <button
-          @click="revokeAllOther"
-          :disabled="loading"
-          class="btn-secondary"
-        >
-          {{ loading ? 'Revoking...' : 'End All Other Sessions' }}
-        </button>
-      </div>
-
-      <div class="sessions-list">
-        <div
-          v-for="session in otherSessions"
-          :key="session.sessionId"
-          class="session-card"
-        >
-          <div class="session-info">
-            <div class="session-primary">
-              <span class="device-icon">{{ getDeviceIcon(session.userAgent) }}</span>
-              <div>
-                <div class="browser-name">{{ formatSessionInfo(session).browserInfo }}</div>
-                <div class="location">{{ formatSessionInfo(session).locationInfo }}</div>
-              </div>
-            </div>
-            <div class="session-meta">
-              <div class="timestamp">
-                Last active: {{ formatSessionInfo(session).lastActivityFormatted }}
-              </div>
-              <div class="session-created">
-                Started: {{ formatSessionInfo(session).createdAtFormatted }}
-              </div>
-            </div>
-          </div>
-          <div class="session-actions">
-            <button
-              @click="revokeSession(session.sessionId)"
-              :disabled="loading"
-              class="btn-danger"
-            >
-              End Session
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- No Other Sessions -->
-    <div v-else-if="!loading && sessions.length <= 1" class="no-sessions">
-      <div class="empty-state">
-        <span class="empty-icon">🔒</span>
-        <h4>Only Current Session Active</h4>
-        <p>You don't have any other active sessions. Your account is secure.</p>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="loading">
       <p>Loading sessions...</p>
     </div>
 
-    <!-- Error State -->
-    <div v-if="error" class="error-state">
-      <div class="error-icon">❌</div>
-      <p>{{ error }}</p>
-      <button @click="loadSessions" class="btn-primary">Retry</button>
+    <div v-else-if="sessions.length === 0" class="no-sessions">
+      <p>No active sessions found</p>
+    </div>
+
+    <div v-else class="sessions-list">
+      <div
+        v-for="session in sessions"
+        :key="session.id"
+        class="session-item"
+        :class="{ 'current-session': session.isCurrent }"
+      >
+        <div class="session-info">
+          <div class="session-header">
+            <div class="device-info">
+              <v-icon class="device-icon">{{ getDeviceIcon(session.device) }}</v-icon>
+              <span class="device-name">{{ session.browser }}</span>
+              <span v-if="session.isCurrent" class="current-badge">Current</span>
+            </div>
+            <div class="session-actions">
+              <button
+                v-if="!session.isCurrent"
+                @click="revokeSession(session.id)"
+                class="btn-revoke"
+                :disabled="revoking"
+              >
+                <v-icon>mdi-close</v-icon>
+                End
+              </button>
+            </div>
+          </div>
+
+          <div class="session-details">
+            <div class="detail-item">
+              <v-icon class="detail-icon">mdi-map-marker</v-icon>
+              <span>{{ formatIpAddress(session.ipAddress) }}</span>
+            </div>
+            <div class="detail-item">
+              <v-icon class="detail-icon">mdi-clock</v-icon>
+              <span>Last active {{ formatLastActivity(session.lastActivity) }}</span>
+            </div>
+            <div class="detail-item">
+              <v-icon class="detail-icon">mdi-counter</v-icon>
+              <span>{{ session.activityCount }} activities</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="sessions.length > 1" class="bulk-actions">
+      <button
+        @click="revokeAllOtherSessions"
+        class="btn-danger"
+        :disabled="revoking"
+      >
+        <v-icon>mdi-logout-variant</v-icon>
+        End All Other Sessions
+      </button>
+    </div>
+
+    <!-- Loading overlay -->
+    <div v-if="revoking" class="loading-overlay">
+      <p>Processing...</p>
     </div>
   </div>
 </template>
@@ -118,156 +81,136 @@ import sessionService from '../scripts/sessionService.js'
 
 export default {
   name: 'SessionManager',
-  props: {
-    embedded: {
-      type: Boolean,
-      default: false
-    }
-  },
   data() {
     return {
       sessions: [],
-      currentSession: null,
-      securityCheck: {
-        isSuspicious: false,
-        sessionCount: 0,
-        uniqueIPs: 0
-      },
-      loading: false,
-      error: null
-    }
-  },
-  computed: {
-    otherSessions() {
-      return this.sessions.filter(session => !session.isCurrent)
+      loading: true,
+      revoking: false,
+      currentSessionId: null
     }
   },
   async mounted() {
     await this.loadSessions()
-    await this.loadCurrentSession()
-    await this.checkSecurity()
   },
   methods: {
     async loadSessions() {
       this.loading = true
-      this.error = null
-
       try {
-        const result = await sessionService.getActiveSessions()
-        if (result.success) {
-          this.sessions = result.sessions
-        } else {
-          this.error = result.error
+        const [activeResult, currentResult] = await Promise.all([
+          sessionService.getActiveSessions(),
+          sessionService.getCurrentSession()
+        ])
+
+        if (activeResult.success) {
+          this.sessions = activeResult.tokens.map(token => ({
+            id: token.id,
+            ipAddress: token.ipAddress,
+            browser: token.browser,
+            device: token.device,
+            lastActivity: token.lastActivity,
+            activityCount: token.activityCount,
+            createdAt: token.createdAt,
+            isCurrent: false
+          }))
+
+          // Mark current session
+          if (currentResult.success && currentResult.session) {
+            const currentSessionIndex = this.sessions.findIndex(s => s.id === currentResult.session.id)
+            if (currentSessionIndex >= 0) {
+              this.sessions[currentSessionIndex].isCurrent = true
+              this.currentSessionId = currentResult.session.id
+            }
+          }
+
+          // Sort: current session first, then by last activity
+          this.sessions.sort((a, b) => {
+            if (a.isCurrent) return -1
+            if (b.isCurrent) return 1
+            return new Date(b.lastActivity) - new Date(a.lastActivity)
+          })
         }
       } catch (error) {
-        this.error = 'Failed to load sessions'
         console.error('Error loading sessions:', error)
+        this.$emit('show-message', 'Failed to load sessions', 'error')
       } finally {
         this.loading = false
-      }
-    },
-
-    async loadCurrentSession() {
-      try {
-        const result = await sessionService.getCurrentSession()
-        if (result.success) {
-          this.currentSession = result.session
-        }
-      } catch (error) {
-        console.error('Error loading current session:', error)
-      }
-    },
-
-    async checkSecurity() {
-      try {
-        const result = await sessionService.checkSecurity()
-        if (result.success) {
-          this.securityCheck = {
-            isSuspicious: result.isSuspicious,
-            sessionCount: result.sessionCount,
-            uniqueIPs: result.uniqueIPs
-          }
-        }
-      } catch (error) {
-        console.error('Error checking security:', error)
       }
     },
 
     async revokeSession(sessionId) {
-      this.loading = true
-      try {
-        const result = await sessionService.revokeSession(sessionId)
-        if (result.success) {
-          // Remove from local list
-          this.sessions = this.sessions.filter(s => s.sessionId !== sessionId)
-          this.$emit('session-revoked', { sessionId })
-
-          // Show success message
-          this.showMessage('Session ended successfully', 'success')
-        } else {
-          this.showMessage(result.error || 'Failed to end session', 'error')
-        }
-      } catch (error) {
-        this.showMessage('Error ending session', 'error')
-        console.error('Error revoking session:', error)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async revokeAllOther() {
-      if (!confirm('Are you sure you want to end all other sessions? This will log you out of all other devices.')) {
+      if (sessionId === this.currentSessionId) {
+        this.$emit('show-message', 'Cannot end current session', 'warning')
         return
       }
 
-      this.loading = true
+      this.revoking = true
+      try {
+        const result = await sessionService.revokeSession(sessionId)
+        if (result.success) {
+          // Remove session from list
+          this.sessions = this.sessions.filter(s => s.id !== sessionId)
+          this.$emit('session-revoked', { sessionId })
+          this.$emit('show-message', 'Session ended successfully', 'success')
+        } else {
+          this.$emit('show-message', result.error || 'Failed to end session', 'error')
+        }
+      } catch (error) {
+        console.error('Error revoking session:', error)
+        this.$emit('show-message', 'Network error', 'error')
+      } finally {
+        this.revoking = false
+      }
+    },
+
+    async revokeAllOtherSessions() {
+      this.revoking = true
       try {
         const result = await sessionService.revokeAllOtherSessions()
         if (result.success) {
-          // Update local list to show only current session
+          // Keep only current session
           this.sessions = this.sessions.filter(s => s.isCurrent)
-          this.$emit('sessions-revoked', { count: result.revokedCount })
-
-          this.showMessage(`${result.revokedCount} sessions ended successfully`, 'success')
+          this.$emit('sessions-revoked', { count: result.count })
+          this.$emit('show-message', result.message, 'success')
         } else {
-          this.showMessage(result.error || 'Failed to end sessions', 'error')
+          this.$emit('show-message', result.error || 'Failed to end sessions', 'error')
         }
       } catch (error) {
-        this.showMessage('Error ending sessions', 'error')
-        console.error('Error revoking other sessions:', error)
+        console.error('Error revoking sessions:', error)
+        this.$emit('show-message', 'Network error', 'error')
       } finally {
-        this.loading = false
+        this.revoking = false
       }
     },
 
-    async handleSecurityAction() {
-      // For now, just refresh the data
-      await this.loadSessions()
-      await this.checkSecurity()
-
-      // Could open a more detailed security review modal
-      this.$emit('security-review-requested')
-    },
-
-    formatSessionInfo(session) {
-      return sessionService.formatSessionInfo(session)
-    },
-
-    getDeviceIcon(userAgent) {
-      if (!userAgent) return '💻'
-
-      if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) {
-        return '📱'
+    getDeviceIcon(device) {
+      const deviceLower = device.toLowerCase()
+      if (deviceLower.includes('mobile') || deviceLower.includes('phone')) {
+        return 'mdi-cellphone'
       }
-      if (userAgent.includes('Tablet') || userAgent.includes('iPad')) {
-        return '📟'
+      if (deviceLower.includes('tablet') || deviceLower.includes('ipad')) {
+        return 'mdi-tablet'
       }
-      return '💻'
+      return 'mdi-monitor'
     },
 
-    showMessage(message, type) {
-      // Emit event for parent to handle notification
-      this.$emit('show-message', { message, type })
+    formatLastActivity(dateString) {
+      const now = new Date()
+      const activityDate = new Date(dateString)
+      const diffMs = now - activityDate
+      const diffMins = Math.floor(diffMs / 60000)
+
+      if (diffMins < 1) return 'just now'
+      if (diffMins < 60) return `${diffMins} min ago`
+
+      const diffHours = Math.floor(diffMins / 60)
+      if (diffHours < 24) return `${diffHours}h ago`
+
+      const diffDays = Math.floor(diffHours / 24)
+      return `${diffDays}d ago`
+    },
+
+    formatIpAddress(ipAddress) {
+      return sessionService.formatIpAddress(ipAddress)
     }
   }
 }
@@ -275,235 +218,186 @@ export default {
 
 <style scoped>
 .session-manager {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.session-header {
-  margin-bottom: 30px;
-}
-
-.session-header h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 24px;
-}
-
-.session-subtitle {
-  color: #666;
-  margin: 0;
-}
-
-.security-alert {
-  display: flex;
-  align-items: flex-start;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-}
-
-.security-alert.warning {
-  background: #fff3cd;
-  border-color: #ffeaa7;
-}
-
-.alert-icon {
-  font-size: 24px;
-  margin-right: 12px;
-}
-
-.alert-content h4 {
-  margin: 0 0 8px 0;
-  color: #856404;
-}
-
-.alert-content p {
-  margin: 0 0 12px 0;
-  color: #856404;
-}
-
-.current-session, .other-sessions {
-  margin-bottom: 30px;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
-.section-header h4 {
+.section-header h3 {
   margin: 0;
   color: #333;
+  font-size: 20px;
 }
 
-.session-card {
+.session-count {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.loading, .no-sessions {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.session-item {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
-  background: white;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
-.session-card:hover {
-  border-color: #4A90E2;
+.session-item:hover {
+  border-color: #1976d2;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
 }
 
-.session-card.current {
-  border-color: #28a745;
-  background: #f8fff9;
+.session-item.current-session {
+  border-color: #4caf50;
+  background: #f1f8e9;
 }
 
-.session-info {
+.session-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.session-primary {
+.device-info {
   display: flex;
   align-items: center;
-  flex: 1;
+  gap: 8px;
 }
 
 .device-icon {
-  font-size: 24px;
-  margin-right: 12px;
+  color: #666;
+  font-size: 20px;
 }
 
-.browser-name {
-  font-weight: 600;
+.device-name {
+  font-weight: 500;
   color: #333;
-  margin-bottom: 4px;
-}
-
-.location {
-  color: #666;
-  font-size: 14px;
-}
-
-.session-meta {
-  text-align: right;
-  font-size: 14px;
-}
-
-.timestamp, .session-created {
-  color: #666;
-  margin-bottom: 4px;
 }
 
 .current-badge {
-  background: #28a745;
+  background: #4caf50;
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 500;
 }
 
-.session-actions {
-  margin-top: 12px;
-}
-
-.sessions-list .session-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sessions-list .session-info {
-  flex: 1;
-  margin-right: 16px;
-}
-
-.no-sessions {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.empty-state {
-  color: #666;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  display: block;
-}
-
-.empty-state h4 {
-  margin: 0 0 8px 0;
-  color: #333;
-}
-
-.loading-state, .error-state {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #4A90E2;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.btn-primary, .btn-secondary, .btn-danger {
-  padding: 8px 16px;
+.session-actions .btn-revoke {
+  background: #f44336;
+  color: white;
   border: none;
+  padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s ease;
 }
 
-.btn-primary {
-  background: #4A90E2;
-  color: white;
+.session-actions .btn-revoke:hover:not(:disabled) {
+  background: #d32f2f;
 }
 
-.btn-primary:hover {
-  background: #357abd;
+.session-actions .btn-revoke:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
-.btn-secondary {
-  background: #6c757d;
-  color: white;
+.session-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.btn-secondary:hover {
-  background: #545b62;
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 14px;
+}
+
+.detail-icon {
+  font-size: 16px;
+  color: #999;
+}
+
+.bulk-actions {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
 }
 
 .btn-danger {
-  background: #dc3545;
+  background: #f44336;
   color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
 }
 
-.btn-danger:hover {
-  background: #c82333;
+.btn-danger:hover:not(:disabled) {
+  background: #d32f2f;
 }
 
-.btn-primary:disabled, .btn-secondary:disabled, .btn-danger:disabled {
-  opacity: 0.6;
+.btn-danger:disabled {
+  background: #ccc;
   cursor: not-allowed;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .session-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .session-details {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 </style>

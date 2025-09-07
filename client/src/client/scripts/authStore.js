@@ -85,7 +85,6 @@ const logout = async () => {
 
     if (response.ok) {
       const data = await response.json()
-      sessionService.clearWarnings()
       console.log('Logged out successfully:', data.message)
       return { success: true, message: data.message }
     } else {
