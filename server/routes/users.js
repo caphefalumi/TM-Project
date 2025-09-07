@@ -12,7 +12,6 @@ import Role from '../models/Role.js'
 import { PERMISSIONS } from '../config/permissions.js'
 import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
 import JWTAuth from '../verify/JWTAuth.js'
-import SessionManager from '../scripts/sessionManager.js'
 import RefreshToken from '../models/RefreshToken.js'
 
 const { generateAccessToken, generateRefreshToken } = JWTAuth
@@ -407,14 +406,9 @@ export const updateUserProfile = async (req, res) => {
   try {
     const requestingUserId = req.user.userId // from JWT token
     const { username, email } = req.body
-    const sessionId = req.cookies.sessionId
 
     if (!username || !email) {
       return res.status(400).json({ error: 'Username and email are required' })
-    }
-
-    if (!sessionId) {
-      return res.status(400).json({ error: 'Session not found' })
     }
 
     // Check if username already exists (excluding current user)
@@ -461,9 +455,6 @@ export const updateUserProfile = async (req, res) => {
 
     const newAccessToken = generateAccessToken(newUserData)
     const newRefreshToken = generateRefreshToken(newUserData)
-
-    // Update the current session with new refresh token
-    await SessionManager.updateSessionToken(sessionId, newRefreshToken)
 
     // Update refresh token in database
     await RefreshToken.findOneAndUpdate(
@@ -522,9 +513,6 @@ export const deleteUserAccount = async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    // Import SessionManager for session cleanup
-    const SessionManager = await import('../scripts/sessionManager.js')
-
     // Remove user from all teams
     await UsersOfTeam.deleteMany({ userId: requestingUserId })
 
@@ -533,9 +521,6 @@ export const deleteUserAccount = async (req, res) => {
 
     // Remove user from any custom roles they might have created
     await Role.deleteMany({ created_by: requestingUserId })
-
-    // Revoke all user sessions
-    await SessionManager.default.revokeAllUserSessions(requestingUserId, 'account_deletion')
 
     // Finally delete the user account
     await Account.findByIdAndDelete(requestingUserId)

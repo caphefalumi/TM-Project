@@ -1,32 +1,13 @@
-import SessionManager from '../scripts/sessionManager.js'
+// Basic security middleware (session functionality removed)
 
-// Middleware to track and validate IP addresses
+// Middleware to track IP addresses (for logging only)
 export const ipSecurityMiddleware = async (req, res, next) => {
   try {
     const currentIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']
-    const sessionId = req.cookies.sessionId
     const userId = req.user?.userId
 
-    if (sessionId && userId) {
-      // Get the session to check original IP
-      const session = await SessionManager.validateSession(sessionId, userId)
-
-      if (session && session.ipAddress !== currentIP) {
-        console.log(`IP mismatch detected for user ${userId}: original=${session.ipAddress}, current=${currentIP}`)
-
-        // You can choose to:
-        // 1. Just log the event
-        // 2. Revoke the session
-        // 3. Require re-authentication
-        // 4. Allow but mark as suspicious
-
-        // For now, we'll just log and continue, but you can uncomment the following to revoke session:
-        // await SessionManager.revokeSession(sessionId, 'security')
-        // return res.status(403).json({ error: 'Session security violation detected' })
-
-        // Or add a warning header
-        res.set('X-Security-Warning', 'IP-Change-Detected')
-      }
+    if (userId) {
+      console.log(`Request from user ${userId} at IP: ${currentIP}`)
     }
 
     next()
@@ -36,66 +17,37 @@ export const ipSecurityMiddleware = async (req, res, next) => {
   }
 }
 
-// Middleware to check for concurrent sessions
-export const concurrentSessionMiddleware = async (req, res, next) => {
-  try {
-    const userId = req.user?.userId
-
-    if (userId) {
-      const suspiciousActivity = await SessionManager.checkSuspiciousActivity(userId)
-
-      if (suspiciousActivity.isSuspicious) {
-        console.log(`Suspicious activity detected for user ${userId}:`, suspiciousActivity)
-
-        // Add warning header
-        res.set('X-Security-Warning', 'Multiple-Sessions-Detected')
-        res.set('X-Session-Count', suspiciousActivity.sessionCount.toString())
-        res.set('X-Unique-IPs', suspiciousActivity.uniqueIPs.toString())
-      }
-    }
-
-    next()
-  } catch (error) {
-    console.error('Error in concurrent session middleware:', error)
-    next()
-  }
-}
-
-// Rate limiting per session
-export const sessionRateLimit = (maxRequests = 60, windowMs = 60000) => {
-  const sessions = new Map()
+// Simple rate limiting per IP
+export const ipRateLimit = (maxRequests = 60, windowMs = 60000) => {
+  const ips = new Map()
 
   return (req, res, next) => {
-    const sessionId = req.cookies.sessionId
-
-    if (!sessionId) {
-      return next()
-    }
+    const ip = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown'
 
     const now = Date.now()
-    const sessionData = sessions.get(sessionId) || { requests: 0, resetTime: now + windowMs }
+    const ipData = ips.get(ip) || { requests: 0, resetTime: now + windowMs }
 
-    if (now > sessionData.resetTime) {
-      sessionData.requests = 0
-      sessionData.resetTime = now + windowMs
+    if (now > ipData.resetTime) {
+      ipData.requests = 0
+      ipData.resetTime = now + windowMs
     }
 
-    sessionData.requests++
+    ipData.requests++
 
-    if (sessionData.requests > maxRequests) {
+    if (ipData.requests > maxRequests) {
       return res.status(429).json({
-        error: 'Too many requests from this session',
-        retryAfter: Math.ceil((sessionData.resetTime - now) / 1000)
+        error: 'Too many requests from this IP',
+        retryAfter: Math.ceil((ipData.resetTime - now) / 1000)
       })
     }
 
-    sessions.set(sessionId, sessionData)
+    ips.set(ip, ipData)
 
     // Clean up old entries
-    if (sessions.size > 10000) {
-      for (const [id, data] of sessions.entries()) {
+    if (ips.size > 10000) {
+      for (const [ipAddr, data] of ips.entries()) {
         if (now > data.resetTime) {
-          sessions.delete(id)
+          ips.delete(ipAddr)
         }
       }
     }
