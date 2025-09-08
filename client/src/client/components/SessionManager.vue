@@ -42,8 +42,12 @@
 
           <div class="session-details">
             <div class="detail-item">
-              <v-icon class="detail-icon">mdi-map-marker</v-icon>
+              <v-icon class="detail-icon">mdi-web</v-icon>
               <span>{{ formatIpAddress(session.ipAddress) }}</span>
+            </div>
+            <div class="detail-item">
+              <v-icon class="detail-icon">mdi-map-marker</v-icon>
+              <span>{{ formatLocation(session.location) }}</span>
             </div>
             <div class="detail-item">
               <v-icon class="detail-icon">mdi-clock</v-icon>
@@ -99,6 +103,7 @@ export default {
           this.sessions = activeResult.tokens.map((token) => ({
             id: token.id,
             ipAddress: token.ipAddress,
+            location: token.location,
             browser: token.browser,
             device: token.device,
             lastActivity: token.lastActivity,
@@ -201,6 +206,16 @@ export default {
 
     formatIpAddress(ipAddress) {
       return sessionService.formatIpAddress(ipAddress)
+    },
+
+    formatLocation(location) {
+      if (!location || location === 'Unknown, Unknown' || location === ', ') {
+        return 'Unknown Location'
+      }
+      if (location === 'Local, Local') {
+        return 'Local Network'
+      }
+      return location
     },
   },
 }
