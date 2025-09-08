@@ -29,26 +29,18 @@ class RefreshTokenManager {
     try {
       // Skip location lookup for localhost/private IPs
       if (ipAddress === '127.0.0.1' || ipAddress === '::1' || ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.') || ipAddress.startsWith('172.')) {
-        return {
-          city: 'Local',
-          country: 'Local',
-          region: 'Local'
-        }
+        return 'Local'
       }
 
       const geo = geoip.lookup(ipAddress)
       if (geo) {
-        return {
-          city: geo.city || 'Unknown',
-          country: geo.country || 'Unknown',
-          region: geo.region || 'Unknown'
-        }
+        return `${geo.city}, ${geo.country}`
       }
     } catch (error) {
       console.log('Error getting location from IP:', error.message)
     }
 
-    return
+    return 'Unknown'
   }
 
   /**
@@ -63,16 +55,13 @@ class RefreshTokenManager {
     // Clean up old refresh tokens for this user (keep only 5 most recent)
     await this.cleanupOldTokens(userId, 5)
 
-    // Get location info from IP address
-    const locationInfo = this.getLocationFromIP(ipAddress)
-
     const refreshToken = new RefreshToken({
       userId,
       token,
       sessionId,
       ipAddress,
       userAgent,
-      location: `${locationInfo.city}, ${locationInfo.country}` || 'Unknown',
+      location: this.getLocationFromIP(ipAddress),
       browser: agentInfo.browser,
       device: agentInfo.device,
       expiresAt,

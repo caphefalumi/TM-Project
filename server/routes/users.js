@@ -53,9 +53,9 @@ export const addUsersToTeam = async (req, res) => {
       return res.status(404).json({ message: `Team with ID ${teamId} does not exist` })
     }
 
-    // Check if requesting user is admin in this team
+    // Check if requesting user is admin in this team or global admin
     const requesterInTeam = await UsersOfTeam.findOne({ userId: requestingUserId, teamId })
-    const isRequestingUserAdmin = requesterInTeam?.role === 'Admin'
+    const isRequestingUserAdmin = requesterInTeam?.role === 'Admin' || req.user?.username === 'admin'
 
     const addedUsers = []
     const usersToInsert = []
