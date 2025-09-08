@@ -122,7 +122,6 @@ export const requireAdmin = (req, res, next) => {
 
   // Check if user is global admin first
   if (username === 'admin') {
-    console.log('Global admin access granted for user:', username)
     return next()
   }
 
@@ -151,13 +150,11 @@ export const requirePermission = (permission) => {
       const globalUsername = req.user?.username
 
       if (!userId) {
-        console.log('User ID missing in request')
         return res.status(401).json({ message: 'Authentication required' })
       }
 
       // Check if user is global admin first
       if (globalUsername === 'admin') {
-        console.log('Global admin permission granted for user:', globalUsername, 'permission:', permission)
         return next()
       }
 

@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 
 function generateAccessToken(user) {
-  console.log('Generating access token for user:', user)
   return jwt.sign(
     {
       userId: user.userId,
@@ -19,7 +18,6 @@ function generateAccessToken(user) {
 }
 
 const generateRefreshToken = (user) => {
-  console.log('Generating refresh token for user:', user.username)
   return jwt.sign(
     {
       userId: user.userId,
@@ -54,8 +52,6 @@ export const authenticateRefreshToken = async (req, res, next) => {
 
   if (token == null) return res.sendStatus(401) // 401: not sending token
 
-  console.log('RefreshToken: ', token)
-
   try {
     const user = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET)
 
@@ -71,8 +67,6 @@ export const authenticateRefreshToken = async (req, res, next) => {
       // Update token activity when used
       const currentIP = req.clientIp
       await RefreshTokenManager.updateTokenActivity(token, currentIP)
-
-      console.log('User from refresh token:', user)
       req.user = user
       next()
     }
