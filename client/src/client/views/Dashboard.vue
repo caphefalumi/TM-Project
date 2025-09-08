@@ -556,24 +556,6 @@ const toggleSortOrder = () => {
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- No Tasks State -->
-    <v-row v-if="!loading && tasks.length === 0" class="mt-6">
-      <v-col cols="12">
-        <v-card class="text-center pa-8" variant="outlined">
-          <v-icon size="64" class="mb-4" color="grey">mdi-table-off</v-icon>
-          <h3 class="text-h5 mb-2">No Tasks Found</h3>
-          <p class="text-grey mb-4">
-            You don't have any tasks assigned yet. Tasks will appear here when they're assigned to
-            you.
-          </p>
-          <v-btn color="primary" @click="router.push('/teams')" size="large">
-            <v-icon start>mdi-account-group</v-icon>
-            View Teams
-          </v-btn>
-        </v-card>
-      </v-col>
-    </v-row>
   </v-container>
 </template>
 
