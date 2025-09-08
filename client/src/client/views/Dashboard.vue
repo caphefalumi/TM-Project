@@ -261,7 +261,7 @@ const toggleSortOrder = () => {
     </v-row>
 
     <!-- Task Statistics Cards -->
-     
+
     <v-row id="tour-task-stats" class="mb-6">
       <v-col cols="6" md="3">
         <v-card class="text-center pa-4" color="gray" variant="tonal">
