@@ -167,7 +167,7 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
           :title="user.username"
           :subtitle="user.email"
           class="user-profile-item clickable-profile"
-          @click="$router.push('/account')"
+          @click="$router.push('/account/personal')"
         >
           <template v-slot:prepend>
             <v-avatar size="32" color="primary" class="mr-2">

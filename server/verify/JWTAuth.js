@@ -63,7 +63,10 @@ export const authenticateRefreshToken = async (req, res, next) => {
     const storedToken = await RefreshTokenManager.getTokenByString(token)
 
     if (!storedToken) {
-      return res.status(403).json({ error: 'Refresh token not found or revoked' })
+      return res.status(401).json({ 
+        error: 'TOKEN_REVOKED',
+        message: 'Your session has been terminated. Please sign in again.'
+      })
     } else {
       // Update token activity when used
       const currentIP = req.clientIp
@@ -74,7 +77,10 @@ export const authenticateRefreshToken = async (req, res, next) => {
       next()
     }
   } catch (err) {
-    return res.status(403).json({ error: 'Invalid refresh token' })
+    return res.status(401).json({ 
+      error: 'TOKEN_INVALID',
+      message: 'Your session has expired. Please sign in again.'
+    })
   }
 }
 

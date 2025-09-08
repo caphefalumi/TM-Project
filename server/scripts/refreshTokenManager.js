@@ -26,7 +26,7 @@ class RefreshTokenManager {
    * Create refresh token with activity tracking
    */
   static async createRefreshToken(tokenData) {
-    const { userId, token, ipAddress, userAgent, expiresAt } = tokenData
+    const { userId, token, sessionId, ipAddress, userAgent, expiresAt } = tokenData
 
     // Parse user agent for better tracking
     const agentInfo = this.parseUserAgent(userAgent)
@@ -37,6 +37,7 @@ class RefreshTokenManager {
     const refreshToken = new RefreshToken({
       userId,
       token,
+      sessionId,
       ipAddress,
       userAgent,
       browser: agentInfo.browser,
@@ -47,7 +48,7 @@ class RefreshTokenManager {
     })
 
     await refreshToken.save()
-    console.log(`New refresh token created for user ${userId} from IP: ${ipAddress}`)
+    console.log(`New refresh token created for user ${userId} from IP: ${ipAddress}, sessionId: ${sessionId}`)
     return refreshToken
   }
 
@@ -87,26 +88,64 @@ class RefreshTokenManager {
   }
 
   /**
-   * Get token activity statistics for user
+   * Get token activity statistics for user (grouped by sessionId for active sessions)
    */
-  static async getUserTokenStats(userId) {
+  static async getUserTokenStats(userId, refreshToken) {
     const activeTokens = await this.getUserActiveTokens(userId)
+
+    // Group tokens by sessionId to get unique sessions
+    const sessionMap = new Map()
+
+    activeTokens.forEach(token => {
+      const sessionId = token.sessionId
+      if (!sessionMap.has(sessionId)) {
+        sessionMap.set(sessionId, {
+          sessionId: sessionId,
+          ipAddress: token.ipAddress,
+          browser: token.browser,
+          device: token.device,
+          lastActivity: token.lastActivity,
+          totalActivity: token.activityCount,
+          createdAt: token.createdAt,
+          isCurrent: token.token === refreshToken,
+          tokenCount: 1
+        })
+      } else {
+        // Update with most recent activity
+        const existing = sessionMap.get(sessionId)
+        if (token.lastActivity > existing.lastActivity) {
+          existing.lastActivity = token.lastActivity
+          existing.ipAddress = token.ipAddress
+        }
+        existing.totalActivity += token.activityCount
+        existing.tokenCount += 1
+        if (token.token === refreshToken) {
+          existing.isCurrent = true
+        }
+      }
+    })
+
+    const uniqueSessions = Array.from(sessionMap.values())
     const uniqueIPs = [...new Set(activeTokens.map(token => token.ipAddress))].length
     const totalActivity = activeTokens.reduce((sum, token) => sum + token.activityCount, 0)
 
     return {
       activeTokenCount: activeTokens.length,
+      activeSessionCount: uniqueSessions.length, // New: count of unique sessions
       uniqueIPs,
       totalActivity,
       lastActivity: activeTokens.length > 0 ? activeTokens[0].lastActivity : null,
+      sessions: uniqueSessions.sort((a, b) => b.lastActivity - a.lastActivity), // Sessions instead of individual tokens
       tokens: activeTokens.map(token => ({
         id: token._id,
+        sessionId: token.sessionId,
         ipAddress: token.ipAddress,
         browser: token.browser,
         device: token.device,
         lastActivity: token.lastActivity,
         activityCount: token.activityCount,
-        createdAt: token.createdAt
+        createdAt: token.createdAt,
+        isCurrent: token.token === refreshToken
       }))
     }
   }
@@ -139,6 +178,41 @@ class RefreshTokenManager {
     }
     return false
   }
+
+  /**
+   * Find an existing valid refresh token for a user, IP, and user agent
+   */
+  static async findExistingValidToken({ userId, ipAddress, userAgent }) {
+    return await RefreshToken.findOne({
+      userId,
+      ipAddress,
+      userAgent,
+      revoked: false,
+      expiresAt: { $gt: new Date() }
+    }).sort({ lastActivity: -1 })
+  }
+
+  /**
+   * Revoke a specific refresh token by token string
+   */
+  static async revokeTokenByString(tokenString, reason = 'user_logout') {
+    const result = await RefreshToken.findOneAndUpdate(
+      { token: tokenString, revoked: false },
+      {
+        revoked: true,
+        revokedAt: new Date(),
+        revokedReason: reason
+      },
+      { new: true }
+    )
+
+    if (result) {
+      console.log(`Token revoked. Reason: ${reason}`)
+    }
+
+    return result
+  }
+
   /**
    * Revoke a specific refresh token
    */
@@ -198,6 +272,23 @@ class RefreshTokenManager {
     )
 
     console.log(`Revoked all ${result.modifiedCount} tokens for user ${userId}. Reason: ${reason}`)
+    return result
+  }
+
+  /**
+   * Revoke all tokens for a specific session
+   */
+  static async revokeSession(sessionId, reason = 'user_revoke') {
+    const result = await RefreshToken.updateMany(
+      { sessionId, revoked: false },
+      {
+        revoked: true,
+        revokedAt: new Date(),
+        revokedReason: reason
+      }
+    )
+
+    console.log(`Revoked session ${sessionId}. Tokens affected: ${result.modifiedCount}. Reason: ${reason}`)
     return result
   }
 
