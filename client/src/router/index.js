@@ -8,7 +8,8 @@ import TeamDetails from '../client/views/TeamDetails.vue'
 import Dashboard from '../client/views/Dashboard.vue'
 import AdminView from '../client/views/AdminView.vue'
 import LandingView from '../client/views/LandingView.vue'
-import AccountView from '../client/views/AccountView.vue'
+import AccountPersonalView from '../client/views/AccountPersonalView.vue'
+import AccountSecurityView from '../client/views/AccountSecurityView.vue'
 import AuthStore from '../client/scripts/authStore.js'
 import AboutView from '../client/views/AboutView.vue'
 
@@ -27,7 +28,9 @@ const router = createRouter({
     { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true } },
     { path: '/about', component: AboutView, meta: { requiresAuth: true } },
     { path: '/home', component: Dashboard, meta: { requiresAuth: true } },
-    { path: '/account', component: AccountView, meta: { requiresAuth: true } },
+    { path: '/account/personal', component: AccountPersonalView, meta: { requiresAuth: true } },
+    { path: '/account/security', component: AccountSecurityView, meta: { requiresAuth: true } },
+    { path: '/account', redirect: '/account/personal' },
     { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
   ],
 })

@@ -10,51 +10,21 @@ const router = express.Router()
 router.get('/active', authenticateAccessToken, async (req, res) => {
   try {
     const userId = req.user.userId
-    const stats = await RefreshTokenManager.getUserTokenStats(userId)
+    const refreshToken = req.cookies.refreshToken
+    const stats = await RefreshTokenManager.getUserTokenStats(userId, refreshToken)
 
     res.status(200).json({
       success: true,
       totalCount: stats.activeTokenCount,
+      sessionCount: stats.activeSessionCount,
       uniqueIPs: stats.uniqueIPs,
       totalActivity: stats.totalActivity,
       lastActivity: stats.lastActivity,
+      sessions: stats.sessions,
       tokens: stats.tokens
     })
   } catch (error) {
     console.error('Error fetching active tokens:', error)
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-/**
- * Get current token info
- */
-router.get('/current', authenticateAccessToken, async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken
-    if (!refreshToken) {
-      return res.status(401).json({ error: 'No refresh token found' })
-    }
-
-    const tokenData = await RefreshTokenManager.getTokenByString(refreshToken)
-    if (!tokenData) {
-      return res.status(404).json({ error: 'Token not found' })
-    }
-
-    res.status(200).json({
-      success: true,
-      session: {
-        id: tokenData._id,
-        ipAddress: tokenData.ipAddress,
-        browser: tokenData.browser,
-        device: tokenData.device,
-        lastActivity: tokenData.lastActivity,
-        activityCount: tokenData.activityCount,
-        createdAt: tokenData.createdAt
-      }
-    })
-  } catch (error) {
-    console.error('Error fetching current token:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 })
@@ -83,7 +53,38 @@ router.get('/security', authenticateAccessToken, async (req, res) => {
 })
 
 /**
- * Revoke a specific token
+ * Revoke a specific session by sessionId
+ */
+router.delete('/session/:sessionId', authenticateAccessToken, async (req, res) => {
+  try {
+    const { sessionId } = req.params
+    const userId = req.user.userId
+
+    // Verify the session belongs to the user
+    const token = await RefreshTokenManager.getTokenByString(req.cookies.refreshToken)
+    if (!token || token.userId !== userId) {
+      return res.status(403).json({ error: 'Unauthorized' })
+    }
+
+    const result = await RefreshTokenManager.revokeSession(sessionId, 'user_revoke')
+
+    if (!result || result.modifiedCount === 0) {
+      return res.status(404).json({ error: 'Session not found' })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Session ended successfully',
+      tokensRevoked: result.modifiedCount
+    })
+  } catch (error) {
+    console.error('Error revoking session:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+/**
+ * Revoke a specific token (legacy support)
  */
 router.delete('/:tokenId', authenticateAccessToken, async (req, res) => {
   try {

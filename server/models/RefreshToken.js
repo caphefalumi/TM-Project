@@ -9,6 +9,11 @@ const refreshTokenSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  sessionId: {
+    type: String,
+    required: true,
+    index: true,
+  },
   // Login activity tracking
   ipAddress: {
     type: String,
@@ -58,10 +63,10 @@ const refreshTokenSchema = new mongoose.Schema({
   },
   revokedReason: {
     type: String,
-    enum: ['user_logout', 'security', 'expired', 'admin', 'suspicious_activity'],
+    enum: ['refresh_session', 'user_logout', 'security', 'expired', 'admin', 'suspicious_activity'],
     default: null,
   },
 })
 
-const RefreshToken = mongoose.model('RefreshToken', refreshTokenSchema)
+const RefreshToken = mongoose.model('Sessions', refreshTokenSchema)
 export default RefreshToken

@@ -38,33 +38,6 @@ class SessionService {
   }
 
   /**
-   * Get current session info
-   */
-  async getCurrentSession() {
-    const PORT = import.meta.env.VITE_API_PORT
-    try {
-      const response = await fetch(`${PORT}/api/sessions/current`, {
-        method: 'GET',
-        credentials: 'include'
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        return {
-          success: true,
-          ...data
-        }
-      } else {
-        console.error('Failed to fetch current session:', response.statusText)
-        return { success: false, error: response.statusText }
-      }
-    } catch (error) {
-      console.error('Error fetching current session:', error)
-      return { success: false, error: error.message }
-    }
-  }
-
-  /**
    * Check for security issues
    */
   async checkSecurity() {
