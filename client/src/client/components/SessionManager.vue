@@ -59,11 +59,7 @@
     </div>
 
     <div v-if="sessions.length > 1" class="bulk-actions">
-      <button
-        @click="revokeAllOtherSessions"
-        class="btn-danger"
-        :disabled="revoking"
-      >
+      <button @click="revokeAllOtherSessions" class="btn-danger" :disabled="revoking">
         <v-icon>mdi-logout-variant</v-icon>
         End All Other Sessions
       </button>
@@ -86,7 +82,7 @@ export default {
       sessions: [],
       loading: true,
       revoking: false,
-      currentSessionId: null
+      currentSessionId: null,
     }
   },
   async mounted() {
@@ -97,10 +93,10 @@ export default {
       this.loading = true
       try {
         const activeResult = await sessionService.getActiveSessions()
-        console.log("activeResult:", activeResult)
+        console.log('activeResult:', activeResult)
 
         if (activeResult.success) {
-          this.sessions = activeResult.tokens.map(token => ({
+          this.sessions = activeResult.tokens.map((token) => ({
             id: token.id,
             ipAddress: token.ipAddress,
             browser: token.browser,
@@ -108,11 +104,11 @@ export default {
             lastActivity: token.lastActivity,
             activityCount: token.activityCount,
             createdAt: token.createdAt,
-            isCurrent: token.isCurrent || false
+            isCurrent: token.isCurrent || false,
           }))
 
           // Find and store current session ID
-          const currentSession = this.sessions.find(s => s.isCurrent)
+          const currentSession = this.sessions.find((s) => s.isCurrent)
           if (currentSession) {
             this.currentSessionId = currentSession.id
           }
@@ -141,7 +137,7 @@ export default {
         const result = await sessionService.revokeSession(sessionId)
         if (result.success) {
           // Remove session from list
-          this.sessions = this.sessions.filter(s => s.id !== sessionId)
+          this.sessions = this.sessions.filter((s) => s.id !== sessionId)
           this.$emit('session-revoked', { sessionId })
           this.$emit('show-message', 'Session ended successfully', 'success')
         } else {
@@ -161,8 +157,8 @@ export default {
         const result = await sessionService.revokeAllOtherSessions()
         if (result.success) {
           // Keep only current session
-          const revokedCount = this.sessions.filter(s => !s.isCurrent).length
-          this.sessions = this.sessions.filter(s => s.isCurrent)
+          const revokedCount = this.sessions.filter((s) => !s.isCurrent).length
+          this.sessions = this.sessions.filter((s) => s.isCurrent)
           this.$emit('sessions-revoked', { count: revokedCount })
           this.$emit('show-message', `${revokedCount} sessions ended successfully`, 'success')
         } else {
@@ -205,8 +201,8 @@ export default {
 
     formatIpAddress(ipAddress) {
       return sessionService.formatIpAddress(ipAddress)
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -241,7 +237,8 @@ export default {
   font-weight: 500;
 }
 
-.loading, .no-sessions {
+.loading,
+.no-sessions {
   text-align: center;
   padding: 40px;
   color: #666;

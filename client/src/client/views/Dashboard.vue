@@ -21,7 +21,7 @@ const loading = ref(false)
 const filters = ref({
   submitted: false,
   highPriority: false,
-  pending: false
+  pending: false,
 })
 
 const sortBy = ref('priority') // 'priority', 'weighted', 'startDate', 'dueDate'
@@ -31,7 +31,7 @@ const sortOptions = [
   { value: 'priority', title: 'By Priority' },
   { value: 'weighted', title: 'By Weight' },
   { value: 'startDate', title: 'By Start Date' },
-  { value: 'dueDate', title: 'By Due Date' }
+  { value: 'dueDate', title: 'By Due Date' },
 ]
 
 onMounted(async () => {
@@ -98,16 +98,16 @@ const filteredAndSortedTasks = computed(() => {
 
   // Apply filters
   if (filters.value.submitted) {
-    filtered = filtered.filter(task => task.submitted === true)
+    filtered = filtered.filter((task) => task.submitted === true)
   }
 
   if (filters.value.highPriority) {
-    filtered = filtered.filter(task => task.priority === 'High' || task.priority === 'Urgent')
+    filtered = filtered.filter((task) => task.priority === 'High' || task.priority === 'Urgent')
   }
 
   if (filters.value.pending) {
     const currentDate = new Date()
-    filtered = filtered.filter(task => {
+    filtered = filtered.filter((task) => {
       const startDate = new Date(task.startDate)
       const dueDate = new Date(task.dueDate)
       return !task.submitted && currentDate >= startDate && currentDate <= dueDate
@@ -328,20 +328,31 @@ const toggleSortOrder = () => {
 
                 <!-- Filter and Sort Controls -->
                 <v-col cols="12" md="6">
-                  <div id="tour-task-filters" class="d-flex align-center gap-2 justify-end justify-md-end">
+                  <div
+                    id="tour-task-filters"
+                    class="d-flex align-center gap-2 justify-end justify-md-end"
+                  >
                     <!-- Filter Section -->
                     <v-menu :close-on-content-click="false">
                       <template v-slot:activator="{ props }">
                         <v-btn
                           v-bind="props"
                           variant="outlined"
-                          :color="(filters.submitted || filters.highPriority || filters.pending) ? 'primary' : 'default'"
+                          :color="
+                            filters.submitted || filters.highPriority || filters.pending
+                              ? 'primary'
+                              : 'default'
+                          "
                         >
                           <v-icon start>mdi-filter</v-icon>
                           Filter
                           <v-badge
                             v-if="filters.submitted || filters.highPriority || filters.pending"
-                            :content="Number(filters.submitted) + Number(filters.highPriority) + Number(filters.pending)"
+                            :content="
+                              Number(filters.submitted) +
+                              Number(filters.highPriority) +
+                              Number(filters.pending)
+                            "
                             color="primary"
                             inline
                           ></v-badge>
@@ -371,12 +382,7 @@ const toggleSortOrder = () => {
                         </v-list-item>
                         <v-divider class="my-2"></v-divider>
                         <v-list-item>
-                          <v-btn
-                            @click="clearFilters"
-                            variant="text"
-                            color="error"
-                            block
-                          >
+                          <v-btn @click="clearFilters" variant="text" color="error" block>
                             Clear Filters
                           </v-btn>
                         </v-list-item>
@@ -390,7 +396,7 @@ const toggleSortOrder = () => {
                       density="compact"
                       variant="outlined"
                       hide-details
-                      style="min-width: 130px; max-width: 150px;"
+                      style="min-width: 130px; max-width: 150px"
                     ></v-select>
 
                     <v-btn
@@ -398,7 +404,9 @@ const toggleSortOrder = () => {
                       variant="outlined"
                       :color="sortOrder === 'desc' ? 'primary' : 'default'"
                     >
-                      <v-icon>{{ sortOrder === 'desc' ? 'mdi-sort-descending' : 'mdi-sort-ascending' }}</v-icon>
+                      <v-icon>{{
+                        sortOrder === 'desc' ? 'mdi-sort-descending' : 'mdi-sort-ascending'
+                      }}</v-icon>
                     </v-btn>
                   </div>
                 </v-col>
@@ -424,7 +432,7 @@ const toggleSortOrder = () => {
                   { title: 'Start Date', key: 'startDate', sortable: false, width: '12%' },
                   { title: 'Due Date', key: 'dueDate', sortable: false, width: '12%' },
                   { title: 'Submitted', key: 'submitted', sortable: false, width: '8%' },
-                  { title: 'Actions', key: 'action', sortable: false, width: '8%' }
+                  { title: 'Actions', key: 'action', sortable: false, width: '8%' },
                 ]"
                 :items="filteredAndSortedTasks"
                 class="tasks-table"
@@ -438,7 +446,11 @@ const toggleSortOrder = () => {
                     <div>
                       <div class="font-weight-medium">{{ item.title }}</div>
                       <div v-if="item.description" class="text-caption text-grey">
-                        {{ item.description.length > 50 ? item.description.substring(0, 50) + '...' : item.description }}
+                        {{
+                          item.description.length > 50
+                            ? item.description.substring(0, 50) + '...'
+                            : item.description
+                        }}
                       </div>
                     </div>
                   </div>
@@ -458,7 +470,7 @@ const toggleSortOrder = () => {
 
                 <!-- Weight Column -->
                 <template #item.weighted="{ item }">
-                    <div class="text-body-2">{{ item.weighted }}</div>
+                  <div class="text-body-2">{{ item.weighted }}</div>
                 </template>
 
                 <!-- Start Date Column -->
@@ -468,17 +480,19 @@ const toggleSortOrder = () => {
 
                 <!-- Due Date Column -->
                 <template #item.dueDate="{ item }">
-                  <div class="text-body-2" :class="{ 'text-error': new Date(item.dueDate) < new Date() && !item.submitted }">
+                  <div
+                    class="text-body-2"
+                    :class="{
+                      'text-error': new Date(item.dueDate) < new Date() && !item.submitted,
+                    }"
+                  >
                     {{ formatDate(item.dueDate) }}
                   </div>
                 </template>
 
                 <!-- Submitted Column -->
                 <template #item.submitted="{ item }">
-                  <v-icon
-                    :color="item.submitted ? 'success' : 'error'"
-                    size="20"
-                  >
+                  <v-icon :color="item.submitted ? 'success' : 'error'" size="20">
                     {{ item.submitted ? 'mdi-check' : 'mdi-close' }}
                   </v-icon>
                 </template>
@@ -509,7 +523,8 @@ const toggleSortOrder = () => {
               <v-icon size="64" class="mb-4" color="grey">mdi-table-off</v-icon>
               <h3 class="text-h5 mb-2">No Tasks Found</h3>
               <p class="text-grey mb-4">
-                You don't have any tasks assigned yet. Tasks will appear here when they're assigned to you.
+                You don't have any tasks assigned yet. Tasks will appear here when they're assigned
+                to you.
               </p>
               <v-btn color="primary" @click="router.push('/teams')" size="large">
                 <v-icon start>mdi-account-group</v-icon>
@@ -521,9 +536,7 @@ const toggleSortOrder = () => {
             <div v-else class="text-center py-8">
               <v-icon size="64" class="mb-4" color="grey">mdi-filter-off</v-icon>
               <h3 class="text-h5 mb-2">No Tasks Match Filters</h3>
-              <p class="text-grey mb-4">
-                Try adjusting your filters to see more tasks.
-              </p>
+              <p class="text-grey mb-4">Try adjusting your filters to see more tasks.</p>
               <v-btn color="primary" @click="clearFilters" variant="outlined">
                 <v-icon start>mdi-close</v-icon>
                 Clear Filters

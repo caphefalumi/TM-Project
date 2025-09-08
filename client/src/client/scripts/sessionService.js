@@ -18,14 +18,14 @@ class SessionService {
     try {
       const response = await fetch(`${PORT}/api/sessions/active`, {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
       })
 
       if (response.ok) {
         const data = await response.json()
         return {
           success: true,
-          ...data
+          ...data,
         }
       } else {
         console.error('Failed to fetch active sessions:', response.statusText)
@@ -45,7 +45,7 @@ class SessionService {
     try {
       const response = await fetch(`${PORT}/api/sessions/security`, {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
       })
 
       if (response.ok) {
@@ -61,7 +61,7 @@ class SessionService {
 
         return {
           success: true,
-          ...data
+          ...data,
         }
       } else {
         console.error('Failed to check security:', response.statusText)
@@ -81,7 +81,7 @@ class SessionService {
     try {
       const response = await fetch(`${PORT}/api/sessions/${sessionId}`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
       })
 
       if (response.ok) {
@@ -105,7 +105,7 @@ class SessionService {
     try {
       const response = await fetch(`${PORT}/api/sessions/others/all`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
       })
 
       if (response.ok) {
@@ -114,7 +114,7 @@ class SessionService {
         return {
           success: true,
           message: data.message,
-          count: data.count
+          count: data.count,
         }
       } else {
         console.error('Failed to revoke other sessions:', response.statusText)
@@ -152,7 +152,7 @@ class SessionService {
       ...session,
       lastActivityFormatted: formatDate(session.lastActivity),
       createdAtFormatted: formatDate(session.createdAt),
-      isCurrentSession: true // Since we're formatting current session
+      isCurrentSession: true, // Since we're formatting current session
     }
   }
 
@@ -165,12 +165,20 @@ class SessionService {
     if (!ipAddress) return 'Unknown Location'
 
     // For local development
-    if (ipAddress.includes('127.0.0.1') || ipAddress.includes('::1') || ipAddress.includes('localhost')) {
+    if (
+      ipAddress.includes('127.0.0.1') ||
+      ipAddress.includes('::1') ||
+      ipAddress.includes('localhost')
+    ) {
       return 'Local Development'
     }
 
     // For private networks
-    if (ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.') || ipAddress.startsWith('172.')) {
+    if (
+      ipAddress.startsWith('192.168.') ||
+      ipAddress.startsWith('10.') ||
+      ipAddress.startsWith('172.')
+    ) {
       return 'Private Network'
     }
 
@@ -184,9 +192,12 @@ class SessionService {
     if (this.isMonitoring) return
 
     this.isMonitoring = true
-    this.monitoringInterval = setInterval(async () => {
-      await this.checkSecurity()
-    }, 5 * 60 * 1000) // Check every 5 minutes
+    this.monitoringInterval = setInterval(
+      async () => {
+        await this.checkSecurity()
+      },
+      5 * 60 * 1000,
+    ) // Check every 5 minutes
 
     console.log('Session activity monitoring started')
   }

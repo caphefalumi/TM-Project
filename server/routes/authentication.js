@@ -121,7 +121,7 @@ const localLogin = async (req, res) => {
 
   const account = await Account.findOne({ username })
   if (!account) {
-    console.log("No Account")
+    console.log('No Account')
     return res.status(400).json({ error: 'Invalid username or password' })
   }
 
@@ -134,7 +134,9 @@ const localLogin = async (req, res) => {
   // Check for suspicious activity before allowing login
   const suspiciousActivity = await RefreshTokenManager.checkSuspiciousActivity(account._id)
   if (suspiciousActivity.isSuspicious) {
-    console.log(`Suspicious activity detected for user ${account._id}: ${suspiciousActivity.recentUniqueIPs} different IPs in last 24 hours`)
+    console.log(
+      `Suspicious activity detected for user ${account._id}: ${suspiciousActivity.recentUniqueIPs} different IPs in last 24 hours`,
+    )
     // Optionally revoke all existing tokens or require additional verification
     // await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
   }
@@ -143,7 +145,7 @@ const localLogin = async (req, res) => {
   const user = {
     userId: account._id,
     username: account.username,
-    email: account.email
+    email: account.email,
   }
 
   // Set user data and activity tracking info in request for token middleware
@@ -155,8 +157,8 @@ const localLogin = async (req, res) => {
     user: {
       userId: account._id,
       username: account.username,
-      email: account.email
-    }
+      email: account.email,
+    },
   })
 }
 

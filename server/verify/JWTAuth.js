@@ -63,9 +63,9 @@ export const authenticateRefreshToken = async (req, res, next) => {
     const storedToken = await RefreshTokenManager.getTokenByString(token)
 
     if (!storedToken) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'TOKEN_REVOKED',
-        message: 'Your session has been terminated. Please sign in again.'
+        message: 'Your session has been terminated. Please sign in again.',
       })
     } else {
       // Update token activity when used
@@ -77,9 +77,9 @@ export const authenticateRefreshToken = async (req, res, next) => {
       next()
     }
   } catch (err) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: 'TOKEN_INVALID',
-      message: 'Your session has expired. Please sign in again.'
+      message: 'Your session has expired. Please sign in again.',
     })
   }
 }

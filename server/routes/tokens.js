@@ -30,7 +30,7 @@ const addRefreshToken = async (req, res) => {
       sessionId: sessionId,
       ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
       userAgent: req.get('User-Agent'),
-      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000) // 12 hours
+      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
     })
 
     // Set cookies
@@ -53,7 +53,7 @@ const addRefreshToken = async (req, res) => {
     console.log('New tokens created for user:', user.userId)
     res.status(200).json({
       success: 'Session created successfully',
-      accessToken
+      accessToken,
     })
   } catch (error) {
     console.error('Error creating tokens:', error)
@@ -77,7 +77,7 @@ const renewAccessToken = async (req, res) => {
     if (!currentTokenData) {
       return res.status(401).json({
         error: 'TOKEN_REVOKED',
-        message: 'Your session has been terminated. Please sign in again.'
+        message: 'Your session has been terminated. Please sign in again.',
       })
     }
 
@@ -97,24 +97,24 @@ const renewAccessToken = async (req, res) => {
       sessionId: currentTokenData.sessionId, // Preserve sessionId
       ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
-      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000) // 12 hours
+      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
     })
 
-  console.log('Renewing access token for user:', req.user)
-  res.cookie('accessToken', accessToken, {
-    httpOnly: true,
-    secure: true, // Use secure cookies in production
-    sameSite: 'None',
-    maxAge: 19 * 60 * 1000, // 19 minutes
-    path: '/',
-  })
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: true, // Use secure cookies in production
-    sameSite: 'None',
-    maxAge: 12 * 60 * 60 * 1000, // 12 hours
-  })
-  res.status(200).json({ accessToken })
+    console.log('Renewing access token for user:', req.user)
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: true, // Use secure cookies in production
+      sameSite: 'None',
+      maxAge: 19 * 60 * 1000, // 19 minutes
+      path: '/',
+    })
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true, // Use secure cookies in production
+      sameSite: 'None',
+      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+    })
+    res.status(200).json({ accessToken })
   } catch (error) {
     console.error('Error renewing access token:', error)
     res.status(500).json({ error: 'Internal server error' })

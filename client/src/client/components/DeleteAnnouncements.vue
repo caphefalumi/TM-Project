@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 
-
 const success = ref(false)
 const error = ref(false)
 const message = ref('')

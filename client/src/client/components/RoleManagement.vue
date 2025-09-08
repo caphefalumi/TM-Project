@@ -331,7 +331,7 @@
 
             <!-- Management Permissions (Admin only) -->
             <v-expansion-panel v-if="selectedMember.role === 'Admin'">
-            >
+              >
               <v-expansion-panel-title>
                 <v-icon class="mr-2">mdi-shield-crown</v-icon>
                 Management Permissions
@@ -436,8 +436,7 @@
         <v-card-text>
           <p class="mb-3">
             Are you sure you want to make
-            <strong>{{ pendingRoleChange.member.username }}</strong> a team
-            <strong>Admin</strong>?
+            <strong>{{ pendingRoleChange.member.username }}</strong> a team <strong>Admin</strong>?
           </p>
 
           <v-alert type="info" variant="tonal" class="mb-3">
@@ -447,7 +446,8 @@
             </div>
             <div class="text-body-2">
               This user will gain full admin privileges including the ability to manage roles,
-              add/remove members, and access all team features. Multiple admins are allowed per team.
+              add/remove members, and access all team features. Multiple admins are allowed per
+              team.
             </div>
           </v-alert>
 

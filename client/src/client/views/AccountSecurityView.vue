@@ -66,15 +66,15 @@ import sessionService from '../scripts/sessionService.js'
 export default {
   name: 'AccountSecurityView',
   components: {
-    SessionManager
+    SessionManager,
   },
   data() {
     return {
       sessionStats: {
         sessionCount: 0,
         uniqueIPs: 0,
-        lastActivity: 'Loading...'
-      }
+        lastActivity: 'Loading...',
+      },
     }
   },
   async mounted() {
@@ -86,14 +86,14 @@ export default {
       try {
         const [sessionsResult, securityResult] = await Promise.all([
           sessionService.getActiveSessions(),
-          sessionService.checkSecurity()
+          sessionService.checkSecurity(),
         ])
 
         if (sessionsResult.success) {
           this.sessionStats.sessionCount = sessionsResult.totalCount
 
           // Get last activity from the current session or most recent session
-          const currentSession = sessionsResult.tokens.find(token => token.isCurrent)
+          const currentSession = sessionsResult.tokens.find((token) => token.isCurrent)
           if (currentSession) {
             const formatted = sessionService.formatSessionInfo(currentSession)
             this.sessionStats.lastActivity = formatted.lastActivityFormatted
@@ -111,8 +111,8 @@ export default {
       } catch (error) {
         console.error('Error loading session stats:', error)
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -180,7 +180,7 @@ export default {
 
 .tab-button.active,
 .tab-button.router-link-active {
-  background: #4A90E2;
+  background: #4a90e2;
   color: white;
 }
 
@@ -193,8 +193,14 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Security Section Styles */
@@ -257,7 +263,7 @@ export default {
   display: block;
   font-size: 24px;
   font-weight: 700;
-  color: #4A90E2;
+  color: #4a90e2;
   margin-bottom: 4px;
 }
 

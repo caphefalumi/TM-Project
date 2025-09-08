@@ -18,7 +18,7 @@ const refreshAccessToken = async () => {
           return {
             success: false,
             tokenRevoked: true,
-            message: errorData.message || 'Your session has been terminated. Please sign in again.'
+            message: errorData.message || 'Your session has been terminated. Please sign in again.',
           }
         }
       } catch (parseError) {

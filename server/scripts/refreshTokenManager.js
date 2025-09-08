@@ -6,7 +6,6 @@ import { UAParser } from 'ua-parser-js'
  * Replaces session management with refresh token activity tracking
  */
 class RefreshTokenManager {
-
   /**
    * Parse user agent string to extract device and browser info
    */
@@ -18,7 +17,7 @@ class RefreshTokenManager {
     return {
       browser: `${result.browser.name || 'Unknown'}`.trim(),
       device: result.device.type || 'Desktop',
-      os: `${result.os.name || 'Unknown'} ${result.os.version || ''}`.trim()
+      os: `${result.os.name || 'Unknown'} ${result.os.version || ''}`.trim(),
     }
   }
 
@@ -44,11 +43,13 @@ class RefreshTokenManager {
       device: agentInfo.device,
       expiresAt,
       lastActivity: new Date(),
-      activityCount: 1
+      activityCount: 1,
     })
 
     await refreshToken.save()
-    console.log(`New refresh token created for user ${userId} from IP: ${ipAddress}, sessionId: ${sessionId}`)
+    console.log(
+      `New refresh token created for user ${userId} from IP: ${ipAddress}, sessionId: ${sessionId}`,
+    )
     return refreshToken
   }
 
@@ -68,7 +69,9 @@ class RefreshTokenManager {
 
     // Update IP if provided and different
     if (ipAddress && ipAddress !== refreshToken.ipAddress) {
-      console.log(`IP change detected for user ${refreshToken.userId}: ${refreshToken.ipAddress} -> ${ipAddress}`)
+      console.log(
+        `IP change detected for user ${refreshToken.userId}: ${refreshToken.ipAddress} -> ${ipAddress}`,
+      )
       refreshToken.ipAddress = ipAddress
     }
 
@@ -83,7 +86,7 @@ class RefreshTokenManager {
     return await RefreshToken.find({
       userId,
       revoked: false,
-      expiresAt: { $gt: new Date() }
+      expiresAt: { $gt: new Date() },
     }).sort({ lastActivity: -1 })
   }
 
@@ -96,7 +99,7 @@ class RefreshTokenManager {
     // Group tokens by sessionId to get unique sessions
     const sessionMap = new Map()
 
-    activeTokens.forEach(token => {
+    activeTokens.forEach((token) => {
       const sessionId = token.sessionId
       if (!sessionMap.has(sessionId)) {
         sessionMap.set(sessionId, {
@@ -108,7 +111,7 @@ class RefreshTokenManager {
           totalActivity: token.activityCount,
           createdAt: token.createdAt,
           isCurrent: token.token === refreshToken,
-          tokenCount: 1
+          tokenCount: 1,
         })
       } else {
         // Update with most recent activity
@@ -126,7 +129,7 @@ class RefreshTokenManager {
     })
 
     const uniqueSessions = Array.from(sessionMap.values())
-    const uniqueIPs = [...new Set(activeTokens.map(token => token.ipAddress))].length
+    const uniqueIPs = [...new Set(activeTokens.map((token) => token.ipAddress))].length
     const totalActivity = activeTokens.reduce((sum, token) => sum + token.activityCount, 0)
 
     return {
@@ -136,7 +139,7 @@ class RefreshTokenManager {
       totalActivity,
       lastActivity: activeTokens.length > 0 ? activeTokens[0].lastActivity : null,
       sessions: uniqueSessions.sort((a, b) => b.lastActivity - a.lastActivity), // Sessions instead of individual tokens
-      tokens: activeTokens.map(token => ({
+      tokens: activeTokens.map((token) => ({
         id: token._id,
         sessionId: token.sessionId,
         ipAddress: token.ipAddress,
@@ -145,8 +148,8 @@ class RefreshTokenManager {
         lastActivity: token.lastActivity,
         activityCount: token.activityCount,
         createdAt: token.createdAt,
-        isCurrent: token.token === refreshToken
-      }))
+        isCurrent: token.token === refreshToken,
+      })),
     }
   }
 
@@ -155,19 +158,19 @@ class RefreshTokenManager {
    */
   static async checkSuspiciousActivity(userId) {
     const activeTokens = await this.getUserActiveTokens(userId)
-    const uniqueIPs = [...new Set(activeTokens.map(token => token.ipAddress))]
+    const uniqueIPs = [...new Set(activeTokens.map((token) => token.ipAddress))]
 
     // Flag as suspicious if more than 3 different IPs in last 24 hours
-    const recentTokens = activeTokens.filter(token =>
-      new Date() - token.createdAt < 24 * 60 * 60 * 1000
+    const recentTokens = activeTokens.filter(
+      (token) => new Date() - token.createdAt < 24 * 60 * 60 * 1000,
     )
-    const recentUniqueIPs = [...new Set(recentTokens.map(token => token.ipAddress))]
+    const recentUniqueIPs = [...new Set(recentTokens.map((token) => token.ipAddress))]
 
     return {
       isSuspicious: recentUniqueIPs.length > 3,
       uniqueIPs: uniqueIPs.length,
       recentUniqueIPs: recentUniqueIPs.length,
-      totalActiveTokens: activeTokens.length
+      totalActiveTokens: activeTokens.length,
     }
   }
 
@@ -188,7 +191,7 @@ class RefreshTokenManager {
       ipAddress,
       userAgent,
       revoked: false,
-      expiresAt: { $gt: new Date() }
+      expiresAt: { $gt: new Date() },
     }).sort({ lastActivity: -1 })
   }
 
@@ -201,9 +204,9 @@ class RefreshTokenManager {
       {
         revoked: true,
         revokedAt: new Date(),
-        revokedReason: reason
+        revokedReason: reason,
       },
-      { new: true }
+      { new: true },
     )
 
     if (result) {
@@ -222,9 +225,9 @@ class RefreshTokenManager {
       {
         revoked: true,
         revokedAt: new Date(),
-        revokedReason: reason
+        revokedReason: reason,
       },
-      { new: true }
+      { new: true },
     )
 
     if (result) {
@@ -242,13 +245,13 @@ class RefreshTokenManager {
       {
         userId,
         token: { $ne: currentToken },
-        revoked: false
+        revoked: false,
       },
       {
         revoked: true,
         revokedAt: new Date(),
-        revokedReason: reason
-      }
+        revokedReason: reason,
+      },
     )
 
     console.log(`Revoked ${result.modifiedCount} tokens for user ${userId}. Reason: ${reason}`)
@@ -262,13 +265,13 @@ class RefreshTokenManager {
     const result = await RefreshToken.updateMany(
       {
         userId,
-        revoked: false
+        revoked: false,
       },
       {
         revoked: true,
         revokedAt: new Date(),
-        revokedReason: reason
-      }
+        revokedReason: reason,
+      },
     )
 
     console.log(`Revoked all ${result.modifiedCount} tokens for user ${userId}. Reason: ${reason}`)
@@ -284,11 +287,13 @@ class RefreshTokenManager {
       {
         revoked: true,
         revokedAt: new Date(),
-        revokedReason: reason
-      }
+        revokedReason: reason,
+      },
     )
 
-    console.log(`Revoked session ${sessionId}. Tokens affected: ${result.modifiedCount}. Reason: ${reason}`)
+    console.log(
+      `Revoked session ${sessionId}. Tokens affected: ${result.modifiedCount}. Reason: ${reason}`,
+    )
     return result
   }
 
@@ -296,12 +301,11 @@ class RefreshTokenManager {
    * Clean up old tokens (keep only specified number of most recent)
    */
   static async cleanupOldTokens(userId, keepCount = 5) {
-    const allTokens = await RefreshToken.find({ userId })
-      .sort({ createdAt: -1 })
+    const allTokens = await RefreshToken.find({ userId }).sort({ createdAt: -1 })
 
     if (allTokens.length > keepCount) {
       const tokensToDelete = allTokens.slice(keepCount)
-      const tokenIds = tokensToDelete.map(token => token._id)
+      const tokenIds = tokensToDelete.map((token) => token._id)
 
       await RefreshToken.deleteMany({ _id: { $in: tokenIds } })
       console.log(`Cleaned up ${tokenIds.length} old tokens for user ${userId}`)
@@ -313,7 +317,7 @@ class RefreshTokenManager {
    */
   static async cleanupExpiredTokens() {
     const result = await RefreshToken.deleteMany({
-      expiresAt: { $lt: new Date() }
+      expiresAt: { $lt: new Date() },
     })
 
     console.log(`Cleaned up ${result.deletedCount} expired refresh tokens`)
@@ -327,7 +331,7 @@ class RefreshTokenManager {
     return await RefreshToken.findOne({
       token: tokenString,
       revoked: false,
-      expiresAt: { $gt: new Date() }
+      expiresAt: { $gt: new Date() },
     })
   }
 }

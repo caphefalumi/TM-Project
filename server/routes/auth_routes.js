@@ -27,7 +27,7 @@ router.post('/local/register', localRegister)
 router.post('/local/login', localLogin)
 
 // Token Handling
-router.post('/tokens/refresh',  addRefreshToken)
+router.post('/tokens/refresh', addRefreshToken)
 router.delete('/tokens/refresh', revokeRefreshToken)
 router.get('/tokens/access', authenticateRefreshToken, renewAccessToken)
 

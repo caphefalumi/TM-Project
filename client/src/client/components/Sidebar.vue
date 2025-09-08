@@ -35,11 +35,14 @@ onMounted(async () => {
 
     originalUserId.value = userData.userId
 
-    localStorage.setItem('currentUser', JSON.stringify({
-      userId: userData.userId,
-      username: userData.username,
-      timestamp: Date.now()
-    }))
+    localStorage.setItem(
+      'currentUser',
+      JSON.stringify({
+        userId: userData.userId,
+        username: userData.username,
+        timestamp: Date.now(),
+      }),
+    )
   } else {
     user.value.username = 'Guest'
     user.value.email = ''
@@ -64,7 +67,11 @@ const setupCrossTabDetection = () => {
         // If a different user has logged in (different userId)
         if (originalUserId.value && newUserData.userId !== originalUserId.value) {
           // Show popup message
-          if (confirm(`Another user (${newUserData.username}) has logged in. This page will reload to update the session.`)) {
+          if (
+            confirm(
+              `Another user (${newUserData.username}) has logged in. This page will reload to update the session.`,
+            )
+          ) {
             // Force reload the page
             window.location.reload()
           } else {
@@ -160,7 +167,12 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
     </v-app-bar>
 
     <!-- Navigation Drawer (Sidebar) -->
-    <v-navigation-drawer id="tour-sidebar-nav" v-model="drawer" :permanent="$vuetify.display.lgAndUp" app>
+    <v-navigation-drawer
+      id="tour-sidebar-nav"
+      v-model="drawer"
+      :permanent="$vuetify.display.lgAndUp"
+      app
+    >
       <!-- User profile section at the top of the drawer -->
       <v-list>
         <v-list-item
