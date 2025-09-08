@@ -126,7 +126,11 @@ const revokeRefreshToken = async (req, res) => {
   // This is called when user logout or when refresh token needs to be invalidated
 
   const { userId } = req.body
+  const refreshToken = req.cookies.refreshToken
 
+  if (!refreshToken) {
+    return res.status(400).json({ error: 'No refresh token provided' })
+  }
   // Clear all cookies immediately
   res.clearCookie('refreshToken', {
     path: '/',
@@ -150,7 +154,7 @@ const revokeRefreshToken = async (req, res) => {
 
   try {
     // Revoke all user's refresh tokens
-    await RefreshTokenManager.revokeAllUserTokens(userId, 'user_logout')
+    await RefreshTokenManager.revokeTokenByString(refreshToken, 'user_logout')
 
     console.log('Refresh tokens revoked successfully for user:', userId)
     res.status(200).json({

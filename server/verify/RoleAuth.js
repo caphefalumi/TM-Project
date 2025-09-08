@@ -89,7 +89,7 @@ export const getRoleDefaultPermissions = (role) => {
 
 export const hasPermission = async (userId, teamId, permission, globalUsername = null) => {
   try {
-    if (globalUsername === 'admin' && GLOBAL_ADMIN_ACCESS.includes('admin')) {
+    if (globalUsername === 'admin') {
       return true
     }
 
