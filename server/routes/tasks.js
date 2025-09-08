@@ -170,14 +170,13 @@ const addTaskToUsers = async (req, res) => {
       message: 'Tasks added successfully',
       taskGroupId, // Return the group ID for frontend reference
       tasksCreated: newTasks.length,
-      tasks: newTasks
+      tasks: newTasks,
     })
   } catch (error) {
     console.error('Error adding task:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-
 
 const submitATask = async (req, res) => {
   // Submit a task by marking a task as submitted and creating a TaskSubmission record
@@ -296,7 +295,6 @@ const submitATask = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error', error: error.message })
   }
 }
-
 
 const getTasksByGroupId = async (req, res) => {
   // Get all tasks in a task group for admin view

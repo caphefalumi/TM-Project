@@ -1,7 +1,8 @@
 import Account from '../models/Account.js'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 import sendEmail from '../scripts/mailer.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import 'dotenv/config'
 const getUserIDAndEmailByName = async (req, res) => {
   const { username } = req.params
@@ -117,9 +118,11 @@ const localLogin = async (req, res) => {
     console.log('Missing fields:', { username, password })
     return res.status(400).json({ error: 'All fields are required.' })
   }
-  const account = await Account.findOne({ username })
+
+  const account = await Account.findOne({ username: username })
   if (!account) {
-    console.log("No Account")
+    console.log(username)
+    console.log('No Account')
     return res.status(400).json({ error: 'Invalid username or password' })
   }
 
@@ -127,10 +130,37 @@ const localLogin = async (req, res) => {
   if (!isMatch) {
     console.log('Password mismatch')
     return res.status(400).json({ error: 'Invalid username or password' })
-  } else {
-    // console.log('Matched!')
-    return res.status(201).json({ success: 'User is authorized' })
   }
+
+  // Check for suspicious activity before allowing login
+  const suspiciousActivity = await RefreshTokenManager.checkSuspiciousActivity(account._id)
+  if (suspiciousActivity.isSuspicious) {
+    console.log(
+      `Suspicious activity detected for user ${account._id}: ${suspiciousActivity.recentUniqueIPs} different IPs in last 24 hours`,
+    )
+    // Optionally revoke all existing tokens or require additional verification
+    // await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
+  }
+
+  // Create user object for token generation
+  const user = {
+    userId: account._id,
+    username: account.username,
+    email: account.email,
+  }
+
+  // Set user data and activity tracking info in request for token middleware
+  req.body.user = user
+
+  console.log('User authenticated successfully')
+  return res.status(200).json({
+    success: 'User is authorized',
+    user: {
+      userId: account._id,
+      username: account.username,
+      email: account.email,
+    },
+  })
 }
 
 const forgotPassword = async (req, res) => {
@@ -147,14 +177,18 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({ error: 'No account found with that email address' })
     }
 
-    const token = jwt.sign({ id: account._id }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '15m',
-    })
-    account.passwordResetToken = token
+    // Generate a random token using crypto
+    const resetToken = crypto.randomBytes(32).toString('hex')
+
+    // Hash the token before storing it in the database for security
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+
+    account.passwordResetToken = hashedToken
     account.passwordResetExpires = Date.now() + 900000 // 15 minutes from now
     await account.save()
 
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`
+    // Use the plain token (not hashed) for the email link
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`
     const mailOptions = {
       from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
       to: account.email,
@@ -204,34 +238,18 @@ const forgotPassword = async (req, res) => {
 }
 
 const verifyToken = async (req, res) => {
-  const { token } = req.body
-  if (!token) {
-    return res.status(400).json({ error: 'Token is required' })
-  }
-  const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-  const account = await Account.findOne({
-    _id: decodedToken.id,
-    passwordResetToken: token,
-    passwordResetExpires: { $gt: Date.now() },
-  })
-  if (!account) {
-    console.log('account not found or token expired')
-    return res.status(401).json({ error: 'Invalid or expired password reset token' })
-  }
-  return res.status(200).json({ success: 'Token is valid' })
-}
-
-const resetPassword = async (req, res) => {
-  const { token, password } = req.body
-
   try {
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    console.log(decodedToken)
-    console.log(token)
-    console.log(password)
+    const { token } = req.body
+
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' })
+    }
+
+    // Hash the provided token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+
     const account = await Account.findOne({
-      _id: decodedToken.id,
-      passwordResetToken: token,
+      passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     })
 
@@ -240,10 +258,38 @@ const resetPassword = async (req, res) => {
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
 
+    return res.status(200).json({ success: 'Token is valid' })
+  } catch (error) {
+    console.error('Token verification error:', error)
+    return res.status(500).json({ error: 'An error occurred while verifying the token' })
+  }
+}
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body
+
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and password are required' })
+    }
+
+    // Hash the provided token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+
+    const account = await Account.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    })
+
+    if (!account) {
+      console.log('account not found or token expired')
+      return res.status(401).json({ error: 'Invalid or expired password reset token' })
+    }
+
+    // Update password and clear reset token fields
     account.password = password
     account.passwordResetToken = undefined
     account.passwordResetExpires = undefined
-    console.log(account.password)
     await account.save()
 
     const mailOptions = {
@@ -271,9 +317,6 @@ const resetPassword = async (req, res) => {
       res.json({ message: 'Password reset successful, but confirmation email could not be sent' })
     }
   } catch (err) {
-    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Invalid or expired password reset token' })
-    }
     console.error('Reset password error:', err)
     res.status(500).json({ error: 'Failed to reset password' })
   }

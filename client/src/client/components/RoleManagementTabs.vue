@@ -130,8 +130,8 @@ const filteredMembers = computed(() => {
 const permissionsByCategory = computed(() => {
   const categories = {}
   // Filter out admin-only permissions AND basic permissions for custom roles
-  const availableForCustomRoles = availablePermissions.filter(permission =>
-    permission.category !== 'Admin Only' && permission.category !== 'Basic'
+  const availableForCustomRoles = availablePermissions.filter(
+    (permission) => permission.category !== 'Admin Only' && permission.category !== 'Basic',
   )
 
   availableForCustomRoles.forEach((permission) => {
@@ -142,7 +142,6 @@ const permissionsByCategory = computed(() => {
   })
   return categories
 })
-
 
 // Methods
 const fetchCustomRoles = async () => {
@@ -561,7 +560,8 @@ onMounted(async () => {
 
             <!-- Info about role change restrictions -->
             <v-alert type="info" class="mb-4">
-              <strong>Note:</strong> You cannot change your own role. Only other team members are shown below.
+              <strong>Note:</strong> You cannot change your own role. Only other team members are
+              shown below.
             </v-alert>
 
             <!-- Search -->
@@ -637,9 +637,10 @@ onMounted(async () => {
                 <v-icon size="64" class="mb-4" color="grey">mdi-account-lock</v-icon>
                 <h3 class="text-h6 mb-2">No Members Available</h3>
                 <p class="text-grey mb-0">
-                  {{ searchQuery ?
-                    'No members found matching your search that can have their roles changed.' :
-                    'There are no other team members whose roles you can change.'
+                  {{
+                    searchQuery
+                      ? 'No members found matching your search that can have their roles changed.'
+                      : 'There are no other team members whose roles you can change.'
                   }}
                 </p>
               </v-card-text>
@@ -817,7 +818,9 @@ onMounted(async () => {
             <h4 class="text-subtitle-1 mb-3">Select Permissions</h4>
             <v-alert type="info" variant="tonal" class="mb-3">
               <v-icon start>mdi-information</v-icon>
-              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements, View Members, View Task Groups, Submit Tasks) are automatically granted to all users and cannot be modified.
+              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements,
+              View Members, View Task Groups, Submit Tasks) are automatically granted to all users
+              and cannot be modified.
             </v-alert>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel
@@ -962,7 +965,9 @@ onMounted(async () => {
             <h4 class="text-subtitle-1 mb-3">Update Permissions</h4>
             <v-alert type="info" variant="tonal" class="mb-3">
               <v-icon start>mdi-information</v-icon>
-              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements, View Members, View Task Groups, Submit Tasks) are automatically granted to all users and cannot be modified.
+              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements,
+              View Members, View Task Groups, Submit Tasks) are automatically granted to all users
+              and cannot be modified.
             </v-alert>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel

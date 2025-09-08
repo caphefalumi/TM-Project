@@ -1,9 +1,32 @@
 <script setup>
 import SideBar from './client/components/Sidebar.vue'
-import { computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
+
+// Notification system
+const showSignOutDialog = ref(false)
+const signOutMessage = ref('')
+
+const showSignOutPopup = (message = 'You have been signed out.') => {
+  signOutMessage.value = message
+  showSignOutDialog.value = true
+
+  // Clean up any stored session data
+  sessionStorage.removeItem('isLoggedIn')
+  localStorage.removeItem('currentUser')
+
+  // Stop auto refresh
+  stopTokenRefresh()
+}
+
+const handleSignOutDialogClose = () => {
+  showSignOutDialog.value = false
+  // Redirect to login page
+  router.push('/login')
+}
 
 // Compute whether the current route requires authentication
 const showSidebar = computed(() => {
@@ -28,6 +51,22 @@ const refreshAccessToken = async () => {
       sessionStorage.setItem('isLoggedIn', true)
       console.log('Access token auto-refreshed successfully')
       return true
+    } else if (response.status === 401) {
+      // Check if it's a token revocation error
+      try {
+        const errorData = await response.json()
+        if (errorData.error === 'TOKEN_REVOKED' || errorData.error === 'TOKEN_INVALID') {
+          console.warn('Token was revoked during auto-refresh')
+          // Show sign out popup directly
+          showSignOutPopup(errorData.message || 'You have been signed out.')
+          return false
+        }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError)
+      }
+
+      console.warn('Auto token refresh failed:', response.status, response.statusText)
+      return false
     } else {
       console.warn('Auto token refresh failed:', response.status, response.statusText)
       return false
@@ -44,7 +83,7 @@ const startTokenRefresh = () => {
     clearInterval(tokenRefreshInterval)
   }
 
-  // Set up interval to refresh token every 8 minutes
+  // Set up interval to refresh token every 18 minutes
   tokenRefreshInterval = setInterval(
     async () => {
       if (showSidebar.value) {
@@ -52,6 +91,8 @@ const startTokenRefresh = () => {
         const success = await refreshAccessToken()
         if (!success) {
           console.warn('Scheduled token refresh failed - user may need to login again')
+          // Note: If it's a token revocation, the refreshAccessToken function
+          // will already trigger the tokenRevoked event, so no need to handle it here
         }
       }
     },
@@ -102,24 +143,28 @@ onUnmounted(() => {
   <v-app>
     <!-- Only show SideBar on authenticated routes -->
     <SideBar v-if="showSidebar"></SideBar>
-
     <!-- Main content area -->
-    <v-main :class="{ 'with-sidebar': showSidebar }">
+    <v-main>
       <router-view></router-view>
     </v-main>
+
+    <!-- Sign Out Notification Dialog -->
+    <v-dialog v-model="showSignOutDialog" max-width="500" persistent>
+      <v-card>
+        <v-card-title class="text-h5 d-flex align-center">
+          <v-icon color="warning" class="mr-2">mdi-logout</v-icon>
+          Signed Out
+        </v-card-title>
+        <v-card-text>
+          <p>{{ signOutMessage }}</p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" variant="elevated" @click="handleSignOutDialogClose">
+            Go to Login
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
-
-<style>
-/* Adjust layout based on sidebar visibility */
-.with-sidebar {
-  padding-left: 256px; /* Adjust based on your sidebar width */
-}
-
-@media (max-width: 1200px) {
-  /* On mobile/small screens, don't add padding since sidebar will be overlay */
-  .with-sidebar {
-    padding-left: 0;
-  }
-}
-</style>

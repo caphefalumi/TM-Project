@@ -70,21 +70,24 @@ const updateAnnouncement = async () => {
   loading.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/announcements/${props.announcement._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${PORT}/api/teams/${props.teamId}/announcements/${props.announcement._id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: props.announcement._id,
+          title: titleField.value,
+          subtitle: subtitleField.value,
+          content: announcementContent.value,
+          createdBy: props.userProps.userId,
+          createdByUsername: props.userProps.username,
+        }),
       },
-      credentials: 'include',
-      body: JSON.stringify({
-        id: props.announcement._id,
-        title: titleField.value,
-        subtitle: subtitleField.value,
-        content: announcementContent.value,
-        createdBy: props.userProps.userId,
-        createdByUsername: props.userProps.username,
-      }),
-    })
+    )
     const data = await response.json()
     console.log('Update response:', data) // Add debugging
     if (response.ok) {

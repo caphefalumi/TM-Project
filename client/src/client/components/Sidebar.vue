@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NotificationCenter from './NotificationCenter.vue'
@@ -35,11 +35,14 @@ onMounted(async () => {
 
     originalUserId.value = userData.userId
 
-    localStorage.setItem('currentUser', JSON.stringify({
-      userId: userData.userId,
-      username: userData.username,
-      timestamp: Date.now()
-    }))
+    localStorage.setItem(
+      'currentUser',
+      JSON.stringify({
+        userId: userData.userId,
+        username: userData.username,
+        timestamp: Date.now(),
+      }),
+    )
   } else {
     user.value.username = 'Guest'
     user.value.email = ''
@@ -64,7 +67,11 @@ const setupCrossTabDetection = () => {
         // If a different user has logged in (different userId)
         if (originalUserId.value && newUserData.userId !== originalUserId.value) {
           // Show popup message
-          if (confirm(`Another user (${newUserData.username}) has logged in. This page will reload to update the session.`)) {
+          if (
+            confirm(
+              `Another user (${newUserData.username}) has logged in. This page will reload to update the session.`,
+            )
+          ) {
             // Force reload the page
             window.location.reload()
           } else {
@@ -92,8 +99,9 @@ const logout = async () => {
     // Clear the current user from localStorage
     localStorage.removeItem('currentUser')
 
-    // Revoke refresh token from database and clear cookies
-    await revokeRefreshToken()
+    // Use AuthStore logout which handles session cleanup
+    const { logout: authLogout } = AuthStore
+    await authLogout()
 
     // Clear local user data
     user.value = {
@@ -112,35 +120,6 @@ const logout = async () => {
     console.error('Logout failed:', error)
     // Even if logout fails, still redirect to login for security
     router.push('/')
-  }
-}
-
-const revokeRefreshToken = async () => {
-  console.log('Revoking refresh token for user:', user.value.username)
-
-  try {
-    const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/auth/revoke`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Important: include cookies in request
-      body: JSON.stringify({ userId: user.value.userId }),
-    })
-
-    const responseData = await response.json()
-
-    if (!response.ok) {
-      console.error('Failed to revoke refresh token:', responseData.error || 'Unknown error')
-      throw new Error(responseData.error || 'Failed to revoke refresh token')
-    } else {
-      console.log('Refresh token revoked successfully:', responseData.message)
-      return responseData
-    }
-  } catch (error) {
-    console.error('Error revoking refresh token:', error.message)
-    throw error
   }
 }
 
@@ -188,14 +167,27 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
     </v-app-bar>
 
     <!-- Navigation Drawer (Sidebar) -->
-    <v-navigation-drawer id="tour-sidebar-nav" v-model="drawer" :permanent="$vuetify.display.lgAndUp" app>
+    <v-navigation-drawer
+      id="tour-sidebar-nav"
+      v-model="drawer"
+      :permanent="$vuetify.display.lgAndUp"
+      app
+    >
       <!-- User profile section at the top of the drawer -->
       <v-list>
-        <v-list-item :title="user.username" :subtitle="user.email">
+        <v-list-item
+          :title="user.username"
+          :subtitle="user.email"
+          class="user-profile-item clickable-profile"
+          @click="$router.push('/account/personal')"
+        >
           <template v-slot:prepend>
             <v-avatar size="32" color="primary" class="mr-2">
               <span class="text-white">{{ user.username?.[0]?.toUpperCase() }}</span>
             </v-avatar>
+          </template>
+          <template v-slot:append>
+            <v-icon size="small" class="profile-arrow">mdi-chevron-right</v-icon>
           </template>
         </v-list-item>
       </v-list>
@@ -244,5 +236,26 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
 
 .search-field {
   margin-right: 8px;
+}
+
+.user-profile-item {
+  transition: background-color 0.2s ease;
+}
+
+.clickable-profile {
+  cursor: pointer;
+}
+
+.clickable-profile:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.profile-arrow {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.clickable-profile:hover .profile-arrow {
+  opacity: 1;
 }
 </style>

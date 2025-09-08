@@ -177,15 +177,8 @@ const getProgressColor = (percentage) => {
     <v-row id="tour-teams-overview" class="align-center mb-6">
       <v-col justify="center" cols="12">
         <div v-if="!userLoaded">
-          <v-skeleton-loader
-            type="heading"
-            width="300px"
-            class="mb-2"
-          ></v-skeleton-loader>
-          <v-skeleton-loader
-            type="text"
-            width="250px"
-          ></v-skeleton-loader>
+          <v-skeleton-loader type="heading" width="300px" class="mb-2"></v-skeleton-loader>
+          <v-skeleton-loader type="text" width="250px"></v-skeleton-loader>
         </div>
         <div v-else>
           <h1 class="text-h4 welcome-header">Welcome Back, {{ user.username }}!</h1>
@@ -259,7 +252,12 @@ const getProgressColor = (percentage) => {
     </v-row>
 
     <!-- Search Bar -->
-    <v-row id="tour-team-search" v-if="!isLoadingTeams && userTeams.length > 0" justify="center" class="mb-4">
+    <v-row
+      id="tour-team-search"
+      v-if="!isLoadingTeams && userTeams.length > 0"
+      justify="center"
+      class="mb-4"
+    >
       <v-col cols="12" md="6" lg="4">
         <v-text-field
           v-model="searchQuery"
@@ -278,42 +276,21 @@ const getProgressColor = (percentage) => {
     <v-row v-if="isLoadingTeams" class="mb-6">
       <div class="teams-container w-100">
         <div class="w-100">
-          <v-col
-            v-for="n in 6"
-            :key="`skeleton-${n}`"
-            cols="12"
-            sm="6"
-            md="4"
-            class="d-flex"
-          >
+          <v-col v-for="n in 6" :key="`skeleton-${n}`" cols="12" sm="6" md="4" class="d-flex">
             <v-card class="team-card rounded-lg elevation-1 flex-fill" flat>
               <v-card-item>
-                <v-skeleton-loader
-                  type="list-item-two-line"
-                  class="mb-2"
-                ></v-skeleton-loader>
+                <v-skeleton-loader type="list-item-two-line" class="mb-2"></v-skeleton-loader>
               </v-card-item>
               <v-card-text>
-                <v-skeleton-loader
-                  type="paragraph"
-                  max-width="100%"
-                ></v-skeleton-loader>
+                <v-skeleton-loader type="paragraph" max-width="100%"></v-skeleton-loader>
               </v-card-text>
 
               <!-- Progress Section Skeleton -->
               <v-card-text class="pt-0">
                 <div class="progress-section">
                   <div class="progress-label mb-2">
-                    <v-skeleton-loader
-                      type="text"
-                      width="80px"
-                      height="12px"
-                    ></v-skeleton-loader>
-                    <v-skeleton-loader
-                      type="text"
-                      width="30px"
-                      height="12px"
-                    ></v-skeleton-loader>
+                    <v-skeleton-loader type="text" width="80px" height="12px"></v-skeleton-loader>
+                    <v-skeleton-loader type="text" width="30px" height="12px"></v-skeleton-loader>
                   </div>
                   <v-skeleton-loader
                     type="divider"
@@ -325,10 +302,7 @@ const getProgressColor = (percentage) => {
 
               <v-divider></v-divider>
               <v-card-actions class="pa-4">
-                <v-skeleton-loader
-                  type="chip"
-                  width="60px"
-                ></v-skeleton-loader>
+                <v-skeleton-loader type="chip" width="60px"></v-skeleton-loader>
                 <v-spacer></v-spacer>
                 <v-skeleton-loader
                   type="button"

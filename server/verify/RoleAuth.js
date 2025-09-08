@@ -70,8 +70,8 @@ export const getRoleDefaultPermissions = (role) => {
 
   // Get all available permissions from the ROLE_PERMISSIONS config
   const allPermissions = new Set()
-  Object.values(ROLE_PERMISSIONS).forEach(rolePermissions => {
-    rolePermissions.forEach(permission => allPermissions.add(permission))
+  Object.values(ROLE_PERMISSIONS).forEach((rolePermissions) => {
+    rolePermissions.forEach((permission) => allPermissions.add(permission))
   })
 
   // Initialize all available permissions to false

@@ -1,4 +1,4 @@
-import RefreshToken from '../models/RefreshToken.js'
+import RefreshTokenManager from './refreshTokenManager.js'
 
 /**
  * Clean up expired and old revoked refresh tokens from the database
@@ -6,24 +6,11 @@ import RefreshToken from '../models/RefreshToken.js'
  */
 const cleanupExpiredTokens = async () => {
   try {
-    const now = new Date()
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-
-    // Delete tokens that are either:
-    // 1. Expired (past their expiresAt date)
-    // 2. Revoked more than a week ago (for audit trail)
-    const result = await RefreshToken.deleteMany({
-      $or: [
-        { expiresAt: { $lt: now } }, // Expired tokens
-        {
-          revoked: true,
-          revokedAt: { $lt: oneWeekAgo },
-        }, // Revoked tokens older than a week
-      ],
-    })
+    // Use RefreshTokenManager's cleanup method
+    const result = await RefreshTokenManager.cleanupExpiredTokens()
 
     if (result.deletedCount > 0) {
-      console.log(`Cleaned up ${result.deletedCount} expired/old refresh tokens`)
+      console.log(`Cleaned up ${result.deletedCount} expired refresh tokens`)
     }
 
     return result.deletedCount

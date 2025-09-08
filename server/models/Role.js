@@ -35,21 +35,22 @@ const RoleSchema = new mongoose.Schema({
       // Members group permissions
       'canAddMembers',
       'canRemoveMembers',
-      
+
       // Note: Admin-only permissions (canDeleteTeams, canCreateSubTeams, canManageCustomRoles)
       // are excluded from custom roles and can only be held by Admins
     ],
     validate: {
-      validator: function(permissions) {
+      validator: function (permissions) {
         // Prevent admin-only permissions from being assigned to custom roles
         const adminOnlyPermissions = ['canDeleteTeams', 'canCreateSubTeams', 'canManageCustomRoles']
-        const hasAdminOnlyPermissions = permissions.some(permission => 
-          adminOnlyPermissions.includes(permission)
+        const hasAdminOnlyPermissions = permissions.some((permission) =>
+          adminOnlyPermissions.includes(permission),
         )
         return !hasAdminOnlyPermissions
       },
-      message: 'Custom roles cannot have admin-only permissions (canDeleteTeams, canCreateSubTeams, canManageCustomRoles)'
-    }
+      message:
+        'Custom roles cannot have admin-only permissions (canDeleteTeams, canCreateSubTeams, canManageCustomRoles)',
+    },
   },
   icon: {
     type: String,
