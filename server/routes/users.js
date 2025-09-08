@@ -338,6 +338,20 @@ export const getUserPermissions = async (req, res) => {
     const { teamId, userId } = req.params
     const requestingUsername = req.user.username
 
+    // Check if requesting user is global admin first
+    if (requestingUsername === 'admin') {
+      // Global admin gets all permissions regardless of team membership
+      const allPermissions = getRoleDefaultPermissions('Admin')
+      const globalAdminPermissions = {
+        role: 'Admin',
+        customRoleName: null,
+        ...allPermissions,
+        isGlobalAdmin: true,
+      }
+      console.log('Global admin permissions granted:', { userId, teamId, permissions: globalAdminPermissions })
+      return res.status(200).json(globalAdminPermissions)
+    }
+
     // Get user's custom permissions (role + custom permissions)
     const customPermissions = await getUserCustomPermissions(userId, teamId)
     if (!customPermissions) {
@@ -345,7 +359,7 @@ export const getUserPermissions = async (req, res) => {
     }
 
     // Add global admin flag
-    customPermissions.isGlobalAdmin = requestingUsername === 'admin'
+    customPermissions.isGlobalAdmin = false
 
     console.log('User permissions:', { userId, teamId, permissions: customPermissions })
     res.status(200).json(customPermissions)
