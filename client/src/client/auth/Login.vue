@@ -28,7 +28,7 @@ const success = ref('')
 
 const sendToHomePage = async () => {
   // Send to home if user already has an account
-  setTimeout(() => (success.value = 'Sending to Home page'), 500)
+  setTimeout(() => (success.value = 'Creating secure session...'), 500)
   await getUserId(username.value)
   console.log('User ID:', userId.value)
   await getUserEmail(username.value)
@@ -42,12 +42,16 @@ const sendToHomePage = async () => {
     sessionStorage.setItem('isLoggedIn', true)
 
     // Store current user info in localStorage for cross-tab detection
-    localStorage.setItem('currentUser', JSON.stringify({
-      userId: userId.value,
-      username: username.value,
-      timestamp: Date.now()
-    }))
+    localStorage.setItem(
+      'currentUser',
+      JSON.stringify({
+        userId: userId.value,
+        username: username.value,
+        timestamp: Date.now(),
+      }),
+    )
 
+    success.value = 'Session created successfully!'
     setTimeout(() => router.push('/home'), 1500)
   } else {
     error.value = 'Authentication failed. Please try again.'

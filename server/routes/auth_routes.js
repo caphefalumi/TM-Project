@@ -15,7 +15,7 @@ const {
   verifyToken,
 } = Authentication
 const { addRefreshToken, revokeRefreshToken, renewAccessToken } = Tokens
-const { authenticateRefreshToken, authenticateAccessToken, authenticateAccessTokenOnly } = JWTAuth
+const { authenticateRefreshToken, authenticateAccessToken } = JWTAuth
 
 // OAuth
 router.post('/oauth', oAuthentication)
@@ -36,7 +36,7 @@ router.get('/protected', authenticateAccessToken, (req, res) => {
   res.status(200).json({ success: 'Access token is valid', user: req.user })
 })
 
-router.get('/login-protected', authenticateAccessTokenOnly, (req, res) => {
+router.get('/login-protected', authenticateAccessToken, (req, res) => {
   res.status(200).json({ success: 'Login access token is valid', user: req.user })
 })
 

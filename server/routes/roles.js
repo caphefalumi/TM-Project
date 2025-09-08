@@ -133,16 +133,16 @@ export const deleteRole = async (req, res) => {
 
     // Find users assigned to this role and reassign them to Member
     const usersWithRole = await UsersOfTeam.find({ role_id: roleId })
-    
+
     if (usersWithRole.length > 0) {
       // Reassign all users with this custom role to Member role
       await UsersOfTeam.updateMany(
         { role_id: roleId },
-        { 
+        {
           role: 'Member',
           role_id: null,
-          customPermissions: {} // Clear any custom permissions
-        }
+          customPermissions: {}, // Clear any custom permissions
+        },
       )
     }
 
@@ -158,7 +158,6 @@ export const deleteRole = async (req, res) => {
   }
 }
 
-
 // Assign custom role to user
 export const assignCustomRoleToUser = async (req, res) => {
   try {
@@ -172,7 +171,7 @@ export const assignCustomRoleToUser = async (req, res) => {
 
     if (requestingUserId === userId) {
       return res.status(403).json({
-        message: 'You cannot change your own role. Only other team members can change your role.'
+        message: 'You cannot change your own role. Only other team members can change your role.',
       })
     }
 

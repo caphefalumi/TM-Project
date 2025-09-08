@@ -8,16 +8,29 @@ const refreshAccessToken = async () => {
     })
 
     if (response.ok) {
-      const data = await response.json()
       console.log('Access token refreshed successfully')
-      return true
-    } else {
-      console.error('Failed to refresh access token:', response.statusText)
-      return false
+      return { success: true }
+    } else if (response.status === 401) {
+      // Check if it's a token revocation/expiration error
+      try {
+        const errorData = await response.json()
+        if (errorData.error === 'TOKEN_REVOKED' || errorData.error === 'TOKEN_INVALID') {
+          return {
+            success: false,
+            tokenRevoked: true,
+            message: errorData.message || 'Your session has been terminated. Please sign in again.',
+          }
+        }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError)
+      }
     }
+
+    console.error('Failed to refresh access token:', response.statusText)
+    return { success: false, tokenRevoked: false }
   } catch (error) {
     console.error('Error refreshing access token:', error)
-    return false
+    return { success: false, tokenRevoked: false }
   }
 }
 
@@ -38,9 +51,9 @@ const getUserByAccessToken = async (retryCount = 0) => {
     } else if (response.status === 401 && retryCount === 0) {
       // Access token might be expired, try to refresh it
       console.log('Access token expired, attempting to refresh...')
-      const refreshSuccess = await refreshAccessToken()
+      const refreshResult = await refreshAccessToken()
 
-      if (refreshSuccess) {
+      if (refreshResult.success) {
         console.log('Token refreshed, retrying user data fetch...')
         // Retry the original request with the new access token
         return await getUserByAccessToken(1) // Prevent infinite recursion
@@ -58,7 +71,40 @@ const getUserByAccessToken = async (retryCount = 0) => {
   }
 }
 
+// Logout function with session cleanup
+const logout = async () => {
+  const PORT = import.meta.env.VITE_API_PORT
+  try {
+    // Get current user to get userId
+    const user = await getUserByAccessToken()
+    if (!user) {
+      console.warn('No user found for logout')
+      return { success: true, message: 'Already logged out' }
+    }
+
+    const response = await fetch(`${PORT}/api/auth/tokens/refresh`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ userId: user.userId }),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      console.log('Logged out successfully:', data.message)
+      return { success: true, message: data.message }
+    } else {
+      console.error('Logout failed:', response.statusText)
+      return { success: false, error: 'Logout failed' }
+    }
+  } catch (error) {
+    console.error('Error during logout:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 export default {
   getUserByAccessToken,
   refreshAccessToken,
+  logout,
 }
