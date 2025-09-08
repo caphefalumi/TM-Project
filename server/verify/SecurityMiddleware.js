@@ -3,7 +3,7 @@
 // Middleware to track IP addresses (for logging only)
 export const ipSecurityMiddleware = async (req, res, next) => {
   try {
-    const currentIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']
+    const currentIP = req.clientIp
     const userId = req.user?.userId
 
     if (userId) {

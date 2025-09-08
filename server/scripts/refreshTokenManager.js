@@ -132,6 +132,13 @@ class RefreshTokenManager {
     }
   }
 
+  static async isUnauthorizedAccess(refreshTokens) {
+    if (await RefreshToken.findOne({ token: refreshTokens, revoked: true })) {
+      await this.revokeAllUserTokens(result.userId, 'security')
+      return true
+    }
+    return false
+  }
   /**
    * Revoke a specific refresh token
    */
