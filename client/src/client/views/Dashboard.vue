@@ -156,12 +156,16 @@ const taskStats = computed(() => {
   const overdue = tasks.value.filter(
     (task) => !task.submitted && new Date(task.dueDate) < new Date(),
   ).length
-  const pending = total - submitted - overdue
+  const notStarted = tasks.value.filter(
+    (task) => !task.submitted && new Date(task.startDate) > new Date(),
+  ).length
+  const pending = total - submitted - overdue - notStarted
 
   return {
     total,
     submitted,
     overdue,
+    notStarted,
     pending,
     completionRate: total > 0 ? Math.round((submitted / total) * 100) : 0,
   }
@@ -257,21 +261,16 @@ const toggleSortOrder = () => {
     </v-row>
 
     <!-- Task Statistics Cards -->
+     
     <v-row id="tour-task-stats" class="mb-6">
       <v-col cols="6" md="3">
-        <v-card class="text-center pa-4" color="primary" variant="tonal">
-          <v-card-title class="text-h3 font-weight-bold">{{ taskStats.total }}</v-card-title>
-          <v-card-subtitle class="text-h6">Total Tasks</v-card-subtitle>
+        <v-card class="text-center pa-4" color="gray" variant="tonal">
+          <v-card-title class="text-h3 font-weight-bold">{{ taskStats.notStarted }}</v-card-title>
+          <v-card-subtitle class="text-h6">Not Started</v-card-subtitle>
         </v-card>
       </v-col>
       <v-col cols="6" md="3">
-        <v-card class="text-center pa-4" color="success" variant="tonal">
-          <v-card-title class="text-h3 font-weight-bold">{{ taskStats.submitted }}</v-card-title>
-          <v-card-subtitle class="text-h6">Completed</v-card-subtitle>
-        </v-card>
-      </v-col>
-      <v-col cols="6" md="3">
-        <v-card class="text-center pa-4" color="warning" variant="tonal">
+        <v-card class="text-center pa-4" color="orange-darken-4" variant="tonal">
           <v-card-title class="text-h3 font-weight-bold">{{ taskStats.pending }}</v-card-title>
           <v-card-subtitle class="text-h6">Pending</v-card-subtitle>
         </v-card>
@@ -280,6 +279,12 @@ const toggleSortOrder = () => {
         <v-card class="text-center pa-4" color="error" variant="tonal">
           <v-card-title class="text-h3 font-weight-bold">{{ taskStats.overdue }}</v-card-title>
           <v-card-subtitle class="text-h6">Overdue</v-card-subtitle>
+        </v-card>
+      </v-col>
+      <v-col cols="6" md="3">
+        <v-card class="text-center pa-4" color="green-darken-1" variant="tonal">
+          <v-card-title class="text-h3 font-weight-bold">{{ taskStats.submitted }}</v-card-title>
+          <v-card-subtitle class="text-h6">Completed</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -296,9 +301,7 @@ const toggleSortOrder = () => {
             <div class="d-flex align-center mb-2">
               <span class="text-h6 mr-4">{{ taskStats.completionRate }}% Complete</span>
               <v-spacer></v-spacer>
-              <span class="text-caption"
-                >{{ taskStats.submitted }} of {{ taskStats.total }} tasks</span
-              >
+              <span>{{ taskStats.submitted }} of {{ taskStats.total }} tasks</span>
             </div>
             <v-progress-linear
               :model-value="taskStats.completionRate"
@@ -358,14 +361,14 @@ const toggleSortOrder = () => {
                         <v-list-item>
                           <v-checkbox
                             v-model="filters.highPriority"
-                            label="High Priority (High & Urgent)"
+                            label="High & Urgent Priority"
                             hide-details
                           ></v-checkbox>
                         </v-list-item>
                         <v-list-item>
                           <v-checkbox
                             v-model="filters.pending"
-                            label="Pending (Within Date Range)"
+                            label="Pending Tasks"
                             hide-details
                           ></v-checkbox>
                         </v-list-item>
@@ -417,12 +420,12 @@ const toggleSortOrder = () => {
             <div v-else-if="filteredAndSortedTasks.length > 0">
               <v-data-table
                 :headers="[
-                  { title: 'Title', key: 'title', sortable: false, width: '22%' },
-                  { title: 'Category', key: 'category', sortable: false, width: '16%' },
+                  { title: 'Title', key: 'title', sortable: false, width: '26%' },
+                  { title: 'Category', key: 'category', sortable: false, width: '12%' },
                   { title: 'Priority', key: 'priority', sortable: false, width: '12%' },
-                  { title: 'Weighted', key: 'weighted', sortable: false, width: '10%' },
                   { title: 'Start Date', key: 'startDate', sortable: false, width: '12%' },
                   { title: 'Due Date', key: 'dueDate', sortable: false, width: '12%' },
+                  { title: 'Weighted', key: 'weighted', sortable: false, width: '10%' },
                   { title: 'Submitted', key: 'submitted', sortable: false, width: '8%' },
                   { title: 'Actions', key: 'action', sortable: false, width: '8%' }
                 ]"
@@ -436,7 +439,7 @@ const toggleSortOrder = () => {
                 <template #item.title="{ item }">
                   <div class="d-flex align-center">
                     <div>
-                      <div class="font-weight-medium">{{ item.title }}</div>
+                      <div class="font-weight-medium task-title">{{ item.title }}</div>
                       <div v-if="item.description" class="text-caption text-grey">
                         {{ item.description.length > 50 ? item.description.substring(0, 50) + '...' : item.description }}
                       </div>
@@ -456,11 +459,6 @@ const toggleSortOrder = () => {
                   </v-chip>
                 </template>
 
-                <!-- Weight Column -->
-                <template #item.weighted="{ item }">
-                    <div class="text-body-2">{{ item.weighted }}</div>
-                </template>
-
                 <!-- Start Date Column -->
                 <template #item.startDate="{ item }">
                   <div class="text-body-2">{{ formatDate(item.startDate) }}</div>
@@ -473,18 +471,26 @@ const toggleSortOrder = () => {
                   </div>
                 </template>
 
+                <!-- Weight Column -->
+                <template #item.weighted="{ item }">
+                    <div class="text-body-2 text-center">{{ item.weighted }}</div>
+                </template>
+
                 <!-- Submitted Column -->
                 <template #item.submitted="{ item }">
-                  <v-icon
-                    :color="item.submitted ? 'success' : 'error'"
-                    size="20"
-                  >
+                  <div class="text-center">
+                    <v-icon
+                      :color="item.submitted ? 'success' : 'error'"
+                      size="20"
+                    >
                     {{ item.submitted ? 'mdi-check' : 'mdi-close' }}
                   </v-icon>
+                  </div>
                 </template>
 
                 <!-- Actions Column -->
                 <template #item.action="{ item }">
+                  <div class="text-center">
                   <v-btn
                     @click="navigateToTeam(item)"
                     color="primary"
@@ -493,6 +499,7 @@ const toggleSortOrder = () => {
                   >
                     <v-icon start>mdi-open-in-new</v-icon>
                   </v-btn>
+                  </div>
                 </template>
               </v-data-table>
 
@@ -557,6 +564,10 @@ const toggleSortOrder = () => {
 <style scoped>
 .tasks-table {
   width: 100%;
+}
+
+.task-title{
+  font-size: 1.2rem;
 }
 
 .task-detail-card {

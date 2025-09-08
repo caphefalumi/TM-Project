@@ -570,8 +570,8 @@ const filteredMembers = computed(() => {
 
 const taskFilterOptions = [
   { title: 'All Tasks', value: 'all' },
-  { title: 'Not Submitted', value: 'not-submitted' },
   { title: 'Pending Tasks', value: 'pending' },
+  { title: 'Not Submitted', value: 'not-submitted' },
 ]
 </script>
 
