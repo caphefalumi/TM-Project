@@ -5,7 +5,6 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "build": "bun build app.js --outdir=dist --target=node --minify",
     "server": "bun --hot --no-clear-screen app.js",
     "preview": "bun app.js"
   },
