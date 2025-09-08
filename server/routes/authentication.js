@@ -6,7 +6,6 @@ import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import 'dotenv/config'
 const getUserIDAndEmailByName = async (req, res) => {
   const { username } = req.params
-  console.log('Username:', username)
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
   }
@@ -37,7 +36,6 @@ const oAuthentication = async (req, res) => {
   }
 
   const existingUser = await Account.findOne({ email })
-  console.log(existingUser)
   if (!existingUser) {
     // No user --> require username for register
     return res.status(202).json({ success: 'register' })
@@ -52,7 +50,6 @@ const oAuthentication = async (req, res) => {
 const oAuthenticationRegister = async (req, res) => {
   const { username, email } = req.body
   const provider = 'google'
-  console.log(username, email)
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
   }
@@ -60,7 +57,6 @@ const oAuthenticationRegister = async (req, res) => {
     return res.status(400).json({ error: 'Email is required' })
   }
   const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
-  console.log(existingUser)
   if (existingUser) {
     if (existingUser.username === username) {
       return res.status(400).json({ error: 'Username already exists.' })
@@ -71,10 +67,8 @@ const oAuthenticationRegister = async (req, res) => {
       return res.status(400).json({ error: 'Email already exists.' })
     }
   }
-  console.log('Existing user test passed')
   try {
     const account = new Account({ username, email, provider })
-    // console.log(crypto.createHash('sha256').update())
     await account.save()
     res.status(201).json({ success: 'Account created successfully.' })
   } catch (err) {
@@ -121,7 +115,6 @@ const localLogin = async (req, res) => {
 
   const account = await Account.findOne({ username: username })
   if (!account) {
-    console.log(username)
     console.log('No Account')
     return res.status(400).json({ error: 'Invalid username or password' })
   }
@@ -152,7 +145,6 @@ const localLogin = async (req, res) => {
   // Set user data and activity tracking info in request for token middleware
   req.body.user = user
 
-  console.log('User authenticated successfully')
   return res.status(200).json({
     success: 'User is authorized',
     user: {
@@ -254,7 +246,7 @@ const verifyToken = async (req, res) => {
     })
 
     if (!account) {
-      console.log('account not found or token expired')
+      console.log('Account not found or token expired')
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
 
@@ -282,7 +274,7 @@ const resetPassword = async (req, res) => {
     })
 
     if (!account) {
-      console.log('account not found or token expired')
+      console.log('Account not found or token expired')
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
 

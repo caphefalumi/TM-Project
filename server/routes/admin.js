@@ -20,7 +20,6 @@ const checkAdminAccess = (req, res, next) => {
 // Recursive function to get parent team breadcrumbs
 const getParentsTeam = async (parentTeamId) => {
   if (parentTeamId === 'none' || parentTeamId === null || !parentTeamId) {
-    console.log('This team has no parent team.')
     return ''
   } else {
     let teamBreadCrumps = ''

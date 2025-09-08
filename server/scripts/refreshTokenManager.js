@@ -11,10 +11,8 @@ class RefreshTokenManager {
    * Parse user agent string to extract device and browser info
    */
   static parseUserAgent(userAgentString) {
-    console.log('Parsing User Agent:', userAgentString)
     const parser = new UAParser(userAgentString)
     const result = parser.getResult()
-    console.log('Parsed User Agent:', result)
     return {
       browser: `${result.browser.name || 'Unknown'}`.trim(),
       device: result.device.type || 'Desktop',
@@ -70,9 +68,6 @@ class RefreshTokenManager {
     })
 
     await refreshToken.save()
-    console.log(
-      `New refresh token created for user ${userId} from IP: ${ipAddress}, sessionId: ${sessionId}`,
-    )
     return refreshToken
   }
 

@@ -10,20 +10,17 @@ const getTasksOfAUser = async (req, res) => {
   try {
     const { userId } = req.params
     if (!userId) {
-      console.log('Missing required parameter: userId')
       return res.status(400).json({ message: 'User ID is required' })
     }
     // Check if the user exists in any team
     const userExists = await UsersOfTeam.exists({ userId })
     if (!userExists) {
-      console.log(`User with ID ${userId} does not exist in any team`)
       return res.status(200).json({ message: 'User not found in any team', tasks: [] })
     }
     // Fetch tasks for the user across all teams
     // Sort tasks by DueDate in ascending order
     const tasks = await Tasks.find({ userId }).sort({ dueDate: 1 })
     if (tasks.length === 0) {
-      console.log(`No tasks found for user ${userId}`)
       return res.status(200).json({ message: 'No tasks found for this user', tasks: [] })
     }
 
@@ -42,19 +39,16 @@ const getTasksOfAUserInATeam = async (req, res) => {
   try {
     const { userId, teamId } = req.params
     if (!userId || !teamId) {
-      console.log('Missing required parameters:', { userId, teamId })
       return res.status(400).json({ message: 'User ID and Team ID are required' })
     }
     // Check if the user exists in the team
     const userExists = await UsersOfTeam.exists({ userId, teamId })
     if (!userExists) {
-      console.log(`User with ID ${userId} not found in team ${teamId}`)
       return res.status(404).json({ message: 'User not found in the specified team' })
     }
 
     const teamExists = await Teams.exists({ _id: teamId })
     if (!teamExists) {
-      console.log(`Team with ID ${teamId} does not exist`)
       return res.status(404).json({ message: 'Team not found' })
     }
 
@@ -62,7 +56,6 @@ const getTasksOfAUserInATeam = async (req, res) => {
     // Sort tasks by DueDate in ascending order
     const tasks = await Tasks.find({ userId, teamId }).sort({ dueDate: 1 })
     if (tasks.length === 0) {
-      console.log(`No tasks found for user ${userId} in team ${teamId}`)
       return res
         .status(200)
         .json({ message: 'No tasks found for this user in the specified team', tasks: [] })
@@ -225,7 +218,6 @@ const submitATask = async (req, res) => {
     // Check if the task is already submitted
     // If the task is already submitted, overwrite the submission
     if (task.submitted) {
-      console.log('Task already submitted, overwriting submission')
       // Find the existing submission and update it
       const existingSubmission = await TaskSubmissions.findOne({ taskId, userId, teamId })
       if (existingSubmission) {

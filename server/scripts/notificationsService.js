@@ -28,11 +28,9 @@ const createNotification = async (notificationData) => {
         !userPreferences.preferences[type]?.enabled ||
         !userPreferences.globalSettings.enableAllNotifications
       ) {
-        console.log(`Notification ${type} is disabled for user ${recipientUserId}`)
         return null
       }
     } else {
-      console.log(`Admin notification - bypassing preference checks for user ${recipientUserId}`)
       // For admin notifications, try to get preferences for cleanup, but don't fail if it doesn't work
       try {
         userPreferences = await getUserNotificationPreferences(recipientUserId)

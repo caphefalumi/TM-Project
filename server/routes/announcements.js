@@ -28,7 +28,6 @@ const getAnnouncementsOfTeam = async (req, res) => {
     // Sorted by createdAt in descending order
     const announcements = await Announcements.find({ teamId }).sort({ updatedAt: -1 })
     if (announcements.length === 0) {
-      console.log(`No announcements found for team ${teamId}`)
       return res.status(200).json({ announcements: [] })
     }
     return res.status(200).json({ announcements })
@@ -83,7 +82,6 @@ const addAnnouncement = async (req, res) => {
           createdBy, // Now this is the userId
           teamMemberUserIds,
         )
-        console.log(`Notifications created for new announcement in team ${teamId}`)
       }
     } catch (notificationError) {
       console.error('Error creating announcement notifications:', notificationError)
@@ -127,15 +125,6 @@ const updateAnnouncement = async (req, res) => {
   try {
     let { id, title, subtitle, content, createdBy, createdByUsername } = req.body
     const { teamId } = req.params
-    console.log('Update announcement request:', {
-      id,
-      title,
-      subtitle,
-      content,
-      createdBy,
-      createdByUsername,
-      teamId,
-    })
     if (!teamId) {
       console.log('Team ID is required')
       return res.status(400).json({ message: 'Team ID is required' })
@@ -174,7 +163,6 @@ const toggleLikeAnnouncement = async (req, res) => {
   try {
     const { userId } = req.body
     const { announcementId } = req.params
-    console.log('Toggle like announcement request:', { announcementId, userId })
     if (!announcementId || !userId) {
       console.log('Announcement ID and User ID are required')
       return res.status(400).json({ message: 'Announcement ID and User ID are required' })
@@ -191,11 +179,9 @@ const toggleLikeAnnouncement = async (req, res) => {
     if (wasLiked) {
       // User already liked the announcement, remove like
       announcement.likeUsers = announcement.likeUsers.filter((user) => user !== userId)
-      console.log(`User ${userId} unliked announcement ${announcementId}`)
     } else {
       // User has not liked the announcement, add like
       announcement.likeUsers.push(userId)
-      console.log(`User ${userId} liked announcement ${announcementId}`)
 
       // Create notification for the announcement creator (only when liking, not unliking)
       try {
@@ -206,7 +192,6 @@ const toggleLikeAnnouncement = async (req, res) => {
           userId,
           announcement.teamId,
         )
-        console.log(`Like notification created for announcement ${announcementId}`)
       } catch (notificationError) {
         console.error('Error creating like notification:', notificationError)
         // Don't fail the like operation if notification creation fails
@@ -228,13 +213,6 @@ const addCommentToAnnouncement = async (req, res) => {
   try {
     const { announcementId } = req.params
     const { userId, username, content, replyTo } = req.body
-    console.log('Add comment to announcement request:', {
-      announcementId,
-      userId,
-      username,
-      content,
-      replyTo,
-    })
     if (!announcementId || !userId || !username || !content) {
       console.log('Announcement ID, User ID, Username, and content are required')
       return res
@@ -280,7 +258,6 @@ const addCommentToAnnouncement = async (req, res) => {
             replyTo,
             announcement.teamId,
           )
-          console.log(`Reply notification created for comment ${replyTo}`)
         }
       } else {
         // This is a comment on the announcement - notify the announcement creator
@@ -292,7 +269,6 @@ const addCommentToAnnouncement = async (req, res) => {
           savedComment._id.toString(),
           announcement.teamId,
         )
-        console.log(`Comment notification created for announcement ${announcementId}`)
       }
     } catch (notificationError) {
       console.error('Error creating comment notification:', notificationError)
