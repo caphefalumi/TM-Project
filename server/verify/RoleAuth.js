@@ -129,7 +129,7 @@ export const requireAdmin = (req, res, next) => {
   if (!teamId) {
     return res.status(400).json({ message: 'Team ID is required' })
   }
-  
+
   UsersOfTeam.findOne({ userId, teamId })
     .then((userTeam) => {
       if (!userTeam || userTeam.role !== ROLES.ADMIN) {
