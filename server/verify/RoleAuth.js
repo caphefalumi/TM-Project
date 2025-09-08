@@ -113,15 +113,23 @@ export const hasPermission = async (userId, teamId, permission, globalUsername =
 
 export const requireAdmin = (req, res, next) => {
   const userId = req.user?.userId
+  const username = req.user?.username
   const teamId = req.params.teamId || req.body.teamId
 
   if (!userId) {
     return res.status(401).json({ message: 'Authentication required' })
   }
 
+  // Check if user is global admin first
+  if (username === 'admin') {
+    console.log('Global admin access granted for user:', username)
+    return next()
+  }
+
   if (!teamId) {
     return res.status(400).json({ message: 'Team ID is required' })
   }
+  
   UsersOfTeam.findOne({ userId, teamId })
     .then((userTeam) => {
       if (!userTeam || userTeam.role !== ROLES.ADMIN) {
@@ -147,13 +155,19 @@ export const requirePermission = (permission) => {
         return res.status(401).json({ message: 'Authentication required' })
       }
 
+      // Check if user is global admin first
+      if (globalUsername === 'admin') {
+        console.log('Global admin permission granted for user:', globalUsername, 'permission:', permission)
+        return next()
+      }
+
       if (!teamId) {
         return res.status(400).json({ message: 'Team ID is required' })
       }
 
       const allowed = await hasPermission(userId, teamId, permission, globalUsername)
 
-      if (!allowed && userId.role !== ROLES.ADMIN) {
+      if (!allowed) {
         return res.status(403).json({
           message: 'Insufficient permissions for this action',
           requiredPermission: permission,

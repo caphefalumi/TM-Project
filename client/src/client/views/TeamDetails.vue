@@ -130,15 +130,15 @@ const initializeTeamData = async () => {
     // Update role-based flags
     updateRoleFlags()
 
-    // Check if user is a member of the team, do not check for admin
+    // Check if user is a member of the team or is global admin
     if (
       teamMembers.value.some((member) => member.userId === user.value.userId) ||
       user.value.username === 'admin'
     ) {
-      console.log('User is a member of the team:', teamId.value)
+      console.log('User is a member of the team or has admin access:', teamId.value)
     } else {
-      console.error('User is not a member of the team:', teamId.value)
-      // Redirect to home if not a member
+      console.error('User is not a member of the team and is not admin:', teamId.value)
+      // Redirect to home if not a member and not admin
       userLoaded.value = false
       router.push('/home')
       return
