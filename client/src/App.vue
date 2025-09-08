@@ -13,11 +13,11 @@ const signOutMessage = ref('')
 const showSignOutPopup = (message = 'You have been signed out.') => {
   signOutMessage.value = message
   showSignOutDialog.value = true
-  
+
   // Clean up any stored session data
   sessionStorage.removeItem('isLoggedIn')
   localStorage.removeItem('currentUser')
-  
+
   // Stop auto refresh
   stopTokenRefresh()
 }
@@ -64,7 +64,7 @@ const refreshAccessToken = async () => {
       } catch (parseError) {
         console.error('Error parsing response:', parseError)
       }
-      
+
       console.warn('Auto token refresh failed:', response.status, response.statusText)
       return false
     } else {
@@ -91,7 +91,7 @@ const startTokenRefresh = () => {
         const success = await refreshAccessToken()
         if (!success) {
           console.warn('Scheduled token refresh failed - user may need to login again')
-          // Note: If it's a token revocation, the refreshAccessToken function 
+          // Note: If it's a token revocation, the refreshAccessToken function
           // will already trigger the tokenRevoked event, so no need to handle it here
         }
       }
@@ -147,13 +147,9 @@ onUnmounted(() => {
     <v-main>
       <router-view></router-view>
     </v-main>
-    
+
     <!-- Sign Out Notification Dialog -->
-    <v-dialog 
-      v-model="showSignOutDialog" 
-      max-width="500" 
-      persistent
-    >
+    <v-dialog v-model="showSignOutDialog" max-width="500" persistent>
       <v-card>
         <v-card-title class="text-h5 d-flex align-center">
           <v-icon color="warning" class="mr-2">mdi-logout</v-icon>
@@ -164,11 +160,7 @@ onUnmounted(() => {
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn 
-            color="primary" 
-            variant="elevated"
-            @click="handleSignOutDialogClose"
-          >
+          <v-btn color="primary" variant="elevated" @click="handleSignOutDialogClose">
             Go to Login
           </v-btn>
         </v-card-actions>

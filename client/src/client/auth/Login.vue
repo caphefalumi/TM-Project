@@ -42,11 +42,14 @@ const sendToHomePage = async () => {
     sessionStorage.setItem('isLoggedIn', true)
 
     // Store current user info in localStorage for cross-tab detection
-    localStorage.setItem('currentUser', JSON.stringify({
-      userId: userId.value,
-      username: username.value,
-      timestamp: Date.now()
-    }))
+    localStorage.setItem(
+      'currentUser',
+      JSON.stringify({
+        userId: userId.value,
+        username: username.value,
+        timestamp: Date.now(),
+      }),
+    )
 
     success.value = 'Session created successfully!'
     setTimeout(() => router.push('/home'), 1500)

@@ -107,8 +107,6 @@ const fetchUsers = async () => {
   }
 }
 
-
-
 // Function to fetch roles for the specific team
 const fetchRoles = async () => {
   if (!props.teamId) return
@@ -136,21 +134,21 @@ const fetchRoles = async () => {
         title: 'Admin',
         value: 'Admin',
         icon: 'mdi-crown',
-        color: 'red'
+        color: 'red',
       },
       {
         title: 'Member',
-        value: 'Member', 
+        value: 'Member',
         icon: 'mdi-account',
-        color: 'blue'
-      }
+        color: 'blue',
+      },
     ]
     const customRoleOptions = data.roles.map((role) => ({
       title: role.name,
       value: `custom:${role._id}`, // Use unique identifier for custom roles
       roleId: role._id,
       icon: role.icon || 'mdi-star',
-      color: role.color || 'purple'
+      color: role.color || 'purple',
     }))
 
     listOfRoles.value = [...defaultRoles, ...customRoleOptions]
@@ -282,8 +280,8 @@ const addUsers = async () => {
   }
 
   // Find the selected role object from the list
-  const selectedRoleObj = listOfRoles.value.find(r => r.value === newMemberData.value.role)
-  
+  const selectedRoleObj = listOfRoles.value.find((r) => r.value === newMemberData.value.role)
+
   let roleId = null
   let isCustomRole = false
 
@@ -302,7 +300,7 @@ const addUsers = async () => {
     selectedValue: newMemberData.value.role,
     selectedRoleObj,
     roleId,
-    isCustomRole
+    isCustomRole,
   })
 
   // Update all selected users with only the role ID
@@ -310,7 +308,7 @@ const addUsers = async () => {
     ...user,
     roleId: roleId,
   }))
-  console.log("usersWithRoles:", usersWithRoles)
+  console.log('usersWithRoles:', usersWithRoles)
 
   // Temporarily update selectedUsers for sending to server
   const originalSelectedUsers = [...selectedUsers.value]
@@ -360,11 +358,7 @@ const addUsers = async () => {
             prepend-inner-icon="mdi-shield-account"
           >
             <template v-slot:selection="{ item }">
-              <v-chip
-
-                :color="item.raw.color || 'blue'"
-                variant="tonal"
-              >
+              <v-chip :color="item.raw.color || 'blue'" variant="tonal">
                 <v-icon start>
                   {{ item.raw.icon || 'mdi-account' }}
                 </v-icon>
@@ -439,7 +433,9 @@ const addUsers = async () => {
                 class="cursor-pointer"
                 prepend-icon="mdi-account-plus-outline"
               >
-                <v-list-item-title class="font-weight-medium">{{ user.username }}</v-list-item-title>
+                <v-list-item-title class="font-weight-medium">{{
+                  user.username
+                }}</v-list-item-title>
                 <template v-slot:append>
                   <v-btn icon size="small" variant="text" color="primary">
                     <v-icon>mdi-plus</v-icon>
@@ -467,8 +463,8 @@ const addUsers = async () => {
         <!-- Status Messages -->
         <v-expand-transition>
           <div v-if="success || error">
-            <v-alert 
-              :type="success ? 'success' : 'error'" 
+            <v-alert
+              :type="success ? 'success' : 'error'"
               :text="message"
               variant="tonal"
               class="mb-4"
@@ -484,9 +480,9 @@ const addUsers = async () => {
       <!-- Actions -->
       <v-card-actions class="pa-6 bg-grey-lighten-5">
         <v-spacer></v-spacer>
-        <v-btn 
-          @click="emit('update:dialog', false)" 
-          variant="outlined" 
+        <v-btn
+          @click="emit('update:dialog', false)"
+          variant="outlined"
           :disabled="loading"
           size="large"
         >

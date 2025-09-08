@@ -115,7 +115,7 @@ export const addUsersToTeam = async (req, res) => {
       if (userId !== requestingUserId) {
         createTeamMemberAddedNotification(userId, teamId, requestingUserId)
           .then(() => console.log(`Notification sent for ${userId}`))
-          .catch(err => console.error('Notification error:', err))
+          .catch((err) => console.error('Notification error:', err))
       }
     }
 
@@ -253,7 +253,7 @@ export const changeUserRole = async (req, res) => {
     // Prevent users from changing their own role
     if (requestingUserId === userId) {
       return res.status(403).json({
-        message: 'You cannot change your own role. Only other team members can change your role.'
+        message: 'You cannot change your own role. Only other team members can change your role.',
       })
     }
 
@@ -400,8 +400,6 @@ export const updateUserPermissions = async (req, res) => {
   }
 }
 
-
-
 export const updateUserProfile = async (req, res) => {
   try {
     const requestingUserId = req.user.userId // from JWT token
@@ -414,7 +412,7 @@ export const updateUserProfile = async (req, res) => {
     // Check if username already exists (excluding current user)
     const existingUser = await Account.findOne({
       username,
-      _id: { $ne: requestingUserId }
+      _id: { $ne: requestingUserId },
     })
     if (existingUser) {
       return res.status(400).json({ error: 'Username already exists' })
@@ -423,7 +421,7 @@ export const updateUserProfile = async (req, res) => {
     // Check if email already exists (excluding current user)
     const existingEmail = await Account.findOne({
       email,
-      _id: { $ne: requestingUserId }
+      _id: { $ne: requestingUserId },
     })
     if (existingEmail) {
       return res.status(400).json({ error: 'Email already exists' })
@@ -433,7 +431,7 @@ export const updateUserProfile = async (req, res) => {
     const updatedUser = await Account.findByIdAndUpdate(
       requestingUserId,
       { username, email },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select('_id username email')
 
     if (!updatedUser) {
@@ -441,16 +439,13 @@ export const updateUserProfile = async (req, res) => {
     }
 
     // Also update username in all team memberships
-    await UsersOfTeam.updateMany(
-      { userId: requestingUserId },
-      { username: username }
-    )
+    await UsersOfTeam.updateMany({ userId: requestingUserId }, { username: username })
 
     // Generate new tokens with updated user data
     const newUserData = {
       userId: updatedUser._id.toString(),
       username: updatedUser.username,
-      email: updatedUser.email
+      email: updatedUser.email,
     }
 
     const newAccessToken = generateAccessToken(newUserData)
@@ -461,9 +456,9 @@ export const updateUserProfile = async (req, res) => {
       { userId: requestingUserId },
       {
         token: newRefreshToken,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
-      { new: true }
+      { new: true },
     )
 
     // Set new cookies
@@ -486,7 +481,7 @@ export const updateUserProfile = async (req, res) => {
     console.log('Updated username in team memberships and renewed tokens', {
       userId: requestingUserId,
       username,
-      email
+      email,
     })
 
     res.status(200).json({
@@ -494,8 +489,8 @@ export const updateUserProfile = async (req, res) => {
       user: {
         userId: updatedUser._id,
         username: updatedUser.username,
-        email: updatedUser.email
-      }
+        email: updatedUser.email,
+      },
     })
   } catch (error) {
     console.error('Error updating profile:', error)
@@ -526,7 +521,7 @@ export const deleteUserAccount = async (req, res) => {
     await Account.findByIdAndDelete(requestingUserId)
 
     res.status(200).json({
-      success: 'Account deleted successfully'
+      success: 'Account deleted successfully',
     })
   } catch (error) {
     console.error('Error deleting account:', error)

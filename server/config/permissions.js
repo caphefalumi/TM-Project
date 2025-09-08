@@ -33,7 +33,5 @@ export const ROLE_PERMISSIONS = {
     'canCreateSubTeams',
     'canManageCustomRoles',
   ],
-  Member: [
-    ...Object.values(MEMBERSHIP_PERMISSIONS),
-  ],
+  Member: [...Object.values(MEMBERSHIP_PERMISSIONS)],
 }

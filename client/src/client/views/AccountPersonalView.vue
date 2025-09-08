@@ -95,19 +95,15 @@
           <div class="popup-icon">
             <v-icon size="48" color="success">mdi-email-check</v-icon>
           </div>
-          <p class="popup-message">
-            We've sent a password reset link to your email address:
-          </p>
+          <p class="popup-message">We've sent a password reset link to your email address:</p>
           <p class="email-address">{{ user.email }}</p>
           <p class="popup-instruction">
-            Please check your inbox and follow the instructions to reset your password.
-            If you don't see the email, check your spam folder.
+            Please check your inbox and follow the instructions to reset your password. If you don't
+            see the email, check your spam folder.
           </p>
         </div>
         <div class="popup-actions">
-          <button class="popup-button primary" @click="closePasswordResetPopup">
-            Got it
-          </button>
+          <button class="popup-button primary" @click="closePasswordResetPopup">Got it</button>
         </div>
       </div>
     </div>
@@ -146,9 +142,7 @@
           </form>
         </div>
         <div class="popup-actions">
-          <button class="popup-button secondary" @click="closeEditProfile">
-            Cancel
-          </button>
+          <button class="popup-button secondary" @click="closeEditProfile">Cancel</button>
           <button class="popup-button primary" @click="saveProfile" :disabled="isSaving">
             {{ isSaving ? 'Saving...' : 'Save Changes' }}
           </button>
@@ -169,12 +163,8 @@
           <div class="popup-icon">
             <v-icon size="48" color="error">mdi-alert-circle</v-icon>
           </div>
-          <p class="popup-message danger">
-            This action cannot be undone!
-          </p>
-          <p class="popup-instruction">
-            Deleting your account will permanently remove:
-          </p>
+          <p class="popup-message danger">This action cannot be undone!</p>
+          <p class="popup-instruction">Deleting your account will permanently remove:</p>
           <ul class="delete-list">
             <li>Your profile and personal information</li>
             <li>All your team memberships</li>
@@ -193,9 +183,7 @@
           </div>
         </div>
         <div class="popup-actions">
-          <button class="popup-button secondary" @click="closeDeleteAccount">
-            Cancel
-          </button>
+          <button class="popup-button secondary" @click="closeDeleteAccount">Cancel</button>
           <button
             class="popup-button danger"
             @click="confirmDeleteAccount"
@@ -219,7 +207,7 @@ export default {
       user: {
         userId: '',
         username: '',
-        email: ''
+        email: '',
       },
       message: null,
       messageTimeout: null,
@@ -228,11 +216,11 @@ export default {
       showDeleteAccountPopup: false,
       editForm: {
         username: '',
-        email: ''
+        email: '',
       },
       deleteConfirmation: '',
       isSaving: false,
-      isDeleting: false
+      isDeleting: false,
     }
   },
   computed: {
@@ -240,12 +228,13 @@ export default {
       if (!this.user.email) return ''
       const [username, domain] = this.user.email.split('@')
       if (username.length <= 2) return this.user.email
-      const maskedUsername = username[0] + '*'.repeat(username.length - 2) + username[username.length - 1]
+      const maskedUsername =
+        username[0] + '*'.repeat(username.length - 2) + username[username.length - 1]
       return `${maskedUsername}@${domain}`
     },
     memberSince() {
       return 'January 2024'
-    }
+    },
   },
   async mounted() {
     await this.loadUserData()
@@ -263,7 +252,7 @@ export default {
           this.user = {
             userId: userData.userId,
             username: userData.username,
-            email: userData.email
+            email: userData.email,
           }
         }
       } catch (error) {
@@ -281,7 +270,7 @@ export default {
       this.showEditProfilePopup = false
       this.editForm = {
         username: '',
-        email: ''
+        email: '',
       }
     },
 
@@ -297,7 +286,7 @@ export default {
           credentials: 'include',
           body: JSON.stringify({
             username: this.editForm.username,
-            email: this.editForm.email
+            email: this.editForm.email,
           }),
         })
 
@@ -305,11 +294,14 @@ export default {
           this.user.username = this.editForm.username
           this.user.email = this.editForm.email
 
-          localStorage.setItem('currentUser', JSON.stringify({
-            userId: this.user.userId,
-            username: this.user.username,
-            timestamp: Date.now()
-          }))
+          localStorage.setItem(
+            'currentUser',
+            JSON.stringify({
+              userId: this.user.userId,
+              username: this.user.username,
+              timestamp: Date.now(),
+            }),
+          )
 
           this.closeEditProfile()
           this.showMessage('Profile updated successfully!', 'success')
@@ -348,7 +340,7 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
-          credentials: 'include'
+          credentials: 'include',
         })
 
         if (response.ok) {
@@ -406,8 +398,8 @@ export default {
       this.messageTimeout = setTimeout(() => {
         this.message = null
       }, 5000)
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -475,7 +467,7 @@ export default {
 
 .tab-button.active,
 .tab-button.router-link-active {
-  background: #4A90E2;
+  background: #4a90e2;
   color: white;
 }
 
@@ -488,8 +480,14 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Profile Section Styles */
@@ -587,7 +585,7 @@ export default {
 }
 
 .action-button.primary {
-  background: #4A90E2;
+  background: #4a90e2;
   color: white;
 }
 
@@ -664,8 +662,12 @@ export default {
 }
 
 @keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .popup-modal {
@@ -744,7 +746,7 @@ export default {
 .email-address {
   font-size: 16px;
   font-weight: 600;
-  color: #4A90E2;
+  color: #4a90e2;
   margin-bottom: 16px;
   word-break: break-all;
 }
@@ -775,7 +777,7 @@ export default {
 }
 
 .popup-button.primary {
-  background: #4A90E2;
+  background: #4a90e2;
   color: white;
 }
 
@@ -836,7 +838,7 @@ export default {
 
 .form-input:focus {
   outline: none;
-  border-color: #4A90E2;
+  border-color: #4a90e2;
 }
 
 .popup-message.danger {

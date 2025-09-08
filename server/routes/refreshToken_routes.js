@@ -21,7 +21,7 @@ router.get('/active', authenticateAccessToken, async (req, res) => {
       totalActivity: stats.totalActivity,
       lastActivity: stats.lastActivity,
       sessions: stats.sessions,
-      tokens: stats.tokens
+      tokens: stats.tokens,
     })
   } catch (error) {
     console.error('Error fetching active tokens:', error)
@@ -44,7 +44,7 @@ router.get('/security', authenticateAccessToken, async (req, res) => {
       uniqueIPs: stats.uniqueIPs,
       activeTokenCount: stats.activeTokenCount,
       recentUniqueIPs: suspiciousActivity.recentUniqueIPs,
-      details: suspiciousActivity
+      details: suspiciousActivity,
     })
   } catch (error) {
     console.error('Error checking security:', error)
@@ -75,7 +75,7 @@ router.delete('/session/:sessionId', authenticateAccessToken, async (req, res) =
     res.status(200).json({
       success: true,
       message: 'Session ended successfully',
-      tokensRevoked: result.modifiedCount
+      tokensRevoked: result.modifiedCount,
     })
   } catch (error) {
     console.error('Error revoking session:', error)
@@ -105,7 +105,7 @@ router.delete('/:tokenId', authenticateAccessToken, async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Session ended successfully'
+      message: 'Session ended successfully',
     })
   } catch (error) {
     console.error('Error revoking token:', error)
@@ -125,12 +125,16 @@ router.delete('/others/all', authenticateAccessToken, async (req, res) => {
       return res.status(401).json({ error: 'No current token found' })
     }
 
-    const result = await RefreshTokenManager.revokeAllUserTokensExcept(userId, currentToken, 'security')
+    const result = await RefreshTokenManager.revokeAllUserTokensExcept(
+      userId,
+      currentToken,
+      'security',
+    )
 
     res.status(200).json({
       success: true,
       message: `Ended ${result.modifiedCount} other sessions`,
-      count: result.modifiedCount
+      count: result.modifiedCount,
     })
   } catch (error) {
     console.error('Error revoking other tokens:', error)

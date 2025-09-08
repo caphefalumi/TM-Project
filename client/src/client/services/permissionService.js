@@ -216,10 +216,9 @@ class PermissionService {
    * @returns {boolean} - Whether user can see announcements in UI
    */
   canAccessAnnouncements() {
-    return this.hasAnyPermission([
-      'canManageAnnouncements',
-      'canDeleteAnnouncements'
-    ]) || this.isAdmin()
+    return (
+      this.hasAnyPermission(['canManageAnnouncements', 'canDeleteAnnouncements']) || this.isAdmin()
+    )
   }
 
   /**
@@ -227,10 +226,7 @@ class PermissionService {
    * @returns {boolean} - Whether user can see tasks management in UI
    */
   canAccessTasks() {
-    return this.hasAnyPermission([
-      'canManageTasks',
-      'canDeleteTasks'
-    ]) || this.isAdmin()
+    return this.hasAnyPermission(['canManageTasks', 'canDeleteTasks']) || this.isAdmin()
   }
 
   /**
@@ -238,10 +234,7 @@ class PermissionService {
    * @returns {boolean} - Whether user can see member management in UI
    */
   canAccessMembers() {
-    return this.hasAnyPermission([
-      'canAddMembers',
-      'canRemoveMembers'
-    ]) || this.isAdmin()
+    return this.hasAnyPermission(['canAddMembers', 'canRemoveMembers']) || this.isAdmin()
   }
 
   /**
@@ -265,8 +258,8 @@ class PermissionService {
    * @returns {Array} - Array of permissions that can be assigned to custom roles
    */
   getAvailablePermissionsForCustomRoles() {
-    return AVAILABLE_PERMISSIONS.filter(permission =>
-      permission.category !== 'Admin Only' && permission.category !== 'Basic'
+    return AVAILABLE_PERMISSIONS.filter(
+      (permission) => permission.category !== 'Admin Only' && permission.category !== 'Basic',
     )
   }
 
@@ -440,7 +433,8 @@ export const usePermissions = () => {
     canAccessMembers: () => permissionService.canAccessMembers(),
     canAddTeamMembers: () => permissionService.canAddTeamMembers(),
     canCustomizeRolesForNewMembers: () => permissionService.canCustomizeRolesForNewMembers(),
-    getAvailablePermissionsForCustomRoles: () => permissionService.getAvailablePermissionsForCustomRoles(),
+    getAvailablePermissionsForCustomRoles: () =>
+      permissionService.getAvailablePermissionsForCustomRoles(),
   }
 }
 
