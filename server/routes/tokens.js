@@ -95,7 +95,7 @@ const renewAccessToken = async (req, res) => {
       userId: req.user.userId,
       token: refreshToken,
       sessionId: currentTokenData.sessionId, // Preserve sessionId
-      ipAddress: req.clientIp || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
       expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000) // 12 hours
     })
