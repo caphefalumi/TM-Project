@@ -2,30 +2,24 @@
   <div class="account-view">
     <div class="container">
       <div class="header">
-        <h2>Account Management</h2>
-        <p>Manage your profile and security settings</p>
+        <h2>Personal Information</h2>
+        <p>Manage your profile and personal settings</p>
       </div>
 
       <!-- Tab Navigation -->
       <div class="tab-navigation">
-        <button
-          :class="['tab-button', { 'active': activeTab === 'profile' }]"
-          @click="activeTab = 'profile'"
-        >
+        <router-link to="/account/personal" class="tab-button active">
           <v-icon class="tab-icon">mdi-account</v-icon>
-          Profile
-        </button>
-        <button
-          :class="['tab-button', { 'active': activeTab === 'security' }]"
-          @click="activeTab = 'security'"
-        >
+          Personal
+        </router-link>
+        <router-link to="/account/security" class="tab-button">
           <v-icon class="tab-icon">mdi-shield-lock</v-icon>
           Security
-        </button>
+        </router-link>
       </div>
 
       <!-- Profile Section -->
-      <div v-if="activeTab === 'profile'" class="tab-content profile-section">
+      <div class="tab-content profile-section">
         <div class="profile-card">
           <div class="profile-header">
             <div class="profile-avatar">
@@ -77,72 +71,6 @@
                 <v-icon>mdi-account-remove</v-icon>
                 Delete Account
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Security Section -->
-      <div v-if="activeTab === 'security'" class="tab-content security-section">
-        <!-- Security Overview -->
-        <div class="security-overview">
-          <div class="security-card">
-            <div class="card-header">
-              <h3>Session Security</h3>
-              <span v-if="sessionStats.sessionCount > 1" class="warning-badge">
-                {{ sessionStats.sessionCount }} Active Sessions
-              </span>
-              <span v-else class="success-badge">Secure</span>
-            </div>
-            <div class="card-content">
-              <p>Manage your active login sessions and monitor security.</p>
-              <div class="stats">
-                <div class="stat">
-                  <span class="stat-value">{{ sessionStats.sessionCount }}</span>
-                  <span class="stat-label">Active Sessions</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-value">{{ sessionStats.uniqueIPs }}</span>
-                  <span class="stat-label">Unique Locations</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-value">{{ sessionStats.lastActivity }}</span>
-                  <span class="stat-label">Last Activity</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Session Manager -->
-        <div class="session-section">
-          <SessionManager
-            @session-revoked="handleSessionRevoked"
-            @sessions-revoked="handleSessionsRevoked"
-            @show-message="showMessage"
-          />
-        </div>
-
-        <!-- Security Actions -->
-        <div class="security-actions">
-          <h3>Security Actions</h3>
-          <div class="actions-grid">
-            <div class="action-card">
-              <div class="action-icon">🔒</div>
-              <div class="action-content">
-                <h4>Change Password</h4>
-                <p>Update your account password for better security</p>
-                <button @click="changePassword" class="btn-primary">Change Password</button>
-              </div>
-            </div>
-
-            <div class="action-card">
-              <div class="action-icon">🗑️</div>
-              <div class="action-content">
-                <h4>Delete Account</h4>
-                <p>Permanently delete your account and all associated data</p>
-                <button @click="openDeleteAccount" class="btn-danger">Delete Account</button>
-              </div>
             </div>
           </div>
         </div>
@@ -228,86 +156,6 @@
       </div>
     </div>
 
-    <!-- Activity Log Popup -->
-    <div v-if="showActivityLogPopup" class="popup-overlay" @click="closeActivityLog">
-      <div class="popup-modal large-modal activity-modal" @click.stop>
-        <div class="popup-header">
-          <h3>Account Activity Log</h3>
-          <button class="close-button" @click="closeActivityLog">
-            <v-icon>mdi-close</v-icon>
-          </button>
-        </div>
-        <div class="popup-content activity-content">
-          <div class="activity-log">
-            <div v-if="activityLog.length === 0" class="no-activity">
-              <v-icon size="48" color="grey">mdi-history</v-icon>
-              <p>No recent activity to display</p>
-            </div>
-            <div v-else class="activity-list">
-              <div v-for="activity in activityLog" :key="activity.id" class="activity-item">
-                <div class="activity-icon">
-                  <v-icon :color="getActivityIconColor(activity.type)">
-                    {{ getActivityIcon(activity.type) }}
-                  </v-icon>
-                </div>
-                <div class="activity-details">
-                  <div class="activity-title">{{ activity.title }}</div>
-                  <div class="activity-description">{{ activity.description }}</div>
-                  <div class="activity-time">{{ activity.timestamp }}</div>
-                </div>
-                <div class="activity-location" v-if="activity.location">
-                  {{ activity.location }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="popup-actions">
-          <button class="popup-button secondary" @click="closeActivityLog">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Emergency Logout Popup -->
-    <div v-if="showEmergencyLogoutPopup" class="popup-overlay" @click="closeEmergencyLogout">
-      <div class="popup-modal" @click.stop>
-        <div class="popup-header">
-          <h3>Emergency Logout</h3>
-          <button class="close-button" @click="closeEmergencyLogout">
-            <v-icon>mdi-close</v-icon>
-          </button>
-        </div>
-        <div class="popup-content">
-          <div class="popup-icon">
-            <v-icon size="48" color="warning">mdi-alert</v-icon>
-          </div>
-          <p class="popup-message">
-            This will end ALL your active sessions and log you out everywhere.
-          </p>
-          <p class="popup-instruction">
-            You will need to log in again on all devices. This action cannot be undone.
-          </p>
-          <p class="popup-message danger">
-            Are you sure you want to continue?
-          </p>
-        </div>
-        <div class="popup-actions">
-          <button class="popup-button secondary" @click="closeEmergencyLogout">
-            Cancel
-          </button>
-          <button
-            class="popup-button danger"
-            @click="confirmEmergencyLogout"
-            :disabled="isLoggingOut"
-          >
-            {{ isLoggingOut ? 'Logging out...' : 'End All Sessions' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Delete Account Popup -->
     <div v-if="showDeleteAccountPopup" class="popup-overlay" @click="closeDeleteAccount">
       <div class="popup-modal" @click.stop>
@@ -362,27 +210,16 @@
 </template>
 
 <script>
-import SessionManager from '../components/SessionManager.vue'
-import sessionService from '../scripts/sessionService.js'
 import AuthStore from '../scripts/authStore.js'
 
 export default {
-  name: 'AccountView',
-  components: {
-    SessionManager
-  },
+  name: 'AccountPersonalView',
   data() {
     return {
-      activeTab: 'profile',
       user: {
         userId: '',
         username: '',
         email: ''
-      },
-      sessionStats: {
-        sessionCount: 0,
-        uniqueIPs: 0,
-        lastActivity: 'Loading...'
       },
       message: null,
       messageTimeout: null,
@@ -407,21 +244,11 @@ export default {
       return `${maskedUsername}@${domain}`
     },
     memberSince() {
-      // This would typically come from user data
       return 'January 2024'
     }
   },
   async mounted() {
     await this.loadUserData()
-    await this.loadSessionStats()
-
-    // Start session activity monitoring
-    sessionService.startActivityMonitoring()
-
-    // Check if we should open security tab (from query params)
-    if (this.$route.query.tab === 'security') {
-      this.activeTab = 'security'
-    }
   },
   beforeUnmount() {
     if (this.messageTimeout) {
@@ -442,56 +269,6 @@ export default {
       } catch (error) {
         console.error('Error loading user data:', error)
       }
-    },
-
-    async loadSessionStats() {
-      try {
-        const [sessionsResult, currentResult, securityResult] = await Promise.all([
-          sessionService.getActiveSessions(),
-          sessionService.getCurrentSession(),
-          sessionService.checkSecurity()
-        ])
-
-        if (sessionsResult.success) {
-          this.sessionStats.sessionCount = sessionsResult.totalCount
-        }
-
-        if (currentResult.success) {
-          const formatted = sessionService.formatSessionInfo(currentResult.session)
-          this.sessionStats.lastActivity = formatted.lastActivityFormatted
-        }
-
-        if (securityResult.success) {
-          this.sessionStats.uniqueIPs = securityResult.uniqueIPs
-        }
-      } catch (error) {
-        console.error('Error loading session stats:', error)
-      }
-    },
-
-    switchToSecurity() {
-      this.activeTab = 'security'
-      // Update URL without page reload
-      this.$router.replace({ query: { tab: 'security' } })
-    },
-
-    handleSessionRevoked(data) {
-      this.sessionStats.sessionCount = Math.max(0, this.sessionStats.sessionCount - 1)
-      this.showMessage('Session ended successfully', 'success')
-    },
-
-    handleSessionsRevoked(data) {
-      this.sessionStats.sessionCount = Math.max(1, this.sessionStats.sessionCount - data.count)
-      this.showMessage(`${data.count} sessions ended successfully`, 'success')
-    },
-
-    handleSecurityReview() {
-      this.switchToSecurity()
-      this.showMessage('Please review your active sessions below', 'info')
-    },
-
-    editProfile() {
-      this.showMessage('Profile editing feature coming soon', 'info')
     },
 
     openEditProfile() {
@@ -525,11 +302,9 @@ export default {
         })
 
         if (response.ok) {
-          // Update local user data
           this.user.username = this.editForm.username
           this.user.email = this.editForm.email
 
-          // Update localStorage for cross-tab detection
           localStorage.setItem('currentUser', JSON.stringify({
             userId: this.user.userId,
             username: this.user.username,
@@ -577,11 +352,9 @@ export default {
         })
 
         if (response.ok) {
-          // Clear all local data
           sessionStorage.removeItem('isLoggedIn')
           localStorage.removeItem('currentUser')
 
-          // Logout and redirect
           await AuthStore.logout()
           this.$router.push('/login')
           this.showMessage('Account deleted successfully', 'success')
@@ -621,117 +394,6 @@ export default {
 
     closePasswordResetPopup() {
       this.showPasswordResetPopup = false
-    },
-
-    openEmergencyLogout() {
-      this.showEmergencyLogoutPopup = true
-    },
-
-    closeEmergencyLogout() {
-      this.showEmergencyLogoutPopup = false
-    },
-
-    async confirmEmergencyLogout() {
-      this.isLoggingOut = true
-      try {
-        const result = await sessionService.revokeAllOtherSessions()
-        if (result.success) {
-          // Also logout current session
-          await AuthStore.logout()
-          this.$router.push('/login')
-        } else {
-          this.showMessage('Failed to end all sessions', 'error')
-        }
-      } catch (error) {
-        this.showMessage('Error during emergency logout', 'error')
-        console.error('Emergency logout error:', error)
-      } finally {
-        this.isLoggingOut = false
-        this.closeEmergencyLogout()
-      }
-    },
-
-    openActivityLog() {
-      this.loadActivityLog()
-      this.showActivityLogPopup = true
-    },
-
-    closeActivityLog() {
-      this.showActivityLogPopup = false
-    },
-
-    async loadActivityLog() {
-      try {
-        // Mock activity log data - replace with actual API call
-        this.activityLog = [
-          {
-            id: 1,
-            type: 'login',
-            title: 'Login',
-            description: 'Successful login from new device',
-            timestamp: '2 hours ago',
-            location: 'New York, US'
-          },
-          {
-            id: 2,
-            type: 'profile',
-            title: 'Profile Updated',
-            description: 'Email address changed',
-            timestamp: '1 day ago',
-            location: 'New York, US'
-          },
-          {
-            id: 3,
-            type: 'security',
-            title: 'Password Changed',
-            description: 'Password reset completed',
-            timestamp: '3 days ago',
-            location: 'New York, US'
-          },
-          {
-            id: 4,
-            type: 'logout',
-            title: 'Session Ended',
-            description: 'Logged out from mobile device',
-            timestamp: '1 week ago',
-            location: 'California, US'
-          }
-        ]
-      } catch (error) {
-        console.error('Error loading activity log:', error)
-        this.showMessage('Failed to load activity log', 'error')
-      }
-    },
-
-    getActivityIcon(type) {
-      switch (type) {
-        case 'login': return 'mdi-login'
-        case 'logout': return 'mdi-logout'
-        case 'profile': return 'mdi-account-edit'
-        case 'security': return 'mdi-shield-check'
-        case 'password': return 'mdi-lock-reset'
-        default: return 'mdi-information'
-      }
-    },
-
-    getActivityIconColor(type) {
-      switch (type) {
-        case 'login': return 'success'
-        case 'logout': return 'warning'
-        case 'profile': return 'primary'
-        case 'security': return 'success'
-        case 'password': return 'orange'
-        default: return 'grey'
-      }
-    },
-
-    async handleLogout() {
-      try {
-        await AuthStore.logout()
-        this.$router.push('/login')
-      } catch (error) {
-        console.error('Logout error:', error)
-      }
     },
 
     showMessage(text, type = 'info') {
@@ -804,13 +466,15 @@ export default {
   color: #666;
   flex: 1;
   justify-content: center;
+  text-decoration: none;
 }
 
 .tab-button:hover {
   background: #f8f9fa;
 }
 
-.tab-button.active {
+.tab-button.active,
+.tab-button.router-link-active {
   background: #4A90E2;
   color: white;
 }
@@ -949,160 +613,6 @@ export default {
   background: #c82333;
 }
 
-/* Security Section Styles */
-.security-overview {
-  margin-bottom: 40px;
-}
-
-.security-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.card-header h3 {
-  margin: 0;
-  color: #333;
-}
-
-.warning-badge {
-  background: #ffc107;
-  color: #856404;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.success-badge {
-  background: #28a745;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.card-content p {
-  color: #666;
-  margin-bottom: 20px;
-}
-
-.stats {
-  display: flex;
-  gap: 32px;
-}
-
-.stat {
-  text-align: center;
-}
-
-.stat-value {
-  display: block;
-  font-size: 24px;
-  font-weight: 700;
-  color: #4A90E2;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.session-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 40px;
-}
-
-.security-actions h3 {
-  color: #333;
-  margin-bottom: 24px;
-}
-
-.security-actions .actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-.action-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.action-icon {
-  font-size: 32px;
-  flex-shrink: 0;
-}
-
-.action-content {
-  flex: 1;
-}
-
-.action-content h4 {
-  margin: 0 0 8px 0;
-  color: #333;
-}
-
-.action-content p {
-  color: #666;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-.btn-primary, .btn-secondary, .btn-danger {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-primary {
-  background: #4A90E2;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #357abd;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #545b62;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #c82333;
-}
-
 .message {
   position: fixed;
   top: 10%;
@@ -1167,22 +677,6 @@ export default {
   max-height: 90vh;
   overflow: hidden;
   animation: popupSlideIn 0.3s ease;
-}
-
-.large-modal {
-  max-width: 700px;
-  max-height: 85vh;
-}
-
-.activity-modal {
-  display: flex;
-  flex-direction: column;
-}
-
-.activity-content {
-  padding: 16px 24px;
-  flex: 1;
-  overflow: hidden;
 }
 
 @keyframes popupSlideIn {
@@ -1374,110 +868,15 @@ export default {
   margin-bottom: 8px;
 }
 
-/* Activity Log Styles */
-.activity-log {
-  max-height: 50vh;
-  overflow-y: auto;
-  min-height: 200px;
-}
-
-.no-activity {
-  text-align: center;
-  padding: 40px 20px;
-  color: #666;
-}
-
-.no-activity p {
-  margin-top: 16px;
-  font-size: 16px;
-}
-
-.activity-list {
-  text-align: left;
-}
-
-.activity-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px 12px;
-  border-bottom: 1px solid #eee;
-  transition: background-color 0.2s;
-}
-
-.activity-item:hover {
-  background: #f8f9fa;
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
-
-.activity-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #f8f9fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.activity-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 4px;
-  font-size: 14px;
-}
-
-.activity-description {
-  color: #666;
-  font-size: 13px;
-  margin-bottom: 4px;
-  line-height: 1.4;
-}
-
-.activity-time {
-  color: #999;
-  font-size: 12px;
-}
-
-.activity-location {
-  color: #666;
-  font-size: 11px;
-  padding: 2px 6px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  align-self: flex-start;
-  margin-top: 2px;
-  white-space: nowrap;
-}
-
 @media (max-width: 768px) {
   .profile-header {
     flex-direction: column;
     text-align: center;
   }
 
-  .stats {
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .info-grid,
   .actions-grid {
     grid-template-columns: 1fr;
-  }
-
-  .action-card {
-    flex-direction: column;
-    text-align: center;
   }
 
   .tab-navigation {
@@ -1490,18 +889,8 @@ export default {
     max-height: 95vh;
   }
 
-  .large-modal {
-    max-width: none;
-    width: calc(100% - 20px);
-    max-height: 95vh;
-  }
-
   .popup-content {
     padding: 20px 16px;
-  }
-
-  .activity-content {
-    padding: 12px 16px;
   }
 
   .popup-header {
@@ -1516,94 +905,8 @@ export default {
     padding: 12px 20px;
   }
 
-  .activity-log {
-    max-height: 60vh;
-  }
-
-  .activity-item {
-    padding: 12px 8px;
-    gap: 8px;
-  }
-
-  .activity-icon {
-    width: 32px;
-    height: 32px;
-  }
-
-  .activity-location {
-    display: none;
-  }
-
-  .activity-title {
-    font-size: 13px;
-  }
-
-  .activity-description {
-    font-size: 12px;
-  }
-
   .close-button {
     padding: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .popup-modal {
-    margin: 5px;
-    width: calc(100% - 10px);
-    max-height: 98vh;
-  }
-
-  .large-modal {
-    width: calc(100% - 10px);
-    max-height: 98vh;
-  }
-
-  .popup-header {
-    padding: 12px 16px;
-  }
-
-  .popup-header h3 {
-    font-size: 16px;
-  }
-
-  .activity-content {
-    padding: 8px 12px;
-  }
-
-  .popup-actions {
-    padding: 8px 16px;
-  }
-
-  .activity-log {
-    max-height: 65vh;
-  }
-
-  .activity-item {
-    padding: 8px 4px;
-    gap: 6px;
-  }
-
-  .activity-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .activity-title {
-    font-size: 12px;
-  }
-
-  .activity-description {
-    font-size: 11px;
-  }
-
-  .activity-time {
-    font-size: 10px;
-  }
-
-  .popup-button {
-    padding: 10px 20px;
-    font-size: 14px;
   }
 }
 </style>

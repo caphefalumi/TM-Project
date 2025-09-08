@@ -96,10 +96,8 @@ export default {
     async loadSessions() {
       this.loading = true
       try {
-        const [activeResult, currentResult] = await Promise.all([
-          sessionService.getActiveSessions(),
-          sessionService.getCurrentSession()
-        ])
+        const activeResult = await sessionService.getActiveSessions()
+        console.log("activeResult:", activeResult)
 
         if (activeResult.success) {
           this.sessions = activeResult.tokens.map(token => ({
@@ -110,16 +108,13 @@ export default {
             lastActivity: token.lastActivity,
             activityCount: token.activityCount,
             createdAt: token.createdAt,
-            isCurrent: false
+            isCurrent: token.isCurrent || false
           }))
 
-          // Mark current session
-          if (currentResult.success && currentResult.session) {
-            const currentSessionIndex = this.sessions.findIndex(s => s.id === currentResult.session.id)
-            if (currentSessionIndex >= 0) {
-              this.sessions[currentSessionIndex].isCurrent = true
-              this.currentSessionId = currentResult.session.id
-            }
+          // Find and store current session ID
+          const currentSession = this.sessions.find(s => s.isCurrent)
+          if (currentSession) {
+            this.currentSessionId = currentSession.id
           }
 
           // Sort: current session first, then by last activity
@@ -131,7 +126,6 @@ export default {
         }
       } catch (error) {
         console.error('Error loading sessions:', error)
-        this.$emit('show-message', 'Failed to load sessions', 'error')
       } finally {
         this.loading = false
       }
@@ -139,7 +133,6 @@ export default {
 
     async revokeSession(sessionId) {
       if (sessionId === this.currentSessionId) {
-        this.$emit('show-message', 'Cannot end current session', 'warning')
         return
       }
 
@@ -152,11 +145,11 @@ export default {
           this.$emit('session-revoked', { sessionId })
           this.$emit('show-message', 'Session ended successfully', 'success')
         } else {
-          this.$emit('show-message', result.error || 'Failed to end session', 'error')
+          this.$emit('show-message', 'Failed to end session', 'error')
         }
       } catch (error) {
         console.error('Error revoking session:', error)
-        this.$emit('show-message', 'Network error', 'error')
+        this.$emit('show-message', 'Error ending session', 'error')
       } finally {
         this.revoking = false
       }
@@ -168,15 +161,16 @@ export default {
         const result = await sessionService.revokeAllOtherSessions()
         if (result.success) {
           // Keep only current session
+          const revokedCount = this.sessions.filter(s => !s.isCurrent).length
           this.sessions = this.sessions.filter(s => s.isCurrent)
-          this.$emit('sessions-revoked', { count: result.count })
-          this.$emit('show-message', result.message, 'success')
+          this.$emit('sessions-revoked', { count: revokedCount })
+          this.$emit('show-message', `${revokedCount} sessions ended successfully`, 'success')
         } else {
-          this.$emit('show-message', result.error || 'Failed to end sessions', 'error')
+          this.$emit('show-message', 'Failed to end sessions', 'error')
         }
       } catch (error) {
         console.error('Error revoking sessions:', error)
-        this.$emit('show-message', 'Network error', 'error')
+        this.$emit('show-message', 'Error ending sessions', 'error')
       } finally {
         this.revoking = false
       }
