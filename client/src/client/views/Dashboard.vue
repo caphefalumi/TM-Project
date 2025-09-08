@@ -471,7 +471,6 @@ const toggleSortOrder = () => {
                   </v-chip>
                 </template>
 
->>>>>>> 185c1fa2b73ae52b1cf65d6c282bda079525c89e
                 <!-- Start Date Column -->
                 <template #item.startDate="{ item }">
                   <div class="text-body-2">{{ formatDate(item.startDate) }}</div>
