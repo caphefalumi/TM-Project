@@ -61,7 +61,21 @@ const addRefreshToken = async (req, res) => {
 const renewAccessToken = async (req, res) => {
   // Middleware to: Authenticate refresh token and renew access token
   // Note: authenticateRefreshToken middleware should be called before this function
+  if (await RefreshTokenManager.isUnauthorizedAccess(req.cookies.refreshToken)) {
+    console.log('Unauthorized access detected for token:', req.cookies.refreshToken)
+    return res.status(403).json({ error: 'Unauthorized access' })
+  }
   const accessToken = generateAccessToken(req.user)
+  const refreshToken = generateRefreshToken(req.user)
+
+  RefreshTokenManager.createRefreshToken({
+    userId: req.user.userId,
+    token: refreshToken,
+    ipAddress: req.clientIp,
+    userAgent: req.get('User-Agent'),
+    expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000) // 12 hours
+  })
+
   console.log('Renewing access token for user:', req.user)
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
@@ -69,6 +83,12 @@ const renewAccessToken = async (req, res) => {
     sameSite: 'None',
     maxAge: 19 * 60 * 1000, // 19 minutes
     path: '/',
+  })
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: true, // Use secure cookies in production
+    sameSite: 'None',
+    maxAge: 12 * 60 * 60 * 1000, // 12 hours
   })
   res.status(200).json({ accessToken })
 }
@@ -102,7 +122,7 @@ const revokeRefreshToken = async (req, res) => {
 
   try {
     // Revoke all user's refresh tokens
-    const result = await RefreshTokenManager.revokeAllUserTokens(userId, 'user_logout')
+    await RefreshTokenManager.revokeAllUserTokens(userId, 'user_logout')
 
     console.log('Refresh tokens revoked successfully for user:', userId)
     res.status(200).json({
