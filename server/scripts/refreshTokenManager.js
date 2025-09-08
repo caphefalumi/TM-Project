@@ -1,5 +1,6 @@
 import RefreshToken from '../models/RefreshToken.js'
 import { UAParser } from 'ua-parser-js'
+import geoip from 'geoip-lite'
 
 /**
  * RefreshToken Manager - Handles refresh token based activity tracking
@@ -22,6 +23,35 @@ class RefreshTokenManager {
   }
 
   /**
+   * Get location info from IP address using geoip-lite
+   */
+  static getLocationFromIP(ipAddress) {
+    try {
+      // Skip location lookup for localhost/private IPs
+      if (ipAddress === '127.0.0.1' || ipAddress === '::1' || ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.') || ipAddress.startsWith('172.')) {
+        return {
+          city: 'Local',
+          country: 'Local',
+          region: 'Local'
+        }
+      }
+
+      const geo = geoip.lookup(ipAddress)
+      if (geo) {
+        return {
+          city: geo.city || 'Unknown',
+          country: geo.country || 'Unknown',
+          region: geo.region || 'Unknown'
+        }
+      }
+    } catch (error) {
+      console.log('Error getting location from IP:', error.message)
+    }
+
+    return
+  }
+
+  /**
    * Create refresh token with activity tracking
    */
   static async createRefreshToken(tokenData) {
@@ -33,12 +63,16 @@ class RefreshTokenManager {
     // Clean up old refresh tokens for this user (keep only 5 most recent)
     await this.cleanupOldTokens(userId, 5)
 
+    // Get location info from IP address
+    const locationInfo = this.getLocationFromIP(ipAddress)
+
     const refreshToken = new RefreshToken({
       userId,
       token,
       sessionId,
       ipAddress,
       userAgent,
+      location: `${locationInfo.city}, ${locationInfo.country}` || 'Unknown',
       browser: agentInfo.browser,
       device: agentInfo.device,
       expiresAt,
@@ -105,6 +139,7 @@ class RefreshTokenManager {
         sessionMap.set(sessionId, {
           sessionId: sessionId,
           ipAddress: token.ipAddress,
+          location: token.location,
           browser: token.browser,
           device: token.device,
           lastActivity: token.lastActivity,
@@ -119,6 +154,7 @@ class RefreshTokenManager {
         if (token.lastActivity > existing.lastActivity) {
           existing.lastActivity = token.lastActivity
           existing.ipAddress = token.ipAddress
+          existing.location = token.location
         }
         existing.totalActivity += token.activityCount
         existing.tokenCount += 1
@@ -143,6 +179,7 @@ class RefreshTokenManager {
         id: token._id,
         sessionId: token.sessionId,
         ipAddress: token.ipAddress,
+        location: token.location,
         browser: token.browser,
         device: token.device,
         lastActivity: token.lastActivity,

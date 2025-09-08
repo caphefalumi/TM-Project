@@ -38,7 +38,7 @@
                   <span class="stat-label">Active Sessions</span>
                 </div>
                 <div class="stat">
-                  <span class="stat-value">{{ sessionStats.uniqueIPs }}</span>
+                  <span class="stat-value">{{ sessionStats.uniqueLocations }}</span>
                   <span class="stat-label">Unique Locations</span>
                 </div>
                 <div class="stat">
@@ -73,6 +73,7 @@ export default {
       sessionStats: {
         sessionCount: 0,
         uniqueIPs: 0,
+        uniqueLocations: 0,
         lastActivity: 'Loading...',
       },
     }
@@ -91,6 +92,13 @@ export default {
 
         if (sessionsResult.success) {
           this.sessionStats.sessionCount = sessionsResult.totalCount
+
+          // Calculate unique locations
+          const uniqueLocations = [...new Set(sessionsResult.tokens
+            .map(token => token.location)
+            .filter(location => location && location !== 'Unknown, Unknown' && location !== ', ')
+          )].length
+          this.sessionStats.uniqueLocations = uniqueLocations
 
           // Get last activity from the current session or most recent session
           const currentSession = sessionsResult.tokens.find((token) => token.isCurrent)

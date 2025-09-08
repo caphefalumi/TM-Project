@@ -23,7 +23,7 @@ const refreshTokenSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  loginLocation: {
+  location: {
     type: String,
     default: 'Unknown',
   },
