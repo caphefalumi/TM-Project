@@ -10,6 +10,5 @@ router.post('/create', authenticateAccessToken, requirePermission('MANAGE_TASKS'
 router.post('/submit', authenticateAccessToken, submitATask)
 router.get('/submission/:taskId', authenticateAccessToken, getTaskSubmission)
 router.get('/:userId', getTasksOfAUser)
-// Metadata
 
 export default router
