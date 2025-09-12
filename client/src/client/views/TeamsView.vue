@@ -50,14 +50,55 @@ const currentPage = ref(1)
 const teamsPerPage = 6
 const isTransitioning = ref(false)
 
+// Filter state
+const selectedCategory = ref('')
+
+// Team categories from server model
+const teamCategories = [
+  'Development',
+  'Design',
+  'Marketing',
+  'Sales',
+  'Support',
+  'Operations',
+  'Finance',
+  'Human Resources',
+  'Legal',
+  'Product Management',
+  'Data Science',
+  'Research and Development',
+  'Other',
+]
+
+// Computed property for category items with counts
+const categoryItemsWithCounts = computed(() => {
+  return teamCategories.map(category => {
+    const count = userTeams.value.filter(team => team.category === category).length
+    return {
+      title: count > 0 ? `${category} (${count})` : category,
+      value: category,
+      disabled: count === 0
+    }
+  }).filter(item => !item.disabled) // Only show categories that have teams
+})
+
 // Computed properties for search and pagination
 const filteredTeams = computed(() => {
-  if (!searchQuery.value) {
-    return userTeams.value
+  let teams = [...userTeams.value]
+
+  // Apply search filter
+  if (searchQuery.value) {
+    teams = teams.filter((team) =>
+      team.title.toLowerCase().includes(searchQuery.value.toLowerCase()),
+    )
   }
-  return userTeams.value.filter((team) =>
-    team.title.toLowerCase().includes(searchQuery.value.toLowerCase()),
-  )
+
+  // Apply category filter
+  if (selectedCategory.value) {
+    teams = teams.filter((team) => team.category === selectedCategory.value)
+  }
+
+  return teams
 })
 
 const totalPages = computed(() => {
@@ -73,6 +114,12 @@ const paginatedTeams = computed(() => {
 // Reset to first page when search changes
 const resetPagination = () => {
   currentPage.value = 1
+}
+
+// Clear all filters
+const clearFilters = () => {
+  selectedCategory.value = ''
+  resetPagination()
 }
 
 // Handle pagination with smooth transition
@@ -174,62 +221,6 @@ const getProgressColor = (percentage) => {
   <!-- Main content area -->
 
   <v-container fluid>
-    <v-row id="tour-teams-overview" class="align-center mb-6">
-      <v-col justify="center" cols="12">
-        <div v-if="!userLoaded">
-          <v-skeleton-loader type="heading" width="300px" class="mb-2"></v-skeleton-loader>
-          <v-skeleton-loader type="text" width="250px"></v-skeleton-loader>
-        </div>
-        <div v-else>
-          <h1 class="text-h4 welcome-header">Welcome Back, {{ user.username }}!</h1>
-          <p class="text-grey">Here's a look at your current teams.</p>
-        </div>
-      </v-col>
-    </v-row>
-
-    <!-- Projects Grid -->
-    <v-row>
-      <!-- Title: -->
-      <v-col cols="12">
-        <h2 class="text-h5 font-weight-bold mb-4 text-center">Options</h2>
-      </v-col>
-    </v-row>
-
-    <v-row id="tour-team-options" justify="center">
-      <v-col cols="12" md="4">
-        <v-card
-          class="mb-4 project-card rounded-lg"
-          flat
-          @click="isCreatingNewTeam = !isCreatingNewTeam"
-          color="blue-darken-2"
-        >
-          <v-card-item class="text-center">
-            <v-card-title
-              class="font-weight-bold text-h5"
-              v-tooltip:bottom="'Click to create new team'"
-              ><v-icon start>mdi-plus</v-icon> Create New Team</v-card-title
-            >
-          </v-card-item>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="4">
-        <v-card
-          class="mb-4 project-card rounded-lg"
-          flat
-          @click="isDeletingTeam = !isDeletingTeam"
-          color="red-lighten-2"
-        >
-          <v-card-item class="text-center">
-            <v-card-title
-              class="font-weight-bold text-h5"
-              v-tooltip:bottom="'Click to delete a team'"
-              ><v-icon start>mdi-delete</v-icon> Delete A Team</v-card-title
-            >
-          </v-card-item>
-        </v-card>
-      </v-col>
-    </v-row>
     <NewTeams
       v-if="userLoaded"
       v-model:dialog="isCreatingNewTeam"
@@ -245,20 +236,15 @@ const getProgressColor = (percentage) => {
       @teams-deleted="handleTeamUpdated"
     />
 
-    <v-row>
-      <v-col cols="12">
-        <h2 class="text-h5 font-weight-bold mb-4 text-center">Your Teams</h2>
-      </v-col>
-    </v-row>
 
-    <!-- Search Bar -->
+    <!-- Search Bar with Filters -->
     <v-row
       id="tour-team-search"
       v-if="!isLoadingTeams && userTeams.length > 0"
-      justify="center"
-      class="mb-4"
+      class="mb-4 align-center"
     >
-      <v-col cols="12" md="6" lg="4">
+      <!-- Search Field -->
+      <v-col cols="12" md="8" lg="6">
         <v-text-field
           v-model="searchQuery"
           @input="resetPagination"
@@ -269,6 +255,23 @@ const getProgressColor = (percentage) => {
           clearable
           hide-details
         ></v-text-field>
+      </v-col>
+
+      <!-- Category Filter -->
+      <v-col cols="12" md="4" lg="4">
+        <v-select
+          v-model="selectedCategory"
+          @update:model-value="resetPagination"
+          :items="categoryItemsWithCounts"
+          item-title="title"
+          item-value="value"
+          label="Filter by Category"
+          variant="outlined"
+          density="compact"
+          clearable
+          hide-details
+          prepend-inner-icon="mdi-filter"
+        ></v-select>
       </v-col>
     </v-row>
 
@@ -355,7 +358,7 @@ const getProgressColor = (percentage) => {
                   </v-card-text>
 
                   <!-- Progress Section -->
-                  <v-card-text v-if="team.progress" class="pt-0">
+                  <v-card-text v-if="team.progress.progressPercentage > 0" class="pt-0">
                     <div class="progress-section">
                       <div class="progress-label mb-2">
                         <span class="text-caption text-grey-darken-1">
@@ -385,10 +388,7 @@ const getProgressColor = (percentage) => {
                   <!-- Empty Progress Section when no progress data -->
                   <v-card-text v-else class="pt-0">
                     <div class="progress-section">
-                      <div class="progress-label mb-2">
-                        <span class="text-caption text-grey-darken-1"> Weight: 0/0 </span>
-                        <span class="text-caption text-grey-darken-1 ml-2"> 0% </span>
-                      </div>
+                      <span class="text-caption text-grey-darken-1"> No Tasks Found </span>
                     </div>
                   </v-card-text>
                   <v-divider></v-divider>
@@ -431,19 +431,17 @@ const getProgressColor = (percentage) => {
         <v-alert type="info">You are not a member of any teams yet.</v-alert>
       </v-col>
     </v-row>
+    <v-btn
+      v-if="userLoaded"
+      id="tour-create-team-button"
+      class="fixed-float-btn"
+      color="primary"
+      fab
+      @click="isCreatingNewTeam = !isCreatingNewTeam"
+    >
+      <v-icon>mdi-plus</v-icon>
+    </v-btn>
   </v-container>
-
-  <!-- Floating Action Button to add new projects -->
-  <v-fab
-    v-if="isLoggedIn"
-    icon="mdi-plus"
-    location="bottom end"
-    size="large"
-    app
-    appear
-    class="mb-16"
-    color="primary"
-  ></v-fab>
 </template>
 
 <style scoped>
@@ -541,7 +539,7 @@ const getProgressColor = (percentage) => {
   border: 1px solid #e0e0e0;
   height: auto;
   max-height: 350px;
-  min-height: 280px;
+  min-height: 250px;
   display: flex;
   flex-direction: column;
 }
@@ -577,6 +575,44 @@ const getProgressColor = (percentage) => {
 
 .progress-bar:hover {
   transform: scaleY(1.2);
+}
+
+.fixed-float-btn {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 1000 !important;
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 56px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.fixed-float-btn:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+}
+
+.fixed-float-btn .v-icon {
+  font-size: 24px !important;
+}
+
+/* Filter controls styling */
+.gap-2 > * + * {
+  margin-left: 8px;
+}
+
+@media (max-width: 960px) {
+  .gap-2 {
+    flex-wrap: wrap;
+    gap: 4px !important;
+  }
+  
+  .gap-2 > * + * {
+    margin-left: 0;
+  }
 }
 
 /* Skeleton Loading Styles */

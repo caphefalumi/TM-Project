@@ -27,8 +27,8 @@ onMounted(() => {
 
     <!-- Cards Section -->
     <v-row justify="center" class="cards-section">
-      <!-- Creator Card -->
-      <v-col cols="12" md="4" class="card-container">
+      <!-- Creators Card -->
+      <v-col cols="12" md="4" class="card-container pa-2">
         <v-card
           class="floating-card creator-card"
           :class="{ 'animate-in': isVisible }"
@@ -36,19 +36,31 @@ onMounted(() => {
         >
           <div class="card-glow"></div>
           <v-card-item class="text-center pa-6">
-            <div class="creator-avatar">
-              <v-avatar size="80" color="primary" class="mb-4">
-                <span class="text-h4 text-white">HQK</span>
-              </v-avatar>
+            <div class="creators-avatars">
+              <div class="avatar-group mb-4">
+                <v-avatar size="60" color="primary" class="creator-avatar-item">
+                  <span class="text-h6 text-white">HQK</span>
+                </v-avatar>
+                <v-avatar size="60" color="secondary" class="creator-avatar-item">
+                  <span class="text-h6 text-white">DDT</span>
+                </v-avatar>
+                <v-avatar size="60" color="success" class="creator-avatar-item">
+                  <span class="text-h6 text-white">PLM</span>
+                </v-avatar>
+              </div>
             </div>
             <v-card-title class="card-title">
-              <v-icon class="mr-2" color="primary">mdi-account-star</v-icon>
-              Creator
+              <v-icon class="mr-2" color="primary">mdi-account-group</v-icon>
+              Creators
             </v-card-title>
             <v-card-text class="card-content">
-              <p class="creator-name">Hồ Quốc Khánh</p>
+              <div class="creators-list">
+                <p class="creator-name">Hồ Quốc Khánh</p>
+                <p class="creator-name">Đặng Duy Toàn</p>
+                <p class="creator-name">Phan Lê Minh Hiếu</p>
+              </div>
               <p class="creator-description">
-                Passionate developer dedicated to creating intuitive solutions for team
+                A passionate team of developers dedicated to creating intuitive solutions for team
                 collaboration and management.
               </p>
             </v-card-text>
@@ -57,7 +69,7 @@ onMounted(() => {
       </v-col>
 
       <!-- Purpose Card -->
-      <v-col cols="12" md="4" class="card-container">
+      <v-col cols="12" md="4" class="card-container pa-2">
         <v-card
           class="floating-card purpose-card"
           :class="{ 'animate-in': isVisible }"
@@ -97,7 +109,7 @@ onMounted(() => {
       </v-col>
 
       <!-- Support Card -->
-      <v-col cols="12" md="4" class="card-container">
+      <v-col cols="12" md="4" class="card-container pa-2">
         <v-card
           class="floating-card support-card"
           :class="{ 'animate-in': isVisible }"
@@ -138,8 +150,7 @@ onMounted(() => {
       <v-col cols="12" class="text-center">
         <div class="footer-content" :class="{ 'animate-in': isVisible }">
           <p class="footer-text">
-            Made with <v-icon color="red" class="mx-1">mdi-heart</v-icon> for better team
-            collaboration
+            Made with <v-icon color="red" class="mx-1">mdi-heart</v-icon> by our team for better collaboration
           </p>
         </div>
       </v-col>
@@ -151,7 +162,7 @@ onMounted(() => {
 /* Container Styles */
 .about-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f0f0 0%, #e1e9f4 100%);
+  background: white;
   padding: 2rem 0;
   position: relative;
   overflow: hidden;
@@ -233,6 +244,7 @@ onMounted(() => {
 .card-container {
   display: flex;
   justify-content: center;
+  padding: 0;
 }
 
 .floating-card {
@@ -242,12 +254,13 @@ onMounted(() => {
   border: 2px solid rgba(131, 131, 131, 0.8);
   box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.15);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   opacity: 0;
   transform: translateY(50px) scale(0.9);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   max-width: 350px;
   width: 100%;
+  margin: 20px auto;
 }
 
 .floating-card.animate-in {
@@ -302,29 +315,58 @@ onMounted(() => {
   transition-delay: 0.1s;
 }
 
-.creator-avatar {
+.creators-avatars {
   position: relative;
+  padding: 5px 0;
 }
 
-.creator-avatar .v-avatar {
+.avatar-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px;
+  margin: 0 -10px;
+}
+
+.creator-avatar-item {
   transition: transform 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.creator-card:hover .creator-avatar .v-avatar {
-  transform: rotate(360deg);
+.creator-card:hover .creator-avatar-item {
+  transform: scale(1.1);
+}
+
+.creator-card:hover .creator-avatar-item:nth-child(1) {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.creator-card:hover .creator-avatar-item:nth-child(2) {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.creator-card:hover .creator-avatar-item:nth-child(3) {
+  transform: scale(1.1) rotate(8deg);
+}
+
+.creators-list {
+  margin-bottom: 1rem;
 }
 
 .creator-name {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #3b82f6;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
   text-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
 }
 
 .creator-description {
   color: #64748b;
   font-style: italic;
+  margin-top: 1rem;
 }
 
 /* Purpose Card Specific */
@@ -434,7 +476,7 @@ onMounted(() => {
   }
 
   .floating-card {
-    margin-bottom: 2rem;
+    margin: 20px auto 2rem auto;
   }
 }
 

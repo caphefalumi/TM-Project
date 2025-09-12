@@ -98,7 +98,6 @@ const deleteTeams = async (teamId) => {
     }
     // Emit an event to notify parent component that teams have been deleted
     teamIdOfTeamsToDelete.value = '' // Reset the selected team ID
-    emit('teams-deleted', props.teamsThatUserIsAdmin)
     console.log('Team deleted successfully:', result)
     success.value = true
     error.value = false

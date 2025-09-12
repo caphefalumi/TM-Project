@@ -260,9 +260,38 @@ const getTeamThatUserIsMember = async (req, res) => {
   }
 }
 
+// Helper function to recursively get all sub-teams
+const getSubTeamsRecursive = async (teamId) => {
+  const subTeams = await Teams.find({ parentTeamId: teamId })
+  let allSubTeams = [...subTeams]
+  
+  for (const subTeam of subTeams) {
+    const childSubTeams = await getSubTeamsRecursive(subTeam._id)
+    allSubTeams = [...allSubTeams, ...childSubTeams]
+  }
+  
+  return allSubTeams
+}
+
+const getAllSubTeams = async (req, res) => {
+  // Get all sub-teams of a team recursively
+  try {
+    const { teamId } = req.params
+    console.log('Fetching sub-teams for team ID:', teamId)
+    
+    const allSubTeams = await getSubTeamsRecursive(teamId)
+    console.log('Found sub-teams:', allSubTeams.length, 'teams')
+    console.log('Sub-teams data:', JSON.stringify(allSubTeams, null, 2))
+    
+    return res.status(200).json({ subTeams: allSubTeams })
+  } catch (error) {
+    console.error('Error fetching sub-teams:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
 const recursiveDeleteSubTeams = async (teamId) => {
   // Recursively delete sub-teams and their associated users
-
   try {
     const subTeams = await Teams.find({ parentTeamId: teamId })
     if (subTeams.length > 0) {
@@ -386,6 +415,7 @@ export default {
   getCategories,
   deleteATeam,
   getProgressBar,
+  getAllSubTeams,
 }
 
 // nodemon "src\server\routes\teams.js"
