@@ -492,6 +492,7 @@ const getAllTaskGroups = async (req, res) => {
         $group: {
           _id: '$taskGroupId',
           title: { $first: '$title' },
+          description: { $first: '$description' },
           category: { $first: '$category' },
           priority: { $first: '$priority' },
           startDate: { $first: '$startDate' },
@@ -511,6 +512,7 @@ const getAllTaskGroups = async (req, res) => {
       taskGroups: taskGroups.map((group) => ({
         taskGroupId: group._id,
         title: group.title,
+        description: group.description || '',
         category: group.category,
         priority: group.priority,
         startDate: group.startDate,
@@ -534,8 +536,14 @@ const getTaskSubmission = async (req, res) => {
 
   try {
     const { taskId } = req.params
+    const userId = req.user?.userId // Get userId from JWT token
+
     if (!taskId) {
       return res.status(400).json({ message: 'Task ID is required' })
+    }
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' })
     }
 
     // Find the task to verify it exists
@@ -544,8 +552,8 @@ const getTaskSubmission = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' })
     }
 
-    // Find the submission for this task
-    const submission = await TaskSubmissions.findOne({ taskId })
+    // Find the submission for this task and user
+    const submission = await TaskSubmissions.findOne({ taskId, userId })
 
     if (!submission) {
       return res.status(404).json({ message: 'No submission found for this task' })

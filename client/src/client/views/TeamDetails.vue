@@ -14,6 +14,7 @@ import UpdateTaskGroups from '../components/UpdateTaskGroups.vue'
 import RoleManagement from '../components/RoleManagement.vue'
 import RoleManagementTabs from '../components/RoleManagementTabs.vue'
 import NewMembers from '../components/NewMembers.vue'
+import WorkflowView from '../components/WorkflowView.vue'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -27,7 +28,6 @@ const {
   getRoleIcon,
   getRoleColor,
   canAccessAnnouncements,
-  canAccessTasks,
   canAccessMembers,
   canAddTeamMembers,
   canCustomizeRolesForNewMembers,
@@ -104,7 +104,6 @@ const canEditAnnouncements = computed(() => hasPermission('canManageAnnouncement
 
 // UI Feature Access - Users see features only if they have at least one permission from the group
 const showAnnouncementsFeature = computed(() => canAccessAnnouncements())
-const showTasksFeature = computed(() => canAccessTasks())
 const showMembersFeature = computed(() => canAccessMembers())
 const showAddMembersButton = computed(() => canAddTeamMembers())
 const allowCustomRoleSelection = computed(() => canCustomizeRolesForNewMembers())
@@ -758,6 +757,10 @@ const taskFilterOptions = [
               <v-icon start>mdi-clipboard-text</v-icon>
               Tasks
             </v-tab>
+            <v-tab value="workflow">
+              <v-icon start>mdi-timeline-clock</v-icon>
+              Workflow
+            </v-tab>
             <v-tab value="task-groups" v-if="canManageTaskGroups">
               <v-icon start>mdi-folder-multiple</v-icon>
               Task Groups
@@ -861,13 +864,13 @@ const taskFilterOptions = [
               <v-col cols="12">
                 <v-row>
                   <v-col cols="12" md="4">
-                    <v-skeleton-loader type="text-field" height="40px"></v-skeleton-loader>
+                    <v-skeleton-loader type="text" height="40px"></v-skeleton-loader>
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-skeleton-loader type="text-field" height="40px"></v-skeleton-loader>
+                    <v-skeleton-loader type="text" height="40px"></v-skeleton-loader>
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-skeleton-loader type="text-field" height="40px"></v-skeleton-loader>
+                    <v-skeleton-loader type="text" height="40px"></v-skeleton-loader>
                   </v-col>
                 </v-row>
               </v-col>
@@ -982,7 +985,7 @@ const taskFilterOptions = [
                     <div class="text-caption">
                       <span>Weight: {{ task.weighted }}</span>
                     </div>
-                    <div class="d-flex justify-space-between text-caption">
+                    <div class="d-flex justify-space-between   text-caption">
                       <span>Start: {{ new Date(task.startDate).toLocaleDateString() }}</span>
                       <span>Due: {{ new Date(task.dueDate).toLocaleDateString() }}</span>
                     </div>
@@ -1027,6 +1030,17 @@ const taskFilterOptions = [
               </v-col>
             </v-row>
           </div>
+        </v-window-item>
+
+        <!-- Workflow Tab -->
+        <v-window-item value="workflow">
+          <WorkflowView
+            :teamId="teamId"
+            :tasks="tasks"
+            :taskGroups="taskGroups"
+            :teamMembers="teamMembers"
+          />
+
         </v-window-item>
 
         <!-- Manage Tab -->
@@ -1448,7 +1462,7 @@ const taskFilterOptions = [
                 <v-skeleton-loader type="heading" width="200px" class="mb-4"></v-skeleton-loader>
 
                 <!-- Search box skeleton -->
-                <v-skeleton-loader type="text-field" height="40px" class="mb-4"></v-skeleton-loader>
+                <v-skeleton-loader type="text" height="40px" class="mb-4"></v-skeleton-loader>
               </v-col>
             </v-row>
 

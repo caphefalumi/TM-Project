@@ -3,7 +3,17 @@ import Tasks from './tasks.js'
 import { authenticateAccessToken } from '../verify/JWTAuth.js'
 import { requirePermission } from '../verify/RoleAuth.js'
 
-const { addTaskToUsers, getTasksOfAUser, submitATask, getTaskSubmission } = Tasks
+const {
+  addTaskToUsers,
+  getTasksOfAUser,
+  getTasksOfAUserInATeam,
+  submitATask,
+  getTasksByGroupId,
+  updateTaskGroup,
+  deleteTaskGroup,
+  getAllTaskGroups,
+  getTaskSubmission
+} = Tasks
 const router = express.Router()
 
 router.post('/create', authenticateAccessToken, requirePermission('MANAGE_TASKS'), addTaskToUsers)
