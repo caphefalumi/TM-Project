@@ -29,6 +29,7 @@ const {
   getCategories,
   getTeamNameThatUserIsAdmin,
   getTeamThatUserIsMember,
+  getAllSubTeams,
 } = Teams
 const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement } =
   Announcements
@@ -59,6 +60,7 @@ router.delete(
 )
 router.get('/', authenticateAccessToken, getTeamThatUserIsMember)
 router.get('/admin', authenticateAccessToken, getTeamNameThatUserIsAdmin)
+router.get('/:teamId/sub-teams', authenticateAccessToken, getAllSubTeams)
 
 router.get('/:teamId', authenticateAccessToken, getTeamDetails)
 router.delete('/:teamId', authenticateAccessToken, requireAdmin, deleteATeam)

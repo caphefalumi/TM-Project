@@ -127,6 +127,18 @@ const getSubmissionIcon = (submitted) => {
   return submitted ? 'mdi-check-circle' : 'mdi-clock-outline'
 }
 
+const formatUrl = (url) => {
+  if (!url || url === '(Not provided)') return url
+  
+  // Check if URL already has a protocol
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  
+  // Add https:// as default protocol
+  return `https://${url}`
+}
+
 onMounted(() => {
   if (props.dialog) {
     fetchTaskDetails()
@@ -256,8 +268,9 @@ watch(
                     <div v-else-if="field.type === 'URLs'">
                       <a
                         v-if="field.value && field.value !== '(Not provided)'"
-                        :href="field.value"
+                        :href="formatUrl(field.value)"
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="text-primary"
                       >
                         {{ field.value }}
