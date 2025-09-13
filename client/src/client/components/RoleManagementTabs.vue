@@ -798,7 +798,6 @@ onMounted(async () => {
                     <template v-slot:prepend>
                       <v-icon :color="item.raw.value">mdi-circle</v-icon>
                     </template>
-                    <v-list-item-title>{{ item.raw.name }}</v-list-item-title>
                   </v-list-item>
                 </template>
               </v-select>
@@ -816,10 +815,9 @@ onMounted(async () => {
 
           <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Select Permissions</h4>
-            <v-alert type="info" variant="tonal" class="mb-3">
-              <v-icon start>mdi-information</v-icon>
-              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements,
-              View Members, View Task Groups, Submit Tasks) are automatically granted to all users
+            <v-alert type="info" variant="tonal" class="mb-3 info-msg">
+              <strong>Note:</strong> Basic permissions (View Team, Tasks, Announcements,
+              Members, Task Groups, Submit Tasks) are automatically granted to all users
               and cannot be modified.
             </v-alert>
             <v-expansion-panels variant="accordion">
@@ -963,10 +961,9 @@ onMounted(async () => {
 
           <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Update Permissions</h4>
-            <v-alert type="info" variant="tonal" class="mb-3">
-              <v-icon start>mdi-information</v-icon>
-              <strong>Note:</strong> Basic permissions (View Team, View Tasks, View Announcements,
-              View Members, View Task Groups, Submit Tasks) are automatically granted to all users
+            <v-alert type="info" variant="tonal" class="mb-3 info-msg">
+              <strong>Note:</strong> Basic permissions (View Team, Tasks, Announcements,
+              Members, Task Groups, Submit Tasks) are automatically granted to all users
               and cannot be modified.
             </v-alert>
             <v-expansion-panels variant="accordion">
@@ -1394,5 +1391,9 @@ onMounted(async () => {
 .cursor-pointer:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info-msg {
+  text-align: justify;
 }
 </style>
