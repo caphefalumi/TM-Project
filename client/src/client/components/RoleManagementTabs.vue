@@ -816,9 +816,9 @@ onMounted(async () => {
           <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Select Permissions</h4>
             <v-alert type="info" variant="tonal" class="mb-3 info-msg">
-              <strong>Note:</strong> Basic permissions (View Team, Tasks, Announcements,
-              Members, Task Groups, Submit Tasks) are automatically granted to all users
-              and cannot be modified.
+              <strong>Note:</strong> Basic permissions (View Team, Tasks, Announcements, Members,
+              Task Groups, Submit Tasks) are automatically granted to all users and cannot be
+              modified.
             </v-alert>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel
@@ -962,9 +962,9 @@ onMounted(async () => {
           <div class="mb-4">
             <h4 class="text-subtitle-1 mb-3">Update Permissions</h4>
             <v-alert type="info" variant="tonal" class="mb-3 info-msg">
-              <strong>Note:</strong> Basic permissions (View Team, Tasks, Announcements,
-              Members, Task Groups, Submit Tasks) are automatically granted to all users
-              and cannot be modified.
+              <strong>Note:</strong> Basic permissions (View Team, Tasks, Announcements, Members,
+              Task Groups, Submit Tasks) are automatically granted to all users and cannot be
+              modified.
             </v-alert>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel

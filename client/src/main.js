@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { createPinia } from 'pinia'
-import { GanttPlugin } from '@syncfusion/ej2-vue-gantt';
 
 import 'vuetify/styles'
 import vuetify from './plugins/vuetify.js' // Import the configured instance
@@ -17,7 +16,6 @@ const pinia = createPinia()
 app.use(vue3GoogleLogin, {
   clientId: CLIENT_ID,
 })
-app.use(GanttPlugin);
 
 app.use(router)
 app.use(vuetify)

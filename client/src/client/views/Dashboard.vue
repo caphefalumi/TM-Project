@@ -490,32 +490,29 @@ const toggleSortOrder = () => {
 
                 <!-- Weight Column -->
                 <template #item.weighted="{ item }">
-                    <div class="text-body-2 text-center">{{ item.weighted }}</div>
+                  <div class="text-body-2 text-center">{{ item.weighted }}</div>
                 </template>
 
                 <!-- Submitted Column -->
                 <template #item.submitted="{ item }">
                   <div class="text-center">
-                    <v-icon
-                      :color="item.submitted ? 'success' : 'error'"
-                      size="20"
-                    >
-                    {{ item.submitted ? 'mdi-check' : 'mdi-close' }}
-                  </v-icon>
+                    <v-icon :color="item.submitted ? 'success' : 'error'" size="20">
+                      {{ item.submitted ? 'mdi-check' : 'mdi-close' }}
+                    </v-icon>
                   </div>
                 </template>
 
                 <!-- Actions Column -->
                 <template #item.action="{ item }">
                   <div class="text-center">
-                  <v-btn
-                    @click="navigateToTeam(item)"
-                    color="primary"
-                    variant="outlined"
-                    size="small"
-                  >
-                    <v-icon start>mdi-open-in-new</v-icon>
-                  </v-btn>
+                    <v-btn
+                      @click="navigateToTeam(item)"
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                    >
+                      <v-icon start>mdi-open-in-new</v-icon>
+                    </v-btn>
                   </div>
                 </template>
               </v-data-table>
@@ -564,7 +561,7 @@ const toggleSortOrder = () => {
   width: 100%;
 }
 
-.task-title{
+.task-title {
   font-size: 1.2rem;
 }
 

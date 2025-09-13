@@ -94,10 +94,15 @@ export default {
           this.sessionStats.sessionCount = sessionsResult.totalCount
 
           // Calculate unique locations
-          const uniqueLocations = [...new Set(sessionsResult.tokens
-            .map(token => token.location)
-            .filter(location => location && location !== 'Unknown, Unknown' && location !== ', ')
-          )].length
+          const uniqueLocations = [
+            ...new Set(
+              sessionsResult.tokens
+                .map((token) => token.location)
+                .filter(
+                  (location) => location && location !== 'Unknown, Unknown' && location !== ', ',
+                ),
+            ),
+          ].length
           this.sessionStats.uniqueLocations = uniqueLocations
 
           // Get last activity from the current session or most recent session

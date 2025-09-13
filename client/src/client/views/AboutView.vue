@@ -150,7 +150,8 @@ onMounted(() => {
       <v-col cols="12" class="text-center">
         <div class="footer-content" :class="{ 'animate-in': isVisible }">
           <p class="footer-text">
-            Made with <v-icon color="red" class="mx-1">mdi-heart</v-icon> by our team for better collaboration
+            Made with <v-icon color="red" class="mx-1">mdi-heart</v-icon> by our team for better
+            collaboration
           </p>
         </div>
       </v-col>

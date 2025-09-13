@@ -71,14 +71,16 @@ const teamCategories = [
 
 // Computed property for category items with counts
 const categoryItemsWithCounts = computed(() => {
-  return teamCategories.map(category => {
-    const count = userTeams.value.filter(team => team.category === category).length
-    return {
-      title: count > 0 ? `${category} (${count})` : category,
-      value: category,
-      disabled: count === 0
-    }
-  }).filter(item => !item.disabled) // Only show categories that have teams
+  return teamCategories
+    .map((category) => {
+      const count = userTeams.value.filter((team) => team.category === category).length
+      return {
+        title: count > 0 ? `${category} (${count})` : category,
+        value: category,
+        disabled: count === 0,
+      }
+    })
+    .filter((item) => !item.disabled) // Only show categories that have teams
 })
 
 // Computed properties for search and pagination
@@ -600,7 +602,7 @@ const getProgressColor = (percentage) => {
     flex-wrap: wrap;
     gap: 4px !important;
   }
-  
+
   .gap-2 > * + * {
     margin-left: 0;
   }

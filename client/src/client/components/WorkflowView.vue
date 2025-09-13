@@ -2,7 +2,7 @@
   <div class="workflow-container">
     <div class="workflow-header">
       <h2 class="text-h5 mb-4">Project Roadmap</h2>
-        <!-- Zoom Controls -->
+      <!-- Zoom Controls -->
       <div class="zoom-controls">
         <span class="zoom-label">View:</span>
         <div class="zoom-buttons">
@@ -31,9 +31,12 @@
     <!-- No Tasks Message -->
     <div v-if="!hasTasksToDisplay" class="no-tasks-message">
       <div class="no-tasks-content">
-        <i class="mdi mdi-calendar-blank" style="font-size: 64px; color: #9ca3af; margin-bottom: 16px;"></i>
-        <h3 class="text-h6 mb-2" style="color: #6b7280;">No Tasks Available</h3>
-        <p style="color: #9ca3af;">Tasks will appear here once they are created for this team.</p>
+        <i
+          class="mdi mdi-calendar-blank"
+          style="font-size: 64px; color: #9ca3af; margin-bottom: 16px"
+        ></i>
+        <h3 class="text-h6 mb-2" style="color: #6b7280">No Tasks Available</h3>
+        <p style="color: #9ca3af">Tasks will appear here once they are created for this team.</p>
       </div>
     </div>
 
@@ -42,7 +45,8 @@
       <div class="task-sidebar">
         <div class="sidebar-header">
           <h3>Tasks</h3>
-        </div>        <RecycleScroller
+        </div>
+        <RecycleScroller
           class="task-list"
           :items="sortedTasks"
           :item-size="64"
@@ -56,22 +60,28 @@
           >
             <span class="task-title">{{ task.title }}</span>
             <div class="task-meta">
-              <span class="task-status" :style="{ backgroundColor: getStatusColor(task.status) }"></span>
+              <span
+                class="task-status"
+                :style="{ backgroundColor: getStatusColor(task.status) }"
+              ></span>
               <span class="task-priority">{{ task.priority }}</span>
             </div>
           </div>
         </RecycleScroller>
-      </div>      <!-- Right Timeline Area -->
-      <div class="timeline-area" :class="`timeline-area--${zoomLevel}`"><div class="timeline-header" :class="`timeline-header--${zoomLevel}`">
+      </div>
+      <!-- Right Timeline Area -->
+      <div class="timeline-area" :class="`timeline-area--${zoomLevel}`">
+        <div class="timeline-header" :class="`timeline-header--${zoomLevel}`">
           <div
             v-for="(date, index) in visibleDates"
             :key="index"
-            class="timeline-date"            :class="{
+            class="timeline-date"
+            :class="{
               'timeline-date--month-start': date.isMonthStart,
               'timeline-date--week-start': date.isWeekStart,
               'timeline-date--today': date.isToday,
               'timeline-date--day': date.isDayView,
-              'timeline-date--month': date.isMonth
+              'timeline-date--month': date.isMonth,
             }"
           >
             <div v-if="date.isMonthStart" class="month-label">
@@ -80,7 +90,7 @@
             <div class="day-label">{{ date.day }}</div>
           </div>
         </div>
-          <RecycleScroller
+        <RecycleScroller
           class="timeline-content"
           :items="sortedTasks"
           :item-size="48"
@@ -115,13 +125,10 @@
       :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
     >
       <div class="tooltip-title">{{ tooltip.task?.title }}</div>
-      <div class="tooltip-info">
-        Assigned: {{ tooltip.task?.assignedMembers?.length || 0 }}
-      </div>
-      <div class="tooltip-info">
-        Completion: {{ getCompletionRate(tooltip.task) }}%
-      </div>
-    </div>    <!-- ViewTask Component -->
+      <div class="tooltip-info">Assigned: {{ tooltip.task?.assignedMembers?.length || 0 }}</div>
+      <div class="tooltip-info">Completion: {{ getCompletionRate(tooltip.task) }}%</div>
+    </div>
+    <!-- ViewTask Component -->
     <ViewTask
       v-if="selectedTask"
       :dialog="showModal"
@@ -143,133 +150,21 @@ import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 const props = defineProps({
   tasks: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   teamId: {
     type: String,
-    default: ''
+    default: '',
   },
   teamMembers: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   taskGroups: {
     type: Array,
-    default: () => []
-  }
+    default: () => [],
+  },
 })
-
-// Default task data
-const defaultTasks = [
-  {
-    _id: '68a8a7c3fd60f095d591d940',
-    userId: '68a6b187b4407415bebee9b5',
-    teamId: '68a8a5c374ea491f7422c3b5',
-    taskGroupId: 'task-group-1755883459128-u8o498uv0k9',
-    title: 'WHAT EVER',
-    category: 'Report',
-    tags: [],
-    description: 'This is a sample task description for the first task. It includes details about what needs to be done and any specific requirements.',
-    priority: 'Medium',
-    weighted: 0,
-    startDate: '2025-08-23T00:00:00.000Z',
-    dueDate: '2025-09-03T00:00:00.000Z',
-    submissions: ['68a8a8ab22ef026949bf6249'],
-    submitted: true,
-    assignedMembers: ['68a8a8ab22ef026949bf6249', 'user2'],
-    status: 'Completed'
-  },
-  {
-    _id: 'task2',
-    userId: 'user2',
-    teamId: 'team2',
-    taskGroupId: 'group2',
-    title: 'Second Task',
-    category: 'Feature',
-    tags: [],
-    description: 'Second task description with more details about implementation requirements and expected outcomes.',
-    priority: 'High',
-    weighted: 1,
-    startDate: '2025-09-01T00:00:00.000Z',
-    dueDate: '2025-09-10T00:00:00.000Z',
-    submissions: [],
-    submitted: false,
-    assignedMembers: ['user2', 'user3'],
-    status: 'Pending'
-  },
-  {
-    _id: 'task3',
-    userId: 'user3',
-    teamId: 'team3',
-    taskGroupId: 'group3',
-    title: 'Database Migration',
-    category: 'Technical',
-    tags: ['backend', 'database'],
-    description: 'Migrate the legacy database schema to the new optimized structure with proper indexing and constraints.',
-    priority: 'High',
-    weighted: 2,
-    startDate: '2025-08-28T00:00:00.000Z',
-    dueDate: '2025-09-05T00:00:00.000Z',
-    submissions: ['sub1'],
-    submitted: true,
-    assignedMembers: ['user3', 'user4', 'user5'],
-    status: 'Overdue'
-  },
-  {
-    _id: 'task4',
-    userId: 'user4',
-    teamId: 'team4',
-    taskGroupId: 'group4',
-    title: 'UI Component Library',
-    category: 'Frontend',
-    tags: ['frontend', 'components'],
-    description: 'Build a comprehensive UI component library with reusable components for the design system.',
-    priority: 'Medium',
-    weighted: 3,
-    startDate: '2025-09-05T00:00:00.000Z',
-    dueDate: '2025-09-20T00:00:00.000Z',
-    submissions: [],
-    submitted: false,
-    assignedMembers: ['user4'],
-    status: 'Not Started'
-  },
-  {
-    _id: 'task5',
-    userId: 'user5',
-    teamId: 'team5',
-    taskGroupId: 'group5',
-    title: 'API Documentation',
-    category: 'Documentation',
-    tags: ['api', 'docs'],
-    description: 'Create comprehensive API documentation with examples and integration guides for all endpoints.',
-    priority: 'Low',
-    weighted: 1,
-    startDate: '2025-09-08T00:00:00.000Z',
-    dueDate: '2025-09-12T00:00:00.000Z',
-    submissions: ['sub2', 'sub3'],
-    submitted: true,
-    assignedMembers: ['user5', 'user6'],
-    status: 'Pending'
-  },
-  {
-    _id: 'task6',
-    userId: 'user6',
-    teamId: 'team6',
-    taskGroupId: 'group6',
-    title: 'Performance Optimization',
-    category: 'Technical',
-    tags: ['performance', 'optimization'],
-    description: 'Optimize application performance by implementing caching, lazy loading, and code splitting strategies.',
-    priority: 'High',
-    weighted: 2,
-    startDate: '2025-09-12T00:00:00.000Z',
-    dueDate: '2025-09-25T00:00:00.000Z',
-    submissions: [],
-    submitted: false,
-    assignedMembers: ['user6', 'user7', 'user8'],
-    status: 'Not Started'
-  }
-]
 
 // Calendar limits (2015-2035)
 const MIN_YEAR = 2015
@@ -278,16 +173,10 @@ const MAX_YEAR = 2035
 // Use props.tasks if provided, otherwise use default
 const tasksData = computed(() => {
   // If we have tasks from props, use them; otherwise fall back to default tasks
-  const tasks = props.tasks && props.tasks.length > 0 ? props.tasks : defaultTasks
+  const tasks = props.tasks && props.tasks.length > 0 ? props.tasks : []
 
   // Filter out any invalid tasks (tasks without required fields)
-  return tasks.filter(task =>
-    task &&
-    task._id &&
-    task.title &&
-    task.startDate &&
-    task.dueDate
-  )
+  return tasks.filter((task) => task && task._id && task.title && task.startDate && task.dueDate)
 })
 
 // Zoom level state
@@ -307,15 +196,15 @@ const tooltip = ref({
   visible: false,
   x: 0,
   y: 0,
-  task: null
+  task: null,
 })
 
 // Status colors
 const statusColors = {
   'Not Started': '#bdbdbd',
-  'Pending': '#ff9800',
-  'Overdue': '#e53935',
-  'Completed': '#43a047'
+  Pending: '#ff9800',
+  Overdue: '#e53935',
+  Completed: '#43a047',
 }
 
 // Computed properties
@@ -354,9 +243,10 @@ const visibleDates = computed(() => {
         isToday,
         monthLabel: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         weekLabel: `Week ${getWeekNumber(date)}`,
-        isDayView: true
+        isDayView: true,
       })
-    }  } else {
+    }
+  } else {
     // Month view - show months starting from the actual timeline start date
     const startYear = start.getFullYear()
     const startMonth = start.getMonth()
@@ -376,7 +266,7 @@ const visibleDates = computed(() => {
           isMonthStart: true,
           isToday,
           monthLabel: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          isMonth: true
+          isMonth: true,
         })
       }
     }
@@ -403,7 +293,7 @@ const getWeekNumber = (date) => {
   const firstThursday = target.valueOf()
   target.setMonth(0, 1)
   if (target.getDay() !== 4) {
-    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7)
+    target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7))
   }
   return 1 + Math.ceil((firstThursday - target) / 604800000)
 }
@@ -416,17 +306,8 @@ const getCompletionRate = (task) => {
   if (!task || !task.assignedMembers || task.assignedMembers.length === 0) {
     return 0
   }
-  const rate = (task.submissions?.length || 0) / task.assignedMembers.length * 100
+  const rate = ((task.submissions?.length || 0) / task.assignedMembers.length) * 100
   return Math.round(rate * 100) / 100 // Round to 2 decimal places
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
 }
 
 const getTimelineStart = () => {
@@ -482,7 +363,8 @@ const getTaskBarStyle = (task) => {
     const durationDays = Math.max(1, (taskEnd - taskStart) / (1000 * 60 * 60 * 24) + 1)
 
     startOffset = startDays
-    duration = durationDays  } else {
+    duration = durationDays
+  } else {
     // Month view - each unit is a month
     unitWidth = 80
     const startMonth = taskStart.getFullYear() * 12 + taskStart.getMonth()
@@ -496,7 +378,7 @@ const getTaskBarStyle = (task) => {
   return {
     left: startOffset * unitWidth + 'px',
     width: duration * unitWidth - 2 + 'px',
-    backgroundColor: getStatusColor(task.status)
+    backgroundColor: getStatusColor(task.status),
   }
 }
 
@@ -508,7 +390,8 @@ const getCurrentDayLineStyle = () => {
 
   if (zoomLevel.value === 'week') {
     unitWidth = 40
-    offset = (today - start) / (1000 * 60 * 60 * 24)  } else {
+    offset = (today - start) / (1000 * 60 * 60 * 24)
+  } else {
     unitWidth = 80
     const currentMonth = today.getFullYear() * 12 + today.getMonth()
     const timelineStartMonth = start.getFullYear() * 12 + start.getMonth()
@@ -516,7 +399,7 @@ const getCurrentDayLineStyle = () => {
   }
 
   return {
-    left: offset * unitWidth + 'px'
+    left: offset * unitWidth + 'px',
   }
 }
 
@@ -529,7 +412,7 @@ const showTooltip = (event, task) => {
     visible: true,
     x: event.clientX + 10,
     y: event.clientY - 10,
-    task
+    task,
   }
 }
 
@@ -575,7 +458,7 @@ onUnmounted(() => {
 }
 
 .workflow-container {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   background: #f6f8fa;
   height: 80vh;
   color: #24292f;
@@ -640,8 +523,6 @@ onUnmounted(() => {
 .zoom-btn i {
   font-size: 16px;
 }
-
-
 
 .gantt-container {
   display: flex;

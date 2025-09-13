@@ -183,7 +183,7 @@ watch(
         query: { ...route.query, tab: newTab },
       })
     }
-    
+
     // Fetch sub-teams when delete-team tab is activated
     if (newTab === 'delete-team') {
       console.log('Delete team tab activated, fetching sub-teams...')
@@ -241,7 +241,7 @@ const fetchSubTeams = async () => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
       credentials: 'include',
     })
@@ -255,7 +255,7 @@ const fetchSubTeams = async () => {
 
     const data = await response.json()
     console.log('Fetched sub-teams raw response:', data)
-    
+
     // Handle both array and object responses
     if (Array.isArray(data)) {
       subTeams.value = data
@@ -632,23 +632,22 @@ const taskFilterOptions = [
 
 // Computed property for delete team validation
 const canDeleteTeam = computed(() => {
-  return deleteConfirmationText.value === team.value.title && 
-         deleteConfirmationChecked.value
+  return deleteConfirmationText.value === team.value.title && deleteConfirmationChecked.value
 })
 
 // Method to confirm and execute team deletion
 const confirmDeleteTeam = async () => {
   if (!canDeleteTeam.value) return
-  
+
   try {
     isDeletingTeam.value = true
-    
+
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
       credentials: 'include', // Important: sends refresh token cookie
       body: JSON.stringify({
@@ -663,9 +662,8 @@ const confirmDeleteTeam = async () => {
     // Success - redirect to teams page with success message
     router.push({
       path: '/teams',
-      query: { message: 'Team deleted successfully', type: 'success' }
+      query: { message: 'Team deleted successfully', type: 'success' },
     })
-    
   } catch (error) {
     console.error('Error deleting team:', error)
     // You might want to show a toast/snackbar error message here
@@ -1089,7 +1087,7 @@ const confirmDeleteTeam = async () => {
                     <div class="text-caption">
                       <span>Weight: {{ task.weighted }}</span>
                     </div>
-                    <div class="d-flex justify-space-between   text-caption">
+                    <div class="d-flex justify-space-between text-caption">
                       <span>Start: {{ new Date(task.startDate).toLocaleDateString() }}</span>
                       <span>Due: {{ new Date(task.dueDate).toLocaleDateString() }}</span>
                     </div>
@@ -1144,7 +1142,6 @@ const confirmDeleteTeam = async () => {
             :taskGroups="taskGroups"
             :teamMembers="teamMembers"
           />
-
         </v-window-item>
 
         <!-- Manage Tab -->
@@ -1719,10 +1716,12 @@ const confirmDeleteTeam = async () => {
                   </v-alert-title>
                   <div class="text-body-1">
                     <p class="mb-2">
-                      <strong>Warning:</strong> This action will permanently delete the current team and all its sub-teams.
+                      <strong>Warning:</strong> This action will permanently delete the current team
+                      and all its sub-teams.
                     </p>
                     <p class="mb-0">
-                      All associated data including tasks, announcements, and member associations will be lost forever.
+                      All associated data including tasks, announcements, and member associations
+                      will be lost forever.
                     </p>
                   </div>
                 </v-alert>
@@ -1747,7 +1746,7 @@ const confirmDeleteTeam = async () => {
                       Refresh
                     </v-btn>
                   </v-card-title>
-                  
+
                   <v-card-text>
                     <!-- Loading State -->
                     <div v-if="isLoadingSubTeams" class="py-4">
@@ -1759,10 +1758,7 @@ const confirmDeleteTeam = async () => {
                         type="list-item-two-line"
                         class="ml-4 mb-2"
                       ></v-skeleton-loader>
-                      <v-skeleton-loader
-                        type="list-item-two-line"
-                        class="ml-8"
-                      ></v-skeleton-loader>
+                      <v-skeleton-loader type="list-item-two-line" class="ml-8"></v-skeleton-loader>
                     </div>
 
                     <!-- Hierarchy Tree -->
@@ -1793,10 +1789,10 @@ const confirmDeleteTeam = async () => {
                           <v-icon class="mr-2">mdi-sitemap</v-icon>
                           Sub-teams ({{ subTeams.length }})
                         </div>
-                        
-                        <div 
-                          v-for="(subTeam, index) in subTeams" 
-                          :key="subTeam._id" 
+
+                        <div
+                          v-for="(subTeam, index) in subTeams"
+                          :key="subTeam._id"
                           class="sub-team-item"
                           :class="{ 'last-sub-team': index === subTeams.length - 1 }"
                         >
@@ -1806,7 +1802,7 @@ const confirmDeleteTeam = async () => {
                               <div class="vertical-line" v-if="index < subTeams.length"></div>
                               <div class="horizontal-line"></div>
                             </div>
-                            
+
                             <v-icon color="warning" class="mr-2">mdi-source-branch</v-icon>
                             <div class="flex-grow-1">
                               <div class="text-body-1 font-weight-bold">{{ subTeam.title }}</div>
@@ -1848,20 +1844,25 @@ const confirmDeleteTeam = async () => {
                   <v-card-text>
                     <div class="mb-4">
                       <p class="text-body-1 mb-3">
-                        To proceed with deletion, please confirm by typing the team name exactly as shown:
+                        To proceed with deletion, please confirm by typing the team name exactly as
+                        shown:
                       </p>
                       <v-chip color="primary" variant="tonal" class="mb-3">
                         {{ team.title }}
                       </v-chip>
                     </div>
-                    
+
                     <v-text-field
                       v-model="deleteConfirmationText"
                       label="Type team name to confirm deletion"
                       variant="outlined"
                       :placeholder="team.title"
                       :error="deleteConfirmationText && deleteConfirmationText !== team.title"
-                      :error-messages="deleteConfirmationText && deleteConfirmationText !== team.title ? 'Team name does not match' : ''"
+                      :error-messages="
+                        deleteConfirmationText && deleteConfirmationText !== team.title
+                          ? 'Team name does not match'
+                          : ''
+                      "
                       class="mb-4"
                     >
                       <template v-slot:prepend-inner>
@@ -1869,26 +1870,19 @@ const confirmDeleteTeam = async () => {
                       </template>
                     </v-text-field>
 
-                    <v-checkbox
-                      v-model="deleteConfirmationChecked"
-                      color="error"
-                      class="mb-4"
-                    >
+                    <v-checkbox v-model="deleteConfirmationChecked" color="error" class="mb-4">
                       <template v-slot:label>
                         <span class="text-body-2">
-                          I understand that this action is <strong>permanent and irreversible</strong>.
-                          All data will be lost forever.
+                          I understand that this action is
+                          <strong>permanent and irreversible</strong>. All data will be lost
+                          forever.
                         </span>
                       </template>
                     </v-checkbox>
                   </v-card-text>
 
                   <v-card-actions class="px-4 pb-4">
-                    <v-btn
-                      @click="goBackToTeams"
-                      variant="outlined"
-                      size="large"
-                    >
+                    <v-btn @click="goBackToTeams" variant="outlined" size="large">
                       <v-icon start>mdi-arrow-left</v-icon>
                       Cancel
                     </v-btn>
