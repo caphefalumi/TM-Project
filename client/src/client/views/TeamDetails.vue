@@ -649,7 +649,11 @@ const confirmDeleteTeam = async () => {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      }
+      },
+      credentials: 'include', // Important: sends refresh token cookie
+      body: JSON.stringify({
+        teamId: teamId.value,
+      }),
     })
 
     if (!response.ok) {
