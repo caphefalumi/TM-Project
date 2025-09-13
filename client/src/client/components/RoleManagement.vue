@@ -392,8 +392,7 @@
           </v-expansion-panels>
 
           <!-- Default Values Info -->
-          <v-alert type="info" variant="tonal" class="mb-4">
-            <v-icon class="mr-2">mdi-information</v-icon>
+          <v-alert type="info" variant="tonal" class="mb-4 info-msg">
             <strong>Default (Role-based):</strong> Permissions are enabled by default based on the
             user's role.
             <br />
@@ -841,5 +840,9 @@ const getPermissionColor = (permission) => {
 
 .permission-item:last-child {
   border-bottom: none;
+}
+
+.info-msg {
+  text-align: justify;
 }
 </style>

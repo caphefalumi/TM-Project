@@ -1828,7 +1828,6 @@ const confirmDeleteTeam = async () => {
                       <!-- No Sub Teams -->
                       <div v-else class="mt-4">
                         <v-alert type="info" variant="tonal" class="mb-0">
-                          <v-icon start>mdi-information</v-icon>
                           This team has no sub-teams. Only the current team will be deleted.
                         </v-alert>
                       </div>
