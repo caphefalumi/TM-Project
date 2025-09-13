@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NewTeams from '../components/NewTeams.vue'
-import DeleteTeams from '../components/DeleteTeams.vue'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -228,14 +227,6 @@ const getProgressColor = (percentage) => {
       v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
       @team-created="handleTeamUpdated"
     />
-    <DeleteTeams
-      v-if="userLoaded"
-      v-model:dialog="isDeletingTeam"
-      :userProps="user"
-      v-model:teamsThatUserIsAdmin="teamsThatUserIsAdmin"
-      @teams-deleted="handleTeamUpdated"
-    />
-
 
     <!-- Search Bar with Filters -->
     <v-row

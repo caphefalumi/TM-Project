@@ -314,7 +314,7 @@ const deleteATeam = async (req, res) => {
   // Delete a team and all users associated with it
   // Also delete all sub-teams associated with this team
   // Also delete all sub-teams of sub-teams recursively
-  const { teamId } = req.body
+  const { teamId } = req.params
   if (!teamId) {
     return res.status(400).json({ error: 'Team ID is required' })
   }
