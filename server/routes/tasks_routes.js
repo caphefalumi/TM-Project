@@ -12,7 +12,7 @@ const {
   updateTaskGroup,
   deleteTaskGroup,
   getAllTaskGroups,
-  getTaskSubmission
+  getTaskSubmission,
 } = Tasks
 const router = express.Router()
 

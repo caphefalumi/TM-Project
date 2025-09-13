@@ -264,12 +264,12 @@ const getTeamThatUserIsMember = async (req, res) => {
 const getSubTeamsRecursive = async (teamId) => {
   const subTeams = await Teams.find({ parentTeamId: teamId })
   let allSubTeams = [...subTeams]
-  
+
   for (const subTeam of subTeams) {
     const childSubTeams = await getSubTeamsRecursive(subTeam._id)
     allSubTeams = [...allSubTeams, ...childSubTeams]
   }
-  
+
   return allSubTeams
 }
 
@@ -278,11 +278,11 @@ const getAllSubTeams = async (req, res) => {
   try {
     const { teamId } = req.params
     console.log('Fetching sub-teams for team ID:', teamId)
-    
+
     const allSubTeams = await getSubTeamsRecursive(teamId)
     console.log('Found sub-teams:', allSubTeams.length, 'teams')
     console.log('Sub-teams data:', JSON.stringify(allSubTeams, null, 2))
-    
+
     return res.status(200).json({ subTeams: allSubTeams })
   } catch (error) {
     console.error('Error fetching sub-teams:', error)

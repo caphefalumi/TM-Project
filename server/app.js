@@ -12,7 +12,11 @@ const app = express()
 app.use(requestIp.mw())
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://tm-project-weld.vercel.app'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://tm-project-weld.vercel.app',
+    ],
     credentials: true,
   }),
 )

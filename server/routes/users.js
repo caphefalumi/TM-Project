@@ -55,7 +55,8 @@ export const addUsersToTeam = async (req, res) => {
 
     // Check if requesting user is admin in this team or global admin
     const requesterInTeam = await UsersOfTeam.findOne({ userId: requestingUserId, teamId })
-    const isRequestingUserAdmin = requesterInTeam?.role === 'Admin' || req.user?.username === 'admin'
+    const isRequestingUserAdmin =
+      requesterInTeam?.role === 'Admin' || req.user?.username === 'admin'
 
     const addedUsers = []
     const usersToInsert = []
@@ -348,7 +349,11 @@ export const getUserPermissions = async (req, res) => {
         ...allPermissions,
         isGlobalAdmin: true,
       }
-      console.log('Global admin permissions granted:', { userId, teamId, permissions: globalAdminPermissions })
+      console.log('Global admin permissions granted:', {
+        userId,
+        teamId,
+        permissions: globalAdminPermissions,
+      })
       return res.status(200).json(globalAdminPermissions)
     }
 

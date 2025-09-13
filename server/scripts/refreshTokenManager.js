@@ -26,7 +26,13 @@ class RefreshTokenManager {
   static getLocationFromIP(ipAddress) {
     try {
       // Skip location lookup for localhost/private IPs
-      if (ipAddress === '127.0.0.1' || ipAddress === '::1' || ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.') || ipAddress.startsWith('172.')) {
+      if (
+        ipAddress === '127.0.0.1' ||
+        ipAddress === '::1' ||
+        ipAddress.startsWith('192.168.') ||
+        ipAddress.startsWith('10.') ||
+        ipAddress.startsWith('172.')
+      ) {
         return 'Local'
       }
 

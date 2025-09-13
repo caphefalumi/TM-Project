@@ -129,12 +129,12 @@ const getSubmissionIcon = (submitted) => {
 
 const formatUrl = (url) => {
   if (!url || url === '(Not provided)') return url
-  
+
   // Check if URL already has a protocol
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url
   }
-  
+
   // Add https:// as default protocol
   return `https://${url}`
 }
