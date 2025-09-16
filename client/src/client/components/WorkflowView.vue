@@ -113,6 +113,7 @@
         <div class="tooltip-detail">Start: {{ tooltip.start }}</div>
         <div class="tooltip-detail">Due: {{ tooltip.due }}</div>
         <div class="tooltip-detail">Assigned: {{ tooltip.assigned }}</div>
+        <div class="tooltip-detail" v-if="tooltip.completion">Progress: {{ tooltip.completion }}</div>
       </div>
     </div>
 
@@ -138,6 +139,24 @@
               <label class="detail-label">Status</label>
               <div class="detail-value">{{ modal.task?.status }}</div>
             </div>
+            <div>
+              <label class="detail-label">Category</label>
+              <div class="detail-value">{{ modal.task?.category }}</div>
+            </div>
+            <div>
+              <label class="detail-label">Total Weight</label>
+              <div class="detail-value">{{ modal.task?.weighted }}</div>
+            </div>
+          </div>
+          <div class="detail-grid">
+            <div>
+              <label class="detail-label">Completed Tasks</label>
+              <div class="detail-value">{{ modal.task?.submittedCount }} / {{ modal.task?.totalTasks }}</div>
+            </div>
+            <div>
+              <label class="detail-label">Completion Rate</label>
+              <div class="detail-value">{{ modal.task?.completionRate }}%</div>
+            </div>
           </div>
           <div>
             <label class="detail-label">Assigned Members</label>
@@ -159,7 +178,7 @@
 
 <script>
 export default {
-  name: 'Roadmap',
+  name: 'WorkflowView',
   props: {
     taskGroups: {
       type: Array,
@@ -180,6 +199,7 @@ export default {
         start: '',
         due: '',
         assigned: '',
+        completion: '',
         style: {}
       },
       modal: {
@@ -191,16 +211,21 @@ export default {
   },
   watch: {
     taskGroups: {
-      handler() {
-        this.tasks = this.transformTaskGroups();
-        this.updateLayout();
+      handler(newTaskGroups, oldTaskGroups) {
+        // Only update if taskGroups actually changed
+        if (JSON.stringify(newTaskGroups) !== JSON.stringify(oldTaskGroups)) {
+          this.tasks = this.transformTaskGroups();
+          this.$nextTick(() => {
+            this.updateLayout();
+          });
+        }
       },
-      immediate: true
+      immediate: true,
+      deep: true
     }
   },
   mounted() {
-    this.tasks = this.transformTaskGroups();
-    this.updateLayout();
+    // Initial setup - no need to call transformTaskGroups again as watch handles it with immediate: true
     window.addEventListener('resize', this.updateLayout);
 
     // Sync header scroll with content initially
@@ -224,48 +249,70 @@ export default {
         return this.generateSampleTasks();
       }
 
-      const transformedTasks = this.taskGroups.map(taskGroup => {
-        // Determine status based on completion rate and due date
-        let status = 'not-started';
-        const now = new Date();
-        const dueDate = new Date(taskGroup.dueDate);
-        const completionRate = parseFloat(taskGroup.completionRate);
+      try {
+        const transformedTasks = this.taskGroups.map(taskGroup => {
+          // Validate required fields
+          if (!taskGroup.taskGroupId || !taskGroup.title) {
+            console.warn('Invalid taskGroup:', taskGroup);
+            return null;
+          }
 
-        if (completionRate === 100) {
-          status = 'completed';
-        } else if (completionRate > 0) {
-          status = now > dueDate ? 'overdue' : 'pending';
-        } else {
-          status = now > dueDate ? 'overdue' : 'not-started';
-        }
+          // Determine status based on completion rate and due date
+          let status = 'not-started';
+          const now = new Date();
+          const dueDate = new Date(taskGroup.dueDate);
+          const startDate = new Date(taskGroup.startDate);
 
-        // Map priority to lowercase for consistency
-        const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium';
+          // Validate dates
+          if (isNaN(dueDate.getTime()) || isNaN(startDate.getTime())) {
+            console.warn('Invalid dates in taskGroup:', taskGroup);
+            return null;
+          }
 
-        return {
-          id: taskGroup.taskGroupId,
-          name: taskGroup.title,
-          priority: priority,
-          status: status,
-          startDate: new Date(taskGroup.startDate),
-          dueDate: new Date(taskGroup.dueDate),
-          assignedMembers: taskGroup.assignedMember || [],
-          submittedCount: taskGroup.completedTasks || 0,
-          description: taskGroup.description || '',
-          weighted: taskGroup.totalWeight || 0,
-          category: taskGroup.category || '',
-          totalTasks: taskGroup.totalTasks || 0,
-          completionRate: taskGroup.completionRate || '0.0'
-        };
-      });
+          const completionRate = parseFloat(taskGroup.completionRate || '0');
 
-      return this.sortTasks(transformedTasks);
+          if (completionRate === 100) {
+            status = 'completed';
+          } else if (completionRate > 0) {
+            status = now > dueDate ? 'overdue' : 'pending';
+          } else {
+            status = now > dueDate ? 'overdue' : 'not-started';
+          }
+
+          // Map priority to lowercase for consistency
+          const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium';
+
+          return {
+            id: taskGroup.taskGroupId,
+            name: taskGroup.title,
+            priority: priority,
+            status: status,
+            startDate: startDate,
+            dueDate: dueDate,
+            assignedMembers: taskGroup.assignedMember || [],
+            submittedCount: taskGroup.completedTasks || 0,
+            description: taskGroup.description || '',
+            weighted: taskGroup.totalWeight || 0,
+            category: taskGroup.category || '',
+            totalTasks: taskGroup.totalTasks || 0,
+            completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
+            createdAt: taskGroup.createdAt
+          };
+        }).filter(task => task !== null); // Remove invalid tasks
+
+        return this.sortTasks(transformedTasks);
+      } catch (error) {
+        console.error('Error transforming task groups:', error);
+        return this.generateSampleTasks();
+      }
     },
     generateSampleTasks() {
       const tasks = [
         {
           id: '1',
-          name: 'WHAT EVER',
+          title: 'WHAT EVER',
+          description: 'TEST',
+          category: 'Report',
           priority: 'medium',
           status: 'pending',
           startDate: new Date(2025, 8, 23),
@@ -364,8 +411,13 @@ export default {
 
       // When in 'week' view we show individual days between padded start/end
       if (this.currentView === 'week') {
-        const taskStartDates = this.tasks.map(t => t.startDate.getTime());
-        const taskEndDates = this.tasks.map(t => t.dueDate.getTime());
+        const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d));
+        const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d));
+
+        if (taskStartDates.length === 0 || taskEndDates.length === 0) {
+          return { dates: [], startDate: new Date() };
+        }
+
         const minTaskDate = new Date(Math.min(...taskStartDates));
         const maxTaskDate = new Date(Math.max(...taskEndDates));
 
@@ -380,7 +432,10 @@ export default {
 
         const dates = [];
         const cursor = new Date(start);
-        while (cursor <= end) {
+        let dayCount = 0;
+        const maxDays = 1000; // Safety limit to prevent infinite loops
+
+        while (cursor <= end && dayCount < maxDays) {
           dates.push({
             iso: cursor.toISOString().slice(0, 10),
             day: cursor.getDate(),
@@ -390,13 +445,19 @@ export default {
             year: cursor.getFullYear()
           });
           cursor.setDate(cursor.getDate() + 1);
+          dayCount++;
         }
         return { dates, startDate: start };
       }
 
       // MONTH VIEW: create one column per month between padded start/end
-      const taskStartDates = this.tasks.map(t => t.startDate.getTime());
-      const taskEndDates = this.tasks.map(t => t.dueDate.getTime());
+      const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d));
+      const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d));
+
+      if (taskStartDates.length === 0 || taskEndDates.length === 0) {
+        return { dates: [], startDate: new Date() };
+      }
+
       const minTaskDate = new Date(Math.min(...taskStartDates));
       const maxTaskDate = new Date(Math.max(...taskEndDates));
 
@@ -412,7 +473,10 @@ export default {
 
       const dates = [];
       const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
-      while (cursor <= end) {
+      let monthCount = 0;
+      const maxMonths = 120; // Safety limit (10 years max)
+
+      while (cursor <= end && monthCount < maxMonths) {
         const year = cursor.getFullYear();
         const month = cursor.getMonth();
         const monthName = cursor.toLocaleString(undefined, { month: 'short' });
@@ -426,6 +490,7 @@ export default {
           daysInMonth
         });
         cursor.setMonth(cursor.getMonth() + 1);
+        monthCount++;
       }
 
       return { dates, startDate: start };
@@ -502,7 +567,10 @@ export default {
       this.tooltip.title = task.name;
       this.tooltip.start = task.startDate.toLocaleDateString();
       this.tooltip.due = task.dueDate.toLocaleDateString();
-      this.tooltip.assigned = task.assignedMembers.join(', ');
+      this.tooltip.assigned = task.assignedMembers && task.assignedMembers.length > 0
+        ? task.assignedMembers.join(', ')
+        : 'No members assigned';
+      this.tooltip.completion = task.completionRate ? `${task.completionRate}% (${task.submittedCount}/${task.totalTasks})` : '';
       this.tooltip.style = { left: event.clientX + 12 + 'px', top: event.clientY + 12 + 'px' };
       this.tooltip.show = true;
     },
