@@ -6,12 +6,7 @@ import { requirePermission } from '../verify/RoleAuth.js'
 const {
   addTaskToUsers,
   getTasksOfAUser,
-  getTasksOfAUserInATeam,
   submitATask,
-  getTasksByGroupId,
-  updateTaskGroup,
-  deleteTaskGroup,
-  getAllTaskGroups,
   getTaskSubmission,
 } = Tasks
 const router = express.Router()
