@@ -496,6 +496,7 @@ const getTaskGroups = async () => {
       console.error('Failed to fetch team details:', data.message)
       taskGroups.value = []
     } else {
+      console.log("Task groups ", data.taskGroups)
       taskGroups.value = data.taskGroups || []
       console.log('Fetched task groups:', taskGroups.value)
     }
@@ -1137,10 +1138,7 @@ const confirmDeleteTeam = async () => {
         <!-- Workflow Tab -->
         <v-window-item value="workflow">
           <WorkflowView
-            :teamId="teamId"
-            :tasks="tasks"
             :taskGroups="taskGroups"
-            :teamMembers="teamMembers"
           />
         </v-window-item>
 

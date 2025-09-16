@@ -57,12 +57,16 @@
               :class="{ 'month-start': date.monthStart }"
               :style="{ minWidth: dayWidth + 'px', width: dayWidth + 'px' }"
             >
-              <div v-if="date.monthStart" class="month-label">{{ date.monthName }} {{ date.year }}</div>
-              <div class="day-number">{{ date.day }}</div>
-              <div class="day-name">{{ date.dayName }}</div>
+              <template v-if="currentView === 'month'">
+                <div class="month-name">{{ date.monthName }} {{ date.year }}</div>
+              </template>
+              <template v-else>
+                <div v-if="date.monthStart" class="month-label">{{ date.monthName }} {{ date.year }}</div>
+                <div class="day-number">{{ date.day }}</div>
+                <div class="day-name">{{ date.dayName }}</div>
+              </template>
             </div>
           </div>
-
         </div>
 
         <div class="timeline-content" ref="timelineContent" @scroll="onTimelineScroll">
@@ -113,38 +117,42 @@
     </div>
 
     <!-- Modal -->
-    <div v-if="modal.show" class="modal" style="display: block;">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">{{ modal.task?.name }}</h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
+    <v-dialog v-model="modal.show" max-width="800">
+      <v-card>
+        <v-card-title class="modal-header">
+          <div class="modal-title">{{ modal.task?.name }}</div>
+          <v-spacer></v-spacer>
+        </v-card-title>
+
+        <v-card-text class="modal-body">
+          <div class="detail-section">
+            <label class="detail-label">Description</label>
+            <div class="detail-value">{{ modal.task?.description }}</div>
           </div>
-          <div class="modal-body">
-            <div class="detail-section">
-              <label class="detail-label">Description</label>
-              <div class="detail-value">{{ modal.task?.description }}</div>
-            </div>
-            <div class="detail-grid">
-              <div>
-                <label class="detail-label">Priority</label>
-                <div class="detail-value">{{ modal.task?.priority }}</div>
-              </div>
-              <div>
-                <label class="detail-label">Status</label>
-                <div class="detail-value">{{ modal.task?.status }}</div>
-              </div>
+          <div class="detail-grid">
+            <div>
+              <label class="detail-label">Priority</label>
+              <div class="detail-value">{{ modal.task?.priority }}</div>
             </div>
             <div>
-              <label class="detail-label">Assigned Members</label>
-              <div class="members-list">
-                <span v-for="m in modal.task?.assignedMembers" :key="m" class="member-item">{{ m }}</span>
-              </div>
+              <label class="detail-label">Status</label>
+              <div class="detail-value">{{ modal.task?.status }}</div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+          <div>
+            <label class="detail-label">Assigned Members</label>
+            <div class="members-list">
+              <span v-for="m in modal.task?.assignedMembers" :key="m" class="member-item">{{ m }}</span>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text color="primary" @click="closeModal">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
   </div>
 </template>
@@ -152,6 +160,12 @@
 <script>
 export default {
   name: 'Roadmap',
+  props: {
+    taskGroups: {
+      type: Array,
+      default: () => []
+    }
+  },
   data() {
     return {
       currentView: 'week',
@@ -171,11 +185,21 @@ export default {
       modal: {
         show: false,
         task: null
-      }
+      },
+      timelineStart: null
     };
   },
+  watch: {
+    taskGroups: {
+      handler() {
+        this.tasks = this.transformTaskGroups();
+        this.updateLayout();
+      },
+      immediate: true
+    }
+  },
   mounted() {
-    this.tasks = this.generateSampleTasks();
+    this.tasks = this.transformTaskGroups();
     this.updateLayout();
     window.addEventListener('resize', this.updateLayout);
 
@@ -194,6 +218,48 @@ export default {
     switchView(view) {
       this.currentView = view;
       this.updateLayout();
+    },
+    transformTaskGroups() {
+      if (!this.taskGroups || this.taskGroups.length === 0) {
+        return this.generateSampleTasks();
+      }
+
+      const transformedTasks = this.taskGroups.map(taskGroup => {
+        // Determine status based on completion rate and due date
+        let status = 'not-started';
+        const now = new Date();
+        const dueDate = new Date(taskGroup.dueDate);
+        const completionRate = parseFloat(taskGroup.completionRate);
+
+        if (completionRate === 100) {
+          status = 'completed';
+        } else if (completionRate > 0) {
+          status = now > dueDate ? 'overdue' : 'pending';
+        } else {
+          status = now > dueDate ? 'overdue' : 'not-started';
+        }
+
+        // Map priority to lowercase for consistency
+        const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium';
+
+        return {
+          id: taskGroup.taskGroupId,
+          name: taskGroup.title,
+          priority: priority,
+          status: status,
+          startDate: new Date(taskGroup.startDate),
+          dueDate: new Date(taskGroup.dueDate),
+          assignedMembers: taskGroup.assignedMember || [],
+          submittedCount: taskGroup.completedTasks || 0,
+          description: taskGroup.description || '',
+          weighted: taskGroup.totalWeight || 0,
+          category: taskGroup.category || '',
+          totalTasks: taskGroup.totalTasks || 0,
+          completionRate: taskGroup.completionRate || '0.0'
+        };
+      });
+
+      return this.sortTasks(transformedTasks);
     },
     generateSampleTasks() {
       const tasks = [
@@ -295,42 +361,83 @@ export default {
     },
     generateTimelineDates() {
       if (!this.tasks.length) return { dates: [], startDate: new Date() };
+
+      // When in 'week' view we show individual days between padded start/end
+      if (this.currentView === 'week') {
+        const taskStartDates = this.tasks.map(t => t.startDate.getTime());
+        const taskEndDates = this.tasks.map(t => t.dueDate.getTime());
+        const minTaskDate = new Date(Math.min(...taskStartDates));
+        const maxTaskDate = new Date(Math.max(...taskEndDates));
+
+        // Add padding in days
+        const padBefore = 7;
+        const padAfter = 14;
+
+        const start = new Date(minTaskDate);
+        start.setDate(start.getDate() - padBefore);
+        const end = new Date(maxTaskDate);
+        end.setDate(end.getDate() + padAfter);
+
+        const dates = [];
+        const cursor = new Date(start);
+        while (cursor <= end) {
+          dates.push({
+            iso: cursor.toISOString().slice(0, 10),
+            day: cursor.getDate(),
+            dayName: cursor.toLocaleString(undefined, { weekday: 'short' }).toUpperCase(),
+            monthName: cursor.toLocaleString(undefined, { month: 'short' }),
+            monthStart: cursor.getDate() === 1,
+            year: cursor.getFullYear()
+          });
+          cursor.setDate(cursor.getDate() + 1);
+        }
+        return { dates, startDate: start };
+      }
+
+      // MONTH VIEW: create one column per month between padded start/end
       const taskStartDates = this.tasks.map(t => t.startDate.getTime());
       const taskEndDates = this.tasks.map(t => t.dueDate.getTime());
       const minTaskDate = new Date(Math.min(...taskStartDates));
       const maxTaskDate = new Date(Math.max(...taskEndDates));
 
-      // Add padding
-      const padBefore = this.currentView === 'week' ? 7 : 14;
-      const padAfter = this.currentView === 'week' ? 14 : 30;
+      // Pad in months
+      const padBeforeMonths = 1; // show previous month
+      const padAfterMonths = 1; // show next month
 
-      const start = new Date(minTaskDate);
-      start.setDate(start.getDate() - padBefore);
-      const end = new Date(maxTaskDate);
-      end.setDate(end.getDate() + padAfter);
+      const start = new Date(minTaskDate.getFullYear(), minTaskDate.getMonth(), 1);
+      start.setMonth(start.getMonth() - padBeforeMonths);
+
+      const end = new Date(maxTaskDate.getFullYear(), maxTaskDate.getMonth(), 1);
+      end.setMonth(end.getMonth() + padAfterMonths);
 
       const dates = [];
-      const cursor = new Date(start);
+      const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
       while (cursor <= end) {
+        const year = cursor.getFullYear();
+        const month = cursor.getMonth();
+        const monthName = cursor.toLocaleString(undefined, { month: 'short' });
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
         dates.push({
-          iso: cursor.toISOString().slice(0, 10),
-          day: cursor.getDate(),
-          dayName: cursor.toLocaleString(undefined, { weekday: 'short' }).toUpperCase(),
-          monthName: cursor.toLocaleString(undefined, { month: 'short' }),
-          monthStart: cursor.getDate() === 1,
-          year: cursor.getFullYear()
+          iso: `${year}-${String(month + 1).padStart(2, '0')}`,
+          monthIndex: month,
+          monthName,
+          monthStart: true,
+          year,
+          daysInMonth
         });
-        cursor.setDate(cursor.getDate() + 1);
+        cursor.setMonth(cursor.getMonth() + 1);
       }
+
       return { dates, startDate: start };
     },
     getDayWidth() {
-      // Basic responsive day width
+      // Determine column width depending on view
       const screenWidth = window.innerWidth;
       if (this.currentView === 'week') {
         return screenWidth < 576 ? 50 : 60;
       }
-      return screenWidth < 576 ? 60 : 80;
+      // month view - use wider columns sized to represent an entire month
+      return screenWidth < 576 ? 120 : 160;
     },
     dateDiffDays(a, b) {
       const ms = 24 * 60 * 60 * 1000;
@@ -338,10 +445,32 @@ export default {
     },
     getTaskBarStyle(task) {
       if (!this.timelineStart || !this.dates.length) return {};
-      const startOffset = this.dateDiffDays(this.timelineStart, task.startDate);
-      const duration = Math.max(1, this.dateDiffDays(task.startDate, task.dueDate) + 1);
-      const left = startOffset * this.dayWidth;
-      const width = duration * this.dayWidth - 8;
+
+      if (this.currentView === 'week') {
+        const startOffset = this.dateDiffDays(this.timelineStart, task.startDate);
+        const duration = Math.max(1, this.dateDiffDays(task.startDate, task.dueDate) + 1);
+        const left = startOffset * this.dayWidth;
+        const width = duration * this.dayWidth - 8;
+        return {
+          left: left + 'px',
+          width: width + 'px'
+        };
+      }
+
+      // month view - calculate offsets/duration in months
+      const monthDiff = (a, b) => (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+
+      const timelineMonthStart = new Date(this.timelineStart.getFullYear(), this.timelineStart.getMonth(), 1);
+      const taskStartMonth = new Date(task.startDate.getFullYear(), task.startDate.getMonth(), 1);
+      const taskEndMonth = new Date(task.dueDate.getFullYear(), task.dueDate.getMonth(), 1);
+
+      const offsetMonths = monthDiff(timelineMonthStart, taskStartMonth);
+      // include partial months by rounding up end difference +1 to be inclusive
+      const durationMonths = Math.max(1, monthDiff(taskStartMonth, taskEndMonth) + 1);
+
+      const left = offsetMonths * this.dayWidth;
+      const width = durationMonths * this.dayWidth - 12;
+
       return {
         left: left + 'px',
         width: width + 'px'

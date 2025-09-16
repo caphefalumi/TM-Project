@@ -489,6 +489,19 @@ const getAllTaskGroups = async (req, res) => {
     const taskGroups = await Tasks.aggregate([
       { $match: { teamId } },
       {
+        $addFields: {
+          userObjectId: { $toObjectId: '$userId' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'accounts',
+          localField: 'userObjectId',
+          foreignField: '_id',
+          as: 'account'
+        }
+      },
+      {
         $group: {
           _id: '$taskGroupId',
           title: { $first: '$title' },
@@ -502,12 +515,20 @@ const getAllTaskGroups = async (req, res) => {
             $sum: { $cond: [{ $eq: ['$submitted', true] }, 1, 0] },
           },
           totalWeight: { $sum: '$weighted' },
+          assignedMember: {
+            $addToSet: {
+              $cond: [
+                { $gt: [{ $size: '$account' }, 0] },
+                { $arrayElemAt: ['$account.username', 0] },
+                null
+              ]
+            }
+          },
           createdAt: { $first: '$createdAt' },
         },
       },
       { $sort: { createdAt: -1 } },
     ])
-
     return res.status(200).json({
       taskGroups: taskGroups.map((group) => ({
         taskGroupId: group._id,
@@ -523,6 +544,7 @@ const getAllTaskGroups = async (req, res) => {
         completionRate:
           group.totalTasks > 0 ? ((group.completedTasks / group.totalTasks) * 100).toFixed(1) : 0,
         createdAt: group.createdAt,
+        assignedMember: group.assignedMember || [],
       })),
     })
   } catch (error) {
