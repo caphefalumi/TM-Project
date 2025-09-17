@@ -43,7 +43,6 @@ const {
 
 // Metadata
 router.get('/categories', getCategories)
-
 // Teams
 router.post('/', addTeamPro)
 router.post(
