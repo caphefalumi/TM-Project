@@ -38,7 +38,7 @@ const addRefreshToken = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
     })
 
@@ -81,10 +81,6 @@ const renewAccessToken = async (req, res) => {
       })
     }
 
-    // Revoke the current refresh token with 'refresh_session' reason
-    if (currentRefreshToken) {
-      await RefreshTokenManager.revokeTokenByString(currentRefreshToken, 'refresh_session')
-    }
 
     // Generate new tokens but preserve the sessionId
     const accessToken = generateAccessToken(req.user)
@@ -112,8 +108,10 @@ const renewAccessToken = async (req, res) => {
       httpOnly: true,
       secure: true, // Use secure cookies in production
       sameSite: 'None',
-      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
+    await RefreshTokenManager.revokeTokenByString(currentRefreshToken, 'refresh_session')
+
     res.status(200).json({ accessToken })
   } catch (error) {
     console.error('Error renewing access token:', error)

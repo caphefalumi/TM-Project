@@ -452,6 +452,8 @@ onMounted(() => {
                     type="date"
                     required
                     variant="outlined"
+                    min="2025-01-01"
+                    max="2035-12-31"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">

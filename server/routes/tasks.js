@@ -114,6 +114,20 @@ const addTaskToUsers = async (req, res) => {
       return res.status(400).json({ message: 'Invalid startDate or dueDate' })
     }
 
+    // Validate date range (2025-2035)
+    const minDate = new Date('2025-01-01')
+    const maxDate = new Date('2035-12-31')
+    if (start < minDate || start > maxDate) {
+      return res.status(400).json({ 
+        message: 'Start date must be between January 1, 2025 and December 31, 2035' 
+      })
+    }
+    if (due < minDate || due > maxDate) {
+      return res.status(400).json({ 
+        message: 'Due date must be between January 1, 2025 and December 31, 2035' 
+      })
+    }
+
     // Validate design format
     if (!design.fields || !Array.isArray(design.fields)) {
       return res.status(400).json({ message: 'Invalid design format. Must contain fields array' })
@@ -337,6 +351,36 @@ const updateTaskGroup = async (req, res) => {
 
     if (!taskGroupId || !teamId) {
       return res.status(400).json({ message: 'Task Group ID and Team ID are required' })
+    }
+
+    // Validate date range if dates are provided
+    if (updateData.startDate || updateData.dueDate) {
+      const minDate = new Date('2025-01-01')
+      const maxDate = new Date('2035-12-31')
+      
+      if (updateData.startDate) {
+        const startDate = new Date(updateData.startDate)
+        if (isNaN(startDate)) {
+          return res.status(400).json({ message: 'Invalid start date format' })
+        }
+        if (startDate < minDate || startDate > maxDate) {
+          return res.status(400).json({ 
+            message: 'Start date must be between January 1, 2025 and December 31, 2035' 
+          })
+        }
+      }
+      
+      if (updateData.dueDate) {
+        const dueDate = new Date(updateData.dueDate)
+        if (isNaN(dueDate)) {
+          return res.status(400).json({ message: 'Invalid due date format' })
+        }
+        if (dueDate < minDate || dueDate > maxDate) {
+          return res.status(400).json({ 
+            message: 'Due date must be between January 1, 2025 and December 31, 2035' 
+          })
+        }
+      }
     }
 
     // If assignedUsers is provided, handle user reassignment
