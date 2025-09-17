@@ -367,11 +367,7 @@ const getProgressBar = async (userId, teamId) => {
 
     const progressPercentage =
       totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0
-    console.log('Progress bar calculated:', {
-      completedWeight,
-      totalWeight,
-      progressPercentage,
-    })
+
     return {
       completedWeight,
       totalWeight,
