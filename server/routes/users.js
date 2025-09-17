@@ -366,7 +366,6 @@ export const getUserPermissions = async (req, res) => {
     // Add global admin flag
     customPermissions.isGlobalAdmin = false
 
-    console.log('User permissions:', { userId, teamId, permissions: customPermissions })
     res.status(200).json(customPermissions)
   } catch (error) {
     console.error('Error getting user permissions:', error)

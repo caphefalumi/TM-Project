@@ -110,8 +110,6 @@
     <div v-if="tooltip.show" class="custom-tooltip show" :style="tooltip.style">
       <div class="tooltip-content">
         <div class="tooltip-title">{{ tooltip.title }}</div>
-        <div class="tooltip-detail">Start: {{ tooltip.start }}</div>
-        <div class="tooltip-detail">Due: {{ tooltip.due }}</div>
         <div class="tooltip-detail">Assigned: {{ tooltip.assigned }}</div>
         <div class="tooltip-detail" v-if="tooltip.completion">Progress: {{ tooltip.completion }}</div>
       </div>
@@ -150,8 +148,18 @@
           </div>
           <div class="detail-grid">
             <div>
+              <label class="detail-label">Start Date</label>
+              <div class="detail-value">{{ formatDate(modal.task?.startDate) }}</div>
+            </div>
+            <div>
+              <label class="detail-label">Due Date</label>
+              <div class="detail-value">{{ formatDate(modal.task?.dueDate) }}</div>
+            </div>
+          </div>
+          <div class="detail-grid">
+            <div v-if="modal.task?.submittedCount && modal.task?.assignedMembers" >
               <label class="detail-label">Completed Tasks</label>
-              <div class="detail-value">{{ modal.task?.submittedCount }} / {{ modal.task?.totalTasks }}</div>
+              <div class="detail-value">{{ modal.task?.submittedCount }} / {{ modal.task?.assignedMembers.length }}</div>
             </div>
             <div>
               <label class="detail-label">Completion Rate</label>
@@ -196,8 +204,6 @@ export default {
       tooltip: {
         show: false,
         title: '',
-        start: '',
-        due: '',
         assigned: '',
         completion: '',
         style: {}
@@ -245,9 +251,9 @@ export default {
       this.updateLayout();
     },
     transformTaskGroups() {
-      if (!this.taskGroups || this.taskGroups.length === 0) {
-        return this.generateSampleTasks();
-      }
+      // if (!this.taskGroups || this.taskGroups.length === 0) {
+      //   return this.generateSampleTasks();
+      // }
 
       try {
         const transformedTasks = this.taskGroups.map(taskGroup => {
@@ -261,7 +267,7 @@ export default {
           let status = 'not-started';
           const now = new Date();
           const dueDate = new Date(taskGroup.dueDate);
-          const startDate = new Date(taskGroup.startDate);
+          const startDate = new Date (taskGroup.startDate);
 
           // Validate dates
           if (isNaN(dueDate.getTime()) || isNaN(startDate.getTime())) {
@@ -281,10 +287,10 @@ export default {
 
           // Map priority to lowercase for consistency
           const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium';
-
-          return {
+          const test = {
             id: taskGroup.taskGroupId,
             name: taskGroup.title,
+            description: taskGroup.description || '',
             priority: priority,
             status: status,
             startDate: startDate,
@@ -298,6 +304,21 @@ export default {
             completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
             createdAt: taskGroup.createdAt
           };
+          console.log('Transformed task:', test); // Debug log
+          return {
+            id: taskGroup.taskGroupId,
+            name: taskGroup.title,
+            description: taskGroup.description || '',
+            category: taskGroup.category || '',
+            priority: priority,
+            status: status,
+            startDate: startDate,
+            dueDate: dueDate,
+            assignedMembers: taskGroup.assignedMember || [],
+            weighted: taskGroup.totalWeight || 0,
+            completedTasks: taskGroup.completedTasks || 0,
+            completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
+          };
         }).filter(task => task !== null); // Remove invalid tasks
 
         return this.sortTasks(transformedTasks);
@@ -310,7 +331,7 @@ export default {
       const tasks = [
         {
           id: '1',
-          title: 'WHAT EVER',
+          name: 'WHAT EVER',
           description: 'TEST',
           category: 'Report',
           priority: 'medium',
@@ -320,11 +341,13 @@ export default {
           assignedMembers: ['John Doe', 'Jane Smith', 'Mike Johnson'],
           submittedCount: 2,
           description: 'Initial project setup and planning phase',
-          weighted: 'High'
+          weighted: 321,
+          completionRate: 40.0,
         },
         {
           id: '2',
           name: 'Database Migration',
+          description: 'Test Database',
           priority: 'high',
           status: 'overdue',
           startDate: new Date(2025, 8, 26),
@@ -332,11 +355,13 @@ export default {
           assignedMembers: ['Alice Brown', 'Bob Wilson'],
           submittedCount: 1,
           description: 'Migrate existing database to new infrastructure',
-          weighted: 'Critical'
+          weighted: 210,
+          completionRate: 20.0,
         },
         {
           id: '3',
           name: 'Second Task',
+          description: 'Test Description',
           priority: 'high',
           status: 'pending',
           startDate: new Date(2025, 9, 1),
@@ -344,11 +369,13 @@ export default {
           assignedMembers: ['Charlie Davis', 'Diana Evans', 'Frank Miller', 'Grace Wilson'],
           submittedCount: 3,
           description: 'Implementation of core features and functionality',
-          weighted: 'High'
+          weighted: 300,
+          completionRate: 60.0
         },
         {
           id: '4',
           name: 'UI Component Library',
+          description: 'Test Description',
           priority: 'medium',
           status: 'not-started',
           startDate: new Date(2025, 9, 6),
@@ -356,11 +383,13 @@ export default {
           assignedMembers: ['Henry Taylor', 'Ivy Chen'],
           submittedCount: 0,
           description: 'Create reusable UI components for the application',
-          weighted: 'Medium'
+          weighted: 200,
+          completionRate: 0.0
         },
         {
           id: '5',
           name: 'API Documentation',
+          description: 'Test API Documentation',
           priority: 'low',
           status: 'pending',
           startDate: new Date(2025, 9, 8),
@@ -368,11 +397,13 @@ export default {
           assignedMembers: ['Jack Anderson', 'Kelly Martinez'],
           submittedCount: 1,
           description: 'Complete API documentation and testing guidelines',
-          weighted: 'Low'
+          weighted: 350,
+          completionRate: 25.0
         },
         {
           id: '6',
           name: 'Performance Optimization',
+          description: 'Test Performance',
           priority: 'high',
           status: 'not-started',
           startDate: new Date(2025, 9, 10),
@@ -380,11 +411,13 @@ export default {
           assignedMembers: ['Leo Thompson'],
           submittedCount: 0,
           description: 'Optimize application performance and load times',
-          weighted: 'High'
+          weighted: 321,
+          completionRate: 0.0
         },
         {
           id: '7',
           name: 'Long Term Project',
+          description: 'Test Long Term',
           priority: 'medium',
           status: 'completed',
           startDate: new Date(2024, 5, 1),
@@ -392,7 +425,8 @@ export default {
           assignedMembers: ['Project Manager', 'Team Lead', 'Developer 1', 'Developer 2'],
           submittedCount: 4,
           description: 'Long-term strategic project spanning multiple years',
-          weighted: 'Strategic'
+          weighted: 339,
+          completionRate: 100.0
         }
       ];
       return this.sortTasks(tasks);
@@ -563,14 +597,11 @@ export default {
       if (header && content) header.style.transform = `translateX(-${content.scrollLeft}px)`;
     },
     showTooltip(event, task) {
-      const rect = this.$el.getBoundingClientRect();
       this.tooltip.title = task.name;
-      this.tooltip.start = task.startDate.toLocaleDateString();
-      this.tooltip.due = task.dueDate.toLocaleDateString();
       this.tooltip.assigned = task.assignedMembers && task.assignedMembers.length > 0
         ? task.assignedMembers.join(', ')
         : 'No members assigned';
-      this.tooltip.completion = task.completionRate ? `${task.completionRate}% (${task.submittedCount}/${task.totalTasks})` : '';
+      this.tooltip.completion = task.completionRate ? `${task.completionRate}% (${task.submittedCount}/${task.assignedMembers.length})` : '';
       this.tooltip.style = { left: event.clientX + 12 + 'px', top: event.clientY + 12 + 'px' };
       this.tooltip.show = true;
     },
@@ -586,6 +617,51 @@ export default {
     closeModal() {
       this.modal.show = false;
       this.modal.task = null;
+    },
+    formatDate(date) {
+      if (!date) return 'Not set';
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'Invalid date';
+      return d.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    },
+    parseDate(dateString) {
+      if (!dateString) return new Date();
+      
+      // Handle various date formats and fix 2-digit year issues
+      let date = new Date(dateString);
+      
+      // Check if the year is less than 100 (which means it was interpreted as 19xx)
+      // and the original string contains a 2-digit year that should be 20xx
+      if (date.getFullYear() < 1950) {
+        // Try to parse the date string and fix 2-digit years
+        const dateStr = String(dateString);
+        
+        // Look for patterns like "Jan 31, 21" or similar 2-digit years
+        const twoDigitYearMatch = dateStr.match(/(\w+\s+\d{1,2},?\s+)(\d{2})$/);
+        if (twoDigitYearMatch) {
+          const yearPart = parseInt(twoDigitYearMatch[2]);
+          // Assume years 00-30 are 2000-2030, years 31-99 are 1931-1999
+          const fullYear = yearPart <= 30 ? 2000 + yearPart : 1900 + yearPart;
+          const newDateStr = twoDigitYearMatch[1] + fullYear;
+          date = new Date(newDateStr);
+        }
+        
+        // Also handle formats like "21-01-31" or "21/01/31"
+        const shortYearMatch = dateStr.match(/^(\d{2})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+        if (shortYearMatch) {
+          const year = parseInt(shortYearMatch[1]);
+          const month = parseInt(shortYearMatch[2]) - 1; // Month is 0-based
+          const day = parseInt(shortYearMatch[3]);
+          const fullYear = year <= 30 ? 2000 + year : 1900 + year;
+          date = new Date(fullYear, month, day);
+        }
+      }
+      
+      return date;
     }
   }
 };

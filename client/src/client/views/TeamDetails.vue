@@ -1138,7 +1138,6 @@ const confirmDeleteTeam = async () => {
         <!-- Workflow Tab -->
         <v-window-item value="workflow">
           <WorkflowView
-            :taskGroups="taskGroups"
           />
         </v-window-item>
 
