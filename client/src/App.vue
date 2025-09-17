@@ -1,5 +1,5 @@
 <script setup>
-import SideBar from './client/components/Sidebar.vue'
+import SideBar from './components/Sidebar.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

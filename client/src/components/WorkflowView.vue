@@ -55,18 +55,21 @@
             v-for="(task, idx) in tasks"
             :key="task.id"
             class="task-item"
-            :class="{ highlighted: highlightedTaskId === task.id }"
+            :class="[
+              { highlighted: highlightedTaskId === task.id },
+              `status-${task.status}`
+            ]"
             @click="focusOnTask(task.id, idx)"
           >
             <template v-slot:prepend>
-              <v-avatar size="8" :color="getPriorityColor(task.priority)"></v-avatar>
+              <v-avatar size="8" :color="getStatusColor(task.status)"></v-avatar>
             </template>
 
-            <v-list-item-title class="task-name text-body-2">
+            <v-list-item-title class="task-name text-body-1">
               {{ task.name }}
             </v-list-item-title>
 
-            <v-list-item-subtitle class="task-priority-label text-caption">
+            <v-list-item-subtitle class="task-priority-label text-body-2">
               {{ task.priority.toUpperCase() }} • {{ task.status }}
             </v-list-item-subtitle>
           </v-list-item>
@@ -786,7 +789,20 @@ export default {
         const taskBarLeft = bar.offsetLeft;
         const taskBarWidth = bar.offsetWidth;
         const containerWidth = timelineContent.clientWidth;
-        const targetScrollLeft = taskBarLeft + taskBarWidth / 2 - containerWidth / 2;
+
+        // For long tasks, focus on the start date (left edge) with some padding
+        // For shorter tasks, center them in the view
+        let targetScrollLeft;
+        const padding = 100; // pixels of padding from the left edge
+
+        if (taskBarWidth > containerWidth * 0.6) {
+          // Long task: scroll to show the start date with padding
+          targetScrollLeft = Math.max(0, taskBarLeft - padding);
+        } else {
+          // Short task: center it in the view
+          targetScrollLeft = taskBarLeft + taskBarWidth / 2 - containerWidth / 2;
+        }
+
         const targetScrollTop = taskIndex * this.rowHeight - timelineContent.clientHeight / 2 + this.rowHeight / 2;
         timelineContent.scrollTo({ left: Math.max(0, targetScrollLeft), top: Math.max(0, targetScrollTop), behavior: 'smooth' });
         bar.classList.add('pulse');
@@ -935,6 +951,36 @@ export default {
   border-left: 4px solid transparent;
 }
 
+/* Status-based styling for left pane task items */
+.task-item.status-not-started {
+  background-color: rgba(158, 158, 158, 0.1); /* Gray background */
+  border-left: 4px solid #9e9e9e; /* Gray border */
+}
+
+.task-item.status-pending {
+  background-color: rgba(255, 152, 0, 0.1); /* Orange background */
+  border-left: 4px solid #ff9800; /* Orange border */
+}
+
+.task-item.status-overdue {
+  background-color: rgba(244, 67, 54, 0.1); /* Red background */
+  border-left: 4px solid #f44336; /* Red border */
+}
+
+.task-item.status-completed {
+  background-color: rgba(76, 175, 80, 0.1); /* Green background */
+  border-left: 4px solid #4caf50; /* Green border */
+}
+
+.task-item:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.task-item.highlighted {
+  background-color: rgba(25, 118, 210, 0.15) !important;
+  border-left-color: #1976d2 !important;
+}
+
 .task-item:hover {
   background-color: #f5f5f5;
 }
@@ -947,12 +993,13 @@ export default {
 .task-name {
   font-weight: 500;
   line-height: 1.4;
+  font-size: 16px;
 }
 
 .task-priority-label {
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 /* Timeline Responsive Styles */
@@ -985,7 +1032,6 @@ export default {
 
 .timeline-header-content {
   display: flex;
-  transition: transform 0.05s ease-out;
   width: fit-content;
 }
 
