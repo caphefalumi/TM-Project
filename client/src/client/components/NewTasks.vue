@@ -459,6 +459,8 @@ const getFieldPreviewValue = (field) => {
                           type="date"
                           variant="outlined"
                           class="mb-3"
+                          min="2025-01-01"
+                          max="2035-12-31"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="6">
@@ -469,6 +471,8 @@ const getFieldPreviewValue = (field) => {
                           variant="outlined"
                           class="mb-3"
                           required
+                          min="2025-01-01"
+                          max="2035-12-31"
                         ></v-text-field>
                       </v-col>
                     </v-row>
