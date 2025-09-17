@@ -55,6 +55,7 @@ const getTasksOfAUserInATeam = async (req, res) => {
     // Fetch tasks for the user in the specified team
     // Sort tasks by DueDate in ascending order
     const tasks = await Tasks.find({ userId, teamId }).sort({ dueDate: 1 })
+    console.log(tasks[0])
     if (tasks.length === 0) {
       return res
         .status(200)

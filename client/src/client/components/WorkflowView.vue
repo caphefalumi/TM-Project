@@ -266,8 +266,8 @@ export default {
           // Determine status based on completion rate and due date
           let status = 'not-started';
           const now = new Date();
-          const dueDate = new Date(taskGroup.dueDate);
-          const startDate = new Date (taskGroup.startDate);
+          const dueDate = this.parseDate(taskGroup.dueDate);
+          const startDate = this.parseDate(taskGroup.startDate);
 
           // Validate dates
           if (isNaN(dueDate.getTime()) || isNaN(startDate.getTime())) {
