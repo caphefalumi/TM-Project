@@ -346,17 +346,17 @@ export default {
         task: null
       },
       timelineStart: null
-    };
+    }
   },
   watch: {
     taskGroups: {
       handler(newTaskGroups, oldTaskGroups) {
         // Only update if taskGroups actually changed
         if (JSON.stringify(newTaskGroups) !== JSON.stringify(oldTaskGroups)) {
-          this.tasks = this.transformTaskGroups();
+          this.tasks = this.transformTaskGroups()
           this.$nextTick(() => {
-            this.updateLayout();
-          });
+            this.updateLayout()
+          })
         }
       },
       immediate: true,
@@ -364,105 +364,106 @@ export default {
     },
     currentView: {
       handler(newView) {
-        this.updateLayout();
+        this.updateLayout()
       }
     }
   },
   mounted() {
     // Initial setup - no need to call transformTaskGroups again as watch handles it with immediate: true
-    window.addEventListener('resize', this.updateLayout);
+    window.addEventListener('resize', this.updateLayout)
 
     // Sync header scroll with content initially
     this.$nextTick(() => {
-      const tc = this.$refs.timelineContent;
-      if (tc) tc.addEventListener('scroll', this.onTimelineScroll);
-    });
+      const tc = this.$refs.timelineContent
+      if (tc) tc.addEventListener('scroll', this.onTimelineScroll)
+    })
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.updateLayout);
-    const tc = this.$refs.timelineContent;
-    if (tc) tc.removeEventListener('scroll', this.onTimelineScroll);
+    window.removeEventListener('resize', this.updateLayout)
+    const tc = this.$refs.timelineContent
+    if (tc) tc.removeEventListener('scroll', this.onTimelineScroll)
 
     // Clean up animation frame
     if (this.scrollSyncFrame) {
-      cancelAnimationFrame(this.scrollSyncFrame);
+      cancelAnimationFrame(this.scrollSyncFrame)
     }
   },
   methods: {
     switchView(view) {
-      this.currentView = view;
-      this.updateLayout();
+      this.currentView = view
+      this.updateLayout()
     },
     getPriorityColor(priority) {
       switch (priority.toLowerCase()) {
         case 'high':
-          return 'error';
+          return 'error'
         case 'medium':
-          return 'warning';
+          return 'warning'
         case 'low':
-          return 'info';
+          return 'info'
         default:
-          return 'grey';
+          return 'grey'
       }
     },
     getStatusColor(status) {
       switch (status.toLowerCase()) {
         case 'completed':
-          return 'success';
+          return 'success'
         case 'pending':
-          return 'warning';
+          return 'warning'
         case 'overdue':
-          return 'error';
+          return 'error'
         case 'not-started':
-          return 'grey';
+          return 'grey'
         default:
-          return 'grey';
+          return 'grey'
       }
     },
     getProgressColor(progress) {
-      if (progress >= 80) return 'success';
-      if (progress >= 50) return 'warning';
-      if (progress >= 20) return 'info';
-      return 'error';
+      if (progress >= 80) return 'success'
+      if (progress >= 50) return 'warning'
+      if (progress >= 20) return 'info'
+      return 'error'
     },
     transformTaskGroups() {
       if (!this.taskGroups || this.taskGroups.length === 0) {
-        return this.generateSampleTasks();
+        // return this.generateSampleTasks()
+        return null
       }
 
       try {
         const transformedTasks = this.taskGroups.map(taskGroup => {
           // Validate required fields
           if (!taskGroup.taskGroupId || !taskGroup.title) {
-            console.warn('Invalid taskGroup:', taskGroup);
-            return null;
+            console.warn('Invalid taskGroup:', taskGroup)
+            return null
           }
 
           // Determine status based on completion rate and due date
-          let status = 'not-started';
-          const dueDate = new Date(Date.parse(taskGroup.dueDate));
-          const startDate = new Date(Date.parse(taskGroup.startDate));
+          let status = 'not-started'
+          const dueDate = new Date(Date.parse(taskGroup.dueDate))
+          const startDate = new Date(Date.parse(taskGroup.startDate))
           console.log("Start date: ", taskGroup.startDate, " Due date: ", dueDate )
 
           // Validate dates
           if (isNaN(dueDate.getTime()) || isNaN(startDate.getTime())) {
-            console.warn('Invalid dates in taskGroup:', taskGroup);
-            return null;
+            console.warn('Invalid dates in taskGroup:', taskGroup)
+            return null
           }
 
-          const completionRate = parseFloat(taskGroup.completionRate || '0');
+          const completionRate = parseFloat(taskGroup.completionRate || '0')
 
-          const now = new Date();
+          const now = new Date()
           if (completionRate === 100) {
-            status = 'completed';
+            status = 'completed'
           } else if (completionRate > 0) {
-            status = now > dueDate ? 'overdue' : 'pending';
+            status = now > dueDate ? 'overdue' : 'pending'
           } else {
-            status = now > dueDate ? 'overdue' : 'not-started';
+            status = now > dueDate ? 'overdue' : 'not-started'
           }
 
           // Map priority to lowercase for consistency
-          const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium';
+          const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium'
           const test = {
             id: taskGroup.taskGroupId,
             name: taskGroup.title,
@@ -479,8 +480,8 @@ export default {
             totalTasks: taskGroup.totalTasks || 0,
             completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
             createdAt: taskGroup.createdAt
-          };
-          console.log('Transformed task:', test); // Debug log
+          }
+          console.log('Transformed task:', test) // Debug log
           return {
             id: taskGroup.taskGroupId,
             name: taskGroup.title,
@@ -494,13 +495,13 @@ export default {
             weighted: taskGroup.totalWeight || 0,
             completedTasks: taskGroup.completedTasks || 0,
             completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
-          };
-        }).filter(task => task !== null); // Remove invalid tasks
+          }
+        }).filter(task => task !== null) // Remove invalid tasks
 
-        return this.sortTasks(transformedTasks);
+        return this.sortTasks(transformedTasks)
       } catch (error) {
-        console.error('Error transforming task groups:', error);
-        return this.generateSampleTasks();
+        console.error('Error transforming task groups:', error)
+        return this.generateSampleTasks()
       }
     },
     generateSampleTasks() {
@@ -604,49 +605,49 @@ export default {
           weighted: 339,
           completionRate: 100.0
         }
-      ];
-      return this.sortTasks(tasks);
+      ]
+      return this.sortTasks(tasks)
     },
     sortTasks(tasks) {
-      return tasks.sort((a, b) => a.startDate - b.startDate);
+      return tasks.sort((a, b) => a.startDate - b.startDate)
     },
     updateLayout() {
-      this.dayWidth = this.getDayWidth();
-      const computed = this.generateTimelineDates();
-      this.dates = computed.dates;
-      this.timelineStart = computed.startDate;
+      this.dayWidth = this.getDayWidth()
+      const computed = this.generateTimelineDates()
+      this.dates = computed.dates
+      this.timelineStart = computed.startDate
     },
     generateTimelineDates() {
-      if (!this.tasks.length) return { dates: [], startDate: new Date() };
+      if (!this.tasks.length) return { dates: [], startDate: new Date() }
 
       // When in 'week' view we show individual days between padded start/end
       if (this.currentView === 'week') {
-        const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d));
-        const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d));
+        const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d))
+        const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d))
 
         if (taskStartDates.length === 0 || taskEndDates.length === 0) {
-          return { dates: [], startDate: new Date() };
+          return { dates: [], startDate: new Date() }
         }
 
-        const minTaskDate = new Date(Math.min(...taskStartDates));
-        const maxTaskDate = new Date(Math.max(...taskEndDates));
+        const minTaskDate = new Date(Math.min(...taskStartDates))
+        const maxTaskDate = new Date(Math.max(...taskEndDates))
 
         // Add padding in days
-        const padBefore = 7;
-        const padAfter = 14;
+        const padBefore = 7
+        const padAfter = 14
 
-        const start = new Date(minTaskDate);
-        start.setDate(start.getDate() - padBefore);
-        const end = new Date(maxTaskDate);
-        end.setDate(end.getDate() + padAfter);
+        const start = new Date(minTaskDate)
+        start.setDate(start.getDate() - padBefore)
+        const end = new Date(maxTaskDate)
+        end.setDate(end.getDate() + padAfter)
 
-        const dates = [];
-        const cursor = new Date(start);
+        const dates = []
+        const cursor = new Date(start)
 
         // Calculate actual span and set realistic safety limit
-        const actualDays = Math.ceil((end - start) / (24 * 60 * 60 * 1000));
-        const maxDays = Math.max(1200, actualDays + 100); // Allow for actual span plus buffer
-        let dayCount = 0;
+        const actualDays = Math.ceil((end - start) / (24 * 60 * 60 * 1000))
+        const maxDays = Math.max(1200, actualDays + 100) // Allow for actual span plus buffer
+        let dayCount = 0
 
         while (cursor <= end && dayCount < maxDays) {
           dates.push({
@@ -656,53 +657,53 @@ export default {
             monthName: cursor.toLocaleString(undefined, { month: 'short' }),
             monthStart: cursor.getDate() === 1,
             year: cursor.getFullYear()
-          });
-          cursor.setDate(cursor.getDate() + 1);
-          dayCount++;
+          })
+          cursor.setDate(cursor.getDate() + 1)
+          dayCount++
         }
 
         // Warn if generating very large timeline
         if (dates.length > 2000) {
-          console.warn(`WorkflowView: Generated ${dates.length} days for timeline. Consider using month view for better performance.`);
+          console.warn(`WorkflowView: Generated ${dates.length} days for timeline. Consider using month view for better performance.`)
         }
 
-        return { dates, startDate: start };
+        return { dates, startDate: start }
       }
 
       // MONTH VIEW: create one column per month between padded start/end
-      const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d));
-      const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d));
+      const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d))
+      const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d))
 
       if (taskStartDates.length === 0 || taskEndDates.length === 0) {
-        return { dates: [], startDate: new Date() };
+        return { dates: [], startDate: new Date() }
       }
 
-      const minTaskDate = new Date(Math.min(...taskStartDates));
-      const maxTaskDate = new Date(Math.max(...taskEndDates));
+      const minTaskDate = new Date(Math.min(...taskStartDates))
+      const maxTaskDate = new Date(Math.max(...taskEndDates))
 
       // Pad in months
-      const padBeforeMonths = 1; // show previous month
-      const padAfterMonths = 1; // show next month
+      const padBeforeMonths = 1 // show previous month
+      const padAfterMonths = 1 // show next month
 
-      const start = new Date(minTaskDate.getFullYear(), minTaskDate.getMonth(), 1);
-      start.setMonth(start.getMonth() - padBeforeMonths);
+      const start = new Date(minTaskDate.getFullYear(), minTaskDate.getMonth(), 1)
+      start.setMonth(start.getMonth() - padBeforeMonths)
 
-      const end = new Date(maxTaskDate.getFullYear(), maxTaskDate.getMonth(), 1);
-      end.setMonth(end.getMonth() + padAfterMonths);
+      const end = new Date(maxTaskDate.getFullYear(), maxTaskDate.getMonth(), 1)
+      end.setMonth(end.getMonth() + padAfterMonths)
 
-      const dates = [];
-      const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      const dates = []
+      const cursor = new Date(start.getFullYear(), start.getMonth(), 1)
 
       // Calculate actual months span and set realistic safety limit
-      const actualMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
-      const maxMonths = Math.max(120, actualMonths + 12); // Allow for actual span plus buffer
-      let monthCount = 0;
+      const actualMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1
+      const maxMonths = Math.max(120, actualMonths + 12) // Allow for actual span plus buffer
+      let monthCount = 0
 
       while (cursor <= end && monthCount < maxMonths) {
-        const year = cursor.getFullYear();
-        const month = cursor.getMonth();
-        const monthName = cursor.toLocaleString(undefined, { month: 'short' });
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const year = cursor.getFullYear()
+        const month = cursor.getMonth()
+        const monthName = cursor.toLocaleString(undefined, { month: 'short' })
+        const daysInMonth = new Date(year, month + 1, 0).getDate()
         dates.push({
           iso: `${year}-${String(month + 1).padStart(2, '0')}`,
           monthIndex: month,
@@ -710,188 +711,188 @@ export default {
           monthStart: true,
           year,
           daysInMonth
-        });
-        cursor.setMonth(cursor.getMonth() + 1);
-        monthCount++;
+        })
+        cursor.setMonth(cursor.getMonth() + 1)
+        monthCount++
       }
 
-      return { dates, startDate: start };
+      return { dates, startDate: start }
     },
     getDayWidth() {
       // Use Vuetify breakpoints for responsive design
       if (this.$vuetify?.display) {
-        const { xs, sm, md } = this.$vuetify.display;
+        const { xs, sm, md } = this.$vuetify.display
 
         if (this.currentView === 'week') {
-          if (xs) return 40;
-          if (sm) return 50;
-          if (md) return 60;
-          return 70; // lg and xl
+          if (xs) return 40
+          if (sm) return 50
+          if (md) return 60
+          return 70 // lg and xl
         }
 
         // month view - use wider columns sized to represent an entire month
-        if (xs) return 100;
-        if (sm) return 120;
-        if (md) return 160;
-        return 180; // lg and xl
+        if (xs) return 100
+        if (sm) return 120
+        if (md) return 160
+        return 180 // lg and xl
       }
 
       // Fallback to window width if Vuetify not available
-      const screenWidth = window.innerWidth;
+      const screenWidth = window.innerWidth
       if (this.currentView === 'week') {
-        return screenWidth < 600 ? 40 : screenWidth < 960 ? 50 : 60;
+        return screenWidth < 600 ? 40 : screenWidth < 960 ? 50 : 60
       }
-      return screenWidth < 600 ? 100 : screenWidth < 960 ? 120 : 160;
+      return screenWidth < 600 ? 100 : screenWidth < 960 ? 120 : 160
     },
     dateDiffDays(a, b) {
-      const ms = 24 * 60 * 60 * 1000;
-      return Math.round((b - a) / ms);
+      const ms = 24 * 60 * 60 * 1000
+      return Math.round((b - a) / ms)
     },
     getTaskBarStyle(task) {
-      if (!this.timelineStart || !this.dates.length) return {};
+      if (!this.timelineStart || !this.dates.length) return {}
 
       if (this.currentView === 'week') {
-        const startOffset = this.dateDiffDays(this.timelineStart, task.startDate);
-        const duration = Math.max(1, this.dateDiffDays(task.startDate, task.dueDate) + 1);
-        const left = startOffset * this.dayWidth;
-        const width = duration * this.dayWidth - 8;
+        const startOffset = this.dateDiffDays(this.timelineStart, task.startDate)
+        const duration = Math.max(1, this.dateDiffDays(task.startDate, task.dueDate) + 1)
+        const left = startOffset * this.dayWidth
+        const width = duration * this.dayWidth - 8
         return {
           left: left + 'px',
           width: width + 'px'
-        };
+        }
       }
 
       // month view - calculate offsets/duration in months
-      const monthDiff = (a, b) => (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+      const monthDiff = (a, b) => (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth())
 
-      const timelineMonthStart = new Date(this.timelineStart.getFullYear(), this.timelineStart.getMonth(), 1);
-      const taskStartMonth = new Date(task.startDate.getFullYear(), task.startDate.getMonth(), 1);
-      const taskEndMonth = new Date(task.dueDate.getFullYear(), task.dueDate.getMonth(), 1);
+      const timelineMonthStart = new Date(this.timelineStart.getFullYear(), this.timelineStart.getMonth(), 1)
+      const taskStartMonth = new Date(task.startDate.getFullYear(), task.startDate.getMonth(), 1)
+      const taskEndMonth = new Date(task.dueDate.getFullYear(), task.dueDate.getMonth(), 1)
 
-      const offsetMonths = monthDiff(timelineMonthStart, taskStartMonth);
+      const offsetMonths = monthDiff(timelineMonthStart, taskStartMonth)
       // include partial months by rounding up end difference +1 to be inclusive
-      const durationMonths = Math.max(1, monthDiff(taskStartMonth, taskEndMonth) + 1);
+      const durationMonths = Math.max(1, monthDiff(taskStartMonth, taskEndMonth) + 1)
 
-      const left = offsetMonths * this.dayWidth;
-      const width = durationMonths * this.dayWidth - 12;
+      const left = offsetMonths * this.dayWidth
+      const width = durationMonths * this.dayWidth - 12
 
       return {
         left: left + 'px',
         width: width + 'px'
-      };
+      }
     },
     focusOnTask(taskId, taskIndex) {
-      this.highlightedTaskId = taskId;
-      const timelineContent = this.$refs.timelineContent;
+      this.highlightedTaskId = taskId
+      const timelineContent = this.$refs.timelineContent
       this.$nextTick(() => {
-        const bar = this.$el.querySelector(`.task-bar[data-task-id=\"${taskId}\"]`);
-        if (!bar || !timelineContent) return;
-        const taskBarLeft = bar.offsetLeft;
-        const taskBarWidth = bar.offsetWidth;
-        const containerWidth = timelineContent.clientWidth;
+        const bar = this.$el.querySelector(`.task-bar[data-task-id=\"${taskId}\"]`)
+        if (!bar || !timelineContent) return
+        const taskBarLeft = bar.offsetLeft
+        const taskBarWidth = bar.offsetWidth
+        const containerWidth = timelineContent.clientWidth
 
         // For long tasks, focus on the start date (left edge) with some padding
         // For shorter tasks, center them in the view
-        let targetScrollLeft;
-        const padding = 100; // pixels of padding from the left edge
+        let targetScrollLeft
+        const padding = 100 // pixels of padding from the left edge
 
         if (taskBarWidth > containerWidth * 0.6) {
           // Long task: scroll to show the start date with padding
-          targetScrollLeft = Math.max(0, taskBarLeft - padding);
+          targetScrollLeft = Math.max(0, taskBarLeft - padding)
         } else {
           // Short task: center it in the view
-          targetScrollLeft = taskBarLeft + taskBarWidth / 2 - containerWidth / 2;
+          targetScrollLeft = taskBarLeft + taskBarWidth / 2 - containerWidth / 2
         }
 
-        const targetScrollTop = taskIndex * this.rowHeight - timelineContent.clientHeight / 2 + this.rowHeight / 2;
-        timelineContent.scrollTo({ left: Math.max(0, targetScrollLeft), top: Math.max(0, targetScrollTop), behavior: 'smooth' });
-        bar.classList.add('pulse');
-        setTimeout(() => bar.classList.remove('pulse'), 2000);
-      });
+        const targetScrollTop = taskIndex * this.rowHeight - timelineContent.clientHeight / 2 + this.rowHeight / 2
+        timelineContent.scrollTo({ left: Math.max(0, targetScrollLeft), top: Math.max(0, targetScrollTop), behavior: 'smooth' })
+        bar.classList.add('pulse')
+        setTimeout(() => bar.classList.remove('pulse'), 2000)
+      })
     },
     onTimelineScroll(e) {
       // Use requestAnimationFrame for smoother header synchronization during fast scrolls
       if (this.scrollSyncFrame) {
-        cancelAnimationFrame(this.scrollSyncFrame);
+        cancelAnimationFrame(this.scrollSyncFrame)
       }
 
       this.scrollSyncFrame = requestAnimationFrame(() => {
-        const header = this.$refs.timelineHeaderContent;
-        const content = this.$refs.timelineContent;
+        const header = this.$refs.timelineHeaderContent
+        const content = this.$refs.timelineContent
         if (header && content) {
-          header.style.transform = `translateX(-${content.scrollLeft}px)`;
+          header.style.transform = `translateX(-${content.scrollLeft}px)`
         }
-      });
+      })
     },
     showTooltip(event, task) {
-      this.tooltip.title = task.name;
+      this.tooltip.title = task.name
       this.tooltip.assigned = task.assignedMembers && task.assignedMembers.length > 0
         ? task.assignedMembers.join(', ')
-        : 'No members assigned';
-      this.tooltip.completion = task.completionRate ? `${task.completionRate}% (${task.submittedCount}/${task.assignedMembers.length})` : '';
-      this.tooltip.style = { left: event.clientX + 12 + 'px', top: event.clientY + 12 + 'px' };
-      this.tooltip.show = true;
+        : 'No members assigned'
+      this.tooltip.completion = task.completionRate ? `${task.completionRate}% (${task.submittedCount}/${task.assignedMembers.length})` : ''
+      this.tooltip.style = { left: event.clientX + 12 + 'px', top: event.clientY + 12 + 'px' }
+      this.tooltip.show = true
     },
     hideTooltip() {
-      this.tooltip.show = false;
+      this.tooltip.show = false
     },
     showTaskModal(taskId) {
-      const t = this.tasks.find(x => x.id === taskId);
-      if (!t) return;
-      this.modal.task = t;
-      this.modal.show = true;
+      const t = this.tasks.find(x => x.id === taskId)
+      if (!t) return
+      this.modal.task = t
+      this.modal.show = true
     },
     closeModal() {
-      this.modal.show = false;
-      this.modal.task = null;
+      this.modal.show = false
+      this.modal.task = null
     },
     formatDate(date) {
-      if (!date) return 'Not set';
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return 'Invalid date';
+      if (!date) return 'Not set'
+      const d = new Date(date)
+      if (isNaN(d.getTime())) return 'Invalid date'
       return d.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
-      });
+      })
     },
     parseDate(dateString) {
-      if (!dateString) return new Date();
+      if (!dateString) return new Date()
 
       // Handle various date formats and fix 2-digit year issues
-      let date = new Date(dateString);
+      let date = new Date(dateString)
 
       // Check if the year is less than 100 (which means it was interpreted as 19xx)
       // and the original string contains a 2-digit year that should be 20xx
       if (date.getFullYear() < 1950) {
         // Try to parse the date string and fix 2-digit years
-        const dateStr = String(dateString);
+        const dateStr = String(dateString)
 
         // Look for patterns like "Jan 31, 21" or similar 2-digit years
-        const twoDigitYearMatch = dateStr.match(/(\w+\s+\d{1,2},?\s+)(\d{2})$/);
+        const twoDigitYearMatch = dateStr.match(/(\w+\s+\d{1,2},?\s+)(\d{2})$/)
         if (twoDigitYearMatch) {
-          const yearPart = parseInt(twoDigitYearMatch[2]);
+          const yearPart = parseInt(twoDigitYearMatch[2])
           // Assume years 00-30 are 2000-2030, years 31-99 are 1931-1999
-          const fullYear = yearPart <= 30 ? 2000 + yearPart : 1900 + yearPart;
-          const newDateStr = twoDigitYearMatch[1] + fullYear;
-          date = new Date(newDateStr);
+          const fullYear = yearPart <= 30 ? 2000 + yearPart : 1900 + yearPart
+          const newDateStr = twoDigitYearMatch[1] + fullYear
+          date = new Date(newDateStr)
         }
 
         // Also handle formats like "21-01-31" or "21/01/31"
-        const shortYearMatch = dateStr.match(/^(\d{2})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+        const shortYearMatch = dateStr.match(/^(\d{2})[-\/](\d{1,2})[-\/](\d{1,2})$/)
         if (shortYearMatch) {
-          const year = parseInt(shortYearMatch[1]);
-          const month = parseInt(shortYearMatch[2]) - 1; // Month is 0-based
-          const day = parseInt(shortYearMatch[3]);
-          const fullYear = year <= 30 ? 2000 + year : 1900 + year;
-          date = new Date(fullYear, month, day);
+          const year = parseInt(shortYearMatch[1])
+          const month = parseInt(shortYearMatch[2]) - 1 // Month is 0-based
+          const day = parseInt(shortYearMatch[3])
+          const fullYear = year <= 30 ? 2000 + year : 1900 + year
+          date = new Date(fullYear, month, day)
         }
       }
 
-      return date;
+      return date
     }
   }
-};
+}
 </script>
 
 <style scoped>

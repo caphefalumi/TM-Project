@@ -36,7 +36,7 @@
    bun run app
    ```
 
-6. Visit `http://localhost:5173` in your browser.
+5. Visit `http://localhost:5173` in your browser.
 
 ## 2. Use the Project
 
