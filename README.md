@@ -1,35 +1,60 @@
-# pm-demo
+# Teams Management Platform
 
-This template should help get you started developing with Vue 3 in Vite.
+## 1. Install and Run the Project
 
-## Recommended IDE Setup
+### Prerequisites
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Node.js (v18+ recommended)
+- MongoDB (local or Atlas)
+- Vite (for frontend dev)
 
-## Customize configuration
+### Installation
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+1. Clone the repository:
 
-## Project Setup
+   ```pwsh
+   git clone https://github.com/caphefalumi/TM-Project
+   cd TM-Project
+   ```
 
-```sh
-bun install
-```
+2. Install dependencies for both client and server:
 
-### Compile and Hot-Reload for Development
+   ```pwsh
+   bun install
+   cd client
+   bun install
+   cd ../server
+   bun install
+   ```
 
-```sh
-bun run dev
-```
+3. Set up environment variables:
+   - Copy `.env.example` to `.env` in the `server` folder and fill in your credentials (see sample in attachments).
 
-### Compile and Minify for Production
+4. Start the website:
 
-```sh
-bun run build
-```
+   ```pwsh
+   bun run app
+   ```
 
-### Lint with [ESLint](https://eslint.org/)
+6. Visit `http://localhost:5173` in your browser.
 
-```sh
-bun run lint
-```
+## 2. Use the Project
+
+- Register or log in (local or Google OAuth)
+- Create or join teams
+- Assign tasks, set priorities, and track progress
+- Manage roles and permissions (admin features)
+- Receive notifications and announcements
+
+**Authentication:**
+
+- Local: Register with email and password
+- Google: Use your Google account
+
+## 3. Credits
+
+**Contributors:**
+
+- Hồ Quốc Khánh ([khanhkelvin08122006@gmail.com](mailto:khanhkelvin08122006@gmail.com))
+- Đặng Duy Toàn ([dangduytoan13l@gmail.com](mailto:dangduytoan13l@gmail.com))
+- Phan Lê Minh Hiếu ([hphan5283@gmail.com](mailto:hphan5283@gmail.com))
