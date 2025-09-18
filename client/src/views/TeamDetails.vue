@@ -1137,8 +1137,25 @@ const confirmDeleteTeam = async () => {
 
         <!-- Workflow Tab -->
         <v-window-item value="workflow">
+            <v-row>
+              <v-col cols="12">
+                <div class="d-flex align-center justify-space-between mb-3">
+                  <h2 class="text-h5 mb-4">Team's Workflow</h2>
+                  <v-btn
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    @click="getTaskGroups"
+                    :loading="refreshingTaskGroups"
+                  >
+                    <v-icon start>mdi-refresh</v-icon>
+                    Refresh
+                  </v-btn>
+                </div>
+              </v-col>
+            </v-row>
           <WorkflowView
-            :taskGroups="taskGroups"
+            v-model:taskGroups="taskGroups"
           />
         </v-window-item>
 

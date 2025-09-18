@@ -1,29 +1,22 @@
 <template>
   <v-container fluid class="roadmap-container pa-0">
     <v-row no-gutters class="roadmap-header">
-      <v-col cols="12" md="6" class="d-flex align-center">
-        <h1 class="roadmap-title text-h4 text-md-h3">Project Roadmap</h1>
-      </v-col>
-      <v-col cols="12" md="6" class="d-flex align-center justify-end">
-        <div class="view-controls">
-          <span class="view-label d-none d-sm-inline">View:</span>
-          <v-btn-toggle
-            v-model="currentView"
-            mandatory
-            variant="outlined"
-            size="small"
-            class="ml-2"
-          >
-            <v-btn value="week" size="small">
-              <v-icon class="d-md-none">mdi-calendar-week</v-icon>
-              <span class="d-none d-md-inline">Week</span>
-            </v-btn>
-            <v-btn value="month" size="small">
-              <v-icon class="d-md-none">mdi-calendar-month</v-icon>
-              <span class="d-none d-md-inline">Month</span>
-            </v-btn>
-          </v-btn-toggle>
-        </div>
+      <v-col cols="12" md="6">
+        <v-btn-toggle
+          v-model="currentView"
+          mandatory
+          variant="outlined"
+          size="small"
+        >
+          <v-btn value="week" size="small">
+            <v-icon class="d-md-none">mdi-calendar-week</v-icon>
+            <span class="d-none d-md-inline">Week</span>
+          </v-btn>
+          <v-btn value="month" size="small">
+            <v-icon class="d-md-none">mdi-calendar-month</v-icon>
+            <span class="d-none d-md-inline">Month</span>
+          </v-btn>
+        </v-btn-toggle>
       </v-col>
     </v-row>
 
@@ -36,29 +29,30 @@
         class="task-list-container d-flex flex-column"
         :class="{ 'd-none': $vuetify.display.xs && showTimelineOnly }"
       >
-        <v-sheet class="task-list-header pa-4" color="grey-lighten-5">
+        <v-sheet class="task-list-header pa-4" color="grey-lighten-5" :height="$vuetify.display.xs ? 50 : 60">
           <div class="d-flex align-center justify-space-between">
             <h3 class="text-subtitle1 font-weight-bold text-grey-darken-2">TASKS</h3>
             <v-btn
               v-if="$vuetify.display.xs"
               icon
               size="small"
-              @click="showTimelineOnly = true"
+              @click="showTimelineOnly = !showTimelineOnly"
             >
               <v-icon>mdi-chart-gantt</v-icon>
             </v-btn>
           </div>
         </v-sheet>
 
-        <v-list class="task-list flex-grow-1" density="compact">
+        <v-list class="task-list">
           <v-list-item
             v-for="(task, idx) in tasks"
             :key="task.id"
             class="task-item"
             :class="[
               { highlighted: highlightedTaskId === task.id },
-              `status-${task.status}`
+              `status-${task.status}`,
             ]"
+            :style="{ height: rowHeight + 'px' }"
             @click="focusOnTask(task.id, idx)"
           >
             <template v-slot:prepend>
@@ -94,7 +88,7 @@
           <v-btn
             icon
             size="small"
-            @click="showTimelineOnly = false"
+            @click="showTimelineOnly = !showTimelineOnly"
           >
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
@@ -107,16 +101,18 @@
               v-for="date in dates"
               :key="date.iso"
               class="timeline-day"
-              :class="{ 'month-start': date.monthStart }"
+              :class="{ 
+                'month-start': date.monthStart,
+                'today': date.isToday
+              }"
               :style="{ minWidth: dayWidth + 'px', width: dayWidth + 'px' }"
             >
               <template v-if="currentView === 'month'">
                 <div class="month-name">{{ date.monthName }} {{ date.year }}</div>
               </template>
               <template v-else>
-                <div v-if="date.monthStart" class="month-label">{{ date.monthName }} {{ date.year }}</div>
+                <div v-if="date.monthStart" class="month-label">{{ date.monthName }}</div>
                 <div class="day-number">{{ date.day }}</div>
-                <div class="day-name d-none d-sm-block">{{ date.dayName }}</div>
               </template>
             </div>
           </div>
@@ -146,8 +142,6 @@
                   :data-task-id="task.id"
                   :style="getTaskBarStyle(task)"
                   @click.stop="showTaskModal(task.id)"
-                  @mouseenter="showTooltip($event, task)"
-                  @mouseleave="hideTooltip"
                 >
                   <span class="d-none d-sm-inline">{{ task.name }}</span>
                   <span class="d-sm-none">{{ task.name.substring(0, 10) }}...</span>
@@ -214,7 +208,7 @@
                 size="small"
                 variant="flat"
               >
-                {{ modal.task?.priority?.toUpperCase() }}
+                {{ modal.task?.priority?.toCamelCase() }}
               </v-chip>
             </v-col>
             <v-col cols="6" sm="3">
@@ -316,6 +310,8 @@
 </template>
 
 <script>
+import vuetify from '../plugins/vuetify'
+
 export default {
   name: 'WorkflowView',
   props: {
@@ -376,6 +372,11 @@ export default {
     this.$nextTick(() => {
       const tc = this.$refs.timelineContent
       if (tc) tc.addEventListener('scroll', this.onTimelineScroll)
+      
+      // Initial scroll to current date after everything is loaded
+      setTimeout(() => {
+        this.scrollToCurrentDate()
+      }, 100)
     })
   },
   beforeUnmount() {
@@ -456,12 +457,11 @@ export default {
           const now = new Date()
           if (completionRate === 100) {
             status = 'completed'
-          } else if (completionRate > 0) {
-            status = now > dueDate ? 'overdue' : 'pending'
-          } else {
-            status = now > dueDate ? 'overdue' : 'not-started'
+          } else if(startDate < now && now < dueDate){
+              status = 'pending'
+            } else {
+              status = now < startDate ? 'not-started' : 'overdue'
           }
-
           // Map priority to lowercase for consistency
           const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium'
           const test = {
@@ -616,6 +616,11 @@ export default {
       const computed = this.generateTimelineDates()
       this.dates = computed.dates
       this.timelineStart = computed.startDate
+      
+      // Auto-scroll to current date after layout update
+      this.$nextTick(() => {
+        this.scrollToCurrentDate()
+      })
     },
     generateTimelineDates() {
       if (!this.tasks.length) return { dates: [], startDate: new Date() }
@@ -625,20 +630,31 @@ export default {
         const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d))
         const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d))
 
+        // Center around current date
+        const today = new Date()
+        today.setHours(0, 0, 0, 0) // Reset time to midnight for accurate date comparison
+
+        let minDate, maxDate
         if (taskStartDates.length === 0 || taskEndDates.length === 0) {
-          return { dates: [], startDate: new Date() }
+          // No tasks, show timeline centered around today
+          minDate = new Date(today)
+          maxDate = new Date(today)
+        } else {
+          const minTaskDate = new Date(Math.min(...taskStartDates))
+          const maxTaskDate = new Date(Math.max(...taskEndDates))
+          
+          // Expand range to include current date
+          minDate = new Date(Math.min(today.getTime(), minTaskDate.getTime()))
+          maxDate = new Date(Math.max(today.getTime(), maxTaskDate.getTime()))
         }
 
-        const minTaskDate = new Date(Math.min(...taskStartDates))
-        const maxTaskDate = new Date(Math.max(...taskEndDates))
-
         // Add padding in days
-        const padBefore = 7
+        const padBefore = 14
         const padAfter = 14
 
-        const start = new Date(minTaskDate)
+        const start = new Date(minDate)
         start.setDate(start.getDate() - padBefore)
-        const end = new Date(maxTaskDate)
+        const end = new Date(maxDate)
         end.setDate(end.getDate() + padAfter)
 
         const dates = []
@@ -650,13 +666,21 @@ export default {
         let dayCount = 0
 
         while (cursor <= end && dayCount < maxDays) {
+          const currentDate = new Date(cursor)
+          const isToday = currentDate.getFullYear() === today.getFullYear() && 
+                         currentDate.getMonth() === today.getMonth() && 
+                         currentDate.getDate() === today.getDate()
+          
+          const localDateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`
+          
           dates.push({
-            iso: cursor.toISOString().slice(0, 10),
+            iso: localDateString,
             day: cursor.getDate(),
             dayName: cursor.toLocaleString(undefined, { weekday: 'short' }).toUpperCase(),
-            monthName: cursor.toLocaleString(undefined, { month: 'short' }),
+            monthName: cursor.toLocaleString('en-US', { month: 'short' }),
             monthStart: cursor.getDate() === 1,
-            year: cursor.getFullYear()
+            year: cursor.getFullYear(),
+            isToday: isToday
           })
           cursor.setDate(cursor.getDate() + 1)
           dayCount++
@@ -674,21 +698,32 @@ export default {
       const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d))
       const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d))
 
-      if (taskStartDates.length === 0 || taskEndDates.length === 0) {
-        return { dates: [], startDate: new Date() }
-      }
+      // Center around current date
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-      const minTaskDate = new Date(Math.min(...taskStartDates))
-      const maxTaskDate = new Date(Math.max(...taskEndDates))
+      let minDate, maxDate
+      if (taskStartDates.length === 0 || taskEndDates.length === 0) {
+        // No tasks, show timeline centered around today
+        minDate = new Date(today)
+        maxDate = new Date(today)
+      } else {
+        const minTaskDate = new Date(Math.min(...taskStartDates))
+        const maxTaskDate = new Date(Math.max(...taskEndDates))
+        
+        // Expand range to include current date
+        minDate = new Date(Math.min(today.getTime(), minTaskDate.getTime()))
+        maxDate = new Date(Math.max(today.getTime(), maxTaskDate.getTime()))
+      }
 
       // Pad in months
       const padBeforeMonths = 1 // show previous month
       const padAfterMonths = 1 // show next month
 
-      const start = new Date(minTaskDate.getFullYear(), minTaskDate.getMonth(), 1)
+      const start = new Date(minDate.getFullYear(), minDate.getMonth(), 1)
       start.setMonth(start.getMonth() - padBeforeMonths)
 
-      const end = new Date(maxTaskDate.getFullYear(), maxTaskDate.getMonth(), 1)
+      const end = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1)
       end.setMonth(end.getMonth() + padAfterMonths)
 
       const dates = []
@@ -702,15 +737,18 @@ export default {
       while (cursor <= end && monthCount < maxMonths) {
         const year = cursor.getFullYear()
         const month = cursor.getMonth()
-        const monthName = cursor.toLocaleString(undefined, { month: 'short' })
+        const monthName = cursor.toLocaleString('en-US', { month: 'short' })
         const daysInMonth = new Date(year, month + 1, 0).getDate()
+        const isToday = year === today.getFullYear() && month === today.getMonth()
+        
         dates.push({
           iso: `${year}-${String(month + 1).padStart(2, '0')}`,
           monthIndex: month,
           monthName,
           monthStart: true,
           year,
-          daysInMonth
+          daysInMonth,
+          isToday: isToday
         })
         cursor.setMonth(cursor.getMonth() + 1)
         monthCount++
@@ -724,17 +762,13 @@ export default {
         const { xs, sm, md } = this.$vuetify.display
 
         if (this.currentView === 'week') {
-          if (xs) return 40
-          if (sm) return 50
-          if (md) return 60
-          return 70 // lg and xl
+          if (xs || sm) return 45
+          return 55 // lg and xl
         }
 
         // month view - use wider columns sized to represent an entire month
-        if (xs) return 100
-        if (sm) return 120
-        if (md) return 160
-        return 180 // lg and xl
+        if (xs || sm) return 80
+        return 120 // lg and xl
       }
 
       // Fallback to window width if Vuetify not available
@@ -810,6 +844,53 @@ export default {
         setTimeout(() => bar.classList.remove('pulse'), 2000)
       })
     },
+    scrollToCurrentDate() {
+      if (!this.dates.length || !this.timelineStart) return
+      
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      const timelineContent = this.$refs.timelineContent
+      if (!timelineContent) return
+      
+      if (this.currentView === 'week') {
+        // Find the index of today's date in the dates array
+        const todayLocalString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+        const todayIndex = this.dates.findIndex(date => date.iso === todayLocalString)
+        
+        if (todayIndex !== -1) {
+          // Calculate scroll position to center on today
+          const containerWidth = timelineContent.clientWidth
+          const targetScrollLeft = todayIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
+          
+          timelineContent.scrollTo({ 
+            left: Math.max(0, targetScrollLeft), 
+            top: 0, 
+            behavior: 'smooth' 
+          })
+        }
+      } else {
+        // Month view - find the month containing today
+        const todayYear = today.getFullYear()
+        const todayMonth = today.getMonth()
+        
+        const monthIndex = this.dates.findIndex(date => 
+          date.year === todayYear && date.monthIndex === todayMonth
+        )
+        
+        if (monthIndex !== -1) {
+          // Calculate scroll position to center on today's month
+          const containerWidth = timelineContent.clientWidth
+          const targetScrollLeft = monthIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
+          
+          timelineContent.scrollTo({ 
+            left: Math.max(0, targetScrollLeft), 
+            top: 0, 
+            behavior: 'smooth' 
+          })
+        }
+      }
+    },
     onTimelineScroll(e) {
       // Use requestAnimationFrame for smoother header synchronization during fast scrolls
       if (this.scrollSyncFrame) {
@@ -823,18 +904,6 @@ export default {
           header.style.transform = `translateX(-${content.scrollLeft}px)`
         }
       })
-    },
-    showTooltip(event, task) {
-      this.tooltip.title = task.name
-      this.tooltip.assigned = task.assignedMembers && task.assignedMembers.length > 0
-        ? task.assignedMembers.join(', ')
-        : 'No members assigned'
-      this.tooltip.completion = task.completionRate ? `${task.completionRate}% (${task.submittedCount}/${task.assignedMembers.length})` : ''
-      this.tooltip.style = { left: event.clientX + 12 + 'px', top: event.clientY + 12 + 'px' }
-      this.tooltip.show = true
-    },
-    hideTooltip() {
-      this.tooltip.show = false
     },
     showTaskModal(taskId) {
       const t = this.tasks.find(x => x.id === taskId)
@@ -912,17 +981,6 @@ export default {
   background: white;
 }
 
-.roadmap-title {
-  margin: 0;
-  color: #1976d2;
-}
-
-.view-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .view-label {
   color: #666;
   font-weight: 500;
@@ -942,14 +1000,15 @@ export default {
 }
 
 .task-list {
-  max-height: calc(100vh - 300px);
   overflow-y: auto;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .task-item {
-  cursor: pointer;
   transition: all 0.2s ease;
   border-left: 4px solid transparent;
+  margin-top: 0;
 }
 
 /* Status-based styling for left pane task items */
@@ -1023,9 +1082,6 @@ export default {
 .timeline-header::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   height: 2px;
   background: linear-gradient(90deg, #1976d2 0%, transparent 20%, transparent 80%, #1976d2 100%);
   opacity: 0.3;
@@ -1037,14 +1093,14 @@ export default {
 }
 
 .timeline-day {
-  padding: 8px 4px;
   text-align: center;
   border-right: 1px solid #f1f3f4;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   flex-shrink: 0;
   font-size: 12px;
+  position: relative;
 }
 
 .timeline-day:last-child {
@@ -1056,21 +1112,52 @@ export default {
   position: relative;
 }
 
+.timeline-day.today {
+  background-color: rgba(25, 118, 210, 0.1);
+  border: 2px solid #1976d2;
+  box-shadow: 0 0 8px rgba(25, 118, 210, 0.3);
+  position: relative;
+}
+
+.timeline-day.today::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 1px solid #1976d2;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.timeline-day.today .day-number {
+  color: #1976d2;
+  font-weight: 700;
+}
+
 .month-label {
   position: absolute;
-  top: -20px;
-  left: 8px;
-  font-size: 12px;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
   font-weight: 600;
   color: #1976d2;
   white-space: nowrap;
   z-index: 2;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .day-number {
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  margin-top: 15px;
 }
 
 .day-name {
@@ -1083,7 +1170,7 @@ export default {
 .month-name {
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 2px;
+  margin-top: 15px;
 }
 
 .timeline-content {
@@ -1203,7 +1290,7 @@ export default {
   font-weight: 500;
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.05s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   white-space: nowrap;
   overflow: hidden;
@@ -1286,12 +1373,9 @@ export default {
     padding: 12px 16px;
   }
 
-  .roadmap-title {
-    font-size: 18px;
-  }
 
   .timeline-day {
-    padding: 6px 2px;
+    padding: 12px 2px 6px 2px;
     font-size: 11px;
   }
 
@@ -1314,10 +1398,6 @@ export default {
 @media (min-width: 600px) and (max-width: 959px) {
   .roadmap-header {
     padding: 16px 20px;
-  }
-
-  .roadmap-title {
-    font-size: 22px;
   }
 }
 
