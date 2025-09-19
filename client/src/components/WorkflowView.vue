@@ -3,20 +3,29 @@
     <v-row no-gutters class="roadmap-header">
       <v-col cols="12" md="6">
         <v-btn-toggle
+          v-if="!($vuetify.display.xs && !showTimelineOnly)"
           v-model="currentView"
           mandatory
           variant="outlined"
           size="small"
         >
           <v-btn value="week" size="small">
-            <v-icon class="d-md-none">mdi-calendar-week</v-icon>
-            <span class="d-none d-md-inline">Week</span>
+            <span class="d-md-inline">Week</span>
           </v-btn>
           <v-btn value="month" size="small">
-            <v-icon class="d-md-none">mdi-calendar-month</v-icon>
-            <span class="d-none d-md-inline">Month</span>
+            <span class="d-md-inline">Month</span>
           </v-btn>
         </v-btn-toggle>
+        <v-btn
+          v-if="$vuetify.display.xs && showTimelineOnly"
+            icon
+            size="small"
+            class="float-workflow-2"
+            @click="toggleWorkflowDisplay"
+            color="white"
+          >
+            <v-icon>mdi-chart-gantt</v-icon>
+          </v-btn>
       </v-col>
     </v-row>
 
@@ -24,19 +33,22 @@
       <!-- Left: Task list -->
       <v-col
         cols="12"
+        sm="4"
         md="4"
         lg="3"
         class="task-list-container d-flex flex-column"
-        :class="{ 'd-none': $vuetify.display.xs && showTimelineOnly }"
+        v-if="!($vuetify.display.xs && showTimelineOnly)"
       >
-        <v-sheet class="task-list-header pa-4" color="grey-lighten-5" :height="$vuetify.display.xs ? 50 : 60">
+        <v-sheet class="task-list-header pa-4" color="grey-lighten-5" height="60px">
           <div class="d-flex align-center justify-space-between">
             <h3 class="text-subtitle1 font-weight-bold text-grey-darken-2">TASKS</h3>
             <v-btn
               v-if="$vuetify.display.xs"
               icon
               size="small"
-              @click="showTimelineOnly = !showTimelineOnly"
+              class="float-workflow"
+              @click="toggleWorkflowDisplay"
+              color="white"
             >
               <v-icon>mdi-chart-gantt</v-icon>
             </v-btn>
@@ -73,29 +85,15 @@
       <!-- Right: Timeline -->
       <v-col
         cols="12"
+        sm="8"
         md="8"
         lg="9"
         class="timeline-container d-flex flex-column"
         :class="{ 'pa-0': $vuetify.display.xs }"
       >
-        <!-- Mobile header with back button -->
-        <v-app-bar
-          v-if="$vuetify.display.xs && showTimelineOnly"
-          density="compact"
-          color="grey-lighten-5"
-          class="timeline-mobile-header"
+        <v-sheet class="timeline-header" color="grey-lighten-5" height="60px"
+          v-if="(showTimelineOnly && $vuetify.display.xs) || !$vuetify.display.xs"    
         >
-          <v-btn
-            icon
-            size="small"
-            @click="showTimelineOnly = !showTimelineOnly"
-          >
-            <v-icon>mdi-arrow-left</v-icon>
-          </v-btn>
-          <v-toolbar-title class="text-subtitle2">Timeline</v-toolbar-title>
-        </v-app-bar>
-
-        <v-sheet class="timeline-header" color="grey-lighten-5" :height="$vuetify.display.xs ? 50 : 60">
           <div class="timeline-header-content" ref="timelineHeaderContent">
             <div
               v-for="date in dates"
@@ -142,9 +140,12 @@
                   :data-task-id="task.id"
                   :style="getTaskBarStyle(task)"
                   @click.stop="showTaskModal(task.id)"
+                  @mouseenter="showTooltip($event, task)"
+                  @mouseleave="hideTooltip"
+                  @mousemove="updateTooltipPosition($event)"
                 >
                   <span class="d-none d-sm-inline">{{ task.name }}</span>
-                  <span class="d-sm-none">{{ task.name.substring(0, 10) }}...</span>
+                  <span class="d-sm-none">{{ task.name.substring(0, 100) }}</span>
                 </div>
               </div>
             </div>
@@ -208,7 +209,7 @@
                 size="small"
                 variant="flat"
               >
-                {{ modal.task?.priority?.toCamelCase() }}
+                {{ modal.task?.priority?.toUpperCase() }}
               </v-chip>
             </v-col>
             <v-col cols="6" sm="3">
@@ -233,33 +234,26 @@
 
           <!-- Dates -->
           <v-row class="mb-4">
-            <v-col cols="12" sm="6">
+            <v-col cols="6" sm="3">
               <div class="text-subtitle2 font-weight-bold mb-1">Start Date</div>
               <div class="text-body-2">{{ formatDate(modal.task?.startDate) }}</div>
             </v-col>
-            <v-col cols="12" sm="6">
+            <v-col cols="6" sm="3">
               <div class="text-subtitle2 font-weight-bold mb-1">Due Date</div>
               <div class="text-body-2">{{ formatDate(modal.task?.dueDate) }}</div>
             </v-col>
-          </v-row>
-
-          <!-- Progress -->
-          <v-row class="mb-4">
-            <v-col cols="12" sm="6" v-if="modal.task?.submittedCount !== undefined && modal.task?.assignedMembers">
-              <div class="text-subtitle2 font-weight-bold mb-1">Completed Tasks</div>
-              <div class="text-body-2">{{ modal.task?.submittedCount }} / {{ modal.task?.assignedMembers.length }}</div>
-            </v-col>
-            <v-col cols="12" sm="6">
+            <v-col cols="12" sm="6" class="d-flex-column align-center">
               <div class="text-subtitle2 font-weight-bold mb-1">Completion Rate</div>
-              <div class="d-flex align-center">
+              <div class="d-flex align-center w-100">
                 <v-progress-linear
                   :model-value="modal.task?.completionRate || 0"
-                  height="8"
+                  height="16px"
                   rounded
                   :color="getProgressColor(modal.task?.completionRate || 0)"
-                  class="mr-2"
-                ></v-progress-linear>
-                <span class="text-body-2">{{ modal.task?.completionRate || 0 }}%</span>
+                  class="mr-2 flex-grow-1"
+                >
+                </v-progress-linear>
+                <span class="text-body-2 ml-2">{{ modal.task?.completionRate || 0 }}%</span>
               </div>
             </v-col>
           </v-row>
@@ -756,6 +750,11 @@ export default {
 
       return { dates, startDate: start }
     },
+
+    toggleWorkflowDisplay()
+    {
+      this.showTimelineOnly = !this.showTimelineOnly
+    },
     getDayWidth() {
       // Use Vuetify breakpoints for responsive design
       if (this.$vuetify?.display) {
@@ -816,6 +815,9 @@ export default {
       }
     },
     focusOnTask(taskId, taskIndex) {
+      if(this.$vuetify.display.xs) {
+        this.showTimelineOnly = true
+      }
       this.highlightedTaskId = taskId
       const timelineContent = this.$refs.timelineContent
       this.$nextTick(() => {
@@ -914,6 +916,35 @@ export default {
     closeModal() {
       this.modal.show = false
       this.modal.task = null
+    },
+    showTooltip(event, task) {
+      const assignedMembers = task.assignedMembers && task.assignedMembers.length > 0 
+        ? task.assignedMembers.join(', ') 
+        : 'No members assigned'
+      
+      this.tooltip = {
+        show: true,
+        title: task.name,
+        assigned: assignedMembers,
+        completion: `${task.completionRate}%`,
+        style: {
+          left: event.clientX + 15 + 'px',
+          top: event.clientY - 10 + 'px',
+          transform: 'translateY(-100%)'
+        }
+      }
+    },
+    hideTooltip() {
+      this.tooltip.show = false
+    },
+    updateTooltipPosition(event) {
+      if (!this.tooltip.show) return
+      
+      this.tooltip.style = {
+        left: event.clientX + 15 + 'px',
+        top: event.clientY - 10 + 'px',
+        transform: 'translateY(-100%)'
+      }
     },
     formatDate(date) {
       if (!date) return 'Not set'
@@ -1062,10 +1093,27 @@ export default {
   font-size: 13px;
 }
 
+.float-workflow{
+  position: relative;
+  bottom: 5px;
+  right: 0px;
+  border: 1px solid black;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.float-workflow-2{
+  position: absolute;
+  border: 1px solid black;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  right: 12px;
+  z-index: 1000;
+}
+
 /* Timeline Responsive Styles */
 .timeline-container {
   background: white;
-  overflow: hidden;
+  /* overflow: hidden; */
   position: relative;
 }
 
@@ -1094,13 +1142,14 @@ export default {
 
 .timeline-day {
   text-align: center;
-  border-right: 1px solid #f1f3f4;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
   flex-shrink: 0;
   font-size: 12px;
   position: relative;
+  padding: 4px 0px 12.4px 0px;
+  border-radius: 2px;
 }
 
 .timeline-day:last-child {
@@ -1108,7 +1157,7 @@ export default {
 }
 
 .timeline-day.month-start {
-  border-left: 2px solid #1976d2;
+  border-left: 2.3px solid #1976d2;
   position: relative;
 }
 
@@ -1126,8 +1175,6 @@ export default {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  border: 1px solid #1976d2;
-  border-radius: 4px;
   pointer-events: none;
 }
 
@@ -1337,7 +1384,7 @@ export default {
 }
 
 .custom-tooltip {
-  position: absolute;
+  position: fixed;
   background: rgba(33,33,33,0.95);
   color: white;
   padding: 12px 16px;
