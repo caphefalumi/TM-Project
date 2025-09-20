@@ -56,29 +56,38 @@
         </v-sheet>
 
         <v-list class="task-list">
-          <v-list-item
-            v-for="(task, idx) in tasks"
-            :key="task.id"
-            class="task-item"
-            :class="[
-              { highlighted: highlightedTaskId === task.id },
-              `status-${task.status}`,
-            ]"
-            :style="{ height: rowHeight + 'px' }"
-            @click="focusOnTask(task.id, idx)"
-          >
-            <template v-slot:prepend>
-              <v-avatar size="8" :color="getStatusColor(task.status)"></v-avatar>
-            </template>
+          <template v-if="tasks && tasks.length > 0">
+            <v-list-item
+              v-for="(task, idx) in tasks"
+              :key="task.id"
+              class="task-item"
+              :class="[
+                { highlighted: highlightedTaskId === task.id },
+                `status-${task.status}`,
+              ]"
+              :style="{ height: rowHeight + 'px' }"
+              @click="focusOnTask(task.id, idx)"
+            >
+              <template v-slot:prepend>
+                <v-avatar size="8" :color="getStatusColor(task.status)"></v-avatar>
+              </template>
 
-            <v-list-item-title class="task-name text-body-1">
-              {{ task.name }}
-            </v-list-item-title>
+              <v-list-item-title class="task-name text-body-1">
+                {{ task.name }}
+              </v-list-item-title>
 
-            <v-list-item-subtitle class="task-priority-label text-body-2">
-              {{ task.priority.toUpperCase() }} • {{ task.status }}
-            </v-list-item-subtitle>
-          </v-list-item>
+              <v-list-item-subtitle class="task-priority-label text-body-2">
+                {{ task.priority.toUpperCase() }} • {{ task.status }}
+              </v-list-item-subtitle>
+            </v-list-item>
+          </template>
+          <template v-else>
+            <v-list-item class="task-item">
+              <v-list-item-title class="task-name text-body-1">
+                No tasks available.
+              </v-list-item-title>
+            </v-list-item>
+          </template>
         </v-list>
       </v-col>
 
@@ -92,14 +101,14 @@
         :class="{ 'pa-0': $vuetify.display.xs }"
       >
         <v-sheet class="timeline-header" color="grey-lighten-5" height="60px"
-          v-if="(showTimelineOnly && $vuetify.display.xs) || !$vuetify.display.xs"    
+          v-if="(showTimelineOnly && $vuetify.display.xs) || !$vuetify.display.xs"
         >
           <div class="timeline-header-content" ref="timelineHeaderContent">
             <div
               v-for="date in dates"
               :key="date.iso"
               class="timeline-day"
-              :class="{ 
+              :class="{
                 'month-start': date.monthStart,
                 'today': date.isToday
               }"
@@ -366,7 +375,7 @@ export default {
     this.$nextTick(() => {
       const tc = this.$refs.timelineContent
       if (tc) tc.addEventListener('scroll', this.onTimelineScroll)
-      
+
       // Initial scroll to current date after everything is loaded
       setTimeout(() => {
         this.scrollToCurrentDate()
@@ -422,7 +431,6 @@ export default {
     },
     transformTaskGroups() {
       if (!this.taskGroups || this.taskGroups.length === 0) {
-        // return this.generateSampleTasks()
         return null
       }
 
@@ -495,112 +503,7 @@ export default {
         return this.sortTasks(transformedTasks)
       } catch (error) {
         console.error('Error transforming task groups:', error)
-        return this.generateSampleTasks()
       }
-    },
-    generateSampleTasks() {
-      const tasks = [
-        {
-          id: '1',
-          name: 'WHAT EVER',
-          description: 'TEST',
-          category: 'Report',
-          priority: 'medium',
-          status: 'pending',
-          startDate: new Date(2025, 8, 23),
-          dueDate: new Date(2025, 11, 25),
-          assignedMembers: ['John Doe', 'Jane Smith', 'Mike Johnson'],
-          submittedCount: 2,
-          description: 'Initial project setup and planning phase',
-          weighted: 321,
-          completionRate: 40.0,
-        },
-        {
-          id: '2',
-          name: 'Database Migration',
-          description: 'Test Database',
-          priority: 'high',
-          status: 'overdue',
-          startDate: new Date(2021, 0, 21),
-          dueDate: new Date(2021, 8, 30),
-          assignedMembers: ['Alice Brown', 'Bob Wilson'],
-          submittedCount: 1,
-          description: 'Migrate existing database to new infrastructure',
-          weighted: 210,
-          completionRate: 20.0,
-        },
-        {
-          id: '3',
-          name: 'Second Task',
-          description: 'Test Description',
-          priority: 'high',
-          status: 'pending',
-          startDate: new Date(2025, 9, 1),
-          dueDate: new Date(2025, 9, 10),
-          assignedMembers: ['Charlie Davis', 'Diana Evans', 'Frank Miller', 'Grace Wilson'],
-          submittedCount: 3,
-          description: 'Implementation of core features and functionality',
-          weighted: 300,
-          completionRate: 60.0
-        },
-        {
-          id: '4',
-          name: 'UI Component Library',
-          description: 'Test Description',
-          priority: 'medium',
-          status: 'not-started',
-          startDate: new Date(2025, 9, 6),
-          dueDate: new Date(2025, 9, 8),
-          assignedMembers: ['Henry Taylor', 'Ivy Chen'],
-          submittedCount: 0,
-          description: 'Create reusable UI components for the application',
-          weighted: 200,
-          completionRate: 0.0
-        },
-        {
-          id: '5',
-          name: 'API Documentation',
-          description: 'Test API Documentation',
-          priority: 'low',
-          status: 'pending',
-          startDate: new Date(2025, 9, 8),
-          dueDate: new Date(2025, 9, 9),
-          assignedMembers: ['Jack Anderson', 'Kelly Martinez'],
-          submittedCount: 1,
-          description: 'Complete API documentation and testing guidelines',
-          weighted: 350,
-          completionRate: 25.0
-        },
-        {
-          id: '6',
-          name: 'Performance Optimization',
-          description: 'Test Performance',
-          priority: 'high',
-          status: 'not-started',
-          startDate: new Date(2025, 9, 10),
-          dueDate: new Date(2025, 9, 15),
-          assignedMembers: ['Leo Thompson'],
-          submittedCount: 0,
-          description: 'Optimize application performance and load times',
-          weighted: 321,
-          completionRate: 0.0
-        },
-        {
-          id: '7',
-          name: 'Long Term Project',
-          description: 'Test Long Term',
-          priority: 'medium',
-          status: 'completed',
-          startDate: new Date(2024, 5, 1),
-          dueDate: new Date(2026, 2, 15),
-          assignedMembers: ['Project Manager', 'Team Lead', 'Developer 1', 'Developer 2'],
-          submittedCount: 4,
-          description: 'Long-term strategic project spanning multiple years',
-          weighted: 339,
-          completionRate: 100.0
-        }
-      ]
-      return this.sortTasks(tasks)
     },
     sortTasks(tasks) {
       return tasks.sort((a, b) => a.startDate - b.startDate)
@@ -610,7 +513,7 @@ export default {
       const computed = this.generateTimelineDates()
       this.dates = computed.dates
       this.timelineStart = computed.startDate
-      
+
       // Auto-scroll to current date after layout update
       this.$nextTick(() => {
         this.scrollToCurrentDate()
@@ -636,7 +539,7 @@ export default {
         } else {
           const minTaskDate = new Date(Math.min(...taskStartDates))
           const maxTaskDate = new Date(Math.max(...taskEndDates))
-          
+
           // Expand range to include current date
           minDate = new Date(Math.min(today.getTime(), minTaskDate.getTime()))
           maxDate = new Date(Math.max(today.getTime(), maxTaskDate.getTime()))
@@ -661,12 +564,12 @@ export default {
 
         while (cursor <= end && dayCount < maxDays) {
           const currentDate = new Date(cursor)
-          const isToday = currentDate.getFullYear() === today.getFullYear() && 
-                         currentDate.getMonth() === today.getMonth() && 
+          const isToday = currentDate.getFullYear() === today.getFullYear() &&
+                         currentDate.getMonth() === today.getMonth() &&
                          currentDate.getDate() === today.getDate()
-          
+
           const localDateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`
-          
+
           dates.push({
             iso: localDateString,
             day: cursor.getDate(),
@@ -704,7 +607,7 @@ export default {
       } else {
         const minTaskDate = new Date(Math.min(...taskStartDates))
         const maxTaskDate = new Date(Math.max(...taskEndDates))
-        
+
         // Expand range to include current date
         minDate = new Date(Math.min(today.getTime(), minTaskDate.getTime()))
         maxDate = new Date(Math.max(today.getTime(), maxTaskDate.getTime()))
@@ -734,7 +637,7 @@ export default {
         const monthName = cursor.toLocaleString('en-US', { month: 'short' })
         const daysInMonth = new Date(year, month + 1, 0).getDate()
         const isToday = year === today.getFullYear() && month === today.getMonth()
-        
+
         dates.push({
           iso: `${year}-${String(month + 1).padStart(2, '0')}`,
           monthIndex: month,
@@ -848,47 +751,47 @@ export default {
     },
     scrollToCurrentDate() {
       if (!this.dates.length || !this.timelineStart) return
-      
+
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      
+
       const timelineContent = this.$refs.timelineContent
       if (!timelineContent) return
-      
+
       if (this.currentView === 'week') {
         // Find the index of today's date in the dates array
         const todayLocalString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
         const todayIndex = this.dates.findIndex(date => date.iso === todayLocalString)
-        
+
         if (todayIndex !== -1) {
           // Calculate scroll position to center on today
           const containerWidth = timelineContent.clientWidth
           const targetScrollLeft = todayIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
-          
-          timelineContent.scrollTo({ 
-            left: Math.max(0, targetScrollLeft), 
-            top: 0, 
-            behavior: 'smooth' 
+
+          timelineContent.scrollTo({
+            left: Math.max(0, targetScrollLeft),
+            top: 0,
+            behavior: 'smooth'
           })
         }
       } else {
         // Month view - find the month containing today
         const todayYear = today.getFullYear()
         const todayMonth = today.getMonth()
-        
-        const monthIndex = this.dates.findIndex(date => 
+
+        const monthIndex = this.dates.findIndex(date =>
           date.year === todayYear && date.monthIndex === todayMonth
         )
-        
+
         if (monthIndex !== -1) {
           // Calculate scroll position to center on today's month
           const containerWidth = timelineContent.clientWidth
           const targetScrollLeft = monthIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
-          
-          timelineContent.scrollTo({ 
-            left: Math.max(0, targetScrollLeft), 
-            top: 0, 
-            behavior: 'smooth' 
+
+          timelineContent.scrollTo({
+            left: Math.max(0, targetScrollLeft),
+            top: 0,
+            behavior: 'smooth'
           })
         }
       }
@@ -918,10 +821,10 @@ export default {
       this.modal.task = null
     },
     showTooltip(event, task) {
-      const assignedMembers = task.assignedMembers && task.assignedMembers.length > 0 
-        ? task.assignedMembers.join(', ') 
+      const assignedMembers = task.assignedMembers && task.assignedMembers.length > 0
+        ? task.assignedMembers.join(', ')
         : 'No members assigned'
-      
+
       this.tooltip = {
         show: true,
         title: task.name,
@@ -939,7 +842,7 @@ export default {
     },
     updateTooltipPosition(event) {
       if (!this.tooltip.show) return
-      
+
       this.tooltip.style = {
         left: event.clientX + 15 + 'px',
         top: event.clientY - 10 + 'px',
