@@ -57,6 +57,7 @@ const refreshAccessToken = async () => {
         const errorData = await response.json()
         if (errorData.error === 'TOKEN_REVOKED' || errorData.error === 'TOKEN_INVALID') {
           console.warn('Token was revoked during auto-refresh')
+          console.warn(errorData.error)
           // Show sign out popup directly
           showSignOutPopup(errorData.message || 'You have been signed out.')
           return false
