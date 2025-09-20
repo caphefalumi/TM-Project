@@ -39,7 +39,6 @@
                   All set
                 </span>
               </div>
-              <p class="email">{{ user.email }}</p>
               <p class="user-id">User ID: {{ user.userId }}</p>
             </div>
           </div>
@@ -49,7 +48,12 @@
             <div class="info-grid">
               <div class="info-item">
                 <label>Username</label>
-                <div class="info-value">{{ user.username }}</div>
+                <div class="info-value">
+                  {{ user.username }}
+                  <button class="edit-inline-btn" @click="openEditUsername" title="Edit Username">
+                    <v-icon size="16">mdi-pencil</v-icon>
+                  </button>
+                </div>
               </div>
               <div class="info-item">
                 <label>Email Address</label>
@@ -57,6 +61,9 @@
                   {{ user.email }}
                   <span v-if="!user.pendingEmail" class="status-chip success subtle">Verified</span>
                   <span v-else class="status-chip warning subtle">Current</span>
+                  <button class="edit-inline-btn" @click="openEditEmail" title="Edit Email">
+                    <v-icon size="16">mdi-pencil</v-icon>
+                  </button>
                 </div>
               </div>
               <div class="info-item" v-if="user.pendingEmail">
@@ -65,10 +72,6 @@
                   {{ user.pendingEmail }}
                   <span class="status-chip warning subtle">Verification required</span>
                 </div>
-              </div>
-              <div class="info-item">
-                <label>Account ID</label>
-                <div class="info-value">{{ user.userId }}</div>
               </div>
               <div class="info-item">
                 <label>Member Since</label>
@@ -148,17 +151,17 @@
       </div>
     </div>
 
-    <!-- Edit Profile Popup -->
-    <div v-if="showEditProfilePopup" class="popup-overlay" @click="closeEditProfile">
+    <!-- Username Edit Popup -->
+    <div v-if="showEditUsernamePopup" class="popup-overlay" @click="closeEditUsername">
       <div class="popup-modal" @click.stop>
         <div class="popup-header">
-          <h3>Edit Profile</h3>
-          <button class="close-button" @click="closeEditProfile">
+          <h3>Edit Username</h3>
+          <button class="close-button" @click="closeEditUsername">
             <v-icon>mdi-close</v-icon>
           </button>
         </div>
         <div class="popup-content epic-edit-container">
-          <form @submit.prevent="saveProfile" class="profile-form epic-form">
+          <form @submit.prevent="saveUsername" class="profile-form epic-form">
             <section class="epic-section">
               <div class="section-header">
                 <div class="section-icon">
@@ -166,10 +169,7 @@
                 </div>
                 <div>
                   <h4>Update your display name</h4>
-                  <p>
-                    Choose a display name that represents you. Once confirmed, you'll need to wait two
-                    weeks to change it again.
-                  </p>
+                  <p>Choose a display name that represents you. Once confirmed, you'll need to wait two weeks to change it again.</p>
                 </div>
               </div>
               <div class="epic-body">
@@ -179,36 +179,47 @@
                     <v-icon class="field-icon" size="20">mdi-account-outline</v-icon>
                     <input
                       id="editUsername"
-                      v-model="editForm.username"
+                      v-model="editUsernameForm.username"
                       type="text"
                       class="form-input"
                       placeholder="Enter new display name"
                       required
                     />
                   </div>
-                  <p class="field-helper">
-                    Never use personal information such as your real name, address, or phone number.
-                  </p>
+                  <p class="field-helper">Never use personal information such as your real name, address, or phone number.</p>
                 </div>
                 <ul class="epic-guidelines">
-                  <li>
-                    <v-icon size="16">mdi-form-textbox</v-icon>
-                    Display names must be at least 3 characters long.
-                  </li>
-                  <li>
-                    <v-icon size="16">mdi-timer-lock-outline</v-icon>
-                    You won't be able to change your display name again for two weeks.
-                  </li>
+                  <li><v-icon size="16">mdi-form-textbox</v-icon>Display names must be at least 3 characters long.</li>
+                  <li><v-icon size="16">mdi-timer-lock-outline</v-icon>You won't be able to change your display name again for two weeks.</li>
                 </ul>
                 <label v-if="requiresUsernameAcknowledgement" class="epic-checkbox">
                   <input type="checkbox" v-model="acknowledgements.username" />
-                  <span>
-                    I understand I can't change my display name again for 2 weeks after this change.
-                  </span>
+                  <span>I understand I can't change my display name again for 2 weeks after this change.</span>
                 </label>
               </div>
             </section>
+            <div class="popup-actions inline-actions">
+              <button type="button" class="popup-button secondary" @click="closeEditUsername">Cancel</button>
+              <button type="submit" class="popup-button primary" :disabled="isSavingUsername || !canSaveUsername">
+                {{ isSavingUsername ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
+    <!-- Email Edit Popup -->
+    <div v-if="showEditEmailPopup" class="popup-overlay" @click="closeEditEmail">
+      <div class="popup-modal" @click.stop>
+        <div class="popup-header">
+          <h3>Edit Email</h3>
+          <button class="close-button" @click="closeEditEmail">
+            <v-icon>mdi-close</v-icon>
+          </button>
+        </div>
+        <div class="popup-content epic-edit-container">
+          <form @submit.prevent="saveEmail" class="profile-form epic-form">
             <section class="epic-section">
               <div class="section-header">
                 <div class="section-icon accent">
@@ -216,10 +227,7 @@
                 </div>
                 <div>
                   <h4>Update your email</h4>
-                  <p>
-                    We'll send a verification link to your new address. You won't be able to update it
-                    again for 90 days after verification.
-                  </p>
+                  <p>We'll send a verification link to your new address. You won't be able to update it again for 90 days after verification.</p>
                 </div>
               </div>
               <div class="epic-body">
@@ -229,55 +237,36 @@
                     <v-icon class="field-icon" size="20">mdi-email-outline</v-icon>
                     <input
                       id="editEmail"
-                      v-model="editForm.email"
+                      v-model="editEmailForm.email"
                       type="email"
                       class="form-input"
                       placeholder="name@example.com"
                       required
                     />
                   </div>
-                  <p class="field-helper">
-                    We'll send a verification message to confirm this change before it's applied.
-                  </p>
+                  <p class="field-helper">We'll send a verification message to confirm this change before it's applied.</p>
                 </div>
                 <div v-if="user.pendingEmail" class="pending-note">
                   <v-icon size="18">mdi-email-clock-outline</v-icon>
                   <span>
                     A verification email is waiting at <strong>{{ user.pendingEmail }}</strong>.
-                    <span v-if="emailVerificationDeadlineText">
-                      Please verify by {{ emailVerificationDeadlineText }}.
-                    </span>
+                    <span v-if="emailVerificationDeadlineText">Please verify by {{ emailVerificationDeadlineText }}.</span>
                   </span>
                 </div>
                 <ul class="epic-guidelines">
-                  <li>
-                    <v-icon size="16">mdi-shield-check</v-icon>
-                    You'll need to verify the new email before it replaces your current one.
-                  </li>
-                  <li>
-                    <v-icon size="16">mdi-timer-sand</v-icon>
-                    After verification, you can't change your email again for 90 days.
-                  </li>
+                  <li><v-icon size="16">mdi-shield-check</v-icon>You'll need to verify the new email before it replaces your current one.</li>
+                  <li><v-icon size="16">mdi-timer-sand</v-icon>After verification, you can't change your email again for 90 days.</li>
                 </ul>
                 <label v-if="requiresEmailAcknowledgement" class="epic-checkbox">
                   <input type="checkbox" v-model="acknowledgements.email" />
-                  <span>
-                    I understand my email can't be changed again for 90 days after verification.
-                  </span>
+                  <span>I understand my email can't be changed again for 90 days after verification.</span>
                 </label>
               </div>
             </section>
-
             <div class="popup-actions inline-actions">
-              <button type="button" class="popup-button secondary" @click="closeEditProfile">
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="popup-button primary"
-                :disabled="isSaving || !canSaveProfile"
-              >
-                {{ isSaving ? 'Saving...' : 'Save Changes' }}
+              <button type="button" class="popup-button secondary" @click="closeEditEmail">Cancel</button>
+              <button type="submit" class="popup-button primary" :disabled="isSavingEmail || !canSaveEmail">
+                {{ isSavingEmail ? 'Saving...' : 'Save Changes' }}
               </button>
             </div>
           </form>
@@ -354,8 +343,16 @@ export default {
       showPasswordResetPopup: false,
       showEditProfilePopup: false,
       showDeleteAccountPopup: false,
+      showEditUsernamePopup: false,
+      showEditEmailPopup: false,
       editForm: {
         username: '',
+        email: '',
+      },
+      editUsernameForm: {
+        username: '',
+      },
+      editEmailForm: {
         email: '',
       },
       acknowledgements: {
@@ -364,6 +361,8 @@ export default {
       },
       deleteConfirmation: '',
       isSaving: false,
+      isSavingUsername: false,
+      isSavingEmail: false,
       isDeleting: false,
     }
   },
@@ -373,18 +372,18 @@ export default {
     },
     requiresUsernameAcknowledgement() {
       const currentUsername = this.user.username?.toLowerCase() || ''
-      const newUsername = this.editForm.username?.trim().toLowerCase() || ''
+      const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
       return newUsername && newUsername !== currentUsername
     },
     pendingEmailMatchesInput() {
       if (!this.user.pendingEmail) return false
       return (
-        this.editForm.email?.trim().toLowerCase() === this.user.pendingEmail.toLowerCase()
+        this.editEmailForm.email?.trim().toLowerCase() === this.user.pendingEmail.toLowerCase()
       )
     },
     requiresEmailAcknowledgement() {
       const currentEmail = this.user.email?.toLowerCase() || ''
-      const newEmail = this.editForm.email?.trim().toLowerCase() || ''
+      const newEmail = this.editEmailForm.email?.trim().toLowerCase() || ''
       if (!newEmail || newEmail === currentEmail) {
         return false
       }
@@ -415,6 +414,22 @@ export default {
         return false
       }
 
+      return true
+    },
+    canSaveUsername() {
+      const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
+      const currentUsername = this.user.username?.toLowerCase() || ''
+      const usernameChanged = newUsername && newUsername !== currentUsername
+      if (!usernameChanged) return false
+      if (this.requiresUsernameAcknowledgement && !this.acknowledgements.username) return false
+      return true
+    },
+    canSaveEmail() {
+      const newEmail = this.editEmailForm.email?.trim().toLowerCase() || ''
+      const currentEmail = this.user.email?.toLowerCase() || ''
+      if (!newEmail || newEmail === currentEmail) return false
+      if (this.pendingEmailMatchesInput) return false
+      if (this.requiresEmailAcknowledgement && !this.acknowledgements.email) return false
       return true
     },
     usernameLockDeadline() {
@@ -585,6 +600,98 @@ export default {
     resetAcknowledgements() {
       this.acknowledgements.username = false
       this.acknowledgements.email = false
+    },
+
+    openEditUsername() {
+      this.editUsernameForm.username = this.user.username
+      this.acknowledgements.username = false
+      this.showEditUsernamePopup = true
+    },
+
+    closeEditUsername() {
+      this.showEditUsernamePopup = false
+      this.editUsernameForm.username = ''
+      this.acknowledgements.username = false
+    },
+
+    async saveUsername() {
+      if (!this.canSaveUsername) return
+      this.isSavingUsername = true
+      try {
+        const PORT = import.meta.env.VITE_API_PORT
+        const payload = { username: this.editUsernameForm.username.trim() }
+        const response = await fetch(`${PORT}/api/users/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (response.ok) {
+          if (data.user) this.setUserFromResponse(data.user)
+          localStorage.setItem('currentUser', JSON.stringify({ userId: this.user.userId, username: this.user.username, timestamp: Date.now() }))
+          this.closeEditUsername()
+          this.showMessage(data.message || 'Username updated successfully!', 'success')
+        } else {
+          let errorMessage = data.error || data.message || 'Failed to update username'
+          if (data.availableAt) {
+            const formatted = this.formatDateTime(data.availableAt)
+            if (formatted) errorMessage = `${errorMessage} Next update available on ${formatted}.`
+          }
+          this.showMessage(errorMessage, 'error')
+        }
+      } catch (error) {
+        console.error('Error updating username:', error)
+        this.showMessage('Network error. Please try again.', 'error')
+      } finally {
+        this.isSavingUsername = false
+      }
+    },
+
+    openEditEmail() {
+      this.editEmailForm.email = this.user.pendingEmail || this.user.email
+      this.acknowledgements.email = false
+      this.showEditEmailPopup = true
+    },
+
+    closeEditEmail() {
+      this.showEditEmailPopup = false
+      this.editEmailForm.email = ''
+      this.acknowledgements.email = false
+    },
+
+    async saveEmail() {
+      if (!this.canSaveEmail) return
+      this.isSavingEmail = true
+      try {
+        const PORT = import.meta.env.VITE_API_PORT
+        const payload = { email: this.editEmailForm.email.trim() }
+        const response = await fetch(`${PORT}/api/users/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (response.ok) {
+          if (data.user) this.setUserFromResponse(data.user)
+          localStorage.setItem('currentUser', JSON.stringify({ userId: this.user.userId, username: this.user.username, timestamp: Date.now() }))
+          this.closeEditEmail()
+          this.showMessage(data.message || 'Email updated successfully!', data.requiresEmailVerification ? 'info' : 'success')
+        } else {
+          let errorMessage = data.error || data.message || 'Failed to update email'
+          if (data.availableAt) {
+            const formatted = this.formatDateTime(data.availableAt)
+            if (formatted) errorMessage = `${errorMessage} Next update available on ${formatted}.`
+          }
+          this.showMessage(errorMessage, 'error')
+        }
+      } catch (error) {
+        console.error('Error updating email:', error)
+        this.showMessage('Network error. Please try again.', 'error')
+      } finally {
+        this.isSavingEmail = false
+      }
     },
 
     openDeleteAccount() {
@@ -1034,6 +1141,8 @@ export default {
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   animation: popupSlideIn 0.3s ease;
 }
@@ -1088,6 +1197,20 @@ export default {
 .popup-content {
   padding: 32px 24px;
   text-align: center;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.popup-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+  background: #f8f9fa;
+  text-align: center;
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
 }
 
 .popup-icon {
@@ -1113,6 +1236,27 @@ export default {
   color: #666;
   line-height: 1.5;
   margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .popup-modal {
+    margin: 10px;
+    width: calc(100% - 20px);
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .popup-content {
+    padding: 20px 16px;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+  .popup-actions {
+    padding: 12px 20px;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
 }
 
 .popup-actions {
@@ -1421,6 +1565,21 @@ export default {
   margin-bottom: 8px;
 }
 
+.edit-inline-btn {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  margin-left: 8px;
+  cursor: pointer;
+  color: #4a90e2;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.edit-inline-btn:hover {
+  background: #e6f4ea;
+}
+
 @media (max-width: 768px) {
   .profile-header {
     flex-direction: column;
@@ -1458,10 +1617,21 @@ export default {
     margin: 10px;
     width: calc(100% - 20px);
     max-height: 95vh;
+    display: flex;
+    flex-direction: column;
   }
 
   .popup-content {
     padding: 20px 16px;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  .popup-actions {
+    padding: 12px 20px;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
   }
 
   .popup-header {
