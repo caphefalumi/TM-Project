@@ -6,11 +6,11 @@ import Teams from '../models/Teams.js'
 import Tasks from '../models/Tasks.js'
 import 'dotenv/config'
 const getUserIDAndEmailByName = async (req, res) => {
-  const { username } = req.params
+  let { username } = req.params
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
   }
-
+  username = username.toLowerCase()
   try {
     const account = await Account.findOne({ username })
     if (!account) {
@@ -31,11 +31,11 @@ const getUserIDAndEmailByName = async (req, res) => {
 // Returns message for Gmail OAuth
 
 const oAuthentication = async (req, res) => {
-  const { email } = req.body
+  let { email } = req.body
   if (!email) {
     return res.status(400).json({ error: 'Email is required' })
   }
-
+  email = email.toLowerCase()
   const existingUser = await Account.findOne({ email })
   if (!existingUser) {
     // No user --> require username for register
@@ -102,7 +102,7 @@ async function createSampleTeamAndTasks(account) {
 }
 
 const oAuthenticationRegister = async (req, res) => {
-  const { username, email } = req.body
+  let { username, email } = req.body
   const provider = 'google'
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
@@ -110,6 +110,8 @@ const oAuthenticationRegister = async (req, res) => {
   if (!email) {
     return res.status(400).json({ error: 'Email is required' })
   }
+  username = username.toLowerCase()
+  email = email.toLowerCase()
   const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
   if (existingUser) {
     if (existingUser.username === username) {
@@ -132,8 +134,11 @@ const oAuthenticationRegister = async (req, res) => {
 }
 
 const localRegister = async (req, res) => {
-  const { username, email, password } = req.body
+  let { username, email, password } = req.body
   const provider = 'local'
+
+  // Convert username to lowercase
+  if (username) username = username.toLowerCase()
 
   // 1. Validate input
   if (!username || !email || !password) {
@@ -163,13 +168,16 @@ const localRegister = async (req, res) => {
 }
 
 const localLogin = async (req, res) => {
-  const { username, password } = req.body
+  let { username, password } = req.body
   if (!username || !password) {
     console.log('Missing fields:', { username, password })
     return res.status(400).json({ error: 'All fields are required.' })
   }
 
-  const account = await Account.findOne({ username: username })
+  // Convert username to lowercase
+  username = username.toLowerCase()
+
+  const account = await Account.findOne({ username })
   if (!account) {
     console.log('No Account')
     return res.status(400).json({ error: 'Invalid username or password' })
@@ -213,12 +221,13 @@ const localLogin = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body
+    let { email } = req.body
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' })
     }
 
+    email = email.toLowerCase()
     const account = await Account.findOne({ email })
 
     if (!account) {
@@ -315,7 +324,7 @@ const verifyToken = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const { token, password } = req.body
+    let { token, password } = req.body
 
     if (!token || !password) {
       return res.status(400).json({ error: 'Token and password are required' })
@@ -333,6 +342,9 @@ const resetPassword = async (req, res) => {
       console.log('Account not found or token expired')
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
+
+    // Ensure email is lowercase before sending confirmation
+    account.email = account.email.toLowerCase()
 
     // Update password and clear reset token fields
     account.password = password

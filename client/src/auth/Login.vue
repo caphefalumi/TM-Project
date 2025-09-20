@@ -146,7 +146,7 @@ const createRefreshToken = async () => {
   try {
     const user = {
       userId: userId.value,
-      username: username.value,
+      username: username.value.toLowerCase(),
       email: userEmail.value,
     }
     const res = await fetch(`${PORT}/api/auth/tokens/refresh`, {
