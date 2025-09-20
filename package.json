@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "setup": "concurrently \"cd client && bun install\" \"cd server && bun install\"",
+    "setup": "bun install && concurrently \"cd client && bun install\" \"cd server && bun install\"",
     "dev": "cd client && bun run dev",
     "server": "cd server && bun run server",
     "build": "concurrently \"cd client && bun run build\" \"cd server && bun run build\"",
