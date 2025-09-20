@@ -735,6 +735,37 @@ export const verifyEmailChange = async (req, res) => {
         revokedReason: 'security',
       },
     )
+    const newUserData = {
+      userId: account._id.toString(),
+      username: account.username,
+      email: newEmail,
+    }
+    const newAccessToken = generateAccessToken(newUserData)
+    const newRefreshToken = generateRefreshToken(newUserData)
+
+    await RefreshToken.findOneAndUpdate(
+      { userId: requestingUserId },
+      {
+        token: newRefreshToken,
+        updatedAt: new Date(),
+      }
+    )
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    })
+
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 20 * 60 * 1000, // 20 minutes
+      path: '/',
+    })
 
     const emailCooldownEndsAt = new Date(
       account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION,
