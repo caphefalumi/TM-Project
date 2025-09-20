@@ -38,15 +38,21 @@ onMounted(() => {
           <v-card-item class="text-center pa-6">
             <div class="creators-avatars">
               <div class="avatar-group mb-4">
-                <v-avatar size="60" color="primary" class="creator-avatar-item">
-                  <span class="text-h6 text-white">HQK</span>
-                </v-avatar>
-                <v-avatar size="60" color="secondary" class="creator-avatar-item">
-                  <span class="text-h6 text-white">DDT</span>
-                </v-avatar>
-                <v-avatar size="60" color="success" class="creator-avatar-item">
-                  <span class="text-h6 text-white">PLM</span>
-                </v-avatar>
+                <a href="https://github.com/Hanzest" target="_blank" style="text-decoration:none;">
+                  <v-avatar size="60" color="primary" class="creator-avatar-item">
+                    <span class="text-h6 text-white">HQK</span>
+                  </v-avatar>
+                </a>
+                <a href="https://github.com/caphefalumi" target="_blank" style="text-decoration:none;">
+                  <v-avatar size="60" color="info" class="creator-avatar-item">
+                    <span class="text-h6 text-white">DDT</span>
+                  </v-avatar>
+                </a>
+                <a href="https://github.com/H1406" target="_blank" style="text-decoration:none;">
+                  <v-avatar size="60" color="success" class="creator-avatar-item">
+                    <span class="text-h6 text-white">PLM</span>
+                  </v-avatar>
+                </a>
               </div>
             </div>
             <v-card-title class="card-title">

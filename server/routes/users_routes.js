@@ -9,7 +9,7 @@ router.get('/', authenticateAccessToken, (req, res) => {
     success: 'User data retrieved successfully',
   })
 })
-router.get('/all', getAllUsers)
+router.get('/all', authenticateAccessToken, getAllUsers)
 router.put('/profile', authenticateAccessToken, updateUserProfile)
 router.delete('/account', authenticateAccessToken, deleteUserAccount)
 
