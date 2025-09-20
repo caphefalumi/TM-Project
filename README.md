@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-- Node.js (v18+ recommended)
+- Bun (v1.0+ recommended)
 - MongoDB (local or Atlas)
 - Vite (for frontend dev)
 
