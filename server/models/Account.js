@@ -18,6 +18,10 @@ const accountSchema = new mongoose.Schema({
       message: (props) => `${props.value} is not a valid email!`,
     },
   },
+  emailVerified: {
+    type: Boolean,
+    default: true,
+  },
   password: {
     type: String,
   },
@@ -25,6 +29,25 @@ const accountSchema = new mongoose.Schema({
     type: String,
     enum: ['local', 'google'],
     required: true,
+  },
+  lastUsernameChangeAt: {
+    type: Date,
+    default: null,
+  },
+  lastEmailChangeAt: {
+    type: Date,
+    default: null,
+  },
+  pendingEmail: {
+    type: String,
+    lowercase: true,
+    default: null,
+  },
+  emailVerificationToken: {
+    type: String,
+  },
+  emailVerificationExpires: {
+    type: Date,
   },
   passwordResetToken: {
     type: String,
