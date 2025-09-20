@@ -492,7 +492,7 @@ export const updateUserProfile = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 19 * 60 * 1000, // 19 minutes
+      maxAge: 20 * 60 * 1000, // 20 minutes
       path: '/',
     })
 

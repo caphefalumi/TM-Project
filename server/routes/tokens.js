@@ -30,7 +30,7 @@ const addRefreshToken = async (req, res) => {
       sessionId: sessionId,
       ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
       userAgent: req.get('User-Agent'),
-      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     })
 
     // Set cookies
@@ -46,7 +46,7 @@ const addRefreshToken = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 19 * 60 * 1000, // 19 minutes
+      maxAge: 20 * 60 * 1000, // 20 minutes
       path: '/',
     })
 
@@ -93,7 +93,7 @@ const renewAccessToken = async (req, res) => {
       sessionId: currentTokenData.sessionId, // Preserve sessionId
       ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
-      expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     })
 
     console.log('Renewing access token for user:', req.user)
@@ -101,7 +101,7 @@ const renewAccessToken = async (req, res) => {
       httpOnly: true,
       secure: true, // Use secure cookies in production
       sameSite: 'None',
-      maxAge: 19 * 60 * 1000, // 19 minutes
+      maxAge: 20 * 60 * 1000, // 20 minutes
       path: '/',
     })
     res.cookie('refreshToken', refreshToken, {

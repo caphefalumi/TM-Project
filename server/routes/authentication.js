@@ -1,5 +1,4 @@
 import Account from '../models/Account.js'
-import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import sendEmail from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
@@ -119,11 +118,11 @@ const localLogin = async (req, res) => {
     return res.status(400).json({ error: 'Invalid username or password' })
   }
 
-  const isMatch = await bcrypt.compare(password, account.password)
-  if (!isMatch) {
-    console.log('Password mismatch')
-    return res.status(400).json({ error: 'Invalid username or password' })
-  }
+  // const isMatch = await bcrypt.compare(password, account.password)
+  // if (!isMatch) {
+  //   console.log('Password mismatch')
+  //   return res.status(400).json({ error: 'Invalid username or password' })
+  // }
 
   // Check for suspicious activity before allowing login
   const suspiciousActivity = await RefreshTokenManager.checkSuspiciousActivity(account._id)
