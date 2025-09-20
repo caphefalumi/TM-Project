@@ -6,10 +6,6 @@ const UsersOfTeamSchema = new mongoose.Schema({
     ref: 'Account',
     required: true,
   },
-  username: {
-    type: String,
-    required: true,
-  },
   teamId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Teams',

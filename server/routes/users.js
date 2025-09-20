@@ -624,8 +624,6 @@ export const updateUserProfile = async (req, res) => {
     }
 
     if (usernameChanged) {
-      await UsersOfTeam.updateMany({ userId: requestingUserId }, { username: account.username })
-
       const newUserData = {
         userId: account._id.toString(),
         username: account.username,
