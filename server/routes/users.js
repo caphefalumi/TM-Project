@@ -665,7 +665,8 @@ export const updateUserProfile = async (req, res) => {
       account.lastUsernameChangeAt &&
       new Date(account.lastUsernameChangeAt.getTime() + USERNAME_LOCK_DURATION)
     const emailCooldownEndsAt =
-      account.lastEmailChangeAt && new Date(account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION)
+      account.lastEmailChangeAt &&
+      new Date(account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION)
 
     const responseMessage = verificationToken
       ? `We've sent a verification link to ${account.pendingEmail}. Please verify within 24 hours to complete the update.`
@@ -684,9 +685,7 @@ export const updateUserProfile = async (req, res) => {
         emailVerificationExpires: account.emailVerificationExpires,
       },
       requiresEmailVerification: Boolean(account.pendingEmail),
-      usernameCooldownEndsAt: usernameCooldownEndsAt
-        ? usernameCooldownEndsAt.toISOString()
-        : null,
+      usernameCooldownEndsAt: usernameCooldownEndsAt ? usernameCooldownEndsAt.toISOString() : null,
       emailCooldownEndsAt: emailCooldownEndsAt ? emailCooldownEndsAt.toISOString() : null,
       emailVerificationExpiresAt: account.emailVerificationExpires,
     })
@@ -748,7 +747,7 @@ export const verifyEmailChange = async (req, res) => {
       {
         token: newRefreshToken,
         updatedAt: new Date(),
-      }
+      },
     )
 
     res.cookie('refreshToken', newRefreshToken, {

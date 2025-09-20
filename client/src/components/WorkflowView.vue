@@ -18,14 +18,14 @@
         </v-btn-toggle>
         <v-btn
           v-if="$vuetify.display.xs && showTimelineOnly"
-            icon
-            size="small"
-            class="float-workflow-2"
-            @click="toggleWorkflowDisplay"
-            color="white"
-          >
-            <v-icon>mdi-chart-gantt</v-icon>
-          </v-btn>
+          icon
+          size="small"
+          class="float-workflow-2"
+          @click="toggleWorkflowDisplay"
+          color="white"
+        >
+          <v-icon>mdi-chart-gantt</v-icon>
+        </v-btn>
       </v-col>
     </v-row>
 
@@ -61,10 +61,7 @@
               v-for="(task, idx) in tasks"
               :key="task.id"
               class="task-item"
-              :class="[
-                { highlighted: highlightedTaskId === task.id },
-                `status-${task.status}`,
-              ]"
+              :class="[{ highlighted: highlightedTaskId === task.id }, `status-${task.status}`]"
               :style="{ height: rowHeight + 'px' }"
               @click="focusOnTask(task.id, idx)"
             >
@@ -100,7 +97,10 @@
         class="timeline-container d-flex flex-column"
         :class="{ 'pa-0': $vuetify.display.xs }"
       >
-        <v-sheet class="timeline-header" color="grey-lighten-5" height="60px"
+        <v-sheet
+          class="timeline-header"
+          color="grey-lighten-5"
+          height="60px"
           v-if="(showTimelineOnly && $vuetify.display.xs) || !$vuetify.display.xs"
         >
           <div class="timeline-header-content" ref="timelineHeaderContent">
@@ -110,7 +110,7 @@
               class="timeline-day"
               :class="{
                 'month-start': date.monthStart,
-                'today': date.isToday
+                today: date.isToday,
               }"
               :style="{ minWidth: dayWidth + 'px', width: dayWidth + 'px' }"
             >
@@ -126,22 +126,28 @@
         </v-sheet>
 
         <div class="timeline-content flex-grow-1" ref="timelineContent" @scroll="onTimelineScroll">
-          <div class="timeline-grid" :style="{ minWidth: (dates.length * dayWidth) + 'px' }">
+          <div class="timeline-grid" :style="{ minWidth: dates.length * dayWidth + 'px' }">
             <div class="grid-overlay">
               <div
                 v-for="(d, i) in dates"
                 :key="'grid-' + i"
                 :class="['grid-line-vertical', { 'month-start': d.monthStart }]"
-                :style="{ left: (i * dayWidth) + 'px' }">
-              </div>
+                :style="{ left: i * dayWidth + 'px' }"
+              ></div>
               <div
                 v-for="(r, ri) in tasks"
                 :key="'h-' + ri"
                 class="grid-line-horizontal"
-                :style="{ top: (ri * rowHeight + rowHeight) + 'px' }"></div>
+                :style="{ top: ri * rowHeight + rowHeight + 'px' }"
+              ></div>
             </div>
 
-            <div v-for="(task, idx) in tasks" :key="task.id" class="timeline-row" :class="{ highlighted: highlightedTaskId === task.id }">
+            <div
+              v-for="(task, idx) in tasks"
+              :key="task.id"
+              class="timeline-row"
+              :class="{ highlighted: highlightedTaskId === task.id }"
+            >
               <div class="task-bar-container">
                 <div
                   class="task-bar"
@@ -168,7 +174,9 @@
       <div class="tooltip-content">
         <div class="tooltip-title">{{ tooltip.title }}</div>
         <div class="tooltip-detail">Assigned: {{ tooltip.assigned }}</div>
-        <div class="tooltip-detail" v-if="tooltip.completion">Progress: {{ tooltip.completion }}</div>
+        <div class="tooltip-detail" v-if="tooltip.completion">
+          Progress: {{ tooltip.completion }}
+        </div>
       </div>
     </div>
 
@@ -180,20 +188,12 @@
     >
       <v-card>
         <v-card-title class="d-flex align-center">
-          <v-icon
-            v-if="$vuetify.display.xs"
-            class="mr-3"
-            @click="closeModal"
-          >
+          <v-icon v-if="$vuetify.display.xs" class="mr-3" @click="closeModal">
             mdi-arrow-left
           </v-icon>
           <div class="text-h6 text-truncate">{{ modal.task?.name }}</div>
           <v-spacer></v-spacer>
-          <v-btn
-            v-if="!$vuetify.display.xs"
-            icon
-            @click="closeModal"
-          >
+          <v-btn v-if="!$vuetify.display.xs" icon @click="closeModal">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -205,7 +205,9 @@
           <v-row class="mb-4">
             <v-col cols="12">
               <div class="text-subtitle2 font-weight-bold mb-2">Description</div>
-              <div class="text-body-2 text-grey-darken-1">{{ modal.task?.description || 'No description provided' }}</div>
+              <div class="text-body-2 text-grey-darken-1">
+                {{ modal.task?.description || 'No description provided' }}
+              </div>
             </v-col>
           </v-row>
 
@@ -298,17 +300,10 @@
 
         <v-card-actions v-if="!$vuetify.display.xs" class="pa-4">
           <v-spacer></v-spacer>
-          <v-btn
-            variant="text"
-            color="primary"
-            @click="closeModal"
-          >
-            Close
-          </v-btn>
+          <v-btn variant="text" color="primary" @click="closeModal"> Close </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-
   </v-container>
 </template>
 
@@ -320,8 +315,8 @@ export default {
   props: {
     taskGroups: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   data() {
     return {
@@ -338,13 +333,13 @@ export default {
         title: '',
         assigned: '',
         completion: '',
-        style: {}
+        style: {},
       },
       modal: {
         show: false,
-        task: null
+        task: null,
       },
-      timelineStart: null
+      timelineStart: null,
     }
   },
   watch: {
@@ -359,13 +354,13 @@ export default {
         }
       },
       immediate: true,
-      deep: true
+      deep: true,
     },
     currentView: {
       handler(newView) {
         this.updateLayout()
-      }
-    }
+      },
+    },
   },
   mounted() {
     // Initial setup - no need to call transformTaskGroups again as watch handles it with immediate: true
@@ -435,70 +430,72 @@ export default {
       }
 
       try {
-        const transformedTasks = this.taskGroups.map(taskGroup => {
-          // Validate required fields
-          if (!taskGroup.taskGroupId || !taskGroup.title) {
-            console.warn('Invalid taskGroup:', taskGroup)
-            return null
-          }
+        const transformedTasks = this.taskGroups
+          .map((taskGroup) => {
+            // Validate required fields
+            if (!taskGroup.taskGroupId || !taskGroup.title) {
+              console.warn('Invalid taskGroup:', taskGroup)
+              return null
+            }
 
-          // Determine status based on completion rate and due date
-          let status = 'not-started'
-          const dueDate = new Date(Date.parse(taskGroup.dueDate))
-          const startDate = new Date(Date.parse(taskGroup.startDate))
-          console.log("Start date: ", taskGroup.startDate, " Due date: ", dueDate )
+            // Determine status based on completion rate and due date
+            let status = 'not-started'
+            const dueDate = new Date(Date.parse(taskGroup.dueDate))
+            const startDate = new Date(Date.parse(taskGroup.startDate))
+            console.log('Start date: ', taskGroup.startDate, ' Due date: ', dueDate)
 
-          // Validate dates
-          if (isNaN(dueDate.getTime()) || isNaN(startDate.getTime())) {
-            console.warn('Invalid dates in taskGroup:', taskGroup)
-            return null
-          }
+            // Validate dates
+            if (isNaN(dueDate.getTime()) || isNaN(startDate.getTime())) {
+              console.warn('Invalid dates in taskGroup:', taskGroup)
+              return null
+            }
 
-          const completionRate = parseFloat(taskGroup.completionRate || '0')
+            const completionRate = parseFloat(taskGroup.completionRate || '0')
 
-          const now = new Date()
-          if (completionRate === 100) {
-            status = 'completed'
-          } else if(startDate < now && now < dueDate){
+            const now = new Date()
+            if (completionRate === 100) {
+              status = 'completed'
+            } else if (startDate < now && now < dueDate) {
               status = 'pending'
             } else {
               status = now < startDate ? 'not-started' : 'overdue'
-          }
-          // Map priority to lowercase for consistency
-          const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium'
-          const test = {
-            id: taskGroup.taskGroupId,
-            name: taskGroup.title,
-            description: taskGroup.description || '',
-            priority: priority,
-            status: status,
-            startDate: startDate,
-            dueDate: dueDate,
-            assignedMembers: taskGroup.assignedMember || [],
-            submittedCount: taskGroup.completedTasks || 0,
-            description: taskGroup.description || '',
-            weighted: taskGroup.totalWeight || 0,
-            category: taskGroup.category || '',
-            totalTasks: taskGroup.totalTasks || 0,
-            completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
-            createdAt: taskGroup.createdAt
-          }
-          console.log('Transformed task:', test) // Debug log
-          return {
-            id: taskGroup.taskGroupId,
-            name: taskGroup.title,
-            description: taskGroup.description || '',
-            category: taskGroup.category || '',
-            priority: priority,
-            status: status,
-            startDate: startDate,
-            dueDate: dueDate,
-            assignedMembers: taskGroup.assignedMember || [],
-            weighted: taskGroup.totalWeight || 0,
-            completedTasks: taskGroup.completedTasks || 0,
-            completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
-          }
-        }).filter(task => task !== null) // Remove invalid tasks
+            }
+            // Map priority to lowercase for consistency
+            const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium'
+            const test = {
+              id: taskGroup.taskGroupId,
+              name: taskGroup.title,
+              description: taskGroup.description || '',
+              priority: priority,
+              status: status,
+              startDate: startDate,
+              dueDate: dueDate,
+              assignedMembers: taskGroup.assignedMember || [],
+              submittedCount: taskGroup.completedTasks || 0,
+              description: taskGroup.description || '',
+              weighted: taskGroup.totalWeight || 0,
+              category: taskGroup.category || '',
+              totalTasks: taskGroup.totalTasks || 0,
+              completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
+              createdAt: taskGroup.createdAt,
+            }
+            console.log('Transformed task:', test) // Debug log
+            return {
+              id: taskGroup.taskGroupId,
+              name: taskGroup.title,
+              description: taskGroup.description || '',
+              category: taskGroup.category || '',
+              priority: priority,
+              status: status,
+              startDate: startDate,
+              dueDate: dueDate,
+              assignedMembers: taskGroup.assignedMember || [],
+              weighted: taskGroup.totalWeight || 0,
+              completedTasks: taskGroup.completedTasks || 0,
+              completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
+            }
+          })
+          .filter((task) => task !== null) // Remove invalid tasks
 
         return this.sortTasks(transformedTasks)
       } catch (error) {
@@ -524,8 +521,8 @@ export default {
 
       // When in 'week' view we show individual days between padded start/end
       if (this.currentView === 'week') {
-        const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d))
-        const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d))
+        const taskStartDates = this.tasks.map((t) => t.startDate.getTime()).filter((d) => !isNaN(d))
+        const taskEndDates = this.tasks.map((t) => t.dueDate.getTime()).filter((d) => !isNaN(d))
 
         // Center around current date
         const today = new Date()
@@ -564,9 +561,10 @@ export default {
 
         while (cursor <= end && dayCount < maxDays) {
           const currentDate = new Date(cursor)
-          const isToday = currentDate.getFullYear() === today.getFullYear() &&
-                         currentDate.getMonth() === today.getMonth() &&
-                         currentDate.getDate() === today.getDate()
+          const isToday =
+            currentDate.getFullYear() === today.getFullYear() &&
+            currentDate.getMonth() === today.getMonth() &&
+            currentDate.getDate() === today.getDate()
 
           const localDateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`
 
@@ -577,7 +575,7 @@ export default {
             monthName: cursor.toLocaleString('en-US', { month: 'short' }),
             monthStart: cursor.getDate() === 1,
             year: cursor.getFullYear(),
-            isToday: isToday
+            isToday: isToday,
           })
           cursor.setDate(cursor.getDate() + 1)
           dayCount++
@@ -585,15 +583,17 @@ export default {
 
         // Warn if generating very large timeline
         if (dates.length > 2000) {
-          console.warn(`WorkflowView: Generated ${dates.length} days for timeline. Consider using month view for better performance.`)
+          console.warn(
+            `WorkflowView: Generated ${dates.length} days for timeline. Consider using month view for better performance.`,
+          )
         }
 
         return { dates, startDate: start }
       }
 
       // MONTH VIEW: create one column per month between padded start/end
-      const taskStartDates = this.tasks.map(t => t.startDate.getTime()).filter(d => !isNaN(d))
-      const taskEndDates = this.tasks.map(t => t.dueDate.getTime()).filter(d => !isNaN(d))
+      const taskStartDates = this.tasks.map((t) => t.startDate.getTime()).filter((d) => !isNaN(d))
+      const taskEndDates = this.tasks.map((t) => t.dueDate.getTime()).filter((d) => !isNaN(d))
 
       // Center around current date
       const today = new Date()
@@ -627,7 +627,8 @@ export default {
       const cursor = new Date(start.getFullYear(), start.getMonth(), 1)
 
       // Calculate actual months span and set realistic safety limit
-      const actualMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1
+      const actualMonths =
+        (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1
       const maxMonths = Math.max(120, actualMonths + 12) // Allow for actual span plus buffer
       let monthCount = 0
 
@@ -645,7 +646,7 @@ export default {
           monthStart: true,
           year,
           daysInMonth,
-          isToday: isToday
+          isToday: isToday,
         })
         cursor.setMonth(cursor.getMonth() + 1)
         monthCount++
@@ -654,8 +655,7 @@ export default {
       return { dates, startDate: start }
     },
 
-    toggleWorkflowDisplay()
-    {
+    toggleWorkflowDisplay() {
       this.showTimelineOnly = !this.showTimelineOnly
     },
     getDayWidth() {
@@ -694,14 +694,19 @@ export default {
         const width = duration * this.dayWidth - 8
         return {
           left: left + 'px',
-          width: width + 'px'
+          width: width + 'px',
         }
       }
 
       // month view - calculate offsets/duration in months
-      const monthDiff = (a, b) => (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth())
+      const monthDiff = (a, b) =>
+        (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth())
 
-      const timelineMonthStart = new Date(this.timelineStart.getFullYear(), this.timelineStart.getMonth(), 1)
+      const timelineMonthStart = new Date(
+        this.timelineStart.getFullYear(),
+        this.timelineStart.getMonth(),
+        1,
+      )
       const taskStartMonth = new Date(task.startDate.getFullYear(), task.startDate.getMonth(), 1)
       const taskEndMonth = new Date(task.dueDate.getFullYear(), task.dueDate.getMonth(), 1)
 
@@ -714,11 +719,11 @@ export default {
 
       return {
         left: left + 'px',
-        width: width + 'px'
+        width: width + 'px',
       }
     },
     focusOnTask(taskId, taskIndex) {
-      if(this.$vuetify.display.xs) {
+      if (this.$vuetify.display.xs) {
         this.showTimelineOnly = true
       }
       this.highlightedTaskId = taskId
@@ -743,8 +748,13 @@ export default {
           targetScrollLeft = taskBarLeft + taskBarWidth / 2 - containerWidth / 2
         }
 
-        const targetScrollTop = taskIndex * this.rowHeight - timelineContent.clientHeight / 2 + this.rowHeight / 2
-        timelineContent.scrollTo({ left: Math.max(0, targetScrollLeft), top: Math.max(0, targetScrollTop), behavior: 'smooth' })
+        const targetScrollTop =
+          taskIndex * this.rowHeight - timelineContent.clientHeight / 2 + this.rowHeight / 2
+        timelineContent.scrollTo({
+          left: Math.max(0, targetScrollLeft),
+          top: Math.max(0, targetScrollTop),
+          behavior: 'smooth',
+        })
         bar.classList.add('pulse')
         setTimeout(() => bar.classList.remove('pulse'), 2000)
       })
@@ -761,17 +771,18 @@ export default {
       if (this.currentView === 'week') {
         // Find the index of today's date in the dates array
         const todayLocalString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-        const todayIndex = this.dates.findIndex(date => date.iso === todayLocalString)
+        const todayIndex = this.dates.findIndex((date) => date.iso === todayLocalString)
 
         if (todayIndex !== -1) {
           // Calculate scroll position to center on today
           const containerWidth = timelineContent.clientWidth
-          const targetScrollLeft = todayIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
+          const targetScrollLeft =
+            todayIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
 
           timelineContent.scrollTo({
             left: Math.max(0, targetScrollLeft),
             top: 0,
-            behavior: 'smooth'
+            behavior: 'smooth',
           })
         }
       } else {
@@ -779,19 +790,20 @@ export default {
         const todayYear = today.getFullYear()
         const todayMonth = today.getMonth()
 
-        const monthIndex = this.dates.findIndex(date =>
-          date.year === todayYear && date.monthIndex === todayMonth
+        const monthIndex = this.dates.findIndex(
+          (date) => date.year === todayYear && date.monthIndex === todayMonth,
         )
 
         if (monthIndex !== -1) {
           // Calculate scroll position to center on today's month
           const containerWidth = timelineContent.clientWidth
-          const targetScrollLeft = monthIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
+          const targetScrollLeft =
+            monthIndex * this.dayWidth - containerWidth / 2 + this.dayWidth / 2
 
           timelineContent.scrollTo({
             left: Math.max(0, targetScrollLeft),
             top: 0,
-            behavior: 'smooth'
+            behavior: 'smooth',
           })
         }
       }
@@ -811,7 +823,7 @@ export default {
       })
     },
     showTaskModal(taskId) {
-      const t = this.tasks.find(x => x.id === taskId)
+      const t = this.tasks.find((x) => x.id === taskId)
       if (!t) return
       this.modal.task = t
       this.modal.show = true
@@ -821,9 +833,10 @@ export default {
       this.modal.task = null
     },
     showTooltip(event, task) {
-      const assignedMembers = task.assignedMembers && task.assignedMembers.length > 0
-        ? task.assignedMembers.join(', ')
-        : 'No members assigned'
+      const assignedMembers =
+        task.assignedMembers && task.assignedMembers.length > 0
+          ? task.assignedMembers.join(', ')
+          : 'No members assigned'
 
       this.tooltip = {
         show: true,
@@ -833,8 +846,8 @@ export default {
         style: {
           left: event.clientX + 15 + 'px',
           top: event.clientY - 10 + 'px',
-          transform: 'translateY(-100%)'
-        }
+          transform: 'translateY(-100%)',
+        },
       }
     },
     hideTooltip() {
@@ -846,7 +859,7 @@ export default {
       this.tooltip.style = {
         left: event.clientX + 15 + 'px',
         top: event.clientY - 10 + 'px',
-        transform: 'translateY(-100%)'
+        transform: 'translateY(-100%)',
       }
     },
     formatDate(date) {
@@ -856,7 +869,7 @@ export default {
       return d.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       })
     },
     parseDate(dateString) {
@@ -893,8 +906,8 @@ export default {
       }
 
       return date
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -903,7 +916,7 @@ export default {
 .roadmap-container {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   height: 100%;
   min-height: 500px;
@@ -996,19 +1009,19 @@ export default {
   font-size: 13px;
 }
 
-.float-workflow{
+.float-workflow {
   position: relative;
   bottom: 5px;
   right: 0px;
   border: 1px solid black;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.float-workflow-2{
+.float-workflow-2 {
   position: absolute;
   border: 1px solid black;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   right: 12px;
   z-index: 1000;
 }
@@ -1100,7 +1113,7 @@ export default {
   padding: 2px 4px;
   border-radius: 3px;
   line-height: 1;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .day-number {
@@ -1148,11 +1161,14 @@ export default {
 }
 
 @keyframes scrollHint {
-  0%, 70%, 100% {
+  0%,
+  70%,
+  100% {
     opacity: 0;
     transform: translateY(-50%) translateX(0);
   }
-  10%, 60% {
+  10%,
+  60% {
     opacity: 1;
     transform: translateY(-50%) translateX(-5px);
   }
@@ -1241,14 +1257,14 @@ export default {
   color: white;
   cursor: pointer;
   transition: all 0.05s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   white-space: nowrap;
   overflow: hidden;
 }
 
 .task-bar:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .task-bar.not-started {
@@ -1288,7 +1304,7 @@ export default {
 
 .custom-tooltip {
   position: fixed;
-  background: rgba(33,33,33,0.95);
+  background: rgba(33, 33, 33, 0.95);
   color: white;
   padding: 12px 16px;
   border-radius: 8px;
@@ -1298,7 +1314,7 @@ export default {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   max-width: 300px;
 }
 
@@ -1322,7 +1338,6 @@ export default {
   .roadmap-header {
     padding: 12px 16px;
   }
-
 
   .timeline-day {
     padding: 12px 2px 6px 2px;

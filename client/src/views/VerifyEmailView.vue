@@ -219,7 +219,9 @@ h2 {
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .action.primary {

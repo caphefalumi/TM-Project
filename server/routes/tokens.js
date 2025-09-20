@@ -81,7 +81,6 @@ const renewAccessToken = async (req, res) => {
       })
     }
 
-
     // Generate new tokens but preserve the sessionId
     const accessToken = generateAccessToken(req.user)
     const refreshToken = generateRefreshToken(req.user)

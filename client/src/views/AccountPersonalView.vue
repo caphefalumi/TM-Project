@@ -81,7 +81,8 @@
             <div v-if="user.pendingEmail" class="pending-email-banner">
               <v-icon size="18">mdi-email-clock</v-icon>
               <span>
-                We've sent a confirmation email to <strong>{{ user.pendingEmail }}</strong>.
+                We've sent a confirmation email to <strong>{{ user.pendingEmail }}</strong
+                >.
                 <span v-if="emailVerificationDeadlineText">
                   Please verify by {{ emailVerificationDeadlineText }}.
                 </span>
@@ -165,7 +166,10 @@
                 </div>
                 <div>
                   <h4>Update your display name</h4>
-                  <p>Choose a display name that represents you. Once confirmed, you'll need to wait two weeks to change it again.</p>
+                  <p>
+                    Choose a display name that represents you. Once confirmed, you'll need to wait
+                    two weeks to change it again.
+                  </p>
                 </div>
               </div>
               <div class="epic-body">
@@ -182,21 +186,38 @@
                       required
                     />
                   </div>
-                  <p class="field-helper">Never use personal information such as your real name, address, or phone number.</p>
+                  <p class="field-helper">
+                    Never use personal information such as your real name, address, or phone number.
+                  </p>
                 </div>
                 <ul class="epic-guidelines">
-                  <li><v-icon size="16">mdi-form-textbox</v-icon>Display names must be at least 3 characters long.</li>
-                  <li><v-icon size="16">mdi-timer-lock-outline</v-icon>You won't be able to change your display name again for two weeks.</li>
+                  <li>
+                    <v-icon size="16">mdi-form-textbox</v-icon>Display names must be at least 3
+                    characters long.
+                  </li>
+                  <li>
+                    <v-icon size="16">mdi-timer-lock-outline</v-icon>You won't be able to change
+                    your display name again for two weeks.
+                  </li>
                 </ul>
                 <label v-if="requiresUsernameAcknowledgement" class="epic-checkbox">
                   <input type="checkbox" v-model="acknowledgements.username" />
-                  <span>I understand I can't change my display name again for 2 weeks after this change.</span>
+                  <span
+                    >I understand I can't change my display name again for 2 weeks after this
+                    change.</span
+                  >
                 </label>
               </div>
             </section>
             <div class="popup-actions inline-actions">
-              <button type="button" class="popup-button secondary" @click="closeEditUsername">Cancel</button>
-              <button type="submit" class="popup-button primary" :disabled="isSavingUsername || !canSaveUsername">
+              <button type="button" class="popup-button secondary" @click="closeEditUsername">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="popup-button primary"
+                :disabled="isSavingUsername || !canSaveUsername"
+              >
                 {{ isSavingUsername ? 'Saving...' : 'Save Changes' }}
               </button>
             </div>
@@ -223,7 +244,10 @@
                 </div>
                 <div>
                   <h4>Update your email</h4>
-                  <p>We'll send a verification link to your new address. You won't be able to update it again for 90 days after verification.</p>
+                  <p>
+                    We'll send a verification link to your new address. You won't be able to update
+                    it again for 90 days after verification.
+                  </p>
                 </div>
               </div>
               <div class="epic-body">
@@ -240,28 +264,48 @@
                       required
                     />
                   </div>
-                  <p class="field-helper">We'll send a verification message to confirm this change before it's applied.</p>
+                  <p class="field-helper">
+                    We'll send a verification message to confirm this change before it's applied.
+                  </p>
                 </div>
                 <div v-if="user.pendingEmail" class="pending-note">
                   <v-icon size="18">mdi-email-clock-outline</v-icon>
                   <span>
-                    A verification email is waiting at <strong>{{ user.pendingEmail }}</strong>.
-                    <span v-if="emailVerificationDeadlineText">Please verify by {{ emailVerificationDeadlineText }}.</span>
+                    A verification email is waiting at <strong>{{ user.pendingEmail }}</strong
+                    >.
+                    <span v-if="emailVerificationDeadlineText"
+                      >Please verify by {{ emailVerificationDeadlineText }}.</span
+                    >
                   </span>
                 </div>
                 <ul class="epic-guidelines">
-                  <li><v-icon size="16">mdi-shield-check</v-icon>You'll need to verify the new email before it replaces your current one.</li>
-                  <li><v-icon size="16">mdi-timer-sand</v-icon>After verification, you can't change your email again for 90 days.</li>
+                  <li>
+                    <v-icon size="16">mdi-shield-check</v-icon>You'll need to verify the new email
+                    before it replaces your current one.
+                  </li>
+                  <li>
+                    <v-icon size="16">mdi-timer-sand</v-icon>After verification, you can't change
+                    your email again for 90 days.
+                  </li>
                 </ul>
                 <label v-if="requiresEmailAcknowledgement" class="epic-checkbox">
                   <input type="checkbox" v-model="acknowledgements.email" />
-                  <span>I understand my email can't be changed again for 90 days after verification.</span>
+                  <span
+                    >I understand my email can't be changed again for 90 days after
+                    verification.</span
+                  >
                 </label>
               </div>
             </section>
             <div class="popup-actions inline-actions">
-              <button type="button" class="popup-button secondary" @click="closeEditEmail">Cancel</button>
-              <button type="submit" class="popup-button primary" :disabled="isSavingEmail || !canSaveEmail">
+              <button type="button" class="popup-button secondary" @click="closeEditEmail">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="popup-button primary"
+                :disabled="isSavingEmail || !canSaveEmail"
+              >
                 {{ isSavingEmail ? 'Saving...' : 'Save Changes' }}
               </button>
             </div>
@@ -373,9 +417,7 @@ export default {
     },
     pendingEmailMatchesInput() {
       if (!this.user.pendingEmail) return false
-      return (
-        this.editEmailForm.email?.trim().toLowerCase() === this.user.pendingEmail.toLowerCase()
-      )
+      return this.editEmailForm.email?.trim().toLowerCase() === this.user.pendingEmail.toLowerCase()
     },
     requiresEmailAcknowledgement() {
       const currentEmail = this.user.email?.toLowerCase() || ''
@@ -389,33 +431,37 @@ export default {
       return true
     },
     canSaveProfile() {
-      const newUsername = this.editForm.username?.trim().toLowerCase() || '';
-      const currentUsername = this.user.username?.toLowerCase() || '';
-      const newEmail = this.editForm.email?.trim().toLowerCase() || '';
-      const currentEmail = this.user.email?.toLowerCase() || '';
+      const newUsername = this.editForm.username?.trim().toLowerCase() || ''
+      const currentUsername = this.user.username?.toLowerCase() || ''
+      const newEmail = this.editForm.email?.trim().toLowerCase() || ''
+      const currentEmail = this.user.email?.toLowerCase() || ''
 
-      const usernameChanged = newUsername && newUsername !== currentUsername;
-      const emailChanged = newEmail && newEmail !== currentEmail;
-      const reissueVerification = this.pendingEmailMatchesInput;
+      const usernameChanged = newUsername && newUsername !== currentUsername
+      const emailChanged = newEmail && newEmail !== currentEmail
+      const reissueVerification = this.pendingEmailMatchesInput
 
       // Only require the field that is being changed
       if (!usernameChanged && !emailChanged && !reissueVerification) {
-        return false;
+        return false
       }
 
       // Only require acknowledgement for the field being changed
-      if (usernameChanged && this.requiresUsernameAcknowledgement && !this.acknowledgements.username) {
-        return false;
+      if (
+        usernameChanged &&
+        this.requiresUsernameAcknowledgement &&
+        !this.acknowledgements.username
+      ) {
+        return false
       }
       if (emailChanged && this.requiresEmailAcknowledgement && !this.acknowledgements.email) {
-        return false;
+        return false
       }
 
       // Do not require both username and email to be filled if only one is being changed
-      if (usernameChanged && !newUsername) return false;
-      if (emailChanged && !newEmail) return false;
+      if (usernameChanged && !newUsername) return false
+      if (emailChanged && !newEmail) return false
 
-      return true;
+      return true
     },
     canSaveUsername() {
       const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
@@ -637,7 +683,14 @@ export default {
         const data = await response.json().catch(() => ({}))
         if (response.ok) {
           if (data.user) this.setUserFromResponse(data.user)
-          localStorage.setItem('currentUser', JSON.stringify({ userId: this.user.userId, username: this.user.username, timestamp: Date.now() }))
+          localStorage.setItem(
+            'currentUser',
+            JSON.stringify({
+              userId: this.user.userId,
+              username: this.user.username,
+              timestamp: Date.now(),
+            }),
+          )
           this.closeEditUsername()
           this.showMessage(data.message || 'Username updated successfully!', 'success')
         } else {
@@ -683,9 +736,19 @@ export default {
         const data = await response.json().catch(() => ({}))
         if (response.ok) {
           if (data.user) this.setUserFromResponse(data.user)
-          localStorage.setItem('currentUser', JSON.stringify({ userId: this.user.userId, username: this.user.username, timestamp: Date.now() }))
+          localStorage.setItem(
+            'currentUser',
+            JSON.stringify({
+              userId: this.user.userId,
+              username: this.user.username,
+              timestamp: Date.now(),
+            }),
+          )
           this.closeEditEmail()
-          this.showMessage(data.message || 'Email updated successfully!', data.requiresEmailVerification ? 'info' : 'success')
+          this.showMessage(
+            data.message || 'Email updated successfully!',
+            data.requiresEmailVerification ? 'info' : 'success',
+          )
         } else {
           let errorMessage = data.error || data.message || 'Failed to update email'
           if (data.availableAt) {
@@ -1432,7 +1495,10 @@ export default {
   border: 1px solid #d9dce6;
   border-radius: 14px;
   padding: 0 14px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .input-shell:focus-within {
