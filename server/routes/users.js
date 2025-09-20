@@ -420,7 +420,7 @@ export const updateUserPermissions = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
   try {
-    const requestingUserId = req.user.userId // from JWT token
+    const requestingUserId = req.user.userId
     let { username, email } = req.body
 
     if (!username || !email) {
