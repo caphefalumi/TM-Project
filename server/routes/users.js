@@ -421,11 +421,14 @@ export const updateUserPermissions = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
   try {
     const requestingUserId = req.user.userId // from JWT token
-    const { username, email } = req.body
+    let { username, email } = req.body
 
     if (!username || !email) {
       return res.status(400).json({ error: 'Username and email are required' })
     }
+
+    username = username.toLowerCase()
+    email = email.toLowerCase()
 
     // Check if username already exists (excluding current user)
     const existingUser = await Account.findOne({
