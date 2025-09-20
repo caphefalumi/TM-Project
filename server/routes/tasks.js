@@ -118,13 +118,13 @@ const addTaskToUsers = async (req, res) => {
     const minDate = new Date('2025-01-01')
     const maxDate = new Date('2035-12-31')
     if (start < minDate || start > maxDate) {
-      return res.status(400).json({ 
-        message: 'Start date must be between January 1, 2025 and December 31, 2035' 
+      return res.status(400).json({
+        message: 'Start date must be between January 1, 2025 and December 31, 2035',
       })
     }
     if (due < minDate || due > maxDate) {
-      return res.status(400).json({ 
-        message: 'Due date must be between January 1, 2025 and December 31, 2035' 
+      return res.status(400).json({
+        message: 'Due date must be between January 1, 2025 and December 31, 2035',
       })
     }
 
@@ -357,27 +357,27 @@ const updateTaskGroup = async (req, res) => {
     if (updateData.startDate || updateData.dueDate) {
       const minDate = new Date('2025-01-01')
       const maxDate = new Date('2035-12-31')
-      
+
       if (updateData.startDate) {
         const startDate = new Date(updateData.startDate)
         if (isNaN(startDate)) {
           return res.status(400).json({ message: 'Invalid start date format' })
         }
         if (startDate < minDate || startDate > maxDate) {
-          return res.status(400).json({ 
-            message: 'Start date must be between January 1, 2025 and December 31, 2035' 
+          return res.status(400).json({
+            message: 'Start date must be between January 1, 2025 and December 31, 2035',
           })
         }
       }
-      
+
       if (updateData.dueDate) {
         const dueDate = new Date(updateData.dueDate)
         if (isNaN(dueDate)) {
           return res.status(400).json({ message: 'Invalid due date format' })
         }
         if (dueDate < minDate || dueDate > maxDate) {
-          return res.status(400).json({ 
-            message: 'Due date must be between January 1, 2025 and December 31, 2035' 
+          return res.status(400).json({
+            message: 'Due date must be between January 1, 2025 and December 31, 2035',
           })
         }
       }
@@ -535,16 +535,16 @@ const getAllTaskGroups = async (req, res) => {
       { $match: { teamId } },
       {
         $addFields: {
-          userObjectId: { $toObjectId: '$userId' }
-        }
+          userObjectId: { $toObjectId: '$userId' },
+        },
       },
       {
         $lookup: {
           from: 'accounts',
           localField: 'userObjectId',
           foreignField: '_id',
-          as: 'account'
-        }
+          as: 'account',
+        },
       },
       {
         $group: {
@@ -565,9 +565,9 @@ const getAllTaskGroups = async (req, res) => {
               $cond: [
                 { $gt: [{ $size: '$account' }, 0] },
                 { $arrayElemAt: ['$account.username', 0] },
-                null
-              ]
-            }
+                null,
+              ],
+            },
           },
           createdAt: { $first: '$createdAt' },
         },

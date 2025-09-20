@@ -127,7 +127,9 @@ const oAuthenticationRegister = async (req, res) => {
     const account = new Account({ username, email, provider })
     await account.save()
     await createSampleTeamAndTasks(account)
-    res.status(201).json({ success: 'Account created successfully. Sample team and tasks created.' })
+    res
+      .status(201)
+      .json({ success: 'Account created successfully. Sample team and tasks created.' })
   } catch (err) {
     res.status(400).json({ error: err })
   }
@@ -161,7 +163,9 @@ const localRegister = async (req, res) => {
     const account = new Account({ username, email, password, provider })
     await account.save()
     await createSampleTeamAndTasks(account)
-    res.status(201).json({ success: 'Account created successfully. Sample team and tasks created.' })
+    res
+      .status(201)
+      .json({ success: 'Account created successfully. Sample team and tasks created.' })
   } catch (err) {
     res.status(400).json({ error: err.message })
   }
