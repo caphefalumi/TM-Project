@@ -90,11 +90,11 @@
             <ul class="cooldown-list">
               <li v-if="usernameCooldownText">
                 <v-icon size="18">mdi-calendar-clock</v-icon>
-                <span>Next username change available {{ usernameCooldownText }}</span>
+                <span>Your next username change will be available {{ usernameCooldownText }}</span>
               </li>
               <li v-if="emailCooldownText">
                 <v-icon size="18">mdi-email-sync-outline</v-icon>
-                <span>Next email change available {{ emailCooldownText }}</span>
+                <span>Your next email change will be available {{ emailCooldownText }}</span>
               </li>
             </ul>
           </div>
