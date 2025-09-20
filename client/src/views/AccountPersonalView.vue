@@ -90,11 +90,11 @@
             <ul class="cooldown-list">
               <li v-if="usernameCooldownText">
                 <v-icon size="18">mdi-calendar-clock</v-icon>
-                <span>Next display name update available {{ usernameCooldownText }}</span>
+                <span>Next username change available {{ usernameCooldownText }}</span>
               </li>
               <li v-if="emailCooldownText">
                 <v-icon size="18">mdi-email-sync-outline</v-icon>
-                <span>Next email update available {{ emailCooldownText }}</span>
+                <span>Next email change available {{ emailCooldownText }}</span>
               </li>
             </ul>
           </div>
@@ -102,10 +102,6 @@
           <div class="profile-actions">
             <h4>Profile Actions</h4>
             <div class="actions-grid">
-              <button class="action-button primary" @click="openEditProfile">
-                <v-icon>mdi-pencil</v-icon>
-                Edit Profile
-              </button>
               <button class="action-button secondary" @click="changePassword">
                 <v-icon>mdi-lock-reset</v-icon>
                 Change Password
@@ -393,28 +389,33 @@ export default {
       return true
     },
     canSaveProfile() {
-      const newUsername = this.editForm.username?.trim().toLowerCase() || ''
-      const currentUsername = this.user.username?.toLowerCase() || ''
-      const newEmail = this.editForm.email?.trim().toLowerCase() || ''
-      const currentEmail = this.user.email?.toLowerCase() || ''
+      const newUsername = this.editForm.username?.trim().toLowerCase() || '';
+      const currentUsername = this.user.username?.toLowerCase() || '';
+      const newEmail = this.editForm.email?.trim().toLowerCase() || '';
+      const currentEmail = this.user.email?.toLowerCase() || '';
 
-      const usernameChanged = newUsername && newUsername !== currentUsername
-      const emailChanged = newEmail && newEmail !== currentEmail
-      const reissueVerification = this.pendingEmailMatchesInput
+      const usernameChanged = newUsername && newUsername !== currentUsername;
+      const emailChanged = newEmail && newEmail !== currentEmail;
+      const reissueVerification = this.pendingEmailMatchesInput;
 
+      // Only require the field that is being changed
       if (!usernameChanged && !emailChanged && !reissueVerification) {
-        return false
+        return false;
       }
 
-      if (this.requiresUsernameAcknowledgement && !this.acknowledgements.username) {
-        return false
+      // Only require acknowledgement for the field being changed
+      if (usernameChanged && this.requiresUsernameAcknowledgement && !this.acknowledgements.username) {
+        return false;
+      }
+      if (emailChanged && this.requiresEmailAcknowledgement && !this.acknowledgements.email) {
+        return false;
       }
 
-      if (this.requiresEmailAcknowledgement && !this.acknowledgements.email) {
-        return false
-      }
+      // Do not require both username and email to be filled if only one is being changed
+      if (usernameChanged && !newUsername) return false;
+      if (emailChanged && !newEmail) return false;
 
-      return true
+      return true;
     },
     canSaveUsername() {
       const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
@@ -575,7 +576,14 @@ export default {
           this.showMessage(messageText, data.requiresEmailVerification ? 'info' : 'success')
         } else {
           let errorMessage = data.error || data.message || 'Failed to update profile'
-          if (data.availableAt) {
+          if (data.error === 'USERNAME_COOLDOWN' || data.error === 'EMAIL_COOLDOWN') {
+            if (data.availableAt) {
+              const formatted = this.formatDateTime(data.availableAt)
+              errorMessage = `You are on cooldown. Next update available on ${formatted}.`
+            } else {
+              errorMessage = 'You are on cooldown. Please wait until the cooldown period ends.'
+            }
+          } else if (data.availableAt) {
             const formatted = this.formatDateTime(data.availableAt)
             if (formatted) {
               errorMessage = `${errorMessage} Next update available on ${formatted}.`

@@ -459,28 +459,29 @@ export const updateUserProfile = async (req, res) => {
     const requestingUserId = req.user.userId
     let { username, email } = req.body
 
-    if (!username || !email) {
-      return res.status(400).json({ error: 'Username and email are required' })
+    // Only require username if it's being changed, and only require email if it's being changed
+    if ((username !== undefined && !username.trim()) || (email !== undefined && !email.trim())) {
+      return res.status(400).json({ error: 'Field cannot be empty' })
     }
 
-    username = username.trim()
-    email = email.trim()
-
-    if (!username || !email) {
-      return res.status(400).json({ error: 'Username and email are required' })
+    // If neither field is present, reject
+    if (username === undefined && email === undefined) {
+      return res.status(400).json({ error: 'No fields to update' })
     }
+
+    username = username !== undefined ? username.trim() : undefined
+    email = email !== undefined ? email.trim() : undefined
 
     const account = await Account.findById(requestingUserId)
-
     if (!account) {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    const normalizedUsername = username.toLowerCase()
-    const normalizedEmail = email.toLowerCase()
+    const normalizedUsername = username !== undefined ? username.toLowerCase() : account.username
+    const normalizedEmail = email !== undefined ? email.toLowerCase() : account.email
 
-    const usernameChanged = normalizedUsername !== account.username
-    const emailChanged = normalizedEmail !== account.email
+    const usernameChanged = username !== undefined && normalizedUsername !== account.username
+    const emailChanged = email !== undefined && normalizedEmail !== account.email
     const reissueVerification =
       !emailChanged && account.pendingEmail && account.pendingEmail === normalizedEmail
 
