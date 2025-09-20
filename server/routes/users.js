@@ -3,6 +3,7 @@
 // 1. Adding users to a team
 // 2. Retrieving user's team data
 
+import crypto from 'crypto'
 import { createTeamMemberAddedNotification } from '../scripts/notificationsService.js'
 import Account from '../models/Account.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
@@ -13,8 +14,43 @@ import { PERMISSIONS } from '../config/permissions.js'
 import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
 import JWTAuth from '../verify/JWTAuth.js'
 import RefreshToken from '../models/RefreshToken.js'
+import sendEmail from '../scripts/mailer.js'
 
 const { generateAccessToken, generateRefreshToken } = JWTAuth
+
+const USERNAME_LOCK_DURATION = 14 * 24 * 60 * 60 * 1000
+const EMAIL_LOCK_DURATION = 90 * 24 * 60 * 60 * 1000
+const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
+
+export const getAuthenticatedUser = async (req, res) => {
+  try {
+    const account = await Account.findById(req.user.userId).select(
+      '_id username email emailVerified pendingEmail lastUsernameChangeAt lastEmailChangeAt emailVerificationExpires',
+    )
+
+    if (!account) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    return res.status(200).json({
+      user: {
+        userId: account._id.toString(),
+        username: account.username,
+        email: account.email,
+        emailVerified: account.emailVerified,
+        pendingEmail: account.pendingEmail,
+        lastUsernameChangeAt: account.lastUsernameChangeAt,
+        lastEmailChangeAt: account.lastEmailChangeAt,
+        emailVerificationExpires: account.emailVerificationExpires,
+      },
+      success: 'User data retrieved successfully',
+    })
+  } catch (error) {
+    console.error('Error retrieving authenticated user:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
 
 export const getAllUsers = async (req, res) => {
   // Returns all users in the database by array
@@ -427,95 +463,316 @@ export const updateUserProfile = async (req, res) => {
       return res.status(400).json({ error: 'Username and email are required' })
     }
 
-    username = username.toLowerCase()
-    email = email.toLowerCase()
+    username = username.trim()
+    email = email.trim()
 
-    // Check if username already exists (excluding current user)
-    const existingUser = await Account.findOne({
-      username,
-      _id: { $ne: requestingUserId },
-    })
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' })
+    if (!username || !email) {
+      return res.status(400).json({ error: 'Username and email are required' })
     }
 
-    // Check if email already exists (excluding current user)
-    const existingEmail = await Account.findOne({
-      email,
-      _id: { $ne: requestingUserId },
-    })
-    if (existingEmail) {
-      return res.status(400).json({ error: 'Email already exists' })
-    }
+    const account = await Account.findById(requestingUserId)
 
-    // Update the user profile
-    const updatedUser = await Account.findByIdAndUpdate(
-      requestingUserId,
-      { username, email },
-      { new: true, runValidators: true },
-    ).select('_id username email')
-
-    if (!updatedUser) {
+    if (!account) {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    // Also update username in all team memberships
-    await UsersOfTeam.updateMany({ userId: requestingUserId }, { username: username })
+    const normalizedUsername = username.toLowerCase()
+    const normalizedEmail = email.toLowerCase()
 
-    // Generate new tokens with updated user data
-    const newUserData = {
-      userId: updatedUser._id.toString(),
-      username: updatedUser.username,
-      email: updatedUser.email,
+    const usernameChanged = normalizedUsername !== account.username
+    const emailChanged = normalizedEmail !== account.email
+    const reissueVerification =
+      !emailChanged && account.pendingEmail && account.pendingEmail === normalizedEmail
+
+    if (!usernameChanged && !emailChanged && !reissueVerification) {
+      const usernameCooldownEndsAt =
+        account.lastUsernameChangeAt &&
+        new Date(account.lastUsernameChangeAt.getTime() + USERNAME_LOCK_DURATION)
+      const emailCooldownEndsAt =
+        account.lastEmailChangeAt &&
+        new Date(account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION)
+
+      return res.status(200).json({
+        message: 'No changes detected',
+        user: {
+          userId: account._id.toString(),
+          username: account.username,
+          email: account.email,
+          pendingEmail: account.pendingEmail,
+          emailVerified: account.emailVerified,
+          lastUsernameChangeAt: account.lastUsernameChangeAt,
+          lastEmailChangeAt: account.lastEmailChangeAt,
+          emailVerificationExpires: account.emailVerificationExpires,
+        },
+        requiresEmailVerification: Boolean(account.pendingEmail),
+        usernameCooldownEndsAt: usernameCooldownEndsAt
+          ? usernameCooldownEndsAt.toISOString()
+          : null,
+        emailCooldownEndsAt: emailCooldownEndsAt ? emailCooldownEndsAt.toISOString() : null,
+        emailVerificationExpiresAt: account.emailVerificationExpires,
+      })
     }
 
-    const newAccessToken = generateAccessToken(newUserData)
-    const newRefreshToken = generateRefreshToken(newUserData)
+    if (usernameChanged) {
+      const existingUser = await Account.findOne({
+        username: normalizedUsername,
+        _id: { $ne: requestingUserId },
+      })
 
-    // Update refresh token in database
-    await RefreshToken.findOneAndUpdate(
-      { userId: requestingUserId },
-      {
-        token: newRefreshToken,
-        updatedAt: new Date(),
-      },
-      { new: true },
-    )
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username already exists' })
+      }
 
-    // Set new cookies
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/',
-    })
+      if (
+        account.lastUsernameChangeAt &&
+        Date.now() - account.lastUsernameChangeAt.getTime() < USERNAME_LOCK_DURATION
+      ) {
+        const availableAt = new Date(
+          account.lastUsernameChangeAt.getTime() + USERNAME_LOCK_DURATION,
+        )
 
-    res.cookie('accessToken', newAccessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-      maxAge: 20 * 60 * 1000, // 20 minutes
-      path: '/',
-    })
+        return res.status(400).json({
+          error: 'USERNAME_COOLDOWN',
+          message: 'You can update your display name again once the lock period ends.',
+          availableAt: availableAt.toISOString(),
+        })
+      }
 
-    console.log('Updated username in team memberships and renewed tokens', {
-      userId: requestingUserId,
-      username,
-      email,
-    })
+      account.username = normalizedUsername
+      account.lastUsernameChangeAt = new Date()
+    }
 
-    res.status(200).json({
-      success: 'Profile updated successfully',
+    let verificationToken = null
+
+    if (emailChanged || reissueVerification) {
+      if (emailChanged) {
+        const existingEmail = await Account.findOne({
+          email: normalizedEmail,
+          _id: { $ne: requestingUserId },
+        })
+
+        if (existingEmail) {
+          return res.status(400).json({ error: 'Email already exists' })
+        }
+
+        if (
+          account.lastEmailChangeAt &&
+          Date.now() - account.lastEmailChangeAt.getTime() < EMAIL_LOCK_DURATION
+        ) {
+          const availableAt = new Date(account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION)
+
+          return res.status(400).json({
+            error: 'EMAIL_COOLDOWN',
+            message: 'You can update your email address again once the lock period ends.',
+            availableAt: availableAt.toISOString(),
+          })
+        }
+
+        account.pendingEmail = normalizedEmail
+        account.emailVerified = false
+      }
+
+      verificationToken = crypto.randomBytes(32).toString('hex')
+      const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex')
+      account.emailVerificationToken = hashedToken
+      account.emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_EXPIRATION)
+    }
+
+    await account.save()
+
+    if (verificationToken) {
+      const verificationTarget = account.pendingEmail
+      const verificationUrl = `${CLIENT_URL}/verify-email?token=${verificationToken}`
+      const mailOptions = {
+        from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
+        to: verificationTarget,
+        subject: 'Confirm your new email address',
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2 style="color: #4A90E2; margin-bottom: 12px;">Verify your new email</h2>
+            <p>We received a request to update the email on your account.</p>
+            <p>Please confirm this change by clicking the button below within the next 24 hours:</p>
+            <p style="text-align: center; margin: 24px 0;">
+              <a href="${verificationUrl}" style="background-color: #4A90E2; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify new email address</a>
+            </p>
+            <p style="font-size: 14px; color: #666;">
+              If you did not request this change, you can safely ignore this email and your address will remain the same.
+            </p>
+          </div>
+        `,
+      }
+
+      try {
+        await sendEmail(mailOptions)
+      } catch (error) {
+        console.error('Failed to send email verification:', error)
+        account.emailVerificationToken = undefined
+        account.emailVerificationExpires = undefined
+
+        if (emailChanged) {
+          account.pendingEmail = null
+          account.emailVerified = true
+        }
+
+        await account.save()
+
+        return res
+          .status(500)
+          .json({ error: 'Failed to send verification email. Please try again later.' })
+      }
+    }
+
+    if (usernameChanged) {
+      await UsersOfTeam.updateMany({ userId: requestingUserId }, { username: account.username })
+
+      const newUserData = {
+        userId: account._id.toString(),
+        username: account.username,
+        email: account.email,
+      }
+
+      const newAccessToken = generateAccessToken(newUserData)
+      const newRefreshToken = generateRefreshToken(newUserData)
+
+      await RefreshToken.findOneAndUpdate(
+        { userId: requestingUserId },
+        {
+          token: newRefreshToken,
+          updatedAt: new Date(),
+        },
+        { new: true },
+      )
+
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/',
+      })
+
+      res.cookie('accessToken', newAccessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: 20 * 60 * 1000, // 20 minutes
+        path: '/',
+      })
+    }
+
+    const usernameCooldownEndsAt =
+      account.lastUsernameChangeAt &&
+      new Date(account.lastUsernameChangeAt.getTime() + USERNAME_LOCK_DURATION)
+    const emailCooldownEndsAt =
+      account.lastEmailChangeAt && new Date(account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION)
+
+    const responseMessage = verificationToken
+      ? `We've sent a verification link to ${account.pendingEmail}. Please verify within 24 hours to complete the update.`
+      : 'Profile updated successfully.'
+
+    return res.status(200).json({
+      message: responseMessage,
       user: {
-        userId: updatedUser._id,
-        username: updatedUser.username,
-        email: updatedUser.email,
+        userId: account._id.toString(),
+        username: account.username,
+        email: account.email,
+        pendingEmail: account.pendingEmail,
+        emailVerified: account.emailVerified,
+        lastUsernameChangeAt: account.lastUsernameChangeAt,
+        lastEmailChangeAt: account.lastEmailChangeAt,
+        emailVerificationExpires: account.emailVerificationExpires,
       },
+      requiresEmailVerification: Boolean(account.pendingEmail),
+      usernameCooldownEndsAt: usernameCooldownEndsAt
+        ? usernameCooldownEndsAt.toISOString()
+        : null,
+      emailCooldownEndsAt: emailCooldownEndsAt ? emailCooldownEndsAt.toISOString() : null,
+      emailVerificationExpiresAt: account.emailVerificationExpires,
     })
   } catch (error) {
     console.error('Error updating profile:', error)
     res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export const verifyEmailChange = async (req, res) => {
+  try {
+    const { token } = req.body
+
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is required' })
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+
+    const account = await Account.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationExpires: { $gt: Date.now() },
+    })
+
+    if (!account || !account.pendingEmail) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid or expired verification token. Please request a new change.' })
+    }
+
+    const newEmail = account.pendingEmail
+    account.email = newEmail
+    account.pendingEmail = null
+    account.emailVerificationToken = undefined
+    account.emailVerificationExpires = undefined
+    account.lastEmailChangeAt = new Date()
+    account.emailVerified = true
+
+    await account.save()
+
+    await RefreshToken.updateMany(
+      { userId: account._id.toString(), revoked: false },
+      {
+        revoked: true,
+        revokedAt: new Date(),
+        revokedReason: 'security',
+      },
+    )
+
+    const emailCooldownEndsAt = new Date(
+      account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION,
+    ).toISOString()
+
+    try {
+      await sendEmail({
+        from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
+        to: newEmail,
+        subject: 'Email address updated',
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2 style="color: #4A90E2; margin-bottom: 12px;">Email updated successfully</h2>
+            <p>Your account email has been verified and updated to <strong>${newEmail}</strong>.</p>
+            <p>If you did not authorize this change, please reset your password immediately.</p>
+          </div>
+        `,
+      })
+    } catch (error) {
+      console.error('Failed to send confirmation email after verification:', error)
+    }
+
+    return res.status(200).json({
+      success: 'Email verified successfully. Please sign in again to continue.',
+      user: {
+        userId: account._id.toString(),
+        username: account.username,
+        email: account.email,
+        pendingEmail: account.pendingEmail,
+        emailVerified: account.emailVerified,
+        lastUsernameChangeAt: account.lastUsernameChangeAt,
+        lastEmailChangeAt: account.lastEmailChangeAt,
+        emailVerificationExpires: account.emailVerificationExpires,
+      },
+      emailCooldownEndsAt,
+    })
+  } catch (error) {
+    console.error('Error verifying email change:', error)
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }
 

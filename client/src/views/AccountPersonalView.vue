@@ -28,8 +28,17 @@
               </v-avatar>
             </div>
             <div class="profile-info">
-              <h3>{{ user.username }}</h3>
-              <p class="email">{{ user.email }}</p>
+              <div class="profile-title">
+                <h3>{{ user.username }}</h3>
+                <span v-if="user.pendingEmail" class="status-chip warning">
+                  <v-icon size="16">mdi-clock-outline</v-icon>
+                  Verification pending
+                </span>
+                <span v-else class="status-chip success">
+                  <v-icon size="16">mdi-check-circle</v-icon>
+                  All set
+                </span>
+              </div>
               <p class="user-id">User ID: {{ user.userId }}</p>
             </div>
           </div>
@@ -39,21 +48,55 @@
             <div class="info-grid">
               <div class="info-item">
                 <label>Username</label>
-                <div class="info-value">{{ user.username }}</div>
+                <div class="info-value">
+                  {{ user.username }}
+                  <button class="edit-inline-btn" @click="openEditUsername" title="Edit Username">
+                    <v-icon size="16">mdi-pencil</v-icon>
+                  </button>
+                </div>
               </div>
               <div class="info-item">
                 <label>Email Address</label>
-                <div class="info-value">{{ maskedEmail }}</div>
+                <div class="info-value">
+                  {{ user.email }}
+                  <span v-if="!user.pendingEmail" class="status-chip success subtle">Verified</span>
+                  <span v-else class="status-chip warning subtle">Current</span>
+                  <button class="edit-inline-btn" @click="openEditEmail" title="Edit Email">
+                    <v-icon size="16">mdi-pencil</v-icon>
+                  </button>
+                </div>
               </div>
-              <div class="info-item">
-                <label>Account ID</label>
-                <div class="info-value">{{ user.userId }}</div>
+              <div class="info-item" v-if="user.pendingEmail">
+                <label>Pending Email</label>
+                <div class="info-value pending">
+                  {{ user.pendingEmail }}
+                  <span class="status-chip warning subtle">Verification required</span>
+                </div>
               </div>
               <div class="info-item">
                 <label>Member Since</label>
                 <div class="info-value">{{ memberSince }}</div>
               </div>
             </div>
+            <div v-if="user.pendingEmail" class="pending-email-banner">
+              <v-icon size="18">mdi-email-clock</v-icon>
+              <span>
+                We've sent a confirmation email to <strong>{{ user.pendingEmail }}</strong>.
+                <span v-if="emailVerificationDeadlineText">
+                  Please verify by {{ emailVerificationDeadlineText }}.
+                </span>
+              </span>
+            </div>
+            <ul class="cooldown-list">
+              <li v-if="usernameCooldownText">
+                <v-icon size="18">mdi-calendar-clock</v-icon>
+                <span>Next display name update available {{ usernameCooldownText }}</span>
+              </li>
+              <li v-if="emailCooldownText">
+                <v-icon size="18">mdi-email-sync-outline</v-icon>
+                <span>Next email update available {{ emailCooldownText }}</span>
+              </li>
+            </ul>
           </div>
 
           <div class="profile-actions">
@@ -108,44 +151,125 @@
       </div>
     </div>
 
-    <!-- Edit Profile Popup -->
-    <div v-if="showEditProfilePopup" class="popup-overlay" @click="closeEditProfile">
+    <!-- Username Edit Popup -->
+    <div v-if="showEditUsernamePopup" class="popup-overlay" @click="closeEditUsername">
       <div class="popup-modal" @click.stop>
         <div class="popup-header">
-          <h3>Edit Profile</h3>
-          <button class="close-button" @click="closeEditProfile">
+          <h3>Edit Username</h3>
+          <button class="close-button" @click="closeEditUsername">
             <v-icon>mdi-close</v-icon>
           </button>
         </div>
-        <div class="popup-content">
-          <form @submit.prevent="saveProfile" class="profile-form">
-            <div class="form-group">
-              <label for="editUsername">Username</label>
-              <input
-                id="editUsername"
-                v-model="editForm.username"
-                type="text"
-                class="form-input"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="editEmail">Email Address</label>
-              <input
-                id="editEmail"
-                v-model="editForm.email"
-                type="email"
-                class="form-input"
-                required
-              />
+        <div class="popup-content epic-edit-container">
+          <form @submit.prevent="saveUsername" class="profile-form epic-form">
+            <section class="epic-section">
+              <div class="section-header">
+                <div class="section-icon">
+                  <v-icon>mdi-account-edit</v-icon>
+                </div>
+                <div>
+                  <h4>Update your display name</h4>
+                  <p>Choose a display name that represents you. Once confirmed, you'll need to wait two weeks to change it again.</p>
+                </div>
+              </div>
+              <div class="epic-body">
+                <div class="epic-field">
+                  <label class="field-label" for="editUsername">New display name</label>
+                  <div class="input-shell">
+                    <v-icon class="field-icon" size="20">mdi-account-outline</v-icon>
+                    <input
+                      id="editUsername"
+                      v-model="editUsernameForm.username"
+                      type="text"
+                      class="form-input"
+                      placeholder="Enter new display name"
+                      required
+                    />
+                  </div>
+                  <p class="field-helper">Never use personal information such as your real name, address, or phone number.</p>
+                </div>
+                <ul class="epic-guidelines">
+                  <li><v-icon size="16">mdi-form-textbox</v-icon>Display names must be at least 3 characters long.</li>
+                  <li><v-icon size="16">mdi-timer-lock-outline</v-icon>You won't be able to change your display name again for two weeks.</li>
+                </ul>
+                <label v-if="requiresUsernameAcknowledgement" class="epic-checkbox">
+                  <input type="checkbox" v-model="acknowledgements.username" />
+                  <span>I understand I can't change my display name again for 2 weeks after this change.</span>
+                </label>
+              </div>
+            </section>
+            <div class="popup-actions inline-actions">
+              <button type="button" class="popup-button secondary" @click="closeEditUsername">Cancel</button>
+              <button type="submit" class="popup-button primary" :disabled="isSavingUsername || !canSaveUsername">
+                {{ isSavingUsername ? 'Saving...' : 'Save Changes' }}
+              </button>
             </div>
           </form>
         </div>
-        <div class="popup-actions">
-          <button class="popup-button secondary" @click="closeEditProfile">Cancel</button>
-          <button class="popup-button primary" @click="saveProfile" :disabled="isSaving">
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
+      </div>
+    </div>
+
+    <!-- Email Edit Popup -->
+    <div v-if="showEditEmailPopup" class="popup-overlay" @click="closeEditEmail">
+      <div class="popup-modal" @click.stop>
+        <div class="popup-header">
+          <h3>Edit Email</h3>
+          <button class="close-button" @click="closeEditEmail">
+            <v-icon>mdi-close</v-icon>
           </button>
+        </div>
+        <div class="popup-content epic-edit-container">
+          <form @submit.prevent="saveEmail" class="profile-form epic-form">
+            <section class="epic-section">
+              <div class="section-header">
+                <div class="section-icon accent">
+                  <v-icon>mdi-email-edit-outline</v-icon>
+                </div>
+                <div>
+                  <h4>Update your email</h4>
+                  <p>We'll send a verification link to your new address. You won't be able to update it again for 90 days after verification.</p>
+                </div>
+              </div>
+              <div class="epic-body">
+                <div class="epic-field">
+                  <label class="field-label" for="editEmail">New email address</label>
+                  <div class="input-shell">
+                    <v-icon class="field-icon" size="20">mdi-email-outline</v-icon>
+                    <input
+                      id="editEmail"
+                      v-model="editEmailForm.email"
+                      type="email"
+                      class="form-input"
+                      placeholder="name@example.com"
+                      required
+                    />
+                  </div>
+                  <p class="field-helper">We'll send a verification message to confirm this change before it's applied.</p>
+                </div>
+                <div v-if="user.pendingEmail" class="pending-note">
+                  <v-icon size="18">mdi-email-clock-outline</v-icon>
+                  <span>
+                    A verification email is waiting at <strong>{{ user.pendingEmail }}</strong>.
+                    <span v-if="emailVerificationDeadlineText">Please verify by {{ emailVerificationDeadlineText }}.</span>
+                  </span>
+                </div>
+                <ul class="epic-guidelines">
+                  <li><v-icon size="16">mdi-shield-check</v-icon>You'll need to verify the new email before it replaces your current one.</li>
+                  <li><v-icon size="16">mdi-timer-sand</v-icon>After verification, you can't change your email again for 90 days.</li>
+                </ul>
+                <label v-if="requiresEmailAcknowledgement" class="epic-checkbox">
+                  <input type="checkbox" v-model="acknowledgements.email" />
+                  <span>I understand my email can't be changed again for 90 days after verification.</span>
+                </label>
+              </div>
+            </section>
+            <div class="popup-actions inline-actions">
+              <button type="button" class="popup-button secondary" @click="closeEditEmail">Cancel</button>
+              <button type="submit" class="popup-button primary" :disabled="isSavingEmail || !canSaveEmail">
+                {{ isSavingEmail ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -208,32 +332,143 @@ export default {
         userId: '',
         username: '',
         email: '',
+        pendingEmail: null,
+        emailVerified: true,
+        lastUsernameChangeAt: null,
+        lastEmailChangeAt: null,
+        emailVerificationExpires: null,
       },
       message: null,
       messageTimeout: null,
       showPasswordResetPopup: false,
       showEditProfilePopup: false,
       showDeleteAccountPopup: false,
+      showEditUsernamePopup: false,
+      showEditEmailPopup: false,
       editForm: {
         username: '',
         email: '',
       },
+      editUsernameForm: {
+        username: '',
+      },
+      editEmailForm: {
+        email: '',
+      },
+      acknowledgements: {
+        username: false,
+        email: false,
+      },
       deleteConfirmation: '',
       isSaving: false,
+      isSavingUsername: false,
+      isSavingEmail: false,
       isDeleting: false,
     }
   },
   computed: {
-    maskedEmail() {
-      if (!this.user.email) return ''
-      const [username, domain] = this.user.email.split('@')
-      if (username.length <= 2) return this.user.email
-      const maskedUsername =
-        username[0] + '*'.repeat(username.length - 2) + username[username.length - 1]
-      return `${maskedUsername}@${domain}`
-    },
     memberSince() {
       return 'January 2024'
+    },
+    requiresUsernameAcknowledgement() {
+      const currentUsername = this.user.username?.toLowerCase() || ''
+      const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
+      return newUsername && newUsername !== currentUsername
+    },
+    pendingEmailMatchesInput() {
+      if (!this.user.pendingEmail) return false
+      return (
+        this.editEmailForm.email?.trim().toLowerCase() === this.user.pendingEmail.toLowerCase()
+      )
+    },
+    requiresEmailAcknowledgement() {
+      const currentEmail = this.user.email?.toLowerCase() || ''
+      const newEmail = this.editEmailForm.email?.trim().toLowerCase() || ''
+      if (!newEmail || newEmail === currentEmail) {
+        return false
+      }
+      if (this.pendingEmailMatchesInput) {
+        return false
+      }
+      return true
+    },
+    canSaveProfile() {
+      const newUsername = this.editForm.username?.trim().toLowerCase() || ''
+      const currentUsername = this.user.username?.toLowerCase() || ''
+      const newEmail = this.editForm.email?.trim().toLowerCase() || ''
+      const currentEmail = this.user.email?.toLowerCase() || ''
+
+      const usernameChanged = newUsername && newUsername !== currentUsername
+      const emailChanged = newEmail && newEmail !== currentEmail
+      const reissueVerification = this.pendingEmailMatchesInput
+
+      if (!usernameChanged && !emailChanged && !reissueVerification) {
+        return false
+      }
+
+      if (this.requiresUsernameAcknowledgement && !this.acknowledgements.username) {
+        return false
+      }
+
+      if (this.requiresEmailAcknowledgement && !this.acknowledgements.email) {
+        return false
+      }
+
+      return true
+    },
+    canSaveUsername() {
+      const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
+      const currentUsername = this.user.username?.toLowerCase() || ''
+      const usernameChanged = newUsername && newUsername !== currentUsername
+      if (!usernameChanged) return false
+      if (this.requiresUsernameAcknowledgement && !this.acknowledgements.username) return false
+      return true
+    },
+    canSaveEmail() {
+      const newEmail = this.editEmailForm.email?.trim().toLowerCase() || ''
+      const currentEmail = this.user.email?.toLowerCase() || ''
+      if (!newEmail || newEmail === currentEmail) return false
+      if (this.pendingEmailMatchesInput) return false
+      if (this.requiresEmailAcknowledgement && !this.acknowledgements.email) return false
+      return true
+    },
+    usernameLockDeadline() {
+      if (!this.user.lastUsernameChangeAt) return null
+      const deadline = new Date(this.user.lastUsernameChangeAt)
+      if (Number.isNaN(deadline.getTime())) return null
+      deadline.setTime(deadline.getTime() + 14 * 24 * 60 * 60 * 1000)
+      return deadline > new Date() ? deadline : null
+    },
+    emailLockDeadline() {
+      if (!this.user.lastEmailChangeAt) return null
+      const deadline = new Date(this.user.lastEmailChangeAt)
+      if (Number.isNaN(deadline.getTime())) return null
+      deadline.setTime(deadline.getTime() + 90 * 24 * 60 * 60 * 1000)
+      return deadline > new Date() ? deadline : null
+    },
+    emailVerificationDeadline() {
+      if (!this.user.emailVerificationExpires) return null
+      const deadline = new Date(this.user.emailVerificationExpires)
+      if (Number.isNaN(deadline.getTime())) return null
+      return deadline
+    },
+    usernameCooldownText() {
+      const deadline = this.usernameLockDeadline
+      if (!deadline) return ''
+      const formatted = this.formatDateTime(deadline)
+      return formatted ? `on ${formatted}` : ''
+    },
+    emailCooldownText() {
+      const deadline = this.emailLockDeadline
+      if (!deadline) return ''
+      const formatted = this.formatDateTime(deadline)
+      return formatted ? `on ${formatted}` : ''
+    },
+    emailVerificationDeadlineText() {
+      const deadline = this.emailVerificationDeadline
+      if (!deadline) return ''
+      const formatted = this.formatDateTime(deadline)
+      return formatted ? `by ${formatted}` : ''
     },
   },
   async mounted() {
@@ -245,15 +480,40 @@ export default {
     }
   },
   methods: {
+    formatDateTime(dateInput) {
+      if (!dateInput) return ''
+      const date = new Date(dateInput)
+      if (Number.isNaN(date.getTime())) return ''
+      return date.toLocaleString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    },
+
+    setUserFromResponse(userData) {
+      if (!userData) return
+
+      this.user = {
+        userId: userData.userId ? userData.userId.toString() : '',
+        username: userData.username || '',
+        email: userData.email || '',
+        pendingEmail: userData.pendingEmail || null,
+        emailVerified: userData.emailVerified !== false,
+        lastUsernameChangeAt: userData.lastUsernameChangeAt || null,
+        lastEmailChangeAt: userData.lastEmailChangeAt || null,
+        emailVerificationExpires: userData.emailVerificationExpires || null,
+      }
+    },
+
     async loadUserData() {
       try {
         const userData = await AuthStore.getUserByAccessToken()
         if (userData) {
-          this.user = {
-            userId: userData.userId,
-            username: userData.username,
-            email: userData.email,
-          }
+          this.setUserFromResponse(userData)
         }
       } catch (error) {
         console.error('Error loading user data:', error)
@@ -262,37 +522,43 @@ export default {
 
     openEditProfile() {
       this.editForm.username = this.user.username
-      this.editForm.email = this.user.email
+      this.editForm.email = this.user.pendingEmail || this.user.email
+      this.resetAcknowledgements()
       this.showEditProfilePopup = true
     },
 
     closeEditProfile() {
       this.showEditProfilePopup = false
-      this.editForm = {
-        username: '',
-        email: '',
-      }
+      this.resetEditForm()
     },
 
     async saveProfile() {
+      if (!this.canSaveProfile) {
+        return
+      }
+
       this.isSaving = true
       try {
         const PORT = import.meta.env.VITE_API_PORT
+        const payload = {
+          username: this.editForm.username.trim(),
+          email: this.editForm.email.trim(),
+        }
         const response = await fetch(`${PORT}/api/users/profile`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
-          body: JSON.stringify({
-            username: this.editForm.username,
-            email: this.editForm.email,
-          }),
+          body: JSON.stringify(payload),
         })
 
+        const data = await response.json().catch(() => ({}))
+
         if (response.ok) {
-          this.user.username = this.editForm.username
-          this.user.email = this.editForm.email
+          if (data.user) {
+            this.setUserFromResponse(data.user)
+          }
 
           localStorage.setItem(
             'currentUser',
@@ -304,16 +570,127 @@ export default {
           )
 
           this.closeEditProfile()
-          this.showMessage('Profile updated successfully!', 'success')
+
+          const messageText = data.message || 'Profile updated successfully!'
+          this.showMessage(messageText, data.requiresEmailVerification ? 'info' : 'success')
         } else {
-          const data = await response.json()
-          this.showMessage(data.error || 'Failed to update profile', 'error')
+          let errorMessage = data.error || data.message || 'Failed to update profile'
+          if (data.availableAt) {
+            const formatted = this.formatDateTime(data.availableAt)
+            if (formatted) {
+              errorMessage = `${errorMessage} Next update available on ${formatted}.`
+            }
+          }
+          this.showMessage(errorMessage, 'error')
         }
       } catch (error) {
         console.error('Error updating profile:', error)
         this.showMessage('Network error. Please try again.', 'error')
       } finally {
         this.isSaving = false
+      }
+    },
+
+    resetEditForm() {
+      this.editForm.username = ''
+      this.editForm.email = ''
+      this.resetAcknowledgements()
+    },
+
+    resetAcknowledgements() {
+      this.acknowledgements.username = false
+      this.acknowledgements.email = false
+    },
+
+    openEditUsername() {
+      this.editUsernameForm.username = this.user.username
+      this.acknowledgements.username = false
+      this.showEditUsernamePopup = true
+    },
+
+    closeEditUsername() {
+      this.showEditUsernamePopup = false
+      this.editUsernameForm.username = ''
+      this.acknowledgements.username = false
+    },
+
+    async saveUsername() {
+      if (!this.canSaveUsername) return
+      this.isSavingUsername = true
+      try {
+        const PORT = import.meta.env.VITE_API_PORT
+        const payload = { username: this.editUsernameForm.username.trim() }
+        const response = await fetch(`${PORT}/api/users/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (response.ok) {
+          if (data.user) this.setUserFromResponse(data.user)
+          localStorage.setItem('currentUser', JSON.stringify({ userId: this.user.userId, username: this.user.username, timestamp: Date.now() }))
+          this.closeEditUsername()
+          this.showMessage(data.message || 'Username updated successfully!', 'success')
+        } else {
+          let errorMessage = data.error || data.message || 'Failed to update username'
+          if (data.availableAt) {
+            const formatted = this.formatDateTime(data.availableAt)
+            if (formatted) errorMessage = `${errorMessage} Next update available on ${formatted}.`
+          }
+          this.showMessage(errorMessage, 'error')
+        }
+      } catch (error) {
+        console.error('Error updating username:', error)
+        this.showMessage('Network error. Please try again.', 'error')
+      } finally {
+        this.isSavingUsername = false
+      }
+    },
+
+    openEditEmail() {
+      this.editEmailForm.email = this.user.pendingEmail || this.user.email
+      this.acknowledgements.email = false
+      this.showEditEmailPopup = true
+    },
+
+    closeEditEmail() {
+      this.showEditEmailPopup = false
+      this.editEmailForm.email = ''
+      this.acknowledgements.email = false
+    },
+
+    async saveEmail() {
+      if (!this.canSaveEmail) return
+      this.isSavingEmail = true
+      try {
+        const PORT = import.meta.env.VITE_API_PORT
+        const payload = { email: this.editEmailForm.email.trim() }
+        const response = await fetch(`${PORT}/api/users/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (response.ok) {
+          if (data.user) this.setUserFromResponse(data.user)
+          localStorage.setItem('currentUser', JSON.stringify({ userId: this.user.userId, username: this.user.username, timestamp: Date.now() }))
+          this.closeEditEmail()
+          this.showMessage(data.message || 'Email updated successfully!', data.requiresEmailVerification ? 'info' : 'success')
+        } else {
+          let errorMessage = data.error || data.message || 'Failed to update email'
+          if (data.availableAt) {
+            const formatted = this.formatDateTime(data.availableAt)
+            if (formatted) errorMessage = `${errorMessage} Next update available on ${formatted}.`
+          }
+          this.showMessage(errorMessage, 'error')
+        }
+      } catch (error) {
+        console.error('Error updating email:', error)
+        this.showMessage('Network error. Please try again.', 'error')
+      } finally {
+        this.isSavingEmail = false
       }
     },
 
@@ -512,7 +889,14 @@ export default {
   border-bottom: 1px solid #eee;
 }
 
-.profile-info h3 {
+.profile-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-title h3 {
   margin: 0 0 8px 0;
   color: #333;
   font-size: 24px;
@@ -528,6 +912,36 @@ export default {
   color: #999;
   margin: 0;
   font-size: 14px;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.status-chip :deep(.v-icon) {
+  font-size: 16px;
+}
+
+.status-chip.success {
+  background: #e6f4ea;
+  color: #156a33;
+}
+
+.status-chip.warning {
+  background: #fff4d5;
+  color: #8b6500;
+}
+
+.status-chip.subtle {
+  padding: 2px 8px;
+  font-size: 11px;
 }
 
 .profile-details {
@@ -558,6 +972,56 @@ export default {
   color: #333;
   font-size: 16px;
   padding: 8px 0;
+}
+
+.info-value.pending {
+  color: #1d3a8a;
+}
+
+.pending-email-banner {
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid #dbe5ff;
+  background: linear-gradient(135deg, #f8faff, #eef3ff);
+  color: #1d3a8a;
+  font-size: 14px;
+}
+
+.pending-email-banner strong {
+  color: #0d47a1;
+}
+
+.pending-email-banner :deep(.v-icon) {
+  color: #4a90e2;
+  margin-top: 2px;
+}
+
+.cooldown-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.cooldown-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #f7f8fb;
+  border: 1px solid #e6e9f2;
+  color: #4a4d57;
+  font-size: 14px;
+}
+
+.cooldown-list :deep(.v-icon) {
+  color: #4a90e2;
 }
 
 .profile-actions h4 {
@@ -677,6 +1141,8 @@ export default {
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   animation: popupSlideIn 0.3s ease;
 }
@@ -731,6 +1197,20 @@ export default {
 .popup-content {
   padding: 32px 24px;
   text-align: center;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.popup-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+  background: #f8f9fa;
+  text-align: center;
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
 }
 
 .popup-icon {
@@ -756,6 +1236,27 @@ export default {
   color: #666;
   line-height: 1.5;
   margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .popup-modal {
+    margin: 10px;
+    width: calc(100% - 20px);
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .popup-content {
+    padding: 20px 16px;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+  .popup-actions {
+    padding: 12px 20px;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
 }
 
 .popup-actions {
@@ -841,6 +1342,200 @@ export default {
   border-color: #4a90e2;
 }
 
+.epic-edit-container {
+  background: #f4f6fb;
+  padding: 24px;
+}
+
+.epic-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: left;
+}
+
+.epic-section {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e6e9f2;
+  padding: 24px 24px 28px;
+  box-shadow: 0 12px 32px rgba(27, 39, 94, 0.08);
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.section-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #4a90e2, #7ba8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.section-icon.accent {
+  background: linear-gradient(135deg, #9352ff, #6a57ff);
+}
+
+.section-header h4 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.section-header p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.epic-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.epic-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-label {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.input-shell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f9f9fc;
+  border: 1px solid #d9dce6;
+  border-radius: 14px;
+  padding: 0 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.input-shell:focus-within {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+  background: #ffffff;
+}
+
+.input-shell .form-input {
+  border: none;
+  background: transparent;
+  padding: 14px 0;
+  font-size: 15px;
+  color: #111827;
+}
+
+.input-shell .form-input:focus {
+  border: none;
+}
+
+.field-icon {
+  color: #4a90e2;
+}
+
+.field-helper {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.epic-guidelines {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.epic-guidelines li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f4f6fb;
+  color: #4a4d57;
+  font-size: 13px;
+}
+
+.epic-guidelines :deep(.v-icon) {
+  color: #4a90e2;
+}
+
+.epic-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #f7e4c2;
+  background: #fdf6e9;
+  font-size: 13px;
+  color: #5a4822;
+}
+
+.epic-checkbox input {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  accent-color: #4a90e2;
+}
+
+.epic-checkbox span {
+  line-height: 1.4;
+}
+
+.pending-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #d8e2ff;
+  background: #f3f6ff;
+  color: #203a95;
+  font-size: 13px;
+}
+
+.pending-note strong {
+  color: #0b2fa2;
+}
+
+.pending-note :deep(.v-icon) {
+  color: #4a90e2;
+  margin-top: 2px;
+}
+
+.inline-actions {
+  background: transparent;
+  border-top: 1px solid #e6e9f2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 0 0;
+  text-align: right;
+}
+
+.inline-actions .popup-button.secondary {
+  margin-right: 0;
+}
+
 .popup-message.danger {
   color: #dc3545;
   font-weight: 600;
@@ -870,6 +1565,21 @@ export default {
   margin-bottom: 8px;
 }
 
+.edit-inline-btn {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  margin-left: 8px;
+  cursor: pointer;
+  color: #4a90e2;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.edit-inline-btn:hover {
+  background: #e6f4ea;
+}
+
 @media (max-width: 768px) {
   .profile-header {
     flex-direction: column;
@@ -881,6 +1591,24 @@ export default {
     grid-template-columns: 1fr;
   }
 
+  .epic-section {
+    padding: 20px;
+  }
+
+  .section-header {
+    flex-direction: column;
+  }
+
+  .inline-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .inline-actions .popup-button {
+    width: 100%;
+  }
+
   .tab-navigation {
     max-width: 100%;
   }
@@ -889,10 +1617,21 @@ export default {
     margin: 10px;
     width: calc(100% - 20px);
     max-height: 95vh;
+    display: flex;
+    flex-direction: column;
   }
 
   .popup-content {
     padding: 20px 16px;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  .popup-actions {
+    padding: 12px 20px;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
   }
 
   .popup-header {

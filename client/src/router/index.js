@@ -10,6 +10,7 @@ import AdminView from '../views/AdminView.vue'
 import LandingView from '../views/LandingView.vue'
 import AccountPersonalView from '../views/AccountPersonalView.vue'
 import AccountSecurityView from '../views/AccountSecurityView.vue'
+import VerifyEmailView from '../views/VerifyEmailView.vue'
 import AuthStore from '../scripts/authStore.js'
 import AboutView from '../views/AboutView.vue'
 
@@ -24,6 +25,7 @@ const router = createRouter({
     { path: '/register', component: Register, meta: { requiresAuth: false } },
     { path: '/forgot-password', component: ForgotPassword, meta: { requiresAuth: false } },
     { path: '/reset-password', component: ResetPassword, meta: { requiresAuth: false } },
+    { path: '/verify-email', component: VerifyEmailView, meta: { requiresAuth: false } },
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true } },
     { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true } },
     { path: '/about', component: AboutView, meta: { requiresAuth: true } },
