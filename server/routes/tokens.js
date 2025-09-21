@@ -72,6 +72,9 @@ const renewAccessToken = async (req, res) => {
   try {
     // Get the current refresh token to preserve sessionId
     const currentRefreshToken = req.cookies.refreshToken
+    if (!currentRefreshToken) {
+      return res.status(401).json({ error: 'No refresh token provided' })
+    }
     const currentTokenData = await RefreshTokenManager.getTokenByString(currentRefreshToken)
 
     if (!currentTokenData) {
@@ -88,7 +91,7 @@ const renewAccessToken = async (req, res) => {
         secure: true,
         sameSite: 'None',
       })
-      return res.status(401).json({
+      return res.status(403).json({
         error: 'TOKEN_REVOKED',
         message: 'Your session has been terminated. Please sign in again.',
       })
