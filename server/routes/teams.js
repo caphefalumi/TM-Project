@@ -20,12 +20,12 @@ const getCategories = async (req, res) => {
   }
 }
 
-const addUserToTeam = async (userId, username, teamId, role) => {
+const addUserToTeam = async (userId, teamId, role) => {
   try {
     const userOfTeam = new UsersOfTeam({
       userId,
-      username,
       teamId,
+      role,
       role,
     })
     // Check if the user is already in the team
@@ -67,7 +67,7 @@ const addTeamPro = async (req, res) => {
         console.error('Team not found after creation:', title)
         return res.status(404).json({ message: 'Team not found' })
       } else {
-        await addUserToTeam(userId, username, teamId._id, 'Admin')
+        await addUserToTeam(userId, teamId._id, 'Admin')
         console.log('User added as Admin to the team:', teamId._id)
       }
     } catch (error) {
