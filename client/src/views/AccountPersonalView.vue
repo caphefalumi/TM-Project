@@ -164,9 +164,7 @@
           <p class="popup-message">
             If you reset your password, all sessions will be logged out for your account.
           </p>
-          <p class="popup-instruction">
-            Do you want to continue?
-          </p>
+          <p class="popup-instruction">Do you want to continue?</p>
         </div>
         <div class="popup-actions">
           <button class="popup-button secondary" @click="closePasswordResetConfirm">Cancel</button>

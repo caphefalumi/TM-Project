@@ -168,8 +168,4 @@ const revokeRefreshToken = async (req, res) => {
   }
 }
 
-export {
-  addRefreshToken,
-  renewAccessToken,
-  revokeRefreshToken,
-}
+export { addRefreshToken, renewAccessToken, revokeRefreshToken }

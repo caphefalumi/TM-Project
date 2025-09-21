@@ -24,7 +24,6 @@ router.get('/user/:username', getUserIDAndEmailByName)
 router.post('/local/register', localRegister)
 router.post('/local/login', localLogin)
 
-
 router.get('/login-protected', authenticateAccessToken, (req, res) => {
   res.status(200).json({ success: 'Login access token is valid', user: req.user })
 })

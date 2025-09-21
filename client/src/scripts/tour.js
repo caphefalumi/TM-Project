@@ -84,13 +84,16 @@ export function startAppTour(router) {
     id: 'workflow-guide',
     text: '📈 This is the Workflow view in your Sample Team. Here you can track progress and manage tasks.',
     attachTo: { element: '#tour-progress-overview', on: 'bottom' },
-    buttons: withBackButton([
-      {
-        text: 'Next',
-        action: tour.next,
-        classes: 'shepherd-button-primary',
-      },
-    ], tour),
+    buttons: withBackButton(
+      [
+        {
+          text: 'Next',
+          action: tour.next,
+          classes: 'shepherd-button-primary',
+        },
+      ],
+      tour,
+    ),
   })
 
   // --- Guide to deleting the Sample Team ---
@@ -98,13 +101,16 @@ export function startAppTour(router) {
     id: 'delete-team-guide',
     text: '🗑️ Want to remove the Sample Team? Use the delete button here to clean up your workspace.',
     attachTo: { element: '#tour-team-options', on: 'bottom' },
-    buttons: withBackButton([
-      {
-        text: 'Finish',
-        action: tour.complete,
-        classes: 'shepherd-button-primary',
-      },
-    ], tour),
+    buttons: withBackButton(
+      [
+        {
+          text: 'Finish',
+          action: tour.complete,
+          classes: 'shepherd-button-primary',
+        },
+      ],
+      tour,
+    ),
   })
 
   // --- Resume logic: navigate to correct route before resuming ---

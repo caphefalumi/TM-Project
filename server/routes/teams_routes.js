@@ -47,7 +47,6 @@ router.get('/categories', getCategories)
 // Create a new team
 router.post('/', addTeamPro)
 
-
 router.post(
   '/:teamId/users/',
   authenticateAccessToken,

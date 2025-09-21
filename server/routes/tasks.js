@@ -320,14 +320,14 @@ const getTasksByGroupId = async (req, res) => {
     }
 
     // Get unique user IDs from tasks
-    const userIds = [...new Set(tasks.map(task => task.userId))]
-    
+    const userIds = [...new Set(tasks.map((task) => task.userId))]
+
     // Fetch user accounts to get usernames
     const users = await Account.find({ _id: { $in: userIds } }, { _id: 1, username: 1 })
-    
+
     // Create a mapping from userId to username
     const userIdToUsername = {}
-    users.forEach(user => {
+    users.forEach((user) => {
       userIdToUsername[user._id.toString()] = user.username
     })
 

@@ -48,5 +48,5 @@ export const authenticateAccessToken = async (req, res, next) => {
 export default {
   generateAccessToken,
   generateRefreshToken,
-  authenticateAccessToken
+  authenticateAccessToken,
 }

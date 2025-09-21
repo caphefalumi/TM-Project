@@ -203,6 +203,17 @@ watch(
   { immediate: true }, // Run immediately to sync with initial URL
 )
 
+// Watch for team title changes to update document title
+watch(
+  () => team.value.title,
+  (newTitle) => {
+    if (newTitle) {
+      document.title = `${newTitle} | Team Details`
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   // Set default tab parameter if not present
   if (!route.query.tab) {

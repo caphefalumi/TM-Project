@@ -195,14 +195,14 @@ export const getUsersOfTeam = async (req, res) => {
     }
 
     // Get unique user IDs to fetch usernames
-    const userIds = users.map(user => user.userId)
+    const userIds = users.map((user) => user.userId)
 
     // Fetch user accounts to get usernames
     const accounts = await Account.find({ _id: { $in: userIds } }, { _id: 1, username: 1 })
 
     // Create a mapping from userId to username
     const userIdToUsername = {}
-    accounts.forEach(account => {
+    accounts.forEach((account) => {
       userIdToUsername[account._id.toString()] = account.username
     })
 

@@ -118,7 +118,9 @@
                 <div class="month-name">{{ date.monthName }} {{ date.year }}</div>
               </template>
               <template v-else>
-                <div v-if="date.monthStart" class="month-label">{{ date.monthName }}</div>
+                <div v-if="date.monthStart" class="month-label">
+                  {{ date.monthName }} {{ date.year }}
+                </div>
                 <div class="day-number">{{ date.day }}</div>
               </template>
             </div>
