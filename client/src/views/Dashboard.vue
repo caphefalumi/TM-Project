@@ -604,7 +604,7 @@ const toggleSortOrder = () => {
 :deep(.v-data-table table) {
   table-layout: fixed;
   width: 100%;
-  min-width: 900px; /* Ensure table maintains minimum width */
+  min-width: 1050px; /* Ensure table maintains minimum width */
 }
 
 /* Text overrides for overdue dates */
