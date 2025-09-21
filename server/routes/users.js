@@ -187,17 +187,29 @@ export const getUsersOfTeam = async (req, res) => {
     }
 
     const users = await UsersOfTeam.find({ teamId })
-      .select('userId username role role_id')
+      .select('userId role role_id')
       .populate('role_id', 'name permissions icon color')
 
     if (users.length === 0) {
       return res.status(404).json({ message: 'No users found for this team' })
     }
 
-    // Transform the data to include custom role information
+    // Get unique user IDs to fetch usernames
+    const userIds = users.map(user => user.userId)
+    
+    // Fetch user accounts to get usernames
+    const accounts = await Account.find({ _id: { $in: userIds } }, { _id: 1, username: 1 })
+    
+    // Create a mapping from userId to username
+    const userIdToUsername = {}
+    accounts.forEach(account => {
+      userIdToUsername[account._id.toString()] = account.username
+    })
+
+    // Transform the data to include username and custom role information
     const transformedUsers = users.map((user) => ({
       userId: user.userId,
-      username: user.username,
+      username: userIdToUsername[user.userId] || 'Unknown User',
       role: user.role, // Default role (Admin/Member)
       customRole: user.role_id
         ? {
