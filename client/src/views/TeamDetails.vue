@@ -856,7 +856,7 @@ const confirmDeleteTeam = async () => {
               <v-icon start>mdi-clipboard-text</v-icon>
               Tasks
             </v-tab>
-            <v-tab value="workflow">
+            <v-tab id="tour-workflow-tab" value="workflow">
               <v-icon start>mdi-timeline-clock</v-icon>
               Workflow
             </v-tab>
@@ -876,7 +876,7 @@ const confirmDeleteTeam = async () => {
               <v-icon start>mdi-account-key</v-icon>
               Roles
             </v-tab>
-            <v-tab value="delete-team" v-if="isAdmin()">
+            <v-tab id="tour-delete-team-tab" value="delete-team" v-if="isAdmin()">
               <v-icon start>mdi-delete</v-icon>
               Delete Team
             </v-tab>
@@ -1154,7 +1154,9 @@ const confirmDeleteTeam = async () => {
               </div>
             </v-col>
           </v-row>
-          <WorkflowView v-model:taskGroups="taskGroups" />
+          <div id="tour-workflow-view">
+            <WorkflowView v-model:taskGroups="taskGroups" />
+          </div>
         </v-window-item>
 
         <!-- Manage Tab -->
