@@ -1,6 +1,7 @@
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
+import Account from '../models/Account.js'
 
 const getTasksOfAUser = async (req, res) => {
   // Get all tasks of a user across all teams
@@ -318,12 +319,25 @@ const getTasksByGroupId = async (req, res) => {
       return res.status(404).json({ message: 'No tasks found for this group' })
     }
 
-    // Group tasks by user for easier admin view
+    // Get unique user IDs from tasks
+    const userIds = [...new Set(tasks.map(task => task.userId))]
+    
+    // Fetch user accounts to get usernames
+    const users = await Account.find({ _id: { $in: userIds } }, { _id: 1, username: 1 })
+    
+    // Create a mapping from userId to username
+    const userIdToUsername = {}
+    users.forEach(user => {
+      userIdToUsername[user._id.toString()] = user.username
+    })
+
+    // Group tasks by username for easier admin view
     const tasksByUser = tasks.reduce((acc, task) => {
-      if (!acc[task.userId]) {
-        acc[task.userId] = []
+      const username = userIdToUsername[task.userId] || `Unknown User (${task.userId})`
+      if (!acc[username]) {
+        acc[username] = []
       }
-      acc[task.userId].push(task)
+      acc[username].push(task)
       return acc
     }, {})
 

@@ -367,7 +367,7 @@ onMounted(() => {
               <v-col cols="12">
                 <h3 class="text-h6 mb-3">Tasks by User</h3>
                 <v-card
-                  v-for="task in taskGroup.tasks"
+                  v-for="(task, index) in taskGroup.tasks"
                   :key="task._id"
                   class="mb-3"
                   variant="outlined"
