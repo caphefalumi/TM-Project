@@ -1,7 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config({ silent: true })
 import jwt from 'jsonwebtoken'
-import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 
 function generateAccessToken(user) {
   return jwt.sign(

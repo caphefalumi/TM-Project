@@ -1,15 +1,11 @@
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import JWTAuth from '../verify/JWTAuth.js'
 import crypto from 'crypto'
-
+import jwt from 'jsonwebtoken'
+import 'dotenv/config'
 const { generateAccessToken, generateRefreshToken } = JWTAuth
 
 const addRefreshToken = async (req, res) => {
-  // Middleware to:
-  // 1. Add refresh token to cookie
-  // 2. Create NEW refresh token in database with activity tracking
-  // 3. Use sessionId to track unique sessions across token refreshes
-
   const { user } = req.body
 
   if (!user) {
@@ -62,8 +58,6 @@ const addRefreshToken = async (req, res) => {
 }
 
 const renewAccessToken = async (req, res) => {
-  // Middleware to: Authenticate refresh token and renew access token
-  // Note: authenticateRefreshToken middleware should be called before this function
   if (await RefreshTokenManager.isUnauthorizedAccess(req.cookies.refreshToken)) {
     console.log('Unauthorized access detected for token:', req.cookies.refreshToken)
     return res.status(403).json({ error: 'Unauthorized access' })
@@ -96,14 +90,13 @@ const renewAccessToken = async (req, res) => {
         message: 'Your session has been terminated. Please sign in again.',
       })
     }
+    const user = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET)
 
-    // Generate new tokens but preserve the sessionId
-    const accessToken = generateAccessToken(req.user)
-    const refreshToken = generateRefreshToken(req.user)
+    const accessToken = generateAccessToken(user)
+    const refreshToken = generateRefreshToken(user)
 
-    // Create new refresh token with same sessionId
     await RefreshTokenManager.createRefreshToken({
-      userId: req.user.userId,
+      userId: user.userId,
       token: refreshToken,
       sessionId: currentTokenData.sessionId, // Preserve sessionId
       ipAddress: req.clientIp,
@@ -111,17 +104,17 @@ const renewAccessToken = async (req, res) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     })
 
-    console.log('Renewing access token for user:', req.user)
+    console.log('Renewing access token for user:', user)
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: true, // Use secure cookies in production
+      secure: true,
       sameSite: 'None',
       maxAge: 20 * 60 * 1000, // 20 minutes
       path: '/',
     })
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: true, // Use secure cookies in production
+      secure: true,
       sameSite: 'None',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
@@ -135,16 +128,12 @@ const renewAccessToken = async (req, res) => {
 }
 
 const revokeRefreshToken = async (req, res) => {
-  // Mark refresh token as revoked in database and clear cookies
-  // This is called when user logout or when refresh token needs to be invalidated
-
   const { userId } = req.body
   const refreshToken = req.cookies.refreshToken
 
   if (!refreshToken) {
     return res.status(400).json({ error: 'No refresh token provided' })
   }
-  // Clear all cookies immediately
   res.clearCookie('refreshToken', {
     path: '/',
     httpOnly: true,
@@ -166,7 +155,6 @@ const revokeRefreshToken = async (req, res) => {
   }
 
   try {
-    // Revoke all user's refresh tokens
     await RefreshTokenManager.revokeTokenByString(refreshToken, 'user_logout')
 
     console.log('Refresh tokens revoked successfully for user:', userId)
