@@ -1,12 +1,26 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NotificationCenter from './NotificationCenter.vue'
 
 // Import Admin.Vue if username is 'admin'
 
 const router = useRouter()
+const route = useRoute()
+
+const appTitle = 'Teams Management'
+
+const currentTitle = computed(() => {
+  const matchedWithTitle = [...route.matched].reverse().find((record) => record.meta?.title)
+  const pageTitle = matchedWithTitle?.meta?.title
+
+  if (pageTitle && pageTitle !== appTitle) {
+    return pageTitle
+  }
+
+  return appTitle
+})
 
 const { getUserByAccessToken } = AuthStore
 // Controls the visibility of the navigation drawer.
@@ -144,7 +158,6 @@ const updateNavigationItems = () => {
 }
 
 // Watch for user changes to update navigation
-import { watch } from 'vue'
 watch(() => user.value.username, updateNavigationItems, { immediate: true })
 </script>
 
@@ -155,7 +168,7 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
       <!-- The `d-lg-none` class hides drawer icon for large screens and up -->
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>Teams Management</v-toolbar-title>
+      <v-toolbar-title>{{ currentTitle }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
