@@ -148,6 +148,33 @@
       </div>
     </div>
 
+    <!-- Password Reset Confirmation Popup -->
+    <div v-if="showPasswordResetConfirm" class="popup-overlay" @click="closePasswordResetConfirm">
+      <div class="popup-modal" @click.stop>
+        <div class="popup-header">
+          <h3>Confirm Password Reset</h3>
+          <button class="close-button" @click="closePasswordResetConfirm">
+            <v-icon>mdi-close</v-icon>
+          </button>
+        </div>
+        <div class="popup-content">
+          <div class="popup-icon">
+            <v-icon size="48" color="info">mdi-information</v-icon>
+          </div>
+          <p class="popup-message">
+            If you reset your password, all sessions will be logged out for your account.
+          </p>
+          <p class="popup-instruction">
+            Do you want to continue?
+          </p>
+        </div>
+        <div class="popup-actions">
+          <button class="popup-button secondary" @click="closePasswordResetConfirm">Cancel</button>
+          <button class="popup-button primary" @click="confirmPasswordReset">Continue</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Username Edit Popup -->
     <div v-if="showEditUsernamePopup" class="popup-overlay" @click="closeEditUsername">
       <div class="popup-modal" @click.stop>
@@ -385,6 +412,8 @@ export default {
       showDeleteAccountPopup: false,
       showEditUsernamePopup: false,
       showEditEmailPopup: false,
+      showPasswordResetConfirm: false,
+      isResettingPassword: false,
       editForm: {
         username: '',
         email: '',
@@ -811,6 +840,20 @@ export default {
     },
 
     async changePassword() {
+      this.showPasswordResetConfirm = true
+    },
+
+    closePasswordResetPopup() {
+      this.showPasswordResetPopup = false
+    },
+
+    closePasswordResetConfirm() {
+      this.showPasswordResetConfirm = false
+    },
+
+    async confirmPasswordReset() {
+      this.showPasswordResetConfirm = false
+      this.isResettingPassword = true
       try {
         const PORT = import.meta.env.VITE_API_PORT
         const response = await fetch(`${PORT}/api/auth/forgot-password`, {
@@ -829,11 +872,9 @@ export default {
       } catch (error) {
         console.error('Error sending password reset email:', error)
         this.showMessage('Network error. Please try again.', 'error')
+      } finally {
+        this.isResettingPassword = false
       }
-    },
-
-    closePasswordResetPopup() {
-      this.showPasswordResetPopup = false
     },
 
     showMessage(text, type = 'info') {
