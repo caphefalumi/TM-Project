@@ -164,7 +164,7 @@ const revokeRefreshToken = async (req, res) => {
   }
 }
 
-export default {
+export {
   addRefreshToken,
   renewAccessToken,
   revokeRefreshToken,
