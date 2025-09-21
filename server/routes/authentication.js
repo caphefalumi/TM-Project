@@ -1,9 +1,15 @@
+import TeamsRoutes from './teams.js'
+const { addTeamPro } = TeamsRoutes
+
 import Account from '../models/Account.js'
 import crypto from 'crypto'
 import sendEmail from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Teams from '../models/Teams.js'
 import Tasks from '../models/Tasks.js'
+
+
+
 import 'dotenv/config'
 const getUserIDAndEmailByName = async (req, res) => {
   let { username } = req.params
@@ -50,55 +56,90 @@ const oAuthentication = async (req, res) => {
 
 // Helper function to create a sample team and sample tasks for a new user
 async function createSampleTeamAndTasks(account) {
-  // Create a sample team for the new user
-  const sampleTeam = new Teams({
-    title: `${account.username}'s Sample Team`,
-    category: 'Development',
-    description: 'This is your first sample team. You can edit or delete it.',
-    parentTeamId: 'none',
-  })
-  await sampleTeam.save()
+  try {
+    // Create a sample team for the new user using addTeamPro
+    const title = `${account.username}'s Sample Team`
+    const category = 'Development'
+    const description = 'This is your first sample team. You can edit or delete it.'
+    const userId = account._id.toString()
+    const username = account.username
 
-  // Create sample tasks for the team
-  const now = new Date()
-  const due = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 1 week later
-  const sampleTasks = [
-    new Tasks({
-      userId: account._id.toString(),
-      teamId: sampleTeam._id.toString(),
-      taskGroupId: 'sample-group',
-      design: {
-        numberOfFields: 1,
-        fields: [{ label: 'Description', type: 'Short text', config: { required: true } }],
-      },
-      title: 'Welcome Task',
-      category: 'Development',
-      tags: ['welcome'],
-      description: 'Complete this task to get started!',
-      priority: 'Medium',
-      weighted: 1,
-      startDate: now,
-      dueDate: due,
-    }),
-    new Tasks({
-      userId: account._id.toString(),
-      teamId: sampleTeam._id.toString(),
-      taskGroupId: 'sample-group',
-      design: {
-        numberOfFields: 1,
-        fields: [{ label: 'Checklist', type: 'Short text', config: { required: false } }],
-      },
-      title: 'Try Editing a Task',
-      category: 'Development',
-      tags: ['edit'],
-      description: 'Edit this task to see how it works.',
-      priority: 'Low',
-      weighted: 1,
-      startDate: now,
-      dueDate: due,
-    }),
-  ]
-  await Tasks.insertMany(sampleTasks)
+    // Create mock request and response objects for addTeamPro
+    const mockReq = {
+      body: {
+        title,
+        category,
+        description,
+        parentTeamId: null, // No parent team for sample team
+        userId,
+        username
+      }
+    }
+
+    let teamId = null
+    const mockRes = {
+      status: (code) => ({
+        json: (data) => {
+          if (code === 200 && data.teamId) {
+            teamId = data.teamId
+          }
+          return { status: code, data }
+        }
+      })
+    }
+
+    // Use addTeamPro to create the team
+    await addTeamPro(mockReq, mockRes)
+
+    if (!teamId) {
+      throw new Error('Failed to create sample team')
+    }
+
+    // Create sample tasks for the team
+    const now = new Date()
+    const due = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 1 week later
+    const sampleTasks = [
+      new Tasks({
+        userId: account._id.toString(),
+        teamId: teamId.toString(),
+        taskGroupId: 'sample-group',
+        design: {
+          numberOfFields: 1,
+          fields: [{ label: 'Description', type: 'Short text', config: { required: true } }],
+        },
+        title: 'Welcome Task',
+        category: 'Development',
+        tags: ['welcome'],
+        description: 'Complete this task to get started!',
+        priority: 'Medium',
+        weighted: 1,
+        startDate: now,
+        dueDate: due,
+      }),
+      new Tasks({
+        userId: account._id.toString(),
+        teamId: teamId.toString(),
+        taskGroupId: 'sample-group-2',
+        design: {
+          numberOfFields: 1,
+          fields: [{ label: 'Checklist', type: 'Short text', config: { required: false } }],
+        },
+        title: 'Try Editing a Task',
+        category: 'Development',
+        tags: ['edit'],
+        description: 'Edit this task to see how it works.',
+        priority: 'Low',
+        weighted: 1,
+        startDate: now,
+        dueDate: due,
+      }),
+    ]
+    await Tasks.insertMany(sampleTasks)
+    console.log('Sample team and tasks created successfully for user:', username)
+  } catch (error) {
+    console.error('Error creating sample team and tasks:', error)
+    throw error
+  }
 }
 
 const oAuthenticationRegister = async (req, res) => {
@@ -163,6 +204,7 @@ const localRegister = async (req, res) => {
     const account = new Account({ username, email, password, provider })
     await account.save()
     await createSampleTeamAndTasks(account)
+    console.log("Created account and sample team/tasks for user:", username)
     res
       .status(201)
       .json({ success: 'Account created successfully. Sample team and tasks created.' })
@@ -385,6 +427,8 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ error: 'Failed to reset password' })
   }
 }
+
+
 
 export default {
   getUserIDAndEmailByName,

@@ -44,7 +44,10 @@ const {
 // Metadata
 router.get('/categories', getCategories)
 // Teams
+// Create a new team
 router.post('/', addTeamPro)
+
+
 router.post(
   '/:teamId/users/',
   authenticateAccessToken,

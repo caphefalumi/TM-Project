@@ -387,7 +387,7 @@ watch(
   >
     <v-card>
       <v-card-title class="text-h5 pa-4 font-weight-bold">
-        <v-btn icon @click="closeDialog" variant="outlined" class="close-button">
+        <v-btn icon @click="closeDialog" variant="outlined" class="close-button" v-if="$vuetify.display.smAndUp">
           <v-icon>mdi-close</v-icon>
         </v-btn>
         <div class="text-center flex-grow-1">Submit Task: {{ props.task.title }}</div>
