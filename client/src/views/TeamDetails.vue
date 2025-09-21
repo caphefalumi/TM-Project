@@ -111,7 +111,7 @@ const canEditAnnouncements = computed(() => hasPermission('canManageAnnouncement
 
 // UI Feature Access - Users see features only if they have at least one permission from the group
 const showAnnouncementsFeature = computed(() => canAccessAnnouncements())
-const showMembersFeature = computed(() => canAccessMembers())
+const showMembersFeature = computed(() => hasPermission('canViewMembers'))
 const showAddMembersButton = computed(() => canAddTeamMembers())
 const allowCustomRoleSelection = computed(() => canCustomizeRolesForNewMembers())
 

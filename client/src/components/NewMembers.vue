@@ -87,9 +87,9 @@ const fetchUsers = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/users/all`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        credentials: 'include', // Important: sends refresh token cookie
       },
     })
 

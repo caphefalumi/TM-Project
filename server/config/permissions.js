@@ -19,7 +19,6 @@ export const MEMBERSHIP_PERMISSIONS = {
   VIEW_TASKS: 'canViewTasks',
   VIEW_ANNOUNCEMENTS: 'canViewAnnouncements',
   VIEW_MEMBERS: 'canViewMembers',
-  VIEW_TASK_GROUPS: 'canViewTaskGroups',
   SUBMIT_TASKS: 'canSubmitTasks',
 }
 
