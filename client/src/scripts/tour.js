@@ -65,466 +65,267 @@ export function startAppTour(router) {
     }
     return buttons
   }
-  function waitForElement(selector, timeout = 5000) {
-    if (!selector) {
-      return Promise.resolve()
-    }
-    return new Promise((resolve) => {
-      const existing = document.querySelector(selector)
-      if (existing) {
-        resolve(existing)
-        return
-      }
-      const start = Date.now()
-      const timer = setInterval(() => {
-        const element = document.querySelector(selector)
-        if (element || Date.now() - start >= timeout) {
-          clearInterval(timer)
-          resolve(element)
-        }
-      }, 100)
-    })
-  }
-
-  // --- Welcome & navigation intro ---
+  // --- Welcome Step ---
   tour.addStep({
     id: 'welcome',
-    text: "👋 Welcome to Teams Management! Let's take a quick tour so you can start collaborating with confidence.",
+    text: '🎉 Welcome to Teams Management! Ready for a quick tour of our powerful collaboration platform?',
     buttons: [
       {
-        text: 'Skip tour',
+        text: 'Skip Tour',
         action: tour.complete,
         classes: 'shepherd-button-secondary',
       },
-      {
-        text: 'Start tour',
-        action: tour.next,
-        classes: 'shepherd-button-primary',
-      },
+      { text: "Let's Go!", action: tour.next },
     ],
   })
 
+  // --- Main Navigation & Header ---
   tour.addStep({
-    id: 'core-navigation',
-    text: 'Your sidebar is the launchpad for Dashboard, Teams, and settings—hop back here whenever you need to switch focus.',
-    attachTo: { element: '#tour-sidebar-nav', on: 'right' },
-    beforeShowPromise: () => waitForElement('#tour-sidebar-nav'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
+    id: 'app-header',
+    text: '📱 Your command center: navigation, notifications, and quick actions all in one place.',
+    attachTo: { element: '#tour-app-header', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
-  // --- Key action #1: create teams and tasks ---
   tour.addStep({
-    id: 'go-to-teams',
-    text: "Let's build your first workspace. Jump into the Teams hub to create Team ABC.",
+    id: 'notification-center',
+    text: '🔔 Stay in the loop! All team updates, task assignments, and announcements land here.',
+    attachTo: { element: '#tour-notification-center', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'sidebar-navigation',
+    text: "🧭 Your navigation hub: Dashboard, Teams, and Admin tools (if you're an admin).",
     attachTo: { element: '#tour-sidebar-nav', on: 'right' },
-    beforeShowPromise: () => waitForElement('#tour-sidebar-nav'),
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  // --- Dashboard Overview ---
+  tour.addStep({
+    id: 'dashboard-welcome',
+    text: '🏠 Your personal command center! Everything you need to stay on top of your work.',
+    attachTo: { element: '#tour-dashboard-welcome', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'task-statistics',
+    text: '📊 Quick stats at a glance: Total, Completed, Pending, and Overdue tasks.',
+    attachTo: { element: '#tour-task-stats', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'progress-overview',
+    text: "📈 Visual progress tracking - see how you're crushing those tasks!",
+    attachTo: { element: '#tour-progress-overview', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'tasks-table',
+    text: '📋 Your complete task list with filtering, sorting, and all the details you need.',
+    attachTo: { element: '#tour-tasks-table', on: 'top' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'task-filters',
+    text: "🔍 Smart filters to find exactly what you're looking for - by status, priority, or dates.",
+    attachTo: { element: '#tour-task-filters', on: 'bottom' },
     buttons: withBackButton(
       [
         {
-          text: 'Open Teams hub',
+          text: 'Go to Teams',
           action: () => {
             router.push('/teams')
             setTimeout(() => tour.next(), 800)
           },
-          classes: 'shepherd-button-primary',
-        },
-        {
-          text: "I'm already there",
-          action: tour.next,
-          classes: 'shepherd-button-secondary',
         },
       ],
       tour,
     ),
   })
 
+  // --- Teams Overview ---
   tour.addStep({
-    id: 'create-team-abc',
-    text: 'Tap the + button to open the create form and spin up Team ABC with a clear title and description.',
-    attachTo: { element: '#tour-create-team-button', on: 'left' },
-    beforeShowPromise: () => waitForElement('#tour-create-team-button'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Open create team',
-          action: () => {
-            const button = document.querySelector('#tour-create-team-button')
-            if (button) {
-              button.click()
-              setTimeout(() => tour.next(), 500)
-            } else {
-              tour.next()
-            }
-          },
-          classes: 'shepherd-button-primary',
-        },
-        {
-          text: 'Form is open',
-          action: tour.next,
-        },
-      ],
-      tour,
-    ),
+    id: 'teams-overview',
+    text: '👥 Team central! View, create, and manage all your teams from this hub.',
+    attachTo: { element: '#tour-teams-overview', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
   tour.addStep({
-    id: 'team-form-abc',
-    text: 'Name this workspace “Team ABC”, add a quick description, choose a category, and hit Create to save it.',
-    attachTo: { element: '#tour-create-team-dialog', on: 'top' },
-    beforeShowPromise: () => waitForElement('#tour-create-team-dialog'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Team ABC saved',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
-
-  tour.addStep({
-    id: 'create-subteam',
-    text: 'Reopen the + button to add Team XYZ and see how easy it is to nest teams.',
-    attachTo: { element: '#tour-create-team-button', on: 'left' },
-    beforeShowPromise: () => waitForElement('#tour-create-team-button'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Open create team',
-          action: () => {
-            const button = document.querySelector('#tour-create-team-button')
-            if (button) {
-              button.click()
-              setTimeout(() => tour.next(), 500)
-            } else {
-              tour.next()
-            }
-          },
-          classes: 'shepherd-button-primary',
-        },
-        {
-          text: 'Form is open',
-          action: tour.next,
-        },
-      ],
-      tour,
-    ),
-  })
-
-  tour.addStep({
-    id: 'subteam-parent',
-    text: 'Select Team ABC as the parent, name this one “Team XYZ”, and save—now you have a sub-team ready for collaboration.',
-    attachTo: { element: '#tour-parent-team-select', on: 'right' },
-    beforeShowPromise: () => waitForElement('#tour-parent-team-select'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Team XYZ saved',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
+    id: 'team-management-options',
+    text: '⚡ Quick actions: Create new teams or manage existing ones with admin privileges.',
+    attachTo: { element: '#tour-team-options', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
   tour.addStep({
     id: 'team-search',
-    text: 'Use the search and filters to jump straight to Team ABC, Team XYZ, or any other workspace as your list grows.',
+    text: "🔎 Find teams fast with our smart search when you're part of many teams.",
     attachTo: { element: '#tour-team-search', on: 'bottom' },
-    beforeShowPromise: () => waitForElement('#tour-team-search'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
   tour.addStep({
-    id: 'team-card',
-    text: 'Open Team ABC to start planning tasks and workflows inside the workspace.',
+    id: 'team-cards',
+    text: '📇 Each card shows team info, progress, and your role. Click to dive deeper!',
     attachTo: { element: '#tour-team-card', on: 'top' },
-    beforeShowPromise: () => waitForElement('#tour-team-card'),
     buttons: withBackButton(
       [
         {
-          text: 'Open Team ABC',
+          text: 'View Team Details',
           action: () => {
-            const cards = Array.from(document.querySelectorAll('#tour-team-card'))
-            const abcCard =
-              cards.find((card) => card.textContent && card.textContent.includes('Team ABC')) ||
-              cards[0]
-            if (abcCard) {
-              abcCard.click()
-              setTimeout(() => tour.next(), 800)
-            } else {
-              tour.next()
+            // Try to find a team card and navigate to it
+            const teamCard = document.querySelector('#tour-team-card')
+            if (teamCard) {
+              teamCard.click()
             }
+            setTimeout(() => tour.next(), 800)
           },
-          classes: 'shepherd-button-primary',
-        },
-        {
-          text: 'Already inside',
-          action: tour.next,
-          classes: 'shepherd-button-secondary',
         },
       ],
       tour,
     ),
   })
 
+  // --- Team Details Page ---
   tour.addStep({
-    id: 'team-overview',
-    text: 'This header keeps your Team ABC mission, category, and metrics in view while you work.',
+    id: 'team-detail-header',
+    text: '🎯 Team details page - your mission control for this specific team!',
     attachTo: { element: '#tour-team-header', on: 'bottom' },
-    beforeShowPromise: () => waitForElement('#tour-team-header'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
   tour.addStep({
     id: 'team-tabs',
-    text: 'Tabs let you bounce between Tasks, Workflow, Announcements, Members, Roles, and the Delete Team safeguards.',
+    text: '📂 Organized tabs: Tasks, Task Groups, Announcements, Members, and Roles management.',
     attachTo: { element: '#tour-team-tabs', on: 'bottom' },
-    beforeShowPromise: () => waitForElement('#tour-team-tabs'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
   tour.addStep({
-    id: 'team-task-actions',
-    text: 'Click “Add New Tasks” to capture Team ABC’s first assignment. After saving here, repeat inside Team XYZ to add two starter tasks for that sub-team.',
+    id: 'team-action-buttons',
+    text: '🔧 Smart action buttons that adapt to your current tab and permissions.',
     attachTo: { element: '#tour-team-actions', on: 'bottom' },
-    beforeShowPromise: () => waitForElement('#tour-team-actions'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Add new task',
-          action: () => {
-            const addTaskButton = Array.from(
-              document.querySelectorAll('#tour-team-actions button'),
-            ).find((btn) => btn.textContent && btn.textContent.includes('Add New Tasks'))
-            if (addTaskButton) {
-              addTaskButton.click()
-              setTimeout(() => tour.next(), 500)
-            } else {
-              tour.next()
-            }
-          },
-          classes: 'shepherd-button-primary',
-        },
-        {
-          text: 'Dialog is open',
-          action: tour.next,
-          classes: 'shepherd-button-secondary',
-        },
-      ],
-      tour,
-    ),
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
   tour.addStep({
-    id: 'task-dialog',
-    text: 'Fill in titles, due dates, assignees, and tags, then publish your first Team ABC task. Use this same wizard to add the two starter tasks for Team XYZ.',
+    id: 'tasks-tab-content',
+    text: '✅ Tasks tab: View, search, and filter all team tasks with rich details.',
+    attachTo: { element: '#tour-tasks-content', on: 'top' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'task-search-filters',
+    text: '🎛️ Powerful search and filters to manage large task lists efficiently.',
+    attachTo: { element: '#tour-task-search', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'announcements-section',
+    text: '📢 Team announcements with likes and comments for great team communication.',
+    attachTo: { element: '#tour-announcements', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'members-section',
+    text: '👤 Team members with roles and permissions - perfect for team management.',
+    attachTo: { element: '#tour-members', on: 'bottom' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  // --- Task Management ---
+  tour.addStep({
+    id: 'new-task-dialog',
+    text: '📝 Create comprehensive tasks with all the details your team needs to succeed!',
     attachTo: { element: '#tour-new-task-dialog', on: 'top' },
-    beforeShowPromise: () => waitForElement('#tour-new-task-dialog'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Tasks created',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
   })
 
   tour.addStep({
-    id: 'workflow-tab',
-    text: 'Switch to Workflow to visualise how every task lines up on the shared calendar.',
-    attachTo: { element: '#tour-workflow-tab', on: 'bottom' },
-    beforeShowPromise: () => waitForElement('#tour-workflow-tab'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'View workflow',
-          action: () => {
-            const workflowTab = document.querySelector('#tour-workflow-tab')
-            if (workflowTab) {
-              workflowTab.click()
-              setTimeout(() => tour.next(), 500)
-            } else {
-              tour.next()
-            }
+    id: 'task-form-fields',
+    text: '🎨 Rich task creation: info, priority, scheduling, assignments, and tags - all covered!',
+    attachTo: { element: '#tour-task-form', on: 'right' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  tour.addStep({
+    id: 'task-preview',
+    text: '👀 Live preview shows exactly how your task will look to team members.',
+    attachTo: { element: '#tour-task-preview', on: 'left' },
+    buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+  })
+
+  // --- Admin Features ---
+  const isAdmin = document.querySelector('#tour-admin-nav')
+  if (isAdmin) {
+    tour.addStep({
+      id: 'admin-navigation',
+      text: '👑 Admin access unlocked! System-wide management at your fingertips.',
+      attachTo: { element: '#tour-admin-nav', on: 'right' },
+      buttons: withBackButton(
+        [
+          {
+            text: 'Go to Admin Panel',
+            action: () => {
+              router.push('/admin')
+              setTimeout(() => tour.next(), 800)
+            },
           },
-          classes: 'shepherd-button-primary',
-        },
-        {
-          text: 'Already on workflow',
-          action: tour.next,
-          classes: 'shepherd-button-secondary',
-        },
-      ],
-      tour,
-    ),
-  })
+        ],
+        tour,
+      ),
+    })
 
-  tour.addStep({
-    id: 'workflow-view',
-    text: 'The workflow board plots your Team ABC and Team XYZ tasks—toggle views, inspect cards, and keep work flowing.',
-    attachTo: { element: '#tour-workflow-view', on: 'top' },
-    beforeShowPromise: () => waitForElement('#tour-workflow-view'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
+    tour.addStep({
+      id: 'admin-panel',
+      text: '🛠️ Admin Command Center: Teams, Users, and Announcements management in one place.',
+      attachTo: { element: '#tour-admin-panel', on: 'bottom' },
+      buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+    })
 
-  tour.addStep({
-    id: 'delete-team',
-    text: 'When Team ABC has run its course, the Delete Team tab lists every sub-team and asks for final confirmation before removal.',
-    attachTo: { element: '#tour-delete-team-tab', on: 'bottom' },
-    beforeShowPromise: () => waitForElement('#tour-delete-team-tab'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Got it',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
+    tour.addStep({
+      id: 'admin-teams-tab',
+      text: '🏢 Teams overview: member counts, task stats, and full management controls.',
+      attachTo: { element: '#tour-admin-teams', on: 'bottom' },
+      buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+    })
 
-  // --- Progress & checklist ---
-  tour.addStep({
-    id: 'go-to-dashboard',
-    text: 'Head back to your dashboard to celebrate progress and keep the momentum going.',
-    attachTo: { element: '#tour-sidebar-nav', on: 'right' },
-    beforeShowPromise: () => waitForElement('#tour-sidebar-nav'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Open dashboard',
-          action: () => {
-            router.push('/home')
-            setTimeout(() => tour.next(), 800)
-          },
-          classes: 'shepherd-button-primary',
-        },
-        {
-          text: "I'm on the dashboard",
-          action: tour.next,
-          classes: 'shepherd-button-secondary',
-        },
-      ],
-      tour,
-    ),
-  })
+    tour.addStep({
+      id: 'admin-users-tab',
+      text: '👥 User management: send notifications, manage accounts, keep the platform healthy.',
+      attachTo: { element: '#tour-admin-users', on: 'bottom' },
+      buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+    })
 
-  tour.addStep({
-    id: 'progress-checklist',
-    text: "These status cards act like your onboarding checklist:\n✅ Completed profile setup\n✅ Created Team ABC and its first task\n✅ Added two starter tasks in Team XYZ\n⬜ Invite teammates from the Members tab\n⬜ Explore more settings when you're ready.",
-    attachTo: { element: '#tour-task-stats', on: 'bottom' },
-    beforeShowPromise: () => waitForElement('#tour-task-stats'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
+    tour.addStep({
+      id: 'admin-announcements-tab',
+      text: '📢 System-wide announcements: keep everyone informed and engaged.',
+      attachTo: { element: '#tour-admin-announcements', on: 'bottom' },
+      buttons: withBackButton([{ text: 'Next', action: tour.next }], tour),
+    })
+  }
 
-  tour.addStep({
-    id: 'dashboard-table',
-    text: 'Use the task table to filter, sort, and jump straight into the team that owns any item—perfect for hopping between Team ABC and Team XYZ.',
-    attachTo: { element: '#tour-tasks-table', on: 'top' },
-    beforeShowPromise: () => waitForElement('#tour-tasks-table'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
-
-  // --- Support & completion ---
-  tour.addStep({
-    id: 'support',
-    text: 'Need a refresher later? Tap Start Tour or open help to replay these steps, browse docs, or reach the support team.',
-    attachTo: { element: '#tour-help-button', on: 'top' },
-    beforeShowPromise: () => waitForElement('#tour-help-button'),
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
-
+  // --- Final Step ---
   tour.addStep({
     id: 'tour-complete',
-    text: "🎉 You're all set! Keep creating teams, collaborate across workflows, track progress, and retire spaces when the mission is complete.",
+    text: "🎉 Tour complete! You're now ready to master Teams Management. Time to collaborate like a pro!",
     buttons: [
       {
-        text: 'Start collaborating',
+        text: 'Start Collaborating!',
         action: tour.complete,
         classes: 'shepherd-button-primary',
       },
       {
-        text: 'Replay tour',
+        text: 'Replay Tour',
         action: () => {
           localStorage.removeItem('tour-state')
           tour.cancel()
