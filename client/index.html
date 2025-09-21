@@ -1,14 +1,91 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Management</title>
+    <!-- Google Fonts for modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1976D2, #43A047);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        color: white;
+      }
+      .loading-character {
+        font-size: 4rem;
+        animation: bounce 2s infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-30px);
+        }
+        60% {
+          transform: translateY(-15px);
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <!-- Loading screen -->
+      <div class="loading-screen" id="loading-screen">
+        <div class="loading-character">🚀</div>
+        <h2>Team Management</h2>
+        <p id="loading-message">Initializing your team workspace...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.js"></script>
+    <script>
+      // Array of motivational/professional/friendly messages
+      const messages = [
+        'Getting your team ready to shine…',
+        'Setting the stage for teamwork magic…',
+        'Bringing your team together…',
+        'Initializing your team workspace…',
+        'Preparing your team dashboard…',
+        'Setting up your collaboration hub…',
+        'Kickstarting your team journey…',
+        'Empowering your team to succeed…',
+        'Fueling up your team’s potential…'
+      ];
+      // Pick a random message
+      document.getElementById('loading-message').textContent = messages[Math.floor(Math.random() * messages.length)];
+      // Hide loading screen when app is ready
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loadingScreen = document.getElementById('loading-screen');
+          if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transition = 'opacity 0.5s ease';
+            setTimeout(function() {
+              loadingScreen.style.display = 'none';
+            }, 500);
+          }
+        }, 1500);
+      });
+    </script>
   </body>
 </html>
 
