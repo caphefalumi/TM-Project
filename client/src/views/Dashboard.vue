@@ -238,6 +238,7 @@ const toggleSortOrder = () => {
       </v-col>
       <v-col cols="12" md="4" class="text-right">
         <v-btn
+          id="tour-help-button"
           @click="() => startAppTour(router)"
           color="success"
           size="large"
