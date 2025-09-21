@@ -19,22 +19,67 @@ const { getUserByAccessToken } = AuthStore
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: LandingView, meta: { requiresAuth: false, redirectIfAuthenticated: true } },
-    { path: '/landing', component: LandingView, meta: { requiresAuth: false, redirectIfAuthenticated: true } },
-    { path: '/login', component: Login, meta: { requiresAuth: false, redirectIfAuthenticated: true } },
-    { path: '/register', component: Register, meta: { requiresAuth: false, redirectIfAuthenticated: true } },
-    { path: '/forgot-password', component: ForgotPassword, meta: { requiresAuth: false } },
-    { path: '/reset-password', component: ResetPassword, meta: { requiresAuth: false } },
-    { path: '/verify-email', component: VerifyEmailView, meta: { requiresAuth: false } },
-    { path: '/teams', component: TeamsView, meta: { requiresAuth: true } },
-    { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true } },
-    { path: '/about', component: AboutView, meta: { requiresAuth: true } },
-    { path: '/home', component: Dashboard, meta: { requiresAuth: true } },
-    { path: '/account/personal', component: AccountPersonalView, meta: { requiresAuth: true } },
-    { path: '/account/security', component: AccountSecurityView, meta: { requiresAuth: true } },
+    {
+      path: '/',
+      component: LandingView,
+      meta: { requiresAuth: false, redirectIfAuthenticated: true, title: 'Teams Management' },
+    },
+    {
+      path: '/landing',
+      component: LandingView,
+      meta: { requiresAuth: false, redirectIfAuthenticated: true, title: 'Teams Management' },
+    },
+    {
+      path: '/login',
+      component: Login,
+      meta: { requiresAuth: false, redirectIfAuthenticated: true, title: 'Sign In' },
+    },
+    {
+      path: '/register',
+      component: Register,
+      meta: { requiresAuth: false, redirectIfAuthenticated: true, title: 'Create Account' },
+    },
+    {
+      path: '/forgot-password',
+      component: ForgotPassword,
+      meta: { requiresAuth: false, title: 'Forgot Password' },
+    },
+    { path: '/reset-password', component: ResetPassword, meta: { requiresAuth: false, title: 'Reset Password' } },
+    { path: '/verify-email', component: VerifyEmailView, meta: { requiresAuth: false, title: 'Verify Email' } },
+    { path: '/teams', component: TeamsView, meta: { requiresAuth: true, title: 'Teams' } },
+    { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true, title: 'Team Details' } },
+    { path: '/about', component: AboutView, meta: { requiresAuth: true, title: 'About' } },
+    { path: '/home', component: Dashboard, meta: { requiresAuth: true, title: 'Dashboard' } },
+    {
+      path: '/account/personal',
+      component: AccountPersonalView,
+      meta: { requiresAuth: true, title: 'Personal Information' },
+    },
+    {
+      path: '/account/security',
+      component: AccountSecurityView,
+      meta: { requiresAuth: true, title: 'Security Settings' },
+    },
     { path: '/account', redirect: '/account/personal' },
-    { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
+    {
+      path: '/admin',
+      component: AdminView,
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin Panel' },
+    },
   ],
+})
+
+const defaultTitle = 'Teams Management'
+
+router.afterEach((to) => {
+  const nearestWithTitle = [...to.matched].reverse().find((routeRecord) => routeRecord.meta?.title)
+  const pageTitle = nearestWithTitle?.meta?.title
+
+  if (pageTitle && pageTitle !== defaultTitle) {
+    document.title = `${pageTitle} | ${defaultTitle}`
+  } else {
+    document.title = defaultTitle
+  }
 })
 
 router.beforeEach(async (to, from, next) => {
