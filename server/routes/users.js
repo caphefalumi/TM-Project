@@ -196,10 +196,10 @@ export const getUsersOfTeam = async (req, res) => {
 
     // Get unique user IDs to fetch usernames
     const userIds = users.map(user => user.userId)
-    
+
     // Fetch user accounts to get usernames
     const accounts = await Account.find({ _id: { $in: userIds } }, { _id: 1, username: 1 })
-    
+
     // Create a mapping from userId to username
     const userIdToUsername = {}
     accounts.forEach(account => {
@@ -489,7 +489,7 @@ export const updateUserProfile = async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    const normalizedUsername = username !== undefined ? username.toLowerCase() : account.username
+    const normalizedUsername = username
     const normalizedEmail = email !== undefined ? email.toLowerCase() : account.email
 
     const usernameChanged = username !== undefined && normalizedUsername !== account.username

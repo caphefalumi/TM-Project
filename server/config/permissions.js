@@ -27,6 +27,7 @@ export const ROLE_PERMISSIONS = {
   Admin: [
     ...Object.values(MEMBERSHIP_PERMISSIONS),
     ...Object.values(PERMISSIONS),
+    'canViewTaskGroups',
     'canAssignTasks',
     'canDeleteTeams',
     'canCreateSubTeams',

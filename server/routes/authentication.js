@@ -1,11 +1,9 @@
 import TeamsRoutes from './teams.js'
 const { addTeamPro } = TeamsRoutes
-
 import Account from '../models/Account.js'
 import crypto from 'crypto'
 import sendEmail from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
-import Teams from '../models/Teams.js'
 import Tasks from '../models/Tasks.js'
 
 
@@ -244,7 +242,6 @@ const localLogin = async (req, res) => {
     // Optionally revoke all existing tokens or require additional verification
     // await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
   }
-
   // Create user object for token generation
   const user = {
     userId: account._id,
