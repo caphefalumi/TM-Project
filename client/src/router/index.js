@@ -76,7 +76,7 @@ router.afterEach((to) => {
   const pageTitle = nearestWithTitle?.meta?.title
 
   if (pageTitle && pageTitle !== defaultTitle) {
-    document.title = `${pageTitle} | ${defaultTitle}`
+    document.title = pageTitle || defaultTitle
   } else {
     document.title = defaultTitle
   }
