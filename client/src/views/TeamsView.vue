@@ -351,7 +351,7 @@ const getProgressColor = (percentage) => {
                   </v-card-text>
 
                   <!-- Progress Section -->
-                  <v-card-text v-if="team.progress.progressPercentage > 0" class="pt-0">
+                  <v-card-text v-if="team.progress.progressPercentage >= 0" class="pt-0">
                     <div class="progress-section">
                       <div class="progress-label mb-2">
                         <span class="text-caption text-grey-darken-1">
