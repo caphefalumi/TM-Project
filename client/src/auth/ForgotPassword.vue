@@ -28,6 +28,9 @@
               <p class="text-body-1 mb-4 text-center">
                 Enter your email address and we'll send you a link to reset your password.
               </p>
+              <v-alert type="info" class="mb-4" border="start" color="primary" icon="mdi-information">
+                If you reset your password, all sessions will be logged out for your account.
+              </v-alert>
 
               <v-text-field
                 v-model="email"
