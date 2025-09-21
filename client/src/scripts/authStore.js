@@ -82,7 +82,7 @@ const logout = async () => {
       return { success: true, message: 'Already logged out' }
     }
 
-    const response = await fetch(`${PORT}/api/auth/tokens/refresh`, {
+    const response = await fetch(`${PORT}/api/sessions/me`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

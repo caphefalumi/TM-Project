@@ -1,6 +1,8 @@
 import express from 'express'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import { authenticateAccessToken } from '../verify/JWTAuth.js'
+import { addRefreshToken, revokeRefreshToken, renewAccessToken } from './tokens.js'
+import { authenticateRefreshToken } from '../verify/JWTAuth.js'
 
 const router = express.Router()
 
@@ -52,39 +54,13 @@ router.get('/security', authenticateAccessToken, async (req, res) => {
   }
 })
 
-/**
- * Revoke a specific session by sessionId
- */
-router.delete('/session/:sessionId', authenticateAccessToken, async (req, res) => {
-  try {
-    const { sessionId } = req.params
-    const userId = req.user.userId
-
-    // Verify the session belongs to the user
-    const token = await RefreshTokenManager.getTokenByString(req.cookies.refreshToken)
-    if (!token || token.userId !== userId) {
-      return res.status(403).json({ error: 'Unauthorized' })
-    }
-
-    const result = await RefreshTokenManager.revokeSession(sessionId, 'user_revoke')
-
-    if (!result || result.modifiedCount === 0) {
-      return res.status(404).json({ error: 'Session not found' })
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Session ended successfully',
-      tokensRevoked: result.modifiedCount,
-    })
-  } catch (error) {
-    console.error('Error revoking session:', error)
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
+// Token Handling
+router.post('/me', addRefreshToken)
+router.delete('/me', revokeRefreshToken)
+router.post('/refresh', authenticateRefreshToken, renewAccessToken)
 
 /**
- * Revoke a specific token (legacy support)
+ * Revoke a specific token
  */
 router.delete('/:tokenId', authenticateAccessToken, async (req, res) => {
   try {

@@ -149,7 +149,7 @@ const createRefreshToken = async () => {
       username: username.value.toLowerCase(),
       email: userEmail.value,
     }
-    const res = await fetch(`${PORT}/api/auth/tokens/refresh`, {
+    const res = await fetch(`${PORT}/api/sessions/me`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include', // Include cookies for authentication
