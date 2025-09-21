@@ -44,10 +44,22 @@ const router = createRouter({
       component: ForgotPassword,
       meta: { requiresAuth: false, title: 'Forgot Password' },
     },
-    { path: '/reset-password', component: ResetPassword, meta: { requiresAuth: false, title: 'Reset Password' } },
-    { path: '/verify-email', component: VerifyEmailView, meta: { requiresAuth: false, title: 'Verify Email' } },
+    {
+      path: '/reset-password',
+      component: ResetPassword,
+      meta: { requiresAuth: false, title: 'Reset Password' },
+    },
+    {
+      path: '/verify-email',
+      component: VerifyEmailView,
+      meta: { requiresAuth: false, title: 'Verify Email' },
+    },
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true, title: 'Teams' } },
-    { path: '/teams/:teamId', component: TeamDetails, meta: { requiresAuth: true, title: 'Team Details' } },
+    {
+      path: '/teams/:teamId',
+      component: TeamDetails,
+      meta: { requiresAuth: true, title: 'Team Details' },
+    },
     { path: '/about', component: AboutView, meta: { requiresAuth: true, title: 'About' } },
     { path: '/home', component: Dashboard, meta: { requiresAuth: true, title: 'Dashboard' } },
     {

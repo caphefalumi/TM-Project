@@ -6,8 +6,6 @@ import sendEmail from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Tasks from '../models/Tasks.js'
 
-
-
 import 'dotenv/config'
 const getUserIDAndEmailByName = async (req, res) => {
   let { username } = req.params
@@ -70,8 +68,8 @@ async function createSampleTeamAndTasks(account) {
         description,
         parentTeamId: null, // No parent team for sample team
         userId,
-        username
-      }
+        username,
+      },
     }
 
     let teamId = null
@@ -82,8 +80,8 @@ async function createSampleTeamAndTasks(account) {
             teamId = data.teamId
           }
           return { status: code, data }
-        }
-      })
+        },
+      }),
     }
 
     // Use addTeamPro to create the team
@@ -202,7 +200,7 @@ const localRegister = async (req, res) => {
     const account = new Account({ username, email, password, provider })
     await account.save()
     await createSampleTeamAndTasks(account)
-    console.log("Created account and sample team/tasks for user:", username)
+    console.log('Created account and sample team/tasks for user:', username)
     res
       .status(201)
       .json({ success: 'Account created successfully. Sample team and tasks created.' })
@@ -424,8 +422,6 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ error: 'Failed to reset password' })
   }
 }
-
-
 
 export default {
   getUserIDAndEmailByName,
