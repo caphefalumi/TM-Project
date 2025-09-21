@@ -75,6 +75,19 @@ const renewAccessToken = async (req, res) => {
     const currentTokenData = await RefreshTokenManager.getTokenByString(currentRefreshToken)
 
     if (!currentTokenData) {
+      console.log('Revoked token used:', currentRefreshToken)
+      res.clearCookie('accessToken', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+      })
+      res.clearCookie('refreshToken', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+      })
       return res.status(401).json({
         error: 'TOKEN_REVOKED',
         message: 'Your session has been terminated. Please sign in again.',

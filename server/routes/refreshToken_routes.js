@@ -2,7 +2,6 @@ import express from 'express'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import { authenticateAccessToken } from '../verify/JWTAuth.js'
 import { addRefreshToken, revokeRefreshToken, renewAccessToken } from './tokens.js'
-import { authenticateRefreshToken } from '../verify/JWTAuth.js'
 
 const router = express.Router()
 
@@ -57,7 +56,7 @@ router.get('/security', authenticateAccessToken, async (req, res) => {
 // Token Handling
 router.post('/me', addRefreshToken)
 router.delete('/me', revokeRefreshToken)
-router.post('/refresh', authenticateRefreshToken, renewAccessToken)
+router.post('/refresh', renewAccessToken)
 
 /**
  * Revoke a specific token
