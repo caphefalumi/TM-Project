@@ -62,57 +62,7 @@ export function startAppTour(router) {
     return buttons
   }
 
-  // --- Guide to Dashboard ---
-  tour.addStep({
-    id: 'dashboard-guide',
-    text: '🏠 Welcome! This is your Dashboard. Here you can see your tasks and team activities at a glance.',
-    attachTo: { element: '#tour-dashboard-welcome', on: 'bottom' },
-    buttons: [
-      {
-        text: 'Go to Sample Team',
-        action: () => {
-          router.push('/teams/sample-team')
-          setTimeout(() => tour.next(), 800)
-        },
-        classes: 'shepherd-button-primary',
-      },
-    ],
-  })
-
-  // --- Guide to Workflow in Sample Team ---
-  tour.addStep({
-    id: 'workflow-guide',
-    text: '📈 This is the Workflow view in your Sample Team. Here you can track progress and manage tasks.',
-    attachTo: { element: '#tour-progress-overview', on: 'bottom' },
-    buttons: withBackButton(
-      [
-        {
-          text: 'Next',
-          action: tour.next,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
-
-  // --- Guide to deleting the Sample Team ---
-  tour.addStep({
-    id: 'delete-team-guide',
-    text: '🗑️ Want to remove the Sample Team? Use the delete button here to clean up your workspace.',
-    attachTo: { element: '#tour-team-options', on: 'bottom' },
-    buttons: withBackButton(
-      [
-        {
-          text: 'Finish',
-          action: tour.complete,
-          classes: 'shepherd-button-primary',
-        },
-      ],
-      tour,
-    ),
-  })
-
+ 
   // --- Resume logic: navigate to correct route before resuming ---
   function getCurrentRoute() {
     return router.currentRoute && router.currentRoute.value
@@ -133,7 +83,7 @@ export function startAppTour(router) {
       tour.show(stepIndex)
     }
   }
-
+  
   if (shouldResume && startStepIndex > 0 && startStepIndex < tour.steps.length) {
     resumeTourAtStep(startStepIndex, startRoute)
   } else {
