@@ -237,12 +237,20 @@ const features = [
             <div class="contact-info">
               <h4 class="contact-title">Contact Us</h4>
               <div class="contact-item">
-                <v-icon class="mr-2">mdi-phone</v-icon>
-                <span>Hotline: 0123999888</span>
+                <span>
+                  <a href="mailto:khanhkelvin08122006@gmail.com" style="color: inherit; text-decoration: underline">
+                    <v-icon class="mr-2">mdi-email</v-icon>
+                    <span>khanhkelvin08122006@gmail.com</span>
+                  </a>
+                </span>
               </div>
               <div class="contact-item">
-                <v-icon class="mr-2">mdi-email</v-icon>
-                <span>Email: admin123@gmail.com</span>
+                <span>
+                  <a href="https://github.com/caphefalumi/TM-Project" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline">
+                    <v-icon class="mr-2">mdi-github</v-icon>
+                    <span>TM-Project</span>
+                  </a>
+                </span>
               </div>
             </div>
           </v-col>

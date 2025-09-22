@@ -24,7 +24,7 @@ const addRefreshToken = async (req, res) => {
       userId: user.userId,
       token: refreshToken,
       sessionId: sessionId,
-      ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     })

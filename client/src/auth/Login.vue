@@ -25,6 +25,7 @@ const usingOAuthRegister = ref(false)
 const isLoading = ref(false)
 const error = ref('')
 const success = ref('')
+const showResendVerification = ref(false)
 
 const sendToHomePage = async () => {
   // Send to home if user already has an account
@@ -194,6 +195,10 @@ const loginUsingLocal = async () => {
     const data = await res.json()
     if (!res.ok || data.error) {
       error.value = data.error
+      // Show resend verification option if error is about email not verified
+      if (data.error && data.error.includes('Email not verified')) {
+        showResendVerification.value = true
+      }
     } else if (data.success) {
       console.log('Local Login Data:', data)
       success.value = data.success
@@ -300,6 +305,31 @@ const registerWithOAuth = async () => {
     isLoading.value = false
   }
 }
+
+const resendVerificationEmail = async () => {
+  isLoading.value = true
+  error.value = ''
+  success.value = ''
+  try {
+    const PORT = import.meta.env.VITE_API_PORT
+    const res = await fetch(`${PORT}/api/auth/resend-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: userEmail.value }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      success.value = data.success
+      showResendVerification.value = false
+    } else {
+      error.value = data.error || 'Failed to resend verification email.'
+    }
+  } catch (err) {
+    error.value = 'Network error'
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -374,6 +404,18 @@ const registerWithOAuth = async () => {
             </v-form>
             <v-alert v-if="error" type="error" class="mt-2">{{ error }}</v-alert>
             <v-alert v-if="success" type="success" class="mt-2">{{ success }}</v-alert>
+
+            <!-- Resend Verification Email Link -->
+            <div v-if="showResendVerification" class="text-center mt-3 mb-2">
+              <v-btn
+                variant="text"
+                color="primary"
+                size="small"
+                @click="resendVerificationEmail"
+              >
+                Resend Verification Email
+              </v-btn>
+            </div>
 
             <!-- Forgot Password Link -->
             <div class="text-center mt-3 mb-2">

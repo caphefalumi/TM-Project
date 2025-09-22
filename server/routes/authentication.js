@@ -2,11 +2,15 @@ import TeamsRoutes from './teams.js'
 const { addTeamPro } = TeamsRoutes
 import Account from '../models/Account.js'
 import crypto from 'crypto'
-import sendEmail from '../scripts/mailer.js'
+import Mailer from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Tasks from '../models/Tasks.js'
 
 import 'dotenv/config'
+
+const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
+
 const getUserIDAndEmailByName = async (req, res) => {
   let { username } = req.params
   if (!username) {
@@ -161,7 +165,7 @@ const oAuthenticationRegister = async (req, res) => {
     }
   }
   try {
-    const account = new Account({ username, email, provider })
+    const account = new Account({ username, email, provider, emailVerified: true })
     await account.save()
     await createSampleTeamAndTasks(account)
     res
@@ -197,13 +201,26 @@ const localRegister = async (req, res) => {
 
   // 3. Create and save account (password will be hashed by pre-save hook)
   try {
-    const account = new Account({ username, email, password, provider })
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex')
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex')
+    const account = new Account({
+      username,
+      email,
+      password,
+      provider,
+      emailVerified: false,
+      emailVerificationToken: hashedToken,
+      emailVerificationExpires: new Date(Date.now() + EMAIL_VERIFICATION_EXPIRATION),
+    })
     await account.save()
     await createSampleTeamAndTasks(account)
+
+    // Send verification email
+    await Mailer.sendVerificationEmail(email, verificationToken)
+
     console.log('Created account and sample team/tasks for user:', username)
-    res
-      .status(201)
-      .json({ success: 'Account created successfully. Sample team and tasks created.' })
+    res.status(201).json({ success: 'Account created. Please verify your email to activate your account.' })
   } catch (err) {
     res.status(400).json({ error: err.message })
   }
@@ -240,6 +257,9 @@ const localLogin = async (req, res) => {
     // Optionally revoke all existing tokens or require additional verification
     // await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
   }
+  if (account.emailVerified === false) {
+    return res.status(403).json({ error: 'Email not verified. Please verify your email before logging in.' })
+  }
   // Create user object for token generation
   const user = {
     userId: account._id,
@@ -263,71 +283,25 @@ const localLogin = async (req, res) => {
 const forgotPassword = async (req, res) => {
   try {
     let { email } = req.body
-
     if (!email) {
       return res.status(400).json({ error: 'Email is required' })
     }
-
     email = email.toLowerCase()
     const account = await Account.findOne({ email })
-
     if (!account) {
       return res.status(404).json({ error: 'No account found with that email address' })
     }
-
-    // Generate a random token using crypto
     const resetToken = crypto.randomBytes(32).toString('hex')
-
-    // Hash the token before storing it in the database for security
     const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex')
-
     account.passwordResetToken = hashedToken
-    account.passwordResetExpires = Date.now() + 900000 // 15 minutes from now
+    account.passwordResetExpires = Date.now() + 900000 // 15 minutes
     await account.save()
-
-    // Use the plain token (not hashed) for the email link
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`
-    const mailOptions = {
-      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
-      to: account.email,
-      subject: 'Password Reset Request',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <h2 style="color: #4A90E2;">Password Reset Request</h2>
-          <p>Hello,</p>
-          <p>You recently requested to reset your password. Please click the button below to set a new one:</p>
-
-          <p style="text-align: center;">
-            <a href="${resetUrl}"
-              style="background-color: #4A90E2; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Reset Password
-            </a>
-          </p>
-
-          <p style="margin-top: 20px; font-size: 14px; color: #d9534f;">
-             This link will expire in <strong>15 minutes</strong>.
-            If you did not request a password reset, you can safely ignore this email.
-          </p>
-
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
-          <p style="font-size: 12px; color: #777;">
-            If the button above does not work, copy and paste this link into your browser:<br>
-            <a href="${resetUrl}">${resetUrl}</a>
-          </p>
-        </div>
-      `,
-    }
-
     try {
-      await sendEmail(mailOptions)
-      res.json({
-        message: 'If an account with that email exists, a password reset link has been sent',
-      })
+      await Mailer.sendResetPassword(account, resetToken)
+      res.json({ message: 'If an account with that email exists, a password reset link has been sent' })
     } catch (err) {
       console.error('Failed to send password reset email:', err)
-      res
-        .status(500)
-        .json({ error: 'Failed to send password reset email. Please try again later.' })
+      res.status(500).json({ error: 'Failed to send password reset email. Please try again later.' })
     }
   } catch (error) {
     console.error('Forgot password error:', error)
@@ -366,52 +340,22 @@ const verifyToken = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     let { token, password } = req.body
-
     if (!token || !password) {
       return res.status(400).json({ error: 'Token and password are required' })
     }
-
-    // Hash the provided token to compare with stored hash
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
-
-    const account = await Account.findOne({
-      passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() },
-    })
-
+    const account = await Account.findOne({ passwordResetToken: hashedToken, passwordResetExpires: { $gt: Date.now() } })
     if (!account) {
       console.log('Account not found or token expired')
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
-
-    // Ensure email is lowercase before sending confirmation
     account.email = account.email.toLowerCase()
-
-    // Update password and clear reset token fields
     account.password = password
     account.passwordResetToken = undefined
     account.passwordResetExpires = undefined
     await account.save()
-
-    const mailOptions = {
-      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
-      to: account.email,
-      subject: 'Password Reset Confirmation',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <h2 style="color: #4A90E2;">Password Reset Successful</h2>
-          <p>Hello,</p>
-          <p>Your password has been successfully reset. You can now log in with your new password.</p>
-          <p style="margin-top: 20px; font-size: 14px; color: #d9534f;">
-            If you did not initiate this request, please contact us immediately for security reasons.
-          </p>
-          <p>Best regards,<br>Your Team Management System</p>
-        </div>
-      `,
-    }
-
     try {
-      await sendEmail(mailOptions)
+      await Mailer.sendResetConfirmation(account)
       res.json({ message: 'Password reset successful' })
     } catch (err) {
       console.error('Failed to send password reset confirmation email:', err)
@@ -420,6 +364,34 @@ const resetPassword = async (req, res) => {
   } catch (err) {
     console.error('Reset password error:', err)
     res.status(500).json({ error: 'Failed to reset password' })
+  }
+}
+
+// Resend email verification link
+const resendEmailVerification = async (req, res) => {
+  let { email } = req.body
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' })
+  }
+  email = email.toLowerCase()
+  const account = await Account.findOne({ email })
+  if (!account) {
+    return res.status(404).json({ error: 'No account found with that email address' })
+  }
+  if (account.emailVerified) {
+    return res.status(400).json({ error: 'Email is already verified.' })
+  }
+  const verificationToken = crypto.randomBytes(32).toString('hex')
+  const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex')
+  account.emailVerificationToken = hashedToken
+  account.emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_EXPIRATION)
+  await account.save()
+  try {
+    await Mailer.sendVerificationEmail(email, verificationToken)
+    return res.status(200).json({ success: 'Verification email sent. Please check your inbox.' })
+  } catch (err) {
+    console.error('Failed to send verification email:', err)
+    return res.status(500).json({ error: 'Failed to send verification email. Please try again later.' })
   }
 }
 
@@ -432,4 +404,5 @@ export default {
   forgotPassword,
   resetPassword,
   verifyToken,
+  resendEmailVerification,
 }
