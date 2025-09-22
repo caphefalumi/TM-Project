@@ -666,7 +666,7 @@ export const updateUserProfile = async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: 'None',
-        maxAge: 20 * 60 * 1000, // 20 minutes
+        maxAge: 15 * 60 * 1000, // 15 minutes
         path: '/',
       })
     }
@@ -772,7 +772,7 @@ export const verifyEmailChange = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 20 * 60 * 1000, // 20 minutes
+      maxAge: 15 * 60 * 1000, // 15 minutes
       path: '/',
     })
 
