@@ -330,6 +330,7 @@ const getProgressColor = (percentage) => {
               <v-col
                 v-for="(team, index) in paginatedTeams"
                 :key="team.teamId"
+                :id="'team-card-' + index"
                 cols="12"
                 sm="6"
                 md="4"

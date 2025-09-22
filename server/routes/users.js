@@ -14,7 +14,7 @@ import { PERMISSIONS } from '../config/permissions.js'
 import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
 import JWTAuth from '../verify/JWTAuth.js'
 import RefreshToken from '../models/RefreshToken.js'
-import sendEmail from '../scripts/mailer.js'
+import Mailer from '../scripts/mailer.js'
 
 const { generateAccessToken, generateRefreshToken } = JWTAuth
 
@@ -616,7 +616,7 @@ export const updateUserProfile = async (req, res) => {
       }
 
       try {
-        await sendEmail(mailOptions)
+        await Mailer.sendEmail(mailOptions)
       } catch (error) {
         console.error('Failed to send email verification:', error)
         account.emailVerificationToken = undefined

@@ -9,7 +9,6 @@ import Tasks from '../models/Tasks.js'
 import 'dotenv/config'
 
 const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
 
 const getUserIDAndEmailByName = async (req, res) => {
   let { username } = req.params
