@@ -59,10 +59,8 @@ export const getAllUsers = async (req, res) => {
     const users = await Account.find({}, 'username _id').exec()
     // Find all users and return only username and _id
     if (!users || users.length === 0) {
-      console.log('No users found')
       return res.status(404).json({ error: 'No users found' })
     }
-    // console.log('Users:', users)
     return res.status(200).json(users)
   } catch (error) {
     console.error('Error fetching users:', error)

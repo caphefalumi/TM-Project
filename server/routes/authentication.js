@@ -134,7 +134,6 @@ async function createSampleTeamAndTasks(account) {
       }),
     ]
     await Tasks.insertMany(sampleTasks)
-    console.log('Sample team and tasks created successfully for user:', username)
   } catch (error) {
     console.error('Error creating sample team and tasks:', error)
     throw error
@@ -241,11 +240,11 @@ const localLogin = async (req, res) => {
     return res.status(400).json({ error: 'Invalid username or password' })
   }
 
-  // const isMatch = await bcrypt.compare(password, account.password)
-  // if (!isMatch) {
-  //   console.log('Password mismatch')
-  //   return res.status(400).json({ error: 'Invalid username or password' })
-  // }
+  const isMatch = await bcrypt.compare(password, account.password)
+  if (!isMatch) {
+    console.log('Password mismatch')
+    return res.status(400).json({ error: 'Invalid username or password' })
+  }
 
   // Check for suspicious activity before allowing login
   const suspiciousActivity = await RefreshTokenManager.checkSuspiciousActivity(account._id)
@@ -254,7 +253,7 @@ const localLogin = async (req, res) => {
       `Suspicious activity detected for user ${account._id}: ${suspiciousActivity.recentUniqueIPs} different IPs in last 24 hours`,
     )
     // Optionally revoke all existing tokens or require additional verification
-    // await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
+    await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
   }
   if (account.emailVerified === false) {
     return res.status(403).json({ error: 'Email not verified. Please verify your email before logging in.' })
@@ -325,7 +324,6 @@ const verifyToken = async (req, res) => {
     })
 
     if (!account) {
-      console.log('Account not found or token expired')
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
 
@@ -345,7 +343,6 @@ const resetPassword = async (req, res) => {
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
     const account = await Account.findOne({ passwordResetToken: hashedToken, passwordResetExpires: { $gt: Date.now() } })
     if (!account) {
-      console.log('Account not found or token expired')
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
     account.email = account.email.toLowerCase()
