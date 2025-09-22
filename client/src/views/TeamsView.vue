@@ -341,6 +341,8 @@ const getProgressColor = (percentage) => {
                   id="tour-team-card"
                   class="team-card rounded-lg elevation-1 flex-fill"
                   flat
+                  :data-team-id="team.teamId"
+                  :data-team-title="team.title"
                   @click="navigateToTeam(team.teamId)"
                 >
                   <v-card-item>

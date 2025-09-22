@@ -511,6 +511,8 @@ const toggleSortOrder = () => {
                       color="primary"
                       variant="outlined"
                       size="small"
+                      :data-team-id="item.teamId"
+                      :aria-label="`Open team details for ${item.title}`"
                     >
                       <v-icon start>mdi-open-in-new</v-icon>
                     </v-btn>

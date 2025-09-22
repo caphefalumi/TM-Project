@@ -1722,7 +1722,7 @@ const confirmDeleteTeam = async () => {
 
         <!-- Delete Team Tab -->
         <v-window-item value="delete-team" v-if="isAdmin()">
-          <div class="delete-team-container">
+          <div id="tour-delete-team-content" class="delete-team-container">
             <!-- Warning Header -->
             <v-row>
               <v-col cols="12">
