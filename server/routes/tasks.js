@@ -56,7 +56,6 @@ const getTasksOfAUserInATeam = async (req, res) => {
     // Fetch tasks for the user in the specified team
     // Sort tasks by DueDate in ascending order
     const tasks = await Tasks.find({ userId, teamId }).sort({ dueDate: 1 })
-    console.log(tasks[0])
     if (tasks.length === 0) {
       return res
         .status(200)
@@ -203,12 +202,6 @@ const submitATask = async (req, res) => {
       !Array.isArray(submissionData) ||
       submissionData.length === 0
     ) {
-      console.log('Missing required fields:', {
-        taskId,
-        userId,
-        teamId,
-        submissionDataLength: submissionData?.length,
-      })
       return res.status(400).json({
         message: 'Missing required fields. taskId, userId, teamId, and submissionData are required',
         received: { taskId, userId, teamId, submissionDataLength: submissionData?.length },
@@ -245,7 +238,6 @@ const submitATask = async (req, res) => {
         }))
         existingSubmission.submittedAt = new Date()
         await existingSubmission.save()
-        console.log('Existing submission updated successfully:', existingSubmission)
         return res.status(200).json({
           message: 'Task submission updated successfully',
           submission: existingSubmission,
@@ -291,8 +283,6 @@ const submitATask = async (req, res) => {
     task.submitted = true
     task.submissions.push(savedSubmission._id)
     await task.save()
-    console.log('Task submitted successfully:', task)
-    console.log('Task submission saved successfully:', savedSubmission)
     return res.status(200).json({
       message: 'Task submitted successfully',
       task,
@@ -407,14 +397,6 @@ const updateTaskGroup = async (req, res) => {
       const usersToAdd = assignedUsers.filter((userId) => !currentUserIds.includes(userId))
       const usersToRemove = currentUserIds.filter((userId) => !assignedUsers.includes(userId))
 
-      console.log('Updating task group assignments:', {
-        taskGroupId,
-        currentUsers: currentUserIds,
-        newUsers: assignedUsers,
-        usersToAdd,
-        usersToRemove,
-      })
-
       // Validate all new users are team members
       if (usersToAdd.length > 0) {
         const usersOfTeam = await UsersOfTeam.find({ teamId, userId: { $in: usersToAdd } })
@@ -437,7 +419,6 @@ const updateTaskGroup = async (req, res) => {
           teamId,
           userId: { $in: usersToRemove },
         })
-        console.log('Removed tasks for users:', usersToRemove)
       }
 
       // Add tasks for new users
@@ -461,7 +442,6 @@ const updateTaskGroup = async (req, res) => {
         }))
 
         await Tasks.insertMany(newTasks)
-        console.log('Added tasks for users:', usersToAdd)
       }
     }
 
@@ -478,11 +458,6 @@ const updateTaskGroup = async (req, res) => {
           },
         },
       )
-
-      console.log('Updated task fields:', {
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-      })
     }
 
     // Get updated task count

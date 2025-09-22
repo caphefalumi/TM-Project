@@ -9,10 +9,8 @@ const getCategories = async (req, res) => {
   try {
     const categories = Teams.schema.path('category').enumValues
     if (!categories || categories.length === 0) {
-      console.log('No categories found')
       return res.status(404).json({ error: 'No categories found' })
     }
-    // console.log('Categories:', categories)
     return res.status(200).json(categories)
   } catch (error) {
     console.error('Error fetching categories:', error)
@@ -31,11 +29,9 @@ const addUserToTeam = async (userId, teamId, role) => {
     // Check if the user is already in the team
     const existingUser = await UsersOfTeam.findOne({ userId, teamId })
     if (existingUser) {
-      console.log(`User ${username} is already in team ${teamId} with role ${existingUser.role}`)
       return
     } else {
       await userOfTeam.save()
-      console.log('User added to team:', userOfTeam)
     }
   } catch (error) {
     console.error('Error adding user to team:', error)
@@ -68,7 +64,6 @@ const addTeamPro = async (req, res) => {
         return res.status(404).json({ message: 'Team not found' })
       } else {
         await addUserToTeam(userId, teamId._id, 'Admin')
-        console.log('User added as Admin to the team:', teamId._id)
       }
     } catch (error) {
       console.error('Error adding team:', error)
@@ -94,7 +89,6 @@ const addTeam = async (title, category, description) => {
       description,
     })
     await team.save()
-    console.log('Team created:', team)
   } catch (error) {
     console.error('Error creating team:', error)
     throw error
@@ -119,7 +113,6 @@ const addSubTeam = async (title, category, description, parentTeamId) => {
         parentTeamId,
       })
       await subTeam.save()
-      console.log('Sub-team created:', subTeam)
     }
   } catch (error) {
     console.error('Error creating sub-team:', error)
@@ -129,7 +122,6 @@ const addSubTeam = async (title, category, description, parentTeamId) => {
 
 const getParentsTeam = async (parentTeamId) => {
   if (parentTeamId === 'none' || parentTeamId === null || !parentTeamId) {
-    console.log('This team has no parent team.')
     return ''
   } else {
     let teamBreadCrumps = ''
@@ -146,15 +138,12 @@ const getParentsTeam = async (parentTeamId) => {
       }
       parentTeam = nextParentTeam
     }
-    console.log('Team Bread Crumps:', teamBreadCrumps.trim())
     return teamBreadCrumps.trim()
   }
 }
 
 const getTeamNameThatUserIsAdmin = async (req, res) => {
   const { userId } = req.user
-  console.log('User ID to GetTeams:', userId)
-
   try {
     // Find all teams where the user is an admin
     // Sort teams by title in ascending order
@@ -163,7 +152,6 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
       .exec()
 
     if (teams.length === 0) {
-      console.log(`No teams found for user with ID ${userId} where they are an Admin`)
       return res.status(200).json([])
     }
 
@@ -171,7 +159,6 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
     const validTeams = teams.filter((team) => team.teamId !== null)
 
     if (validTeams.length === 0) {
-      console.log(`No valid teams found for user with ID ${userId}`)
       return res.status(200).json([])
     }
 
@@ -182,8 +169,6 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
         title: (await getParentsTeam(team.teamId.parentTeamId)) + ' ' + team.teamId.title,
       })),
     )
-
-    // console.log('Resolved teams data:', teamsData)
     return res.status(200).json(teamsData)
   } catch (error) {
     console.error('Error fetching teams for user:', error)
@@ -206,7 +191,6 @@ const getTeamThatUserIsMember = async (req, res) => {
       .populate('role_id', 'color icon name')
       .exec()
     if (teams.length === 0) {
-      console.log(`No teams found for user with ID ${userId}`)
       return res.status(200).json([])
     }
     // Filter out teams where teamId is null (orphaned records)
@@ -214,7 +198,6 @@ const getTeamThatUserIsMember = async (req, res) => {
     if (validTeams.length === 0) {
       return res.status(200).json([])
     }
-    console.log(teams)
     // Use Promise.all to wait for all async operations to complete
     const teamsData = await Promise.all(
       validTeams.map(async (team) => {
@@ -252,7 +235,6 @@ const getTeamThatUserIsMember = async (req, res) => {
         }
       }),
     )
-    console.log('Resolved teams data:', teamsData)
     return res.status(200).json(teamsData)
   } catch (error) {
     console.error('Error fetching teams for user:', error)
@@ -277,11 +259,7 @@ const getAllSubTeams = async (req, res) => {
   // Get all sub-teams of a team recursively
   try {
     const { teamId } = req.params
-    console.log('Fetching sub-teams for team ID:', teamId)
-
     const allSubTeams = await getSubTeamsRecursive(teamId)
-    console.log('Found sub-teams:', allSubTeams.length, 'teams')
-    console.log('Sub-teams data:', JSON.stringify(allSubTeams, null, 2))
 
     return res.status(200).json({ subTeams: allSubTeams })
   } catch (error) {
@@ -298,7 +276,6 @@ const recursiveDeleteSubTeams = async (teamId) => {
       const subTeamIds = subTeams.map((subTeam) => subTeam._id)
       await Teams.deleteMany({ parentTeamId: teamId })
       await UsersOfTeam.deleteMany({ teamId: { $in: subTeamIds } })
-      console.log('Sub-teams and associated users deleted:', subTeamIds)
       // Recursively delete sub-teams of sub-teams
       for (const subTeamId of subTeamIds) {
         await recursiveDeleteSubTeams(subTeamId)
@@ -332,7 +309,6 @@ const deleteATeam = async (req, res) => {
     // Also delete all users associated with this team
     await UsersOfTeam.deleteMany({ teamId })
 
-    console.log('Team and associated users deleted:', teamId)
     return res.status(200).json({ message: 'Team and associated users deleted successfully' })
   } catch (error) {
     console.error('Error deleting team:', error)
@@ -346,7 +322,6 @@ const getProgressBar = async (userId, teamId) => {
 
   try {
     // Get all tasks for this team and user
-    console.log('Calculating progress bar for user:', userId, 'in team:', teamId)
     const allTasks = await Tasks.find({ teamId, userId })
 
     if (allTasks.length === 0) {
