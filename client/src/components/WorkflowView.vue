@@ -55,15 +55,16 @@
           </div>
         </v-sheet>
 
-        <v-list class="task-list">
+        <v-list class="task-list" ref="taskList" @scroll="onTaskListScroll">
           <template v-if="tasks && tasks.length > 0">
+            <div class="task-spacer" :style="{ height: topSpacerHeight + 'px' }"></div>
             <v-list-item
-              v-for="(task, idx) in tasks"
+              v-for="(task, idx) in visibleTasks"
               :key="task.id"
               class="task-item"
               :class="[{ highlighted: highlightedTaskId === task.id }, `status-${task.status}`]"
               :style="{ height: rowHeight + 'px' }"
-              @click="focusOnTask(task.id, idx)"
+              @click="focusOnTask(task.id, visibleRange.start + idx)"
             >
               <template v-slot:prepend>
                 <v-avatar size="8" :color="getStatusColor(task.status)"></v-avatar>
@@ -77,6 +78,7 @@
                 {{ task.priority.toUpperCase() }} • {{ task.status }}
               </v-list-item-subtitle>
             </v-list-item>
+            <div class="task-spacer" :style="{ height: bottomSpacerHeight + 'px' }"></div>
           </template>
           <template v-else>
             <v-list-item class="task-item">
@@ -128,7 +130,7 @@
         </v-sheet>
 
         <div class="timeline-content flex-grow-1" ref="timelineContent" @scroll="onTimelineScroll">
-          <div class="timeline-grid" :style="{ minWidth: dates.length * dayWidth + 'px' }">
+          <div class="timeline-grid" :style="timelineGridStyle">
             <div class="grid-overlay">
               <div
                 v-for="(d, i) in dates"
@@ -136,19 +138,16 @@
                 :class="['grid-line-vertical', { 'month-start': d.monthStart }]"
                 :style="{ left: i * dayWidth + 'px' }"
               ></div>
-              <div
-                v-for="(r, ri) in tasks"
-                :key="'h-' + ri"
-                class="grid-line-horizontal"
-                :style="{ top: ri * rowHeight + rowHeight + 'px' }"
-              ></div>
             </div>
 
+            <div class="timeline-spacer" :style="{ height: topSpacerHeight + 'px' }"></div>
+
             <div
-              v-for="(task, idx) in tasks"
+              v-for="(task, idx) in visibleTasks"
               :key="task.id"
               class="timeline-row"
               :class="{ highlighted: highlightedTaskId === task.id }"
+              :style="{ height: rowHeight + 'px' }"
             >
               <div class="task-bar-container">
                 <div
@@ -166,6 +165,8 @@
                 </div>
               </div>
             </div>
+
+            <div class="timeline-spacer" :style="{ height: bottomSpacerHeight + 'px' }"></div>
           </div>
         </div>
       </v-col>
@@ -330,6 +331,10 @@ export default {
       highlightedTaskId: null,
       showTimelineOnly: false, // For mobile navigation
       scrollSyncFrame: null, // Animation frame for scroll synchronization
+      resizeRaf: null,
+      scrollLinking: null,
+      renderBuffer: 8,
+      visibleRange: { start: 0, end: 0 },
       tooltip: {
         show: false,
         title: '',
@@ -346,17 +351,19 @@ export default {
   },
   watch: {
     taskGroups: {
-      handler(newTaskGroups, oldTaskGroups) {
-        // Only update if taskGroups actually changed
-        if (JSON.stringify(newTaskGroups) !== JSON.stringify(oldTaskGroups)) {
-          this.tasks = this.transformTaskGroups()
-          this.$nextTick(() => {
-            this.updateLayout()
-          })
-        }
+      handler() {
+        this.tasks = this.transformTaskGroups()
+        this.$nextTick(() => {
+          this.updateLayout()
+        })
       },
       immediate: true,
       deep: true,
+    },
+    tasks() {
+      this.$nextTick(() => {
+        this.updateVisibleRange()
+      })
     },
     currentView: {
       handler(newView) {
@@ -364,25 +371,54 @@ export default {
       },
     },
   },
+  computed: {
+    visibleTasks() {
+      if (!Array.isArray(this.tasks)) {
+        return []
+      }
+
+      const { start, end } = this.visibleRange
+      return this.tasks.slice(start, end)
+    },
+    topSpacerHeight() {
+      return this.visibleRange.start * this.rowHeight
+    },
+    bottomSpacerHeight() {
+      const total = Array.isArray(this.tasks) ? this.tasks.length : 0
+      return Math.max(0, (total - this.visibleRange.end) * this.rowHeight)
+    },
+    timelineGridStyle() {
+      const minWidth = this.dates.length * this.dayWidth
+      const lineColor = '#f1f3f4'
+      const segmentHeight = `${this.rowHeight}px`
+
+      return {
+        minWidth: minWidth + 'px',
+        backgroundImage: `linear-gradient(to bottom, transparent ${this.rowHeight - 1}px, ${lineColor} ${this.rowHeight - 1}px)`,
+        backgroundSize: `100% ${segmentHeight}`,
+        backgroundRepeat: 'repeat-y',
+      }
+    },
+  },
   mounted() {
     // Initial setup - no need to call transformTaskGroups again as watch handles it with immediate: true
-    window.addEventListener('resize', this.updateLayout)
+    window.addEventListener('resize', this.onWindowResize)
 
     // Sync header scroll with content initially
     this.$nextTick(() => {
-      const tc = this.$refs.timelineContent
-      if (tc) tc.addEventListener('scroll', this.onTimelineScroll)
-
       // Initial scroll to current date after everything is loaded
       setTimeout(() => {
         this.scrollToCurrentDate()
+        this.updateVisibleRange()
       }, 100)
     })
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.updateLayout)
-    const tc = this.$refs.timelineContent
-    if (tc) tc.removeEventListener('scroll', this.onTimelineScroll)
+    window.removeEventListener('resize', this.onWindowResize)
+
+    if (this.resizeRaf) {
+      cancelAnimationFrame(this.resizeRaf)
+    }
 
     // Clean up animation frame
     if (this.scrollSyncFrame) {
@@ -390,6 +426,52 @@ export default {
     }
   },
   methods: {
+    onWindowResize() {
+      if (this.resizeRaf) {
+        cancelAnimationFrame(this.resizeRaf)
+      }
+
+      this.resizeRaf = requestAnimationFrame(() => {
+        this.updateLayout()
+      })
+    },
+    syncTimelineHeader() {
+      if (this.scrollSyncFrame) {
+        cancelAnimationFrame(this.scrollSyncFrame)
+      }
+
+      this.scrollSyncFrame = requestAnimationFrame(() => {
+        const header = this.$refs.timelineHeaderContent
+        const content = this.$refs.timelineContent
+        if (header && content) {
+          header.style.transform = `translateX(-${content.scrollLeft}px)`
+        }
+      })
+    },
+    syncScrollPositions(source, scrollTop) {
+      if (!Array.isArray(this.tasks) || this.tasks.length === 0) {
+        this.visibleRange = { start: 0, end: 0 }
+        return
+      }
+
+      const otherRef = source === 'timeline' ? 'taskList' : 'timelineContent'
+      const other = this.$refs[otherRef]
+
+      if (other && Math.abs(other.scrollTop - scrollTop) > 1) {
+        this.scrollLinking = otherRef
+        other.scrollTop = scrollTop
+      }
+
+      this.updateVisibleRangeFromScroll(scrollTop)
+    },
+    onTaskListScroll(e) {
+      if (this.scrollLinking === 'taskList') {
+        this.scrollLinking = null
+        return
+      }
+
+      this.syncScrollPositions('taskList', e.target.scrollTop)
+    },
     switchView(view) {
       this.currentView = view
       this.updateLayout()
@@ -428,7 +510,7 @@ export default {
     },
     transformTaskGroups() {
       if (!this.taskGroups || this.taskGroups.length === 0) {
-        return null
+        return []
       }
 
       try {
@@ -444,7 +526,6 @@ export default {
             let status = 'not-started'
             const dueDate = new Date(Date.parse(taskGroup.dueDate))
             const startDate = new Date(Date.parse(taskGroup.startDate))
-            console.log('Start date: ', taskGroup.startDate, ' Due date: ', dueDate)
 
             // Validate dates
             if (isNaN(dueDate.getTime()) || isNaN(startDate.getTime())) {
@@ -464,24 +545,6 @@ export default {
             }
             // Map priority to lowercase for consistency
             const priority = taskGroup.priority ? taskGroup.priority.toLowerCase() : 'medium'
-            const test = {
-              id: taskGroup.taskGroupId,
-              name: taskGroup.title,
-              description: taskGroup.description || '',
-              priority: priority,
-              status: status,
-              startDate: startDate,
-              dueDate: dueDate,
-              assignedMembers: taskGroup.assignedMember || [],
-              submittedCount: taskGroup.completedTasks || 0,
-              description: taskGroup.description || '',
-              weighted: taskGroup.totalWeight || 0,
-              category: taskGroup.category || '',
-              totalTasks: taskGroup.totalTasks || 0,
-              completionRate: parseFloat(taskGroup.completionRate || '0.0').toFixed(1),
-              createdAt: taskGroup.createdAt,
-            }
-            console.log('Transformed task:', test) // Debug log
             return {
               id: taskGroup.taskGroupId,
               name: taskGroup.title,
@@ -509,6 +572,7 @@ export default {
     },
     updateLayout() {
       this.dayWidth = this.getDayWidth()
+      this.rowHeight = this.getRowHeight()
       const computed = this.generateTimelineDates()
       this.dates = computed.dates
       this.timelineStart = computed.startDate
@@ -516,7 +580,34 @@ export default {
       // Auto-scroll to current date after layout update
       this.$nextTick(() => {
         this.scrollToCurrentDate()
+        this.updateVisibleRange()
+        this.syncTimelineHeader()
       })
+    },
+    updateVisibleRangeFromScroll(scrollTop) {
+      const total = Array.isArray(this.tasks) ? this.tasks.length : 0
+      if (total === 0) {
+        this.visibleRange = { start: 0, end: 0 }
+        return
+      }
+
+      const container = this.$refs.timelineContent
+      const viewportHeight = container ? container.clientHeight : window.innerHeight
+      const buffer = this.renderBuffer
+      const start = Math.max(0, Math.floor(scrollTop / this.rowHeight) - buffer)
+      const end = Math.min(
+        total,
+        Math.ceil((scrollTop + viewportHeight) / this.rowHeight) + buffer,
+      )
+
+      if (start !== this.visibleRange.start || end !== this.visibleRange.end) {
+        this.visibleRange = { start, end }
+      }
+    },
+    updateVisibleRange() {
+      const container = this.$refs.timelineContent
+      const scrollTop = container ? container.scrollTop : 0
+      this.updateVisibleRangeFromScroll(scrollTop)
     },
     generateTimelineDates() {
       if (!this.tasks.length) return { dates: [], startDate: new Date() }
@@ -682,6 +773,15 @@ export default {
       }
       return screenWidth < 600 ? 100 : screenWidth < 960 ? 120 : 160
     },
+    getRowHeight() {
+      if (this.$vuetify?.display) {
+        const { xs, sm } = this.$vuetify.display
+        if (xs) return 52
+        if (sm) return 58
+      }
+
+      return 61
+    },
     dateDiffDays(a, b) {
       const ms = 24 * 60 * 60 * 1000
       return Math.round((b - a) / ms)
@@ -731,23 +831,29 @@ export default {
       this.highlightedTaskId = taskId
       const timelineContent = this.$refs.timelineContent
       this.$nextTick(() => {
+        if (!timelineContent) return
+
+        const task = this.tasks[taskIndex]
+        if (!task) return
+
         const bar = this.$el.querySelector(`.task-bar[data-task-id=\"${taskId}\"]`)
-        if (!bar || !timelineContent) return
-        const taskBarLeft = bar.offsetLeft
-        const taskBarWidth = bar.offsetWidth
+        const barStyle = this.getTaskBarStyle(task)
         const containerWidth = timelineContent.clientWidth
+
+        const numericLeft = parseFloat(barStyle.left) || (bar ? bar.offsetLeft : 0)
+        const numericWidth = parseFloat(barStyle.width) || (bar ? bar.offsetWidth : 0)
 
         // For long tasks, focus on the start date (left edge) with some padding
         // For shorter tasks, center them in the view
         let targetScrollLeft
         const padding = 100 // pixels of padding from the left edge
 
-        if (taskBarWidth > containerWidth * 0.6) {
+        if (numericWidth > containerWidth * 0.6) {
           // Long task: scroll to show the start date with padding
-          targetScrollLeft = Math.max(0, taskBarLeft - padding)
+          targetScrollLeft = Math.max(0, numericLeft - padding)
         } else {
           // Short task: center it in the view
-          targetScrollLeft = taskBarLeft + taskBarWidth / 2 - containerWidth / 2
+          targetScrollLeft = numericLeft + numericWidth / 2 - containerWidth / 2
         }
 
         const targetScrollTop =
@@ -757,8 +863,22 @@ export default {
           top: Math.max(0, targetScrollTop),
           behavior: 'smooth',
         })
-        bar.classList.add('pulse')
-        setTimeout(() => bar.classList.remove('pulse'), 2000)
+
+        const applyPulse = (el) => {
+          if (!el) return
+          el.classList.add('pulse')
+          setTimeout(() => el.classList.remove('pulse'), 2000)
+        }
+
+        if (bar) {
+          applyPulse(bar)
+        } else {
+          // Wait for virtualization to render the element
+          setTimeout(() => {
+            const freshBar = this.$el.querySelector(`.task-bar[data-task-id=\"${taskId}\"]`)
+            applyPulse(freshBar)
+          }, 100)
+        }
       })
     },
     scrollToCurrentDate() {
@@ -811,18 +931,14 @@ export default {
       }
     },
     onTimelineScroll(e) {
-      // Use requestAnimationFrame for smoother header synchronization during fast scrolls
-      if (this.scrollSyncFrame) {
-        cancelAnimationFrame(this.scrollSyncFrame)
+      this.syncTimelineHeader()
+
+      if (this.scrollLinking === 'timelineContent') {
+        this.scrollLinking = null
+        return
       }
 
-      this.scrollSyncFrame = requestAnimationFrame(() => {
-        const header = this.$refs.timelineHeaderContent
-        const content = this.$refs.timelineContent
-        if (header && content) {
-          header.style.transform = `translateX(-${content.scrollLeft}px)`
-        }
-      })
+      this.syncScrollPositions('timeline', e.target.scrollTop)
     },
     showTaskModal(taskId) {
       const t = this.tasks.find((x) => x.id === taskId)
@@ -952,6 +1068,12 @@ export default {
   overflow-y: auto;
   margin-top: 0;
   padding-top: 0;
+}
+
+.task-spacer {
+  width: 100%;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .task-item {
@@ -1189,6 +1311,12 @@ export default {
 .timeline-grid {
   position: relative;
   min-width: fit-content;
+}
+
+.timeline-spacer {
+  width: 100%;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .timeline-row {
