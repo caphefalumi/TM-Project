@@ -12,6 +12,7 @@ const {
   forgotPassword,
   resetPassword,
   verifyToken,
+  resendEmailVerification,
 } = Authentication
 const { authenticateAccessToken } = JWTAuth
 
@@ -32,5 +33,8 @@ router.get('/login-protected', authenticateAccessToken, (req, res) => {
 router.post('/forgot-password', forgotPassword)
 router.post('/verify-reset-token', verifyToken)
 router.post('/reset-password', resetPassword)
+
+// Resend email verification
+router.post('/resend-verification', resendEmailVerification)
 
 export default router

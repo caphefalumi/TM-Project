@@ -702,7 +702,7 @@ export default {
         const PORT = import.meta.env.VITE_API_PORT
         const payload = { username: this.editUsernameForm.username.trim() }
         const response = await fetch(`${PORT}/api/users/profile`, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(payload),

@@ -9,6 +9,7 @@ const showPassword = ref(false)
 const error = ref('')
 const success = ref('')
 const loading = ref(false)
+const showVerifyDialog = ref(false)
 const router = useRouter()
 
 async function register() {
@@ -31,9 +32,11 @@ async function register() {
     if (!res.ok) {
       error.value = data.error || 'Registration failed'
     } else {
-      success.value = 'Registration successful!'
+      // Show verify email dialog
+      showVerifyDialog.value = true
+      success.value = ''
       // Optionally redirect to login after registration
-      setTimeout(() => router.push('/'), 1500)
+      setTimeout(() => router.push('/login'), 3000)
     }
   } catch (e) {
     error.value = 'Network error'
@@ -94,6 +97,19 @@ async function register() {
             </v-form>
             <v-alert v-if="error" type="error" class="mt-2">{{ error }}</v-alert>
             <v-alert v-if="success" type="success" class="mt-2">{{ success }}</v-alert>
+            <v-dialog v-model="showVerifyDialog" persistent max-width="400">
+              <v-card>
+                <v-card-title class="text-h6">Verify Your Email</v-card-title>
+                <v-card-text>
+                  Registration successful!<br>
+                  Please check your email and click the verification link to activate your account.
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="primary" @click="showVerifyDialog = false">OK</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
             <v-row class="mt-2" align="center" justify="space-evenly">
               <v-col class="pa-0 text-right" cols="6">
                 <span>Already have an account?</span>
