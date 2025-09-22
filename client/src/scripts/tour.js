@@ -302,43 +302,6 @@ export function startAppTour(router) {
     })
 
     tour.addStep({
-      id: 'dashboard-filters',
-      title: 'Fine-tune the task list',
-      text: [
-        'Use filters and sorting to focus on the work that matters most, whether that is urgent tasks, pending submissions, or items by due date.',
-      ],
-      attachTo: {
-        element: () =>
-          document.querySelector('#tour-task-filters') ||
-          document.querySelector('#tour-tasks-table') ||
-          document.body,
-        on: 'left',
-      },
-      beforeShowPromise: async () => {
-        await ensureOnRoute('/home', '#tour-task-filters')
-      },
-      buttons: withBackButton([exitButton, nextButton], tour),
-    })
-
-    tour.addStep({
-      id: 'dashboard-table',
-      title: 'Review your assignments',
-      text: [
-        'Every task appears here with key details, due dates, and whether it has already been submitted.',
-        'Select a row to inspect the description and use the action buttons to jump into the team workspace.',
-      ],
-      attachTo: {
-        element: () => document.querySelector('#tour-tasks-table') || document.body,
-        on: 'top',
-      },
-      beforeShowPromise: async () => {
-        await ensureOnRoute('/home', '#tour-tasks-table')
-        captureSampleTeamIdFromDashboard()
-      },
-      buttons: withBackButton([exitButton, nextButton], tour),
-    })
-
-    tour.addStep({
       id: 'dashboard-open-team',
       title: 'Open the team behind a task',
       text: [
@@ -375,24 +338,8 @@ export function startAppTour(router) {
     })
 
     tour.addStep({
-      id: 'team-tabs',
-      title: 'Navigate team features',
-      text: [
-        'Use these tabs to switch between tasks, workflow documentation, announcements, members, and management tools.',
-      ],
-      attachTo: {
-        element: () => document.querySelector('#tour-team-tabs') || document.body,
-        on: 'bottom',
-      },
-      beforeShowPromise: async () => {
-        await waitForElement('#tour-team-tabs')
-      },
-      buttons: withBackButton([exitButton, nextButton], tour),
-    })
-
-    tour.addStep({
       id: 'workflow-tab',
-      title: 'Workflow hub',
+      title: 'Workflow tab',
       text: [
         'The Workflow tab documents how your team plans, reviews, and completes tasks. Open it whenever you need clarification on the process.',
       ],
