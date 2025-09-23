@@ -2,7 +2,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
-import { permissionService, usePermissions } from '../services/permissionService.js'
+import { permissionService, usePermissions } from '../scripts/permissionService.js'
 import NewTasks from '../components/NewTasks.vue'
 import NewAnnouncements from '../components/NewAnnouncements.vue'
 import TaskSubmission from '../components/TaskSubmission.vue'

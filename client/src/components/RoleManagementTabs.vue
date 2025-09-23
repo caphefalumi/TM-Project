@@ -4,7 +4,7 @@ import {
   permissionService,
   usePermissions,
   AVAILABLE_PERMISSIONS,
-} from '../services/permissionService.js'
+} from '../scripts/permissionService.js'
 
 const props = defineProps({
   teamId: {
