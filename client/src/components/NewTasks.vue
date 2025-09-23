@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePermissions } from '../services/permissionService.js'
+import { usePermissions } from '../scripts/permissionService.js'
 
 const router = useRouter()
 const { getRoleColor } = usePermissions()
