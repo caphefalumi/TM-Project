@@ -501,7 +501,7 @@ const props = defineProps({
 const emit = defineEmits(['update:dialog', 'roles-updated'])
 
 // Use permission composables
-const { hasPermission, isAdmin, getRoleIcon, getRoleColor, hasCustomPermissions } = usePermissions()
+const { getRoleIcon, getRoleColor, hasCustomPermissions } = usePermissions()
 
 // Reactive state
 const user = ref({
