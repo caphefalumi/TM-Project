@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import Mailer from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Tasks from '../models/Tasks.js'
+import bcrypt from 'bcryptjs'
 
 import 'dotenv/config'
 
@@ -15,7 +16,6 @@ const getUserIDAndEmailByName = async (req, res) => {
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
   }
-  username = username.toLowerCase()
   try {
     const account = await Account.findOne({ username })
     if (!account) {
