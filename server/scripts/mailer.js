@@ -95,6 +95,21 @@ class Mailer {
     }
     return await Mailer.sendMail(mailOptions)
   }
+
+  static async sendSecurityAlert(recipientEmail, subject, message) {
+    if (!recipientEmail) {
+      return false
+    }
+
+    const mailOptions = {
+      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
+      to: recipientEmail,
+      subject,
+      text: message,
+    }
+
+    return await Mailer.sendMail(mailOptions)
+  }
 }
 
 export default Mailer

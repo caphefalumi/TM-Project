@@ -5,10 +5,69 @@ import crypto from 'crypto'
 import Mailer from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Tasks from '../models/Tasks.js'
+import bcrypt from 'bcryptjs'
+import LoginAttempt from '../models/LoginAttempt.js'
+import { validatePasswordStrength, checkPasswordPwned } from '../utils/passwordPolicy.js'
+import { authenticator } from 'otplib'
+import { encryptSecret, decryptSecret } from '../utils/mfaCrypto.js'
+import MonitoringService from '../scripts/monitoringService.js'
+import { recordSecurityEvent } from '../scripts/securityEventService.js'
 
 import 'dotenv/config'
 
 const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
+const LOGIN_CAPTCHA_THRESHOLD = 3
+const LOCKOUT_STEPS = [
+  { attempts: 5, minutes: 5 },
+  { attempts: 8, minutes: 30 },
+  { attempts: 10, minutes: 4 * 60 },
+]
+
+const loginAttemptKey = (username, ipAddress) => `${username || 'unknown'}:${ipAddress}`
+
+const computeLockoutDuration = (attempts) => {
+  for (let i = LOCKOUT_STEPS.length - 1; i >= 0; i--) {
+    if (attempts >= LOCKOUT_STEPS[i].attempts) {
+      return LOCKOUT_STEPS[i].minutes
+    }
+  }
+  return 0
+}
+
+const getOrCreateLoginAttempt = async (username, ipAddress) => {
+  const key = loginAttemptKey(username, ipAddress)
+  let attempt = await LoginAttempt.findOne({ key })
+  if (!attempt) {
+    attempt = new LoginAttempt({ key, username, ipAddress })
+  }
+  return attempt
+}
+
+const registerFailedAttempt = async (username, ipAddress) => {
+  const attempt = await getOrCreateLoginAttempt(username, ipAddress)
+  attempt.attempts += 1
+  attempt.lastAttemptAt = new Date()
+
+  if (attempt.attempts >= LOGIN_CAPTCHA_THRESHOLD) {
+    attempt.requireCaptchaUntil = new Date(Date.now() + 15 * 60 * 1000)
+  }
+
+  const lockMinutes = computeLockoutDuration(attempt.attempts)
+  if (lockMinutes > 0) {
+    attempt.lockUntil = new Date(Date.now() + lockMinutes * 60 * 1000)
+  }
+
+  await attempt.save()
+  return attempt
+}
+
+const resetLoginAttempts = async (username, ipAddress) => {
+  const key = loginAttemptKey(username, ipAddress)
+  await LoginAttempt.findOneAndDelete({ key })
+}
+
+const isCaptchaEnforced = (attempt) =>
+  attempt?.requireCaptchaUntil && attempt.requireCaptchaUntil > Date.now()
 
 const getUserIDAndEmailByName = async (req, res) => {
   let { username } = req.params
@@ -186,7 +245,26 @@ const localRegister = async (req, res) => {
     return res.status(400).json({ error: 'All fields are required.' })
   }
 
-  // 2. Check for unique username and email
+  // 2. Validate password strength and exposure
+  const strength = validatePasswordStrength(password, { email, username })
+  if (!strength.valid) {
+    return res.status(400).json({
+      error: strength.reason,
+      suggestions: strength.suggestions,
+    })
+  }
+
+  const pwnedResult = await checkPasswordPwned(password)
+  if (pwnedResult.error) {
+    console.warn('HaveIBeenPwned check failed:', pwnedResult.error.message)
+  }
+  if (pwnedResult.pwned) {
+    return res.status(400).json({
+      error: 'This password appears in known breach datasets. Please choose another password.',
+    })
+  }
+
+  // 3. Check for unique username and email
   const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
   if (existingUser) {
     if (existingUser.username === username) {
@@ -197,7 +275,7 @@ const localRegister = async (req, res) => {
     }
   }
 
-  // 3. Create and save account (password will be hashed by pre-save hook)
+  // 4. Create and save account (password will be hashed by pre-save hook)
   try {
     // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString('hex')
@@ -225,25 +303,60 @@ const localRegister = async (req, res) => {
 }
 
 const localLogin = async (req, res) => {
-  let { username, password } = req.body
+  let { username, password, totpCode, captchaToken } = req.body
   if (!username || !password) {
     console.log('Missing fields:', { username, password })
     return res.status(400).json({ error: 'All fields are required.' })
   }
 
-  // Convert username to lowercase
+  const ipAddress = req.clientIp
   username = username.toLowerCase()
+
+  const attemptRecord = await LoginAttempt.findOne({
+    key: loginAttemptKey(username, ipAddress),
+  })
+
+  if (attemptRecord?.lockUntil && attemptRecord.lockUntil > Date.now()) {
+    return res.status(429).json({
+      error: 'Too many login attempts. Please try again later.',
+      lockExpiresAt: attemptRecord.lockUntil,
+      requireCaptcha: isCaptchaEnforced(attemptRecord),
+    })
+  }
+
+  if (isCaptchaEnforced(attemptRecord) && !captchaToken) {
+    return res.status(403).json({
+      error: 'CAPTCHA verification required before continuing.',
+      requireCaptcha: true,
+    })
+  }
 
   const account = await Account.findOne({ username })
   if (!account) {
+    const attempt = await registerFailedAttempt(username, ipAddress)
+    await MonitoringService.recordMetric('login.failure')
     console.log('No Account')
-    return res.status(400).json({ error: 'Invalid username or password' })
+    return res.status(400).json({
+      error: 'Invalid username or password',
+      requireCaptcha: isCaptchaEnforced(attempt),
+    })
   }
 
   const isMatch = await bcrypt.compare(password, account.password)
   if (!isMatch) {
+    const attempt = await registerFailedAttempt(username, ipAddress)
+    await MonitoringService.recordMetric('login.failure')
     console.log('Password mismatch')
-    return res.status(400).json({ error: 'Invalid username or password' })
+    return res.status(400).json({
+      error: 'Invalid username or password',
+      requireCaptcha: isCaptchaEnforced(attempt),
+    })
+  }
+
+  if (account.emailVerified === false) {
+    return res
+      .status(403)
+      .json({ error: 'Email not verified. Please verify your email before logging in.' })
   }
 
   // Check for suspicious activity before allowing login
@@ -252,12 +365,65 @@ const localLogin = async (req, res) => {
     console.log(
       `Suspicious activity detected for user ${account._id}: ${suspiciousActivity.recentUniqueIPs} different IPs in last 24 hours`,
     )
-    // Optionally revoke all existing tokens or require additional verification
+    await recordSecurityEvent({
+      userId: account._id,
+      type: 'suspicious_login_activity',
+      severity: 'medium',
+      description: 'Unusual login activity detected. Existing sessions revoked.',
+      metadata: suspiciousActivity,
+      notifyAdmins: true,
+    })
     await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
   }
-  if (account.emailVerified === false) {
-    return res.status(403).json({ error: 'Email not verified. Please verify your email before logging in.' })
+
+  const enforceMfa = account.mfa?.enforced
+  const totpEnabled = account.mfa?.totp?.enabled
+  if (enforceMfa && !totpEnabled) {
+    return res.status(403).json({
+      error: 'Multi-factor authentication must be configured before accessing this account.',
+      mfaSetupRequired: true,
+    })
   }
+
+  if (totpEnabled) {
+    if (!totpCode) {
+      return res.status(403).json({
+        error: 'MFA code required',
+        mfaRequired: true,
+      })
+    }
+
+    try {
+      const secretData = account.mfa.totp.secret
+      if (!secretData?.encryptedSecret) {
+        return res.status(403).json({
+          error: 'MFA secret missing. Please reconfigure your authenticator app.',
+          mfaSetupRequired: true,
+        })
+      }
+
+      const secret = decryptSecret(secretData)
+      const isValidTotp = authenticator.check(totpCode, secret)
+      if (!isValidTotp) {
+        const attempt = await registerFailedAttempt(username, ipAddress)
+        await MonitoringService.recordMetric('login.failure')
+        return res.status(400).json({
+          error: 'Invalid MFA code',
+          mfaRequired: true,
+          requireCaptcha: isCaptchaEnforced(attempt),
+        })
+      }
+      account.mfa.totp.lastVerifiedAt = new Date()
+      await account.save()
+    } catch (error) {
+      console.error('Failed to validate TOTP secret:', error)
+      return res.status(500).json({ error: 'Failed to validate MFA code. Please try again later.' })
+    }
+  }
+
+  await resetLoginAttempts(username, ipAddress)
+  await MonitoringService.recordMetric('login.success')
+
   // Create user object for token generation
   const user = {
     userId: account._id,
@@ -274,6 +440,7 @@ const localLogin = async (req, res) => {
       userId: account._id,
       username: account.username,
       email: account.email,
+      mfaRequired: totpEnabled,
     },
   })
 }
@@ -345,6 +512,24 @@ const resetPassword = async (req, res) => {
     if (!account) {
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
+    const strength = validatePasswordStrength(password, {
+      email: account.email,
+      username: account.username,
+    })
+    if (!strength.valid) {
+      return res.status(400).json({ error: strength.reason, suggestions: strength.suggestions })
+    }
+
+    const pwnedResult = await checkPasswordPwned(password)
+    if (pwnedResult.error) {
+      console.warn('HaveIBeenPwned check failed during password reset:', pwnedResult.error.message)
+    }
+    if (pwnedResult.pwned) {
+      return res.status(400).json({
+        error: 'This password appears in known breach datasets. Please choose another password.',
+      })
+    }
+
     account.email = account.email.toLowerCase()
     account.password = password
     account.passwordResetToken = undefined
@@ -391,6 +576,151 @@ const resendEmailVerification = async (req, res) => {
   }
 }
 
+const initiateTotpSetup = async (req, res) => {
+  try {
+    const userId = req.user?.userId
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    const account = await Account.findById(userId)
+    if (!account) {
+      return res.status(404).json({ error: 'Account not found' })
+    }
+
+    const secret = authenticator.generateSecret()
+    const issuer = process.env.MFA_ISSUER || 'TM-Project'
+    const otpauthUrl = authenticator.keyuri(account.email, issuer, secret)
+    const encrypted = encryptSecret(secret)
+
+    account.mfa = account.mfa || {}
+    account.mfa.totp = account.mfa?.totp || {}
+    account.mfa.totp.pendingSecret = encrypted
+    account.mfa.totp.pendingSecretCreatedAt = new Date()
+
+    await account.save()
+
+    await recordSecurityEvent({
+      userId: userId,
+      type: 'mfa_enrollment_initiated',
+      severity: 'low',
+      description: 'TOTP enrollment was initiated for your account.',
+      metadata: { issuer },
+      notifyAdmins: false,
+    })
+
+    return res.status(200).json({ secret, otpauthUrl })
+  } catch (error) {
+    console.error('Failed to initiate TOTP setup:', error)
+    return res.status(500).json({ error: 'Failed to initiate TOTP setup' })
+  }
+}
+
+const verifyTotpSetup = async (req, res) => {
+  try {
+    const userId = req.user?.userId
+    const { token } = req.body
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    if (!token) {
+      return res.status(400).json({ error: 'MFA token is required' })
+    }
+
+    const account = await Account.findById(userId)
+    if (!account || !account.mfa?.totp?.pendingSecret) {
+      return res.status(400).json({ error: 'No pending MFA enrollment found' })
+    }
+
+    const secret = decryptSecret(account.mfa.totp.pendingSecret)
+    if (!authenticator.check(token, secret)) {
+      return res.status(400).json({ error: 'Invalid MFA token' })
+    }
+
+    account.mfa.totp.secret = account.mfa.totp.pendingSecret
+    account.mfa.totp.pendingSecret = undefined
+    account.mfa.totp.pendingSecretCreatedAt = undefined
+    account.mfa.totp.enabled = true
+    account.mfa.totp.lastVerifiedAt = new Date()
+
+    await account.save()
+
+    await recordSecurityEvent({
+      userId,
+      type: 'mfa_enabled',
+      severity: 'medium',
+      description: 'TOTP multi-factor authentication has been enabled.',
+      notifyAdmins: true,
+    })
+
+    return res.status(200).json({ success: true })
+  } catch (error) {
+    console.error('Failed to verify TOTP setup:', error)
+    return res.status(500).json({ error: 'Failed to verify TOTP setup' })
+  }
+}
+
+const disableTotp = async (req, res) => {
+  try {
+    const userId = req.user?.userId
+    const { token } = req.body
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    const account = await Account.findById(userId)
+    if (!account) {
+      return res.status(404).json({ error: 'Account not found' })
+    }
+
+    if (account.mfa?.enforced) {
+      return res.status(403).json({ error: 'MFA is enforced for this account and cannot be disabled.' })
+    }
+
+    if (!account.mfa?.totp?.enabled) {
+      return res.status(400).json({ error: 'TOTP MFA is not enabled.' })
+    }
+
+    const secretData = account.mfa.totp.secret
+    if (!secretData?.encryptedSecret) {
+      return res.status(400).json({ error: 'MFA secret missing. Cannot disable at this time.' })
+    }
+
+    if (!token) {
+      return res.status(400).json({ error: 'MFA token is required to disable TOTP.' })
+    }
+
+    const secret = decryptSecret(secretData)
+    if (!authenticator.check(token, secret)) {
+      return res.status(400).json({ error: 'Invalid MFA token provided.' })
+    }
+
+    account.mfa.totp.enabled = false
+    account.mfa.totp.secret = undefined
+    account.mfa.totp.lastVerifiedAt = undefined
+    account.mfa.totp.pendingSecret = undefined
+    account.mfa.totp.pendingSecretCreatedAt = undefined
+
+    await account.save()
+
+    await recordSecurityEvent({
+      userId,
+      type: 'mfa_disabled',
+      severity: 'medium',
+      description: 'TOTP multi-factor authentication has been disabled.',
+      notifyAdmins: true,
+    })
+
+    return res.status(200).json({ success: true })
+  } catch (error) {
+    console.error('Failed to disable TOTP:', error)
+    return res.status(500).json({ error: 'Failed to disable TOTP' })
+  }
+}
+
 export default {
   getUserIDAndEmailByName,
   oAuthentication,
@@ -401,4 +731,7 @@ export default {
   resetPassword,
   verifyToken,
   resendEmailVerification,
+  initiateTotpSetup,
+  verifyTotpSetup,
+  disableTotp,
 }

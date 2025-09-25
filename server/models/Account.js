@@ -55,6 +55,40 @@ const accountSchema = new mongoose.Schema({
   passwordResetExpires: {
     type: Date,
   },
+  mfa: {
+    type: new mongoose.Schema(
+      {
+        enforced: {
+          type: Boolean,
+          default: false,
+        },
+        totp: {
+          enabled: {
+            type: Boolean,
+            default: false,
+          },
+          secret: {
+            encryptedSecret: String,
+            iv: String,
+            authTag: String,
+          },
+          pendingSecret: {
+            encryptedSecret: String,
+            iv: String,
+            authTag: String,
+          },
+          pendingSecretCreatedAt: {
+            type: Date,
+          },
+          lastVerifiedAt: {
+            type: Date,
+          },
+        },
+      },
+      { _id: false },
+    ),
+    default: () => ({ totp: { enabled: false } }),
+  },
   createdAt: {
     type: Date,
     immutable: true,

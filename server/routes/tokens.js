@@ -6,11 +6,13 @@ import 'dotenv/config'
 const { generateAccessToken, generateRefreshToken } = JWTAuth
 
 const addRefreshToken = async (req, res) => {
-  const { user } = req.body
+  const { user, deviceFingerprint: fingerprintFromBody } = req.body
 
   if (!user) {
     return res.status(400).json({ error: 'User data is required' })
   }
+
+  const deviceFingerprint = fingerprintFromBody || req.get('x-device-fingerprint') || null
 
   try {
     // Generate a unique sessionId for this login session
@@ -27,6 +29,7 @@ const addRefreshToken = async (req, res) => {
       ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      deviceFingerprint,
     })
 
     // Set cookies
@@ -95,6 +98,8 @@ const renewAccessToken = async (req, res) => {
     const accessToken = generateAccessToken(user)
     const refreshToken = generateRefreshToken(user)
 
+    const deviceFingerprint = req.body?.deviceFingerprint || req.get('x-device-fingerprint') || null
+
     await RefreshTokenManager.createRefreshToken({
       userId: user.userId,
       token: refreshToken,
@@ -102,6 +107,7 @@ const renewAccessToken = async (req, res) => {
       ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      deviceFingerprint,
     })
 
     console.log('Renewing access token for user:', user)

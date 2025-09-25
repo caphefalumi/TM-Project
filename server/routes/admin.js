@@ -4,6 +4,9 @@ import UsersOfTeam from '../models/UsersOfTeam.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Announcements from '../models/Announcements.js'
 import { createNotification } from '../scripts/notificationsService.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
+import AdminAuditLog from '../models/AdminAuditLog.js'
+import MonitoringService from '../scripts/monitoringService.js'
 
 // Admin middleware to check if user is admin
 const checkAdminAccess = (req, res, next) => {
@@ -15,6 +18,21 @@ const checkAdminAccess = (req, res, next) => {
       message: 'Access denied. Admin privileges required.',
     })
   }
+}
+
+const recordAdminAudit = async (req, action, targetUserId = null, metadata = {}) => {
+  if (!req.user?.userId) {
+    return
+  }
+
+  const auditLog = new AdminAuditLog({
+    adminId: req.user.userId,
+    action,
+    targetUserId,
+    metadata,
+  })
+
+  await auditLog.save()
 }
 
 // Recursive function to get parent team breadcrumbs
@@ -267,6 +285,92 @@ const sendNotificationToUser = async (req, res) => {
   }
 }
 
+const getUserSessionsForAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params
+    const stats = await RefreshTokenManager.getUserTokenStats(userId)
+    await recordAdminAudit(req, 'view_user_sessions', userId, { sessionCount: stats.activeSessionCount })
+
+    return res.status(200).json({
+      success: true,
+      sessions: stats.sessions,
+      summary: {
+        activeTokens: stats.activeTokenCount,
+        uniqueIPs: stats.uniqueIPs,
+        totalActivity: stats.totalActivity,
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching user sessions for admin:', error)
+    return res.status(500).json({ message: 'Failed to fetch user sessions' })
+  }
+}
+
+const revokeSessionAsAdmin = async (req, res) => {
+  try {
+    const { sessionId } = req.params
+    const result = await RefreshTokenManager.revokeSession(sessionId, 'admin')
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: 'Session not found or already revoked' })
+    }
+
+    await recordAdminAudit(req, 'revoke_session', null, { sessionId, revokedCount: result.modifiedCount })
+    await MonitoringService.triggerAlert({
+      title: 'admin_session_revoke',
+      message: `Admin revoked session ${sessionId}`,
+      metadata: { sessionId, adminId: req.user.userId },
+    })
+
+    return res.status(200).json({
+      message: 'Session revoked successfully',
+      revokedCount: result.modifiedCount,
+    })
+  } catch (error) {
+    console.error('Error revoking session as admin:', error)
+    return res.status(500).json({ message: 'Failed to revoke session' })
+  }
+}
+
+const revokeAllSessionsForUser = async (req, res) => {
+  try {
+    const { userId } = req.params
+    const result = await RefreshTokenManager.revokeAllUserTokens(userId, 'admin')
+
+    await recordAdminAudit(req, 'revoke_all_sessions', userId, {
+      revokedCount: result.modifiedCount,
+    })
+
+    await MonitoringService.triggerAlert({
+      title: 'admin_mass_logout',
+      message: `Admin revoked all sessions for user ${userId}`,
+      metadata: { userId, revokedCount: result.modifiedCount },
+    })
+
+    return res.status(200).json({
+      message: 'All user sessions revoked successfully',
+      revokedCount: result.modifiedCount,
+    })
+  } catch (error) {
+    console.error('Error revoking all sessions for user:', error)
+    return res.status(500).json({ message: 'Failed to revoke all sessions' })
+  }
+}
+
+const getAdminAuditLogs = async (_req, res) => {
+  try {
+    const logs = await AdminAuditLog.find({})
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean()
+
+    return res.status(200).json({ logs })
+  } catch (error) {
+    console.error('Error fetching admin audit logs:', error)
+    return res.status(500).json({ message: 'Failed to fetch admin audit logs' })
+  }
+}
+
 export default {
   checkAdminAccess,
   getAllTeamsForAdmin,
@@ -276,4 +380,8 @@ export default {
   deleteUserAsAdmin,
   deleteAnnouncementAsAdmin,
   sendNotificationToUser,
+  getUserSessionsForAdmin,
+  revokeSessionAsAdmin,
+  revokeAllSessionsForUser,
+  getAdminAuditLogs,
 }

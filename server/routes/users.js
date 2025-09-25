@@ -13,8 +13,8 @@ import Role from '../models/Role.js'
 import { PERMISSIONS } from '../config/permissions.js'
 import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
 import JWTAuth from '../verify/JWTAuth.js'
-import RefreshToken from '../models/RefreshToken.js'
 import Mailer from '../scripts/mailer.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 
 const { generateAccessToken, generateRefreshToken } = JWTAuth
 
@@ -643,14 +643,16 @@ export const updateUserProfile = async (req, res) => {
       const newAccessToken = generateAccessToken(newUserData)
       const newRefreshToken = generateRefreshToken(newUserData)
 
-      await RefreshToken.findOneAndUpdate(
-        { userId: requestingUserId },
-        {
-          token: newRefreshToken,
-          updatedAt: new Date(),
-        },
-        { new: true },
-      )
+      await RefreshTokenManager.revokeAllUserTokens(requestingUserId, 'profile_update')
+
+      await RefreshTokenManager.createRefreshToken({
+        userId: requestingUserId,
+        token: newRefreshToken,
+        sessionId: crypto.randomBytes(16).toString('hex'),
+        ipAddress: req.clientIp,
+        userAgent: req.get('User-Agent'),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      })
 
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
@@ -734,14 +736,7 @@ export const verifyEmailChange = async (req, res) => {
 
     await account.save()
 
-    await RefreshToken.updateMany(
-      { userId: account._id.toString(), revoked: false },
-      {
-        revoked: true,
-        revokedAt: new Date(),
-        revokedReason: 'security',
-      },
-    )
+    await RefreshTokenManager.revokeAllUserTokens(account._id.toString(), 'security')
     const newUserData = {
       userId: account._id.toString(),
       username: account.username,
@@ -750,13 +745,14 @@ export const verifyEmailChange = async (req, res) => {
     const newAccessToken = generateAccessToken(newUserData)
     const newRefreshToken = generateRefreshToken(newUserData)
 
-    await RefreshToken.findOneAndUpdate(
-      { userId: requestingUserId },
-      {
-        token: newRefreshToken,
-        updatedAt: new Date(),
-      },
-    )
+    await RefreshTokenManager.createRefreshToken({
+      userId: requestingUserId,
+      token: newRefreshToken,
+      sessionId: crypto.randomBytes(16).toString('hex'),
+      ipAddress: req.clientIp,
+      userAgent: req.get('User-Agent'),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    })
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,

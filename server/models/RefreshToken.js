@@ -5,9 +5,10 @@ const refreshTokenSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  token: {
+  tokenHash: {
     type: String,
     required: true,
+    index: true,
   },
   sessionId: {
     type: String,
@@ -27,6 +28,14 @@ const refreshTokenSchema = new mongoose.Schema({
     type: String,
     default: 'Unknown',
   },
+  locationLat: {
+    type: Number,
+    default: null,
+  },
+  locationLon: {
+    type: Number,
+    default: null,
+  },
   device: {
     type: String,
     default: 'Unknown',
@@ -43,6 +52,14 @@ const refreshTokenSchema = new mongoose.Schema({
   activityCount: {
     type: Number,
     default: 1,
+  },
+  deviceFingerprint: {
+    type: String,
+    default: null,
+  },
+  riskFlags: {
+    type: [String],
+    default: [],
   },
   // Token lifecycle
   createdAt: {

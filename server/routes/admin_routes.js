@@ -13,6 +13,10 @@ const {
   deleteUserAsAdmin,
   deleteAnnouncementAsAdmin,
   sendNotificationToUser,
+  getUserSessionsForAdmin,
+  revokeSessionAsAdmin,
+  revokeAllSessionsForUser,
+  getAdminAuditLogs,
 } = Admin
 
 // Admin Dashboard
@@ -30,5 +34,18 @@ router.delete(
   checkAdminAccess,
   deleteAnnouncementAsAdmin,
 )
+
+// Session Management
+router.get('/sessions/:userId', authenticateAccessToken, checkAdminAccess, getUserSessionsForAdmin)
+router.delete('/sessions/:sessionId', authenticateAccessToken, checkAdminAccess, revokeSessionAsAdmin)
+router.post(
+  '/sessions/:userId/revoke-all',
+  authenticateAccessToken,
+  checkAdminAccess,
+  revokeAllSessionsForUser,
+)
+
+// Audit logs
+router.get('/audit/logs', authenticateAccessToken, checkAdminAccess, getAdminAuditLogs)
 
 export default router
