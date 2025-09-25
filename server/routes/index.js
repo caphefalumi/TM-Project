@@ -5,6 +5,7 @@ import authRoutes from './auth_routes.js'
 import userRoutes from './users_routes.js'
 import teamRoutes from './teams_routes.js'
 import taskRoutes from './tasks_routes.js'
+import ratingRoutes from './rating_routes.js'
 import announcementRoutes from './announcements_routes.js'
 import notificationRoutes from './notifications_routes.js'
 import adminRoutes from './admin_routes.js'
@@ -30,5 +31,5 @@ router.use('/api/announcements', announcementRoutes) // /api/announcements/*
 router.use('/api/notifications', notificationRoutes) // /api/notifications/*
 router.use('/api/admin', adminRoutes) // /api/admin/*
 router.use('/api/sessions', refreshTokenRoutes) // /api/sessions/*
-
+router.use('/api/ratings', ratingRoutes) // /api/ratings/*
 export default router
