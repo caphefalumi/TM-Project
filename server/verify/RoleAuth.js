@@ -68,14 +68,8 @@ export const getRoleDefaultPermissions = (role) => {
   // Convert to object format for easy access
   const permissionObject = {}
 
-  // Get all available permissions from the ROLE_PERMISSIONS config
-  const allPermissions = new Set()
-  Object.values(ROLE_PERMISSIONS).forEach((rolePermissions) => {
-    rolePermissions.forEach((permission) => allPermissions.add(permission))
-  })
-
-  // Initialize all available permissions to false
-  Array.from(allPermissions).forEach((permission) => {
+  // Initialize all available permissions to false so every field is present
+  Object.values(PERMISSIONS).forEach((permission) => {
     permissionObject[permission] = false
   })
 

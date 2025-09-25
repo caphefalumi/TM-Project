@@ -32,40 +32,61 @@ export const PERMISSIONS = {
   MANAGE_CUSTOM_ROLES: 'canManageCustomRoles',
 }
 
+const FEATURE_PERMISSION_GROUPS = {
+  announcements: [
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.MANAGE_ANNOUNCEMENTS,
+    PERMISSIONS.DELETE_ANNOUNCEMENTS,
+  ],
+  tasks: [
+    PERMISSIONS.VIEW_TASKS,
+    PERMISSIONS.VIEW_TASK_GROUPS,
+    PERMISSIONS.SUBMIT_TASKS,
+    PERMISSIONS.MANAGE_TASKS,
+    PERMISSIONS.DELETE_TASKS,
+    PERMISSIONS.ASSIGN_TASKS,
+  ],
+  members: [
+    PERMISSIONS.VIEW_MEMBERS,
+    PERMISSIONS.ADD_MEMBERS,
+    PERMISSIONS.REMOVE_MEMBERS,
+  ],
+}
+
 export const AVAILABLE_PERMISSIONS = [
   // View permissions - basic permissions all users should have
   {
-    key: 'canViewTeam',
+    key: PERMISSIONS.VIEW_TEAM,
     label: 'View Team',
     category: 'Basic',
     description: 'Can view team details',
   },
   {
-    key: 'canViewTasks',
+    key: PERMISSIONS.VIEW_TASKS,
     label: 'View Tasks',
     category: 'Basic',
     description: 'Can view team tasks',
   },
   {
-    key: 'canViewAnnouncements',
+    key: PERMISSIONS.VIEW_ANNOUNCEMENTS,
     label: 'View Announcements',
     category: 'Basic',
     description: 'Can view team announcements',
   },
   {
-    key: 'canViewMembers',
+    key: PERMISSIONS.VIEW_MEMBERS,
     label: 'View Members',
     category: 'Basic',
     description: 'Can view team member list',
   },
   {
-    key: 'canViewTaskGroups',
+    key: PERMISSIONS.VIEW_TASK_GROUPS,
     label: 'View Task Groups',
     category: 'Basic',
     description: 'Can view task groups',
   },
   {
-    key: 'canSubmitTasks',
+    key: PERMISSIONS.SUBMIT_TASKS,
     label: 'Submit Tasks',
     category: 'Basic',
     description: 'Can submit task assignments',
@@ -73,19 +94,19 @@ export const AVAILABLE_PERMISSIONS = [
 
   // Tasks group permissions
   {
-    key: 'canManageTasks',
+    key: PERMISSIONS.MANAGE_TASKS,
     label: 'Create and Edit Tasks',
     category: 'Tasks',
     description: 'Can create and edit tasks',
   },
   {
-    key: 'canDeleteTasks',
+    key: PERMISSIONS.DELETE_TASKS,
     label: 'Delete Tasks',
     category: 'Tasks',
     description: 'Can delete tasks',
   },
   {
-    key: 'canAssignTasks',
+    key: PERMISSIONS.ASSIGN_TASKS,
     label: 'Assign Tasks',
     category: 'Tasks',
     description: 'Can assign tasks to members',
@@ -93,13 +114,13 @@ export const AVAILABLE_PERMISSIONS = [
 
   // Announcements group permissions
   {
-    key: 'canManageAnnouncements',
+    key: PERMISSIONS.MANAGE_ANNOUNCEMENTS,
     label: 'Create and Edit Announcements',
     category: 'Announcements',
     description: 'Can create and edit announcements',
   },
   {
-    key: 'canDeleteAnnouncements',
+    key: PERMISSIONS.DELETE_ANNOUNCEMENTS,
     label: 'Delete Announcements',
     category: 'Announcements',
     description: 'Can delete announcements',
@@ -107,13 +128,13 @@ export const AVAILABLE_PERMISSIONS = [
 
   // Members group permissions
   {
-    key: 'canAddMembers',
+    key: PERMISSIONS.ADD_MEMBERS,
     label: 'Add Members',
     category: 'Members',
     description: 'Can add new members to the team',
   },
   {
-    key: 'canRemoveMembers',
+    key: PERMISSIONS.REMOVE_MEMBERS,
     label: 'Remove Members',
     category: 'Members',
     description: 'Can remove members from the team',
@@ -121,19 +142,19 @@ export const AVAILABLE_PERMISSIONS = [
 
   // Admin-only privileges (cannot be assigned to custom roles)
   {
-    key: 'canDeleteTeams',
+    key: PERMISSIONS.DELETE_TEAMS,
     label: 'Delete Teams',
     category: 'Admin Only',
     description: 'Can delete the entire team (Admin privilege only)',
   },
   {
-    key: 'canCreateSubTeams',
+    key: PERMISSIONS.CREATE_SUB_TEAMS,
     label: 'Create Sub-teams',
     category: 'Admin Only',
     description: 'Can create sub-teams (Admin privilege only)',
   },
   {
-    key: 'canManageCustomRoles',
+    key: PERMISSIONS.MANAGE_CUSTOM_ROLES,
     label: 'Manage Custom Roles',
     category: 'Admin Only',
     description: 'Can create and manage custom roles (Admin privilege only)',
@@ -216,9 +237,7 @@ class PermissionService {
    * @returns {boolean} - Whether user can see announcements in UI
    */
   canAccessAnnouncements() {
-    return (
-      this.hasAnyPermission(['canManageAnnouncements', 'canDeleteAnnouncements']) || this.isAdmin()
-    )
+    return this.canAccessFeature('announcements')
   }
 
   /**
@@ -226,7 +245,7 @@ class PermissionService {
    * @returns {boolean} - Whether user can see tasks management in UI
    */
   canAccessTasks() {
-    return this.hasAnyPermission(['canManageTasks', 'canDeleteTasks']) || this.isAdmin()
+    return this.canAccessFeature('tasks')
   }
 
   /**
@@ -234,7 +253,7 @@ class PermissionService {
    * @returns {boolean} - Whether user can see member management in UI
    */
   canAccessMembers() {
-    return this.hasAnyPermission(['canAddMembers', 'canRemoveMembers']) || this.isAdmin()
+    return this.canAccessFeature('members')
   }
 
   /**
@@ -242,7 +261,7 @@ class PermissionService {
    * @returns {boolean} - Whether user can add members
    */
   canAddTeamMembers() {
-    return this.isAdmin()
+    return this.hasPermission(PERMISSIONS.ADD_MEMBERS)
   }
 
   /**
@@ -250,7 +269,16 @@ class PermissionService {
    * @returns {boolean} - Whether user can assign custom roles
    */
   canCustomizeRolesForNewMembers() {
-    return this.isAdmin()
+    return this.hasPermission(PERMISSIONS.MANAGE_CUSTOM_ROLES)
+  }
+
+  canAccessFeature(feature) {
+    const permissions = FEATURE_PERMISSION_GROUPS[feature]
+    if (!permissions) {
+      console.warn(`Unknown feature permissions requested: ${feature}`)
+      return false
+    }
+    return this.hasAnyPermission(permissions)
   }
 
   /**
