@@ -3,25 +3,46 @@
     <v-card-title>Submit Feedback</v-card-title>
     <v-card-text>
       <v-form ref="form" v-model="valid">
-        <v-textarea label="Message" v-model="feedback.message" required></v-textarea>
-        <v-select label="Issue Type" :items="issueTypes" v-model="feedback.issue" required></v-select>
+        <v-textarea label="Message" v-model="feedback.message" placeholder="Enter your feedback here..." variant="outlined" required></v-textarea>
+        <v-select label="Issue Type" :items="issueTypes" v-model="feedback.issue" variant="outlined" required></v-select>
         <div class="mt-4">
-          <div class="mb-2">Feature Rating</div>
-          <v-rating v-model="feedback.featureRating" length="10" color="yellow darken-3" background-color="grey lighten-1" required></v-rating>
+          <div class="text-h6 mb-2">Feature Rating</div>
+          <v-rating 
+            v-model="feedback.featureRating" 
+            length="10" 
+            background-color="grey lighten-1" 
+            active-color="yellow darken-3" 
+            hover
+            required>
+          </v-rating>
+          </div>
+        <div class="mt-4">
+          <div class="text-h6 mb-2">Performance Rating</div>
+          <v-rating 
+            v-model="feedback.perfRating" 
+            length="10" 
+            background-color="grey lighten-1" 
+            active-color="yellow darken-3" 
+            hover
+            required>
+          </v-rating>
         </div>
         <div class="mt-4">
-          <div class="mb-2">Performance Rating</div>
-          <v-rating v-model="feedback.perfRating" length="10" color="yellow darken-3" background-color="grey lighten-1" required></v-rating>
-        </div>
-        <div class="mt-4">
-          <div class="mb-2">UI/UX Rating</div>
-          <v-rating v-model="feedback.uiRating" length="10" color="yellow darken-3" background-color="grey lighten-1" required></v-rating>
+          <div class="text-h6 mb-2">User Interface and Experience</div>
+          <v-rating 
+            v-model="feedback.uiRating" 
+            length="10" 
+            background-color="grey lighten-1" 
+            active-color="yellow darken-3" 
+            hover
+            required>
+          </v-rating>
         </div>
       </v-form>
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="primary" :disabled="!valid" @click="submitFeedback">Submit</v-btn>
+      <v-btn color="primary" :disabled="!valid" @click="submitFeedback" variant="outlined">Submit</v-btn>
     </v-card-actions>
   </v-card>
 </template>
