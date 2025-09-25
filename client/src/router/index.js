@@ -78,6 +78,11 @@ const router = createRouter({
       component: AdminView,
       meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin Panel' },
     },
+    {
+      path: '/feedback',
+      component: () => import('../views/FeedbackView.vue'),
+      meta: { requiresAuth: true, title: 'Feedback' },
+    }
   ],
 })
 

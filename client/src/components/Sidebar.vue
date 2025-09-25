@@ -143,6 +143,7 @@ const items = ref([
   { title: 'Dashboard', icon: 'mdi-view-dashboard', to: '/home' },
   { title: 'Teams', icon: 'mdi-briefcase-variant', to: '/teams' },
   { title: 'About', icon: 'mdi-information', to: '/about' },
+  { title: 'Feedback', icon: 'mdi-comment', to: '/feedback' },
 ])
 
 // Add admin menu item only if user is admin
