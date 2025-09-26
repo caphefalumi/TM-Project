@@ -1,18 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '../auth/Login.vue'
-import Register from '../auth/Register.vue'
-import ForgotPassword from '../auth/ForgotPassword.vue'
-import ResetPassword from '../auth/ResetPassword.vue'
-import TeamsView from '../views/TeamsView.vue'
-import TeamDetails from '../views/TeamDetails.vue'
-import Dashboard from '../views/Dashboard.vue'
-import AdminView from '../views/AdminView.vue'
-import LandingView from '../views/LandingView.vue'
-import AccountPersonalView from '../views/AccountPersonalView.vue'
-import AccountSecurityView from '../views/AccountSecurityView.vue'
-import VerifyEmailView from '../views/VerifyEmailView.vue'
 import AuthStore from '../scripts/authStore.js'
-import AboutView from '../views/AboutView.vue'
+
+// Lazy-loaded components for better code splitting
+const LandingView = () => import('../views/LandingView.vue')
+const Login = () => import('../auth/Login.vue')
+const Register = () => import('../auth/Register.vue')
+const ForgotPassword = () => import('../auth/ForgotPassword.vue')
+const ResetPassword = () => import('../auth/ResetPassword.vue')
+const TeamsView = () => import('../views/TeamsView.vue')
+const TeamDetails = () => import('../views/TeamDetails.vue')
+const Dashboard = () => import('../views/Dashboard.vue')
+const AdminView = () => import('../views/AdminView.vue')
+const AccountPersonalView = () => import('../views/AccountPersonalView.vue')
+const AccountSecurityView = () => import('../views/AccountSecurityView.vue')
+const VerifyEmailView = () => import('../views/VerifyEmailView.vue')
+const AboutView = () => import('../views/AboutView.vue')
 
 const { getUserByAccessToken } = AuthStore
 
