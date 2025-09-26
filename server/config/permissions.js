@@ -1,37 +1,75 @@
-// Centralized permissions configuration
+// Centralized permissions configuration - Single Source of Truth
 export const PERMISSIONS = {
-  // Task permissions
+  // Basic view permissions
+  VIEW_TEAM: 'canViewTeam',
+  VIEW_TASKS: 'canViewTasks',
+  VIEW_ANNOUNCEMENTS: 'canViewAnnouncements',
+  VIEW_MEMBERS: 'canViewMembers',
+  VIEW_TASK_GROUPS: 'canViewTaskGroups',
+
+  // Basic action permissions
+  SUBMIT_TASKS: 'canSubmitTasks',
+
+  // Task management permissions
   MANAGE_TASKS: 'canManageTasks',
   DELETE_TASKS: 'canDeleteTasks',
+  ASSIGN_TASKS: 'canAssignTasks',
 
-  // Announcement permissions
+  // Announcement management permissions
   MANAGE_ANNOUNCEMENTS: 'canManageAnnouncements',
   DELETE_ANNOUNCEMENTS: 'canDeleteAnnouncements',
 
   // Member management permissions
   ADD_MEMBERS: 'canAddMembers',
   REMOVE_MEMBERS: 'canRemoveMembers',
+
+  // Admin-only permissions
+  DELETE_TEAMS: 'canDeleteTeams',
+  CREATE_SUB_TEAMS: 'canCreateSubTeams',
+  MANAGE_CUSTOM_ROLES: 'canManageCustomRoles',
 }
 
-// Membership permissions (own dictionary)
-export const MEMBERSHIP_PERMISSIONS = {
-  VIEW_TEAM: 'canViewTeam',
-  VIEW_TASKS: 'canViewTasks',
-  VIEW_ANNOUNCEMENTS: 'canViewAnnouncements',
-  VIEW_MEMBERS: 'canViewMembers',
-  SUBMIT_TASKS: 'canSubmitTasks',
-}
-
-// Define role-based default permissions
+// Role → Permission mapping (Single Source of Truth)
 export const ROLE_PERMISSIONS = {
-  Admin: [
-    ...Object.values(MEMBERSHIP_PERMISSIONS),
-    ...Object.values(PERMISSIONS),
-    'canViewTaskGroups',
-    'canAssignTasks',
-    'canDeleteTeams',
-    'canCreateSubTeams',
-    'canManageCustomRoles',
+  Admin: Object.values(PERMISSIONS), // Admins get all permissions
+  Member: [
+    // Basic permissions for members
+    PERMISSIONS.VIEW_TEAM,
+    PERMISSIONS.VIEW_TASKS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.VIEW_MEMBERS,
+    PERMISSIONS.VIEW_TASK_GROUPS,
+    PERMISSIONS.SUBMIT_TASKS,
   ],
-  Member: [...Object.values(MEMBERSHIP_PERMISSIONS)],
+}
+
+// Computed UI actions based on permissions
+export const computeUserActions = (userPermissions) => {
+  return {
+    // Basic permissions - always true for all team members
+    canViewTeam: true,
+    canViewTasks: true,
+    canViewAnnouncements: true,
+    canViewMembers: true,
+    canViewTaskGroups: true,
+    canSubmitTasks: true,
+
+    // Advanced permissions - based on role and custom permissions
+    canManageTasks: userPermissions[PERMISSIONS.MANAGE_TASKS] || false,
+    canDeleteTasks: userPermissions[PERMISSIONS.DELETE_TASKS] || false,
+    canAssignTasks: userPermissions[PERMISSIONS.ASSIGN_TASKS] || false,
+
+    // Announcement actions
+    canManageAnnouncements: userPermissions[PERMISSIONS.MANAGE_ANNOUNCEMENTS] || false,
+    canDeleteAnnouncements: userPermissions[PERMISSIONS.DELETE_ANNOUNCEMENTS] || false,
+
+    // Member actions
+    canAddMembers: userPermissions[PERMISSIONS.ADD_MEMBERS] || false,
+    canRemoveMembers: userPermissions[PERMISSIONS.REMOVE_MEMBERS] || false,
+
+    // Admin actions
+    canDeleteTeams: userPermissions[PERMISSIONS.DELETE_TEAMS] || false,
+    canCreateSubTeams: userPermissions[PERMISSIONS.CREATE_SUB_TEAMS] || false,
+    canManageCustomRoles: userPermissions[PERMISSIONS.MANAGE_CUSTOM_ROLES] || false,
+  }
 }

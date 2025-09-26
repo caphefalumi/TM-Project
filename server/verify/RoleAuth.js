@@ -19,16 +19,12 @@ export const getUserCustomPermissions = async (userId, teamId) => {
     // Start with default role permissions
     let rolePermissions = getRoleDefaultPermissions(userTeamRole.role)
 
-    // If user has a custom role assigned, override with custom role permissions
+    // If user has a custom role assigned, add custom role permissions to base role permissions
     if (userTeamRole.role_id && userTeamRole.role_id.permissions) {
-      const customRolePermissions = {}
+      // Start with base role permissions (Member gets basic permissions)
+      const customRolePermissions = { ...rolePermissions }
 
-      // Set all permissions to false first
-      Object.keys(rolePermissions).forEach((key) => {
-        customRolePermissions[key] = false
-      })
-
-      // Enable only the permissions defined in the custom role
+      // Add the additional permissions defined in the custom role
       userTeamRole.role_id.permissions.forEach((permission) => {
         customRolePermissions[permission] = true
       })

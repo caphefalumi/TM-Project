@@ -1,39 +1,6 @@
-/**
- * Centralized Permission Service
- * Manages permission checks and user authorization throughout the application
- */
-
-// Permission constants matching backend config
-export const PERMISSIONS = {
-  // View permissions
-  VIEW_TEAM: 'canViewTeam',
-  VIEW_TASKS: 'canViewTasks',
-  VIEW_ANNOUNCEMENTS: 'canViewAnnouncements',
-  VIEW_MEMBERS: 'canViewMembers',
-  VIEW_TASK_GROUPS: 'canViewTaskGroups',
-
-  // Task permissions
-  SUBMIT_TASKS: 'canSubmitTasks',
-  MANAGE_TASKS: 'canManageTasks',
-  DELETE_TASKS: 'canDeleteTasks',
-  ASSIGN_TASKS: 'canAssignTasks',
-
-  // Announcement permissions
-  MANAGE_ANNOUNCEMENTS: 'canManageAnnouncements',
-  DELETE_ANNOUNCEMENTS: 'canDeleteAnnouncements',
-
-  // Member management permissions
-  ADD_MEMBERS: 'canAddMembers',
-  REMOVE_MEMBERS: 'canRemoveMembers',
-
-  // Advanced management permissions
-  DELETE_TEAMS: 'canDeleteTeams',
-  CREATE_SUB_TEAMS: 'canCreateSubTeams',
-  MANAGE_CUSTOM_ROLES: 'canManageCustomRoles',
-}
 
 export const AVAILABLE_PERMISSIONS = [
-  // View permissions - basic permissions all users should have
+  // Basic permissions
   {
     key: 'canViewTeam',
     label: 'View Team',
@@ -71,12 +38,12 @@ export const AVAILABLE_PERMISSIONS = [
     description: 'Can submit task assignments',
   },
 
-  // Tasks group permissions
+  // Task management permissions
   {
     key: 'canManageTasks',
-    label: 'Create and Edit Tasks',
+    label: 'Manage Tasks',
     category: 'Tasks',
-    description: 'Can create and edit tasks',
+    description: 'Can create, edit, and manage tasks',
   },
   {
     key: 'canDeleteTasks',
@@ -91,12 +58,12 @@ export const AVAILABLE_PERMISSIONS = [
     description: 'Can assign tasks to members',
   },
 
-  // Announcements group permissions
+  // Announcement management permissions
   {
     key: 'canManageAnnouncements',
-    label: 'Create and Edit Announcements',
+    label: 'Manage Announcements',
     category: 'Announcements',
-    description: 'Can create and edit announcements',
+    description: 'Can create, edit, and manage announcements',
   },
   {
     key: 'canDeleteAnnouncements',
@@ -105,7 +72,7 @@ export const AVAILABLE_PERMISSIONS = [
     description: 'Can delete announcements',
   },
 
-  // Members group permissions
+  // Member management permissions
   {
     key: 'canAddMembers',
     label: 'Add Members',
@@ -119,7 +86,7 @@ export const AVAILABLE_PERMISSIONS = [
     description: 'Can remove members from the team',
   },
 
-  // Admin-only privileges (cannot be assigned to custom roles)
+  // Admin-only permissions
   {
     key: 'canDeleteTeams',
     label: 'Delete Teams',
@@ -142,120 +109,81 @@ export const AVAILABLE_PERMISSIONS = [
 
 class PermissionService {
   constructor() {
-    this.userPermissions = {}
+    this.userActions = {} // Store computed actions from backend
     this.isGlobalAdmin = false
+    this.role = 'Member'
+    this.customRoleName = null
   }
 
   /**
-   * Set user permissions from API response
-   * @param {Object} permissions - User permission object
+   * Set user actions from backend API response
+   * Backend computes all permissions and sends only allowed actions
+   * @param {Object} actions - User actions object from backend
    */
-  setPermissions(permissions) {
-    this.userPermissions = permissions || {}
-    this.isGlobalAdmin = permissions?.isGlobalAdmin || false
+  setUserActions(actions) {
+    this.userActions = actions || {}
+    this.isGlobalAdmin = actions?.isGlobalAdmin || false
+    this.role = actions?.role || 'Member'
+    this.customRoleName = actions?.customRoleName || null
   }
 
-  /**
-   * Check if user has a specific permission
-   * @param {string} permission - Permission key to check
-   * @returns {boolean} - Whether user has permission
-   */
-  hasPermission(permission) {
-    // Global admin has all permissions
-    if (this.isGlobalAdmin) {
-      return true
-    }
+  // Direct action checks - Backend is the source of truth
+  canViewTeam() { return this.userActions.canViewTeam || false }
+  canViewTasks() { return this.userActions.canViewTasks || false }
+  canViewAnnouncements() { return this.userActions.canViewAnnouncements || false }
+  canViewMembers() { return this.userActions.canViewMembers || false }
+  canViewTaskGroups() { return this.userActions.canViewTaskGroups || false }
 
-    return this.userPermissions[permission] || false
-  }
+  canSubmitTasks() { return this.userActions.canSubmitTasks || false }
 
-  /**
-   * Check if user has any of the provided permissions
-   * @param {string[]} permissions - Array of permission keys
-   * @returns {boolean} - Whether user has any permission
-   */
-  hasAnyPermission(permissions) {
-    return permissions.some((permission) => this.hasPermission(permission))
-  }
+  canManageTasks() { return this.userActions.canManageTasks || false }
+  canDeleteTasks() { return this.userActions.canDeleteTasks || false }
+  canAssignTasks() { return this.userActions.canAssignTasks || false }
 
-  /**
-   * Check if user has all of the provided permissions
-   * @param {string[]} permissions - Array of permission keys
-   * @returns {boolean} - Whether user has all permissions
-   */
-  hasAllPermissions(permissions) {
-    return permissions.every((permission) => this.hasPermission(permission))
-  }
+  canManageAnnouncements() { return this.userActions.canManageAnnouncements || false }
+  canDeleteAnnouncements() { return this.userActions.canDeleteAnnouncements || false }
+
+  canAddMembers() { return this.userActions.canAddMembers || false }
+  canRemoveMembers() { return this.userActions.canRemoveMembers || false }
+
+  canDeleteTeams() { return this.userActions.canDeleteTeams || false }
+  canCreateSubTeams() { return this.userActions.canCreateSubTeams || false }
+  canManageCustomRoles() { return this.userActions.canManageCustomRoles || false }
+
+
 
   /**
    * Get user's role
-   * @returns {string} - User's role
    */
   getRole() {
-    return this.userPermissions.role || 'Member'
+    return this.role
   }
 
   /**
    * Get user's custom role name if any
-   * @returns {string|null} - Custom role name or null
    */
   getCustomRoleName() {
-    return this.userPermissions.customRoleName || null
+    return this.customRoleName
   }
 
   /**
    * Check if user is admin
-   * @returns {boolean} - Whether user is admin
    */
   isAdmin() {
-    return this.isGlobalAdmin || this.getRole() === 'Admin'
+    return this.isGlobalAdmin || this.role === 'Admin'
   }
 
   /**
-   * Check if user can access announcements feature
-   * @returns {boolean} - Whether user can see announcements in UI
+   * Backwards compatibility - check if user has a specific action
+   * @param {string} action - Action key to check
+   * @returns {boolean} - Whether user can perform action
    */
-  canAccessAnnouncements() {
-    return (
-      this.hasAnyPermission(['canManageAnnouncements', 'canDeleteAnnouncements']) || this.isAdmin()
-    )
-  }
-
-  /**
-   * Check if user can access tasks feature
-   * @returns {boolean} - Whether user can see tasks management in UI
-   */
-  canAccessTasks() {
-    return this.hasAnyPermission(['canManageTasks', 'canDeleteTasks']) || this.isAdmin()
-  }
-
-  /**
-   * Check if user can access members feature
-   * @returns {boolean} - Whether user can see member management in UI
-   */
-  canAccessMembers() {
-    return this.hasAnyPermission(['canAddMembers', 'canRemoveMembers']) || this.isAdmin()
-  }
-
-  /**
-   * Check if user can add members to team
-   * @returns {boolean} - Whether user can add members
-   */
-  canAddTeamMembers() {
-    return this.isAdmin()
-  }
-
-  /**
-   * Check if user can customize roles when adding members
-   * @returns {boolean} - Whether user can assign custom roles
-   */
-  canCustomizeRolesForNewMembers() {
-    return this.isAdmin()
+  hasPermission(action) {
+    return this.userActions[action] || false
   }
 
   /**
    * Get available permissions for custom roles (excluding admin-only and basic permissions)
-   * @returns {Array} - Array of permissions that can be assigned to custom roles
    */
   getAvailablePermissionsForCustomRoles() {
     return AVAILABLE_PERMISSIONS.filter(
@@ -265,7 +193,6 @@ class PermissionService {
 
   /**
    * Get permissions grouped by category
-   * @returns {Object} - Permissions grouped by category
    */
   getPermissionsByCategory() {
     const categorized = {}
@@ -284,12 +211,12 @@ class PermissionService {
   }
 
   /**
-   * Fetch user permissions from API
+   * Fetch user actions from backend API
    * @param {string} teamId - Team ID
    * @param {string} userId - User ID
-   * @returns {Promise<Object>} - User permissions
+   * @returns {Promise<Object>} - User actions
    */
-  async fetchUserPermissions(teamId, userId) {
+  async fetchUserActions(teamId, userId) {
     try {
       const PORT = import.meta.env.VITE_API_PORT
       const response = await fetch(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
@@ -301,21 +228,21 @@ class PermissionService {
       })
 
       if (response.ok) {
-        const permissions = await response.json()
-        this.setPermissions(permissions)
-        return permissions
+        const actions = await response.json()
+        this.setUserActions(actions)
+        return actions
       } else {
-        console.error('Failed to fetch user permissions')
+        console.error('Failed to fetch user actions')
         return {}
       }
     } catch (error) {
-      console.error('Error fetching user permissions:', error)
+      console.error('Error fetching user actions:', error)
       return {}
     }
   }
 
   /**
-   * Update user permissions
+   * Update user permissions (admin only action)
    * @param {string} teamId - Team ID
    * @param {string} userId - User ID
    * @param {Object} customPermissions - Custom permissions to update
@@ -415,27 +342,5 @@ class PermissionService {
 
 // Export singleton instance
 export const permissionService = new PermissionService()
-
-// Export common permission check composables for Vue components
-export const usePermissions = () => {
-  return {
-    hasPermission: (permission) => permissionService.hasPermission(permission),
-    hasAnyPermission: (permissions) => permissionService.hasAnyPermission(permissions),
-    hasAllPermissions: (permissions) => permissionService.hasAllPermissions(permissions),
-    isAdmin: () => permissionService.isAdmin(),
-    getRole: () => permissionService.getRole(),
-    getCustomRoleName: () => permissionService.getCustomRoleName(),
-    getRoleIcon: (role) => permissionService.getRoleIcon(role),
-    getRoleColor: (role) => permissionService.getRoleColor(role),
-    hasCustomPermissions: (member) => permissionService.hasCustomPermissions(member),
-    canAccessAnnouncements: () => permissionService.canAccessAnnouncements(),
-    canAccessTasks: () => permissionService.canAccessTasks(),
-    canAccessMembers: () => permissionService.canAccessMembers(),
-    canAddTeamMembers: () => permissionService.canAddTeamMembers(),
-    canCustomizeRolesForNewMembers: () => permissionService.canCustomizeRolesForNewMembers(),
-    getAvailablePermissionsForCustomRoles: () =>
-      permissionService.getAvailablePermissionsForCustomRoles(),
-  }
-}
 
 export default permissionService

@@ -1,10 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { usePermissions } from '../scripts/permissionService.js'
-
-const router = useRouter()
-const { getRoleColor } = usePermissions()
+import { permissionService } from '../scripts/permissionService.js'
 
 const user = ref({
   userId: '',
@@ -516,7 +512,7 @@ const getFieldPreviewValue = (field) => {
                         <v-chip
                           v-for="userId in selectedUsers"
                           :key="userId"
-                          :color="getRoleColor(getUserRole(userId))"
+                          :color="permissionService.getRoleColor(getUserRole(userId))"
                           closable
                           @click:close="removeSelectedUser(userId)"
                           class="mr-1"
