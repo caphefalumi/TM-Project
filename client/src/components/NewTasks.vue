@@ -279,7 +279,8 @@ const removeSelectedUser = (userId) => {
 
 const getUserRole = (userId) => {
   const user = props.teamMembers.find((member) => member.userId === userId)
-  return user ? user.role : 'Member'
+  if (!user) return 'Member'
+  return user.roleLabel || user.baseRole || 'Member'
 }
 
 const getUserName = (userId) => {

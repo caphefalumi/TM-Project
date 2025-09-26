@@ -390,7 +390,7 @@ const getProgressColor = (percentage) => {
                   <v-divider></v-divider>
                   <v-card-actions class="pa-4">
                     <v-chip :color="team.roleColor || 'grey'" size="small">
-                      {{ team.role }}
+                      {{ team.roleLabel || team.baseRole }}
                     </v-chip>
                     <v-spacer></v-spacer>
                     <v-btn icon size="small">

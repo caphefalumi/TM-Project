@@ -75,14 +75,14 @@
                     :color="
                       member.customRole
                         ? member.customRole.color || 'purple'
-                        : permissionService.getRoleColor(member.role)
+                        : permissionService.getRoleColor(member.baseRole)
                     "
                     class="mr-3"
                   >
                     <v-icon>{{
                       member.customRole
                         ? member.customRole.icon || 'mdi-star'
-                        : permissionService.getRoleIcon(member.role)
+                        : permissionService.getRoleIcon(member.baseRole)
                     }}</v-icon>
                   </v-avatar>
                 </template>
@@ -102,9 +102,14 @@
                     <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
                     {{ member.customRole.name }}
                   </v-chip>
-                  <v-chip v-else :color="permissionService.getRoleColor(member.role)" size="small" variant="tonal">
-                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.role) }}</v-icon>
-                    {{ member.role }}
+                  <v-chip
+                    v-else
+                    :color="permissionService.getRoleColor(member.baseRole)"
+                    size="small"
+                    variant="tonal"
+                  >
+                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.baseRole) }}</v-icon>
+                    {{ member.roleLabel || member.baseRole }}
                   </v-chip>
                   <v-chip
                     v-if="permissionService.hasCustomPermissions(member)"
@@ -121,7 +126,7 @@
                   <div class="d-flex align-center gap-2">
                     <!-- Role Selection -->
                     <v-select
-                      :model-value="member.role"
+                      :model-value="member.roleType"
                       :items="availableRoles"
                       item-title="label"
                       item-value="value"
@@ -170,8 +175,8 @@
           <v-icon class="mr-2" color="purple">mdi-cog</v-icon>
           Custom Permissions for {{ selectedMember.username }}
         </v-card-title>
-        <v-card-subtitle>
-          Role: {{ selectedMember.role }} | Override default permissions by checking/unchecking
+                <v-card-subtitle>
+                  Role: {{ selectedMember.roleLabel || selectedMember.baseRole }} | Override default permissions by checking/unchecking
           boxes
         </v-card-subtitle>
 
@@ -330,7 +335,7 @@
             </v-expansion-panel>
 
             <!-- Management Permissions (Admin only) -->
-            <v-expansion-panel v-if="selectedMember.role === 'Admin'">
+            <v-expansion-panel v-if="selectedMember.roleType === 'admin'">
               >
               <v-expansion-panel-title>
                 <v-icon class="mr-2">mdi-shield-crown</v-icon>
@@ -435,7 +440,9 @@
         <v-card-text>
           <p class="mb-3">
             Are you sure you want to make
-            <strong>{{ pendingRoleChange.member.username }}</strong> a team <strong>Admin</strong>?
+            <strong>{{ pendingRoleChange.member.username }}</strong>
+            a team
+            <strong>{{ formatRoleLabel(pendingRoleChange.newRoleType) }}</strong>?
           </p>
 
           <v-alert type="info" variant="tonal" class="mb-3">
@@ -530,10 +537,20 @@ const permissionMessage = ref('')
 const confirmRoleDialog = ref(false)
 const pendingRoleChange = ref(null)
 
+const formatRoleLabel = (roleType) => {
+  switch (roleType) {
+    case 'admin':
+      return 'Admin'
+    case 'member':
+    default:
+      return 'Member'
+  }
+}
+
 // Available roles for selection
 const availableRoles = ref([
-  { label: 'Admin', value: 'Admin' },
-  { label: 'Member', value: 'Member' },
+  { label: 'Admin', value: 'admin' },
+  { label: 'Member', value: 'member' },
 ])
 
 // Computed properties
@@ -561,21 +578,21 @@ const fetchUserPermissions = async () => {
   }
 }
 
-const changeRole = async (member, newRole) => {
-  if (newRole === member.role) return
+const changeRole = async (member, newRoleType) => {
+  if (newRoleType === member.roleType) return
 
   // Show confirmation dialog for admin role changes
-  if (newRole === 'Admin' && member.role !== 'Admin') {
-    pendingRoleChange.value = { member, newRole }
+  if (newRoleType === 'admin' && member.roleType !== 'admin') {
+    pendingRoleChange.value = { member, newRoleType }
     confirmRoleDialog.value = true
     return
   }
 
   // For all other role changes, proceed directly
-  await executeRoleChange(member, newRole)
+  await executeRoleChange(member, newRoleType)
 }
 
-const executeRoleChange = async (member, newRole) => {
+const executeRoleChange = async (member, newRoleType) => {
   changingRole.value = member.userId
   loading.value = true
 
@@ -590,8 +607,8 @@ const executeRoleChange = async (member, newRole) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          role: newRole,
-          roleId: null, // Standard role assignment
+          roleType: newRoleType,
+          roleId: null,
         }),
       },
     )
@@ -600,12 +617,19 @@ const executeRoleChange = async (member, newRole) => {
 
     if (response.ok) {
       success.value = true
-      message.value = `Successfully changed ${member.username}'s role to ${newRole}`
+      const roleLabel = formatRoleLabel(newRoleType)
+      message.value = `Successfully changed ${member.username}'s role to ${roleLabel}`
 
       // Update the member's role in the local data
       const memberIndex = props.teamMembers.findIndex((m) => m.userId === member.userId)
       if (memberIndex !== -1) {
-        props.teamMembers[memberIndex].role = newRole
+        props.teamMembers[memberIndex] = {
+          ...props.teamMembers[memberIndex],
+          roleType: newRoleType,
+          baseRole: roleLabel,
+          roleLabel,
+          customRole: null,
+        }
       }
 
       emit('roles-updated')
@@ -638,7 +662,7 @@ const executeRoleChange = async (member, newRole) => {
 
 const confirmRoleChangeDialog = () => {
   if (pendingRoleChange.value) {
-    executeRoleChange(pendingRoleChange.value.member, pendingRoleChange.value.newRole)
+    executeRoleChange(pendingRoleChange.value.member, pendingRoleChange.value.newRoleType)
     confirmRoleDialog.value = false
     pendingRoleChange.value = null
   }

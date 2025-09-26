@@ -2,6 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
+const DEFAULT_ROLE_COLORS = {
+  admin: 'red',
+  member: 'blue',
+}
+
 const router = useRouter()
 
 const props = defineProps({
@@ -60,6 +65,15 @@ const toggleMemberSelection = (member) => {
 
 const isSelected = (userId) => {
   return selectedMembers.value.some((member) => member.userId === userId)
+}
+
+const getMemberChipColor = (member) => {
+  if (member?.customRole?.color) {
+    return member.customRole.color
+  }
+
+  const baseRole = member?.baseRole || member?.role || 'Member'
+  return DEFAULT_ROLE_COLORS[baseRole.toLowerCase()] || 'primary'
 }
 
 const removeMembers = async () => {
@@ -157,11 +171,11 @@ onMounted(() => {
             v-for="member in selectedMembers"
             :key="member.userId"
             class="ma-1"
-            :color="member.role === 'Admin' ? 'red' : 'primary'"
+            :color="getMemberChipColor(member)"
             closable
             @click:close="toggleMemberSelection(member)"
           >
-            {{ member.username }} ({{ member.role }})
+            {{ member.username }} ({{ member.roleLabel || member.baseRole || member.role }})
           </v-chip>
         </div>
 
@@ -175,8 +189,8 @@ onMounted(() => {
           >
             <v-list-item-title class="d-flex align-center justify-space-between">
               <span>{{ member.username }}</span>
-              <v-chip size="small" :color="member.role === 'Admin' ? 'red' : 'primary'">
-                {{ member.role }}
+              <v-chip size="small" :color="getMemberChipColor(member)">
+                {{ member.roleLabel || member.baseRole || member.role }}
               </v-chip>
             </v-list-item-title>
             <template v-slot:append>

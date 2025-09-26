@@ -111,7 +111,9 @@ class PermissionService {
   constructor() {
     this.userActions = {} // Store computed actions from backend
     this.isGlobalAdmin = false
-    this.role = 'Member'
+    this.roleType = 'member'
+    this.baseRole = 'Member'
+    this.roleLabel = 'Member'
     this.customRoleName = null
   }
 
@@ -123,7 +125,10 @@ class PermissionService {
   setUserActions(actions) {
     this.userActions = actions || {}
     this.isGlobalAdmin = actions?.isGlobalAdmin || false
-    this.role = actions?.role || 'Member'
+    this.roleType = actions?.roleType || actions?.role?.toLowerCase?.() || 'member'
+    this.baseRole = actions?.baseRole || (this.roleType === 'admin' ? 'Admin' : 'Member')
+    this.roleLabel = actions?.roleLabel || this.baseRole
+    this.role = this.roleLabel // Backward compatibility for legacy accesses
     this.customRoleName = actions?.customRoleName || null
   }
 
@@ -156,7 +161,7 @@ class PermissionService {
    * Get user's role
    */
   getRole() {
-    return this.role
+    return this.roleLabel
   }
 
   /**
@@ -170,7 +175,7 @@ class PermissionService {
    * Check if user is admin
    */
   isAdmin() {
-    return this.isGlobalAdmin || this.role === 'Admin'
+    return this.isGlobalAdmin || this.roleType === 'admin'
   }
 
   /**
@@ -303,10 +308,10 @@ class PermissionService {
    * @returns {string} - MDI icon name
    */
   getRoleIcon(role) {
-    switch (role) {
-      case 'Admin':
+    switch (role?.toLowerCase()) {
+      case 'admin':
         return 'mdi-crown'
-      case 'Member':
+      case 'member':
         return 'mdi-account'
       default:
         return 'mdi-help'
@@ -319,10 +324,10 @@ class PermissionService {
    * @returns {string} - Color name
    */
   getRoleColor(role) {
-    switch (role) {
-      case 'Admin':
+    switch (role?.toLowerCase()) {
+      case 'admin':
         return 'red'
-      case 'Member':
+      case 'member':
         return 'blue'
       default:
         return 'grey'
