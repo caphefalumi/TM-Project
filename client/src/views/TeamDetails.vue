@@ -265,7 +265,8 @@ const fetchSubTeams = async () => {
 const updateRoleFlags = () => {
   // Role flags are now handled by the permission service
   // Keep for backward compatibility if needed elsewhere
-  const userRole = userPermissions.value.role || 'Member'
+  const userRole =
+    userPermissions.value.roleLabel || userPermissions.value.baseRole || 'Member'
   console.log('Role flags updated:', {
     isAdmin: permissionService.isAdmin(),
     role: userRole,
@@ -601,11 +602,11 @@ const filteredMembers = computed(() => {
     if (!roleQuery) return teamMembers.value // If just # without role name, show all
 
     return teamMembers.value.filter((member) => {
-      // Check custom role first, then base role
-      if (member.customRole) {
+      if (member.customRole?.name) {
         return member.customRole.name.toLowerCase().includes(roleQuery)
       }
-      return member.role.toLowerCase().includes(roleQuery)
+      const roleName = member.roleLabel || member.baseRole || ''
+      return roleName.toLowerCase().includes(roleQuery)
     })
   }
 
@@ -1626,7 +1627,7 @@ const confirmDeleteTeam = async () => {
                   :color="
                     member.customRole
                       ? member.customRole.color || 'purple'
-                      : permissionService.getRoleColor(member.role)
+                      : permissionService.getRoleColor(member.baseRole)
                   "
                 >
                   <v-card-item>
@@ -1646,12 +1647,12 @@ const confirmDeleteTeam = async () => {
                       </v-chip>
                       <v-chip
                         v-else
-                        :color="permissionService.getRoleColor(member.role)"
+                        :color="permissionService.getRoleColor(member.baseRole)"
                         size="small"
                         variant="tonal"
                       >
-                        <v-icon start size="small">{{ permissionService.getRoleIcon(member.role) }}</v-icon>
-                        {{ member.role }}
+                        <v-icon start size="small">{{ permissionService.getRoleIcon(member.baseRole) }}</v-icon>
+                        {{ member.roleLabel || member.baseRole }}
                       </v-chip>
                     </v-card-subtitle>
                   </v-card-item>

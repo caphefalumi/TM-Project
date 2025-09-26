@@ -2,6 +2,7 @@ import Account from '../models/Account.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 import Tasks from '../models/Tasks.js'
+import { ROLES, getBaseRoleFromRoleType, getRoleLabel } from '../verify/RoleAuth.js'
 
 const getCategories = async (req, res) => {
   // Returns an array of enum categories from the Teams schema
@@ -18,13 +19,12 @@ const getCategories = async (req, res) => {
   }
 }
 
-const addUserToTeam = async (userId, teamId, role) => {
+const addUserToTeam = async (userId, teamId, roleType = ROLES.MEMBER) => {
   try {
     const userOfTeam = new UsersOfTeam({
       userId,
       teamId,
-      role,
-      role,
+      roleType,
     })
     // Check if the user is already in the team
     const existingUser = await UsersOfTeam.findOne({ userId, teamId })
@@ -63,7 +63,7 @@ const addTeamPro = async (req, res) => {
         console.error('Team not found after creation:', title)
         return res.status(404).json({ message: 'Team not found' })
       } else {
-        await addUserToTeam(userId, teamId._id, 'Admin')
+        await addUserToTeam(userId, teamId._id, ROLES.ADMIN)
       }
     } catch (error) {
       console.error('Error adding team:', error)
@@ -147,7 +147,7 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
   try {
     // Find all teams where the user is an admin
     // Sort teams by title in ascending order
-    const teams = await UsersOfTeam.find({ userId, role: 'Admin' })
+    const teams = await UsersOfTeam.find({ userId, roleType: ROLES.ADMIN })
       .populate('teamId', 'title _id parentTeamId')
       .exec()
 
@@ -187,7 +187,7 @@ const getTeamThatUserIsMember = async (req, res) => {
 
   try {
     const teams = await UsersOfTeam.find({ userId })
-      .populate('teamId', 'title category description _id parentTeamId role')
+      .populate('teamId', 'title category description _id parentTeamId')
       .populate('roleId', 'color icon name')
       .exec()
     if (teams.length === 0) {
@@ -205,12 +205,15 @@ const getTeamThatUserIsMember = async (req, res) => {
 
         // Get role color - either from custom role or default based on base role
         let roleColor = 'red' // Default color as requested
+        const baseRole = getBaseRoleFromRoleType(team.roleType)
+        const roleLabel = getRoleLabel(team.roleType, team.roleId)
+
         if (team.roleId && team.roleId.color) {
           // Use custom role color from database
           roleColor = team.roleId.color
         } else {
           // Use default colors based on base role
-          switch (team.role) {
+          switch (baseRole) {
             case 'Admin':
               roleColor = 'red'
               break
@@ -229,7 +232,17 @@ const getTeamThatUserIsMember = async (req, res) => {
             (await getParentsTeam(team.teamId.parentTeamId)) + ' ' + team.teamId.title,
           category: team.teamId.category,
           description: team.teamId.description,
-          role: team.role,
+          roleType: team.roleType,
+          baseRole,
+          roleLabel,
+          customRole: team.roleId
+            ? {
+                id: team.roleId._id,
+                name: team.roleId.name,
+                icon: team.roleId.icon,
+                color: team.roleId.color,
+              }
+            : null,
           roleColor: roleColor,
           progress: progress,
         }
