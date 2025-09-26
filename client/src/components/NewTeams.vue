@@ -39,7 +39,6 @@ const setUserFromProps = (userProps) => {
 }
 
 onMounted(async () => {
-  // const userToken = await getUserByAccessToken()
   setUserFromProps(props.userProps)
   newTeam.value.userId = user.value.userId
   newTeam.value.username = user.value.username

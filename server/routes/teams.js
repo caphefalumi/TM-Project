@@ -188,7 +188,7 @@ const getTeamThatUserIsMember = async (req, res) => {
   try {
     const teams = await UsersOfTeam.find({ userId })
       .populate('teamId', 'title category description _id parentTeamId role')
-      .populate('role_id', 'color icon name')
+      .populate('roleId', 'color icon name')
       .exec()
     if (teams.length === 0) {
       return res.status(200).json([])
@@ -205,9 +205,9 @@ const getTeamThatUserIsMember = async (req, res) => {
 
         // Get role color - either from custom role or default based on base role
         let roleColor = 'red' // Default color as requested
-        if (team.role_id && team.role_id.color) {
+        if (team.roleId && team.roleId.color) {
           // Use custom role color from database
-          roleColor = team.role_id.color
+          roleColor = team.roleId.color
         } else {
           // Use default colors based on base role
           switch (team.role) {

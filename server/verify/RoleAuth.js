@@ -11,7 +11,7 @@ export const GLOBAL_ADMIN_ACCESS = ['admin']
 
 export const getUserCustomPermissions = async (userId, teamId) => {
   try {
-    const userTeamRole = await UsersOfTeam.findOne({ userId, teamId }).populate('role_id')
+    const userTeamRole = await UsersOfTeam.findOne({ userId, teamId }).populate('roleId')
     if (!userTeamRole) {
       return null
     }
@@ -20,12 +20,12 @@ export const getUserCustomPermissions = async (userId, teamId) => {
     let rolePermissions = getRoleDefaultPermissions(userTeamRole.role)
 
     // If user has a custom role assigned, add custom role permissions to base role permissions
-    if (userTeamRole.role_id && userTeamRole.role_id.permissions) {
+    if (userTeamRole.roleId && userTeamRole.roleId.permissions) {
       // Start with base role permissions (Member gets basic permissions)
       const customRolePermissions = { ...rolePermissions }
 
       // Add the additional permissions defined in the custom role
-      userTeamRole.role_id.permissions.forEach((permission) => {
+      userTeamRole.roleId.permissions.forEach((permission) => {
         customRolePermissions[permission] = true
       })
 
@@ -47,7 +47,7 @@ export const getUserCustomPermissions = async (userId, teamId) => {
 
     return {
       role: userTeamRole.role,
-      customRoleName: userTeamRole.role_id ? userTeamRole.role_id.name : null,
+      customRoleName: userTeamRole.roleId ? userTeamRole.roleId.name : null,
       ...effectivePermissions,
       isGlobalAdmin: false,
     }

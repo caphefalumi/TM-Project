@@ -45,7 +45,6 @@ const emit = defineEmits([
 ])
 
 onMounted(async () => {
-  // const userToken = await getUserByAccessToken()
   setUserFromProps(props.userProps)
   if (user) {
   } else {
