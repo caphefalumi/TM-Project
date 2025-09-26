@@ -149,7 +149,6 @@ const oAuthenticationRegister = async (req, res) => {
   if (!email) {
     return res.status(400).json({ error: 'Email is required' })
   }
-  username = username.toLowerCase()
   email = email.toLowerCase()
   const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
   if (existingUser) {
@@ -177,9 +176,6 @@ const oAuthenticationRegister = async (req, res) => {
 const localRegister = async (req, res) => {
   let { username, email, password } = req.body
   const provider = 'local'
-
-  // Convert username to lowercase
-  if (username) username = username.toLowerCase()
 
   // 1. Validate input
   if (!username || !email || !password) {
@@ -230,9 +226,6 @@ const localLogin = async (req, res) => {
     console.log('Missing fields:', { username, password })
     return res.status(400).json({ error: 'All fields are required.' })
   }
-
-  // Convert username to lowercase
-  username = username.toLowerCase()
 
   const account = await Account.findOne({ username })
   if (!account) {
