@@ -303,7 +303,7 @@
 
         <v-card-actions v-if="!$vuetify.display.xs" class="pa-4">
           <v-spacer></v-spacer>
-          <v-btn variant="text" color="primary" @click="closeModal"> Close </v-btn>
+          <v-btn variant="outlined" color="primary" @click="closeModal"> Close </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

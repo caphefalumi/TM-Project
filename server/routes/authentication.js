@@ -16,7 +16,6 @@ const getUserIDAndEmailByName = async (req, res) => {
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
   }
-  username = username.toLowerCase()
   try {
     const account = await Account.findOne({ username })
     if (!account) {

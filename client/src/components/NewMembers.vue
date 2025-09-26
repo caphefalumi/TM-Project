@@ -484,9 +484,7 @@ const addUsers = async () => {
           @click="emit('update:dialog', false)"
           variant="outlined"
           :disabled="loading"
-          size="large"
         >
-          <v-icon start>mdi-close</v-icon>
           Cancel
         </v-btn>
         <v-btn
@@ -495,9 +493,7 @@ const addUsers = async () => {
           variant="elevated"
           :disabled="loading || selectedUsers.length === 0"
           :loading="loading"
-          size="large"
         >
-          <v-icon start>mdi-account-plus</v-icon>
           Add {{ selectedUsers.length }} Member{{ selectedUsers.length !== 1 ? 's' : '' }}
         </v-btn>
       </v-card-actions>
