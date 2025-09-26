@@ -134,7 +134,7 @@ export const addUsersToTeam = async (req, res) => {
         username,
         teamId,
         role: actualRole,
-        role_id: actualRoleId,
+        roleId: actualRoleId,
       })
 
       addedUsers.push({
@@ -185,8 +185,8 @@ export const getUsersOfTeam = async (req, res) => {
     }
 
     const users = await UsersOfTeam.find({ teamId })
-      .select('userId role role_id')
-      .populate('role_id', 'name permissions icon color')
+      .select('userId role roleId')
+      .populate('roleId', 'name permissions icon color')
 
     if (users.length === 0) {
       return res.status(404).json({ message: 'No users found for this team' })
@@ -209,13 +209,13 @@ export const getUsersOfTeam = async (req, res) => {
       userId: user.userId,
       username: userIdToUsername[user.userId] || 'Unknown User',
       role: user.role, // Default role (Admin/Member)
-      customRole: user.role_id
+      customRole: user.roleId
         ? {
-            id: user.role_id._id,
-            name: user.role_id.name,
-            permissions: user.role_id.permissions,
-            icon: user.role_id.icon,
-            color: user.role_id.color,
+            id: user.roleId._id,
+            name: user.roleId.name,
+            permissions: user.roleId.permissions,
+            icon: user.roleId.icon,
+            color: user.roleId.color,
           }
         : null,
     }))
@@ -342,7 +342,7 @@ export const changeUserRole = async (req, res) => {
     // Update the role and custom role assignment
     const updateData = {
       role: targetRole,
-      role_id: roleId || null,
+      roleId: roleId || null,
     }
 
     // Only reset custom permissions when changing to a standard role (no custom role assigned)
@@ -353,19 +353,19 @@ export const changeUserRole = async (req, res) => {
 
     const updatedUser = await UsersOfTeam.findOneAndUpdate({ userId, teamId }, updateData, {
       new: true,
-    }).populate('role_id')
+    }).populate('roleId')
 
     res.status(200).json({
       message: 'Role updated successfully',
       user: {
         userId: updatedUser.userId,
         role: updatedUser.role,
-        customRole: updatedUser.role_id
+        customRole: updatedUser.roleId
           ? {
-              id: updatedUser.role_id._id,
-              name: updatedUser.role_id.name,
-              icon: updatedUser.role_id.icon,
-              color: updatedUser.role_id.color,
+              id: updatedUser.roleId._id,
+              name: updatedUser.roleId.name,
+              icon: updatedUser.roleId.icon,
+              color: updatedUser.roleId.color,
             }
           : null,
       },

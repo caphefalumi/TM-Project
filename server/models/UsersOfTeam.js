@@ -15,7 +15,7 @@ const UsersOfTeamSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  role_id: {
+  roleId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
     required: false,

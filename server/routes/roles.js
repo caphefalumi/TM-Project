@@ -132,15 +132,15 @@ export const deleteRole = async (req, res) => {
     }
 
     // Find users assigned to this role and reassign them to Member
-    const usersWithRole = await UsersOfTeam.find({ role_id: roleId })
+    const usersWithRole = await UsersOfTeam.find({ roleId: roleId })
 
     if (usersWithRole.length > 0) {
       // Reassign all users with this custom role to Member role
       await UsersOfTeam.updateMany(
-        { role_id: roleId },
+        { roleId: roleId },
         {
           role: 'Member',
-          role_id: null,
+          roleId: null,
           customPermissions: {}, // Clear any custom permissions
         },
       )
@@ -192,7 +192,7 @@ export const assignCustomRoleToUser = async (req, res) => {
 
     const updateData = {
       role,
-      role_id: roleId || null,
+      roleId: roleId || null,
     }
 
     if (!roleId) {
