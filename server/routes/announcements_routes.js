@@ -7,5 +7,4 @@ const { toggleLikeAnnouncement, addCommentToAnnouncement } = Announcements
 // Likes & Comments
 router.post('/:announcementId/like', toggleLikeAnnouncement)
 router.post('/:announcementId/comments', addCommentToAnnouncement)
-
 export default router

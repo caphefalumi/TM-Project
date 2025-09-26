@@ -75,14 +75,14 @@
                     :color="
                       member.customRole
                         ? member.customRole.color || 'purple'
-                        : getRoleColor(member.role)
+                        : permissionService.getRoleColor(member.role)
                     "
                     class="mr-3"
                   >
                     <v-icon>{{
                       member.customRole
                         ? member.customRole.icon || 'mdi-star'
-                        : getRoleIcon(member.role)
+                        : permissionService.getRoleIcon(member.role)
                     }}</v-icon>
                   </v-avatar>
                 </template>
@@ -102,12 +102,12 @@
                     <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
                     {{ member.customRole.name }}
                   </v-chip>
-                  <v-chip v-else :color="getRoleColor(member.role)" size="small" variant="tonal">
-                    <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
+                  <v-chip v-else :color="permissionService.getRoleColor(member.role)" size="small" variant="tonal">
+                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.role) }}</v-icon>
                     {{ member.role }}
                   </v-chip>
                   <v-chip
-                    v-if="hasCustomPermissions(member)"
+                    v-if="permissionService.hasCustomPermissions(member)"
                     color="purple"
                     size="small"
                     variant="outlined"
@@ -476,7 +476,6 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import {
   permissionService,
-  usePermissions,
 } from '../scripts/permissionService.js'
 
 const props = defineProps({
@@ -500,8 +499,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:dialog', 'roles-updated'])
 
-// Use permission composables
-const { getRoleIcon, getRoleColor, hasCustomPermissions } = usePermissions()
+// Using structured Permission object instead of composable
 
 // Reactive state
 const user = ref({
@@ -555,9 +553,9 @@ const setUserFromProps = (userProps) => {
 
 const fetchUserPermissions = async () => {
   try {
-    // Use permission service to fetch permissions
-    await permissionService.fetchUserPermissions(props.teamId, user.value.userId)
-    userPermissions.value = permissionService.userPermissions
+    // Use permission service to fetch actions
+    await permissionService.fetchUserActions(props.teamId, user.value.userId)
+    userPermissions.value = permissionService.userActions
   } catch (error) {
     console.error('Error fetching user permissions:', error)
   }
@@ -677,16 +675,17 @@ const openPermissionsDialog = async (member) => {
       canViewAnnouncements: currentCustomPermissions.canViewAnnouncements ?? null,
       canViewMembers: currentCustomPermissions.canViewMembers ?? null,
       canSubmitTasks: currentCustomPermissions.canSubmitTasks ?? null,
-      canEditAnnouncements: currentCustomPermissions.canEditAnnouncements ?? null,
+      canManageAnnouncements: currentCustomPermissions.canManageAnnouncements ?? null,
       canViewTaskGroups: currentCustomPermissions.canViewTaskGroups ?? null,
       canManageTasks: currentCustomPermissions.canManageTasks ?? null,
       canDeleteTasks: currentCustomPermissions.canDeleteTasks ?? null,
-      canManageAnnouncements: currentCustomPermissions.canManageAnnouncements ?? null,
       canDeleteAnnouncements: currentCustomPermissions.canDeleteAnnouncements ?? null,
+      canAssignTasks: currentCustomPermissions.canAssignTasks ?? null,
       canAddMembers: currentCustomPermissions.canAddMembers ?? null,
       canRemoveMembers: currentCustomPermissions.canRemoveMembers ?? null,
       canDeleteTeams: currentCustomPermissions.canDeleteTeams ?? null,
       canCreateSubTeams: currentCustomPermissions.canCreateSubTeams ?? null,
+      canManageCustomRoles: currentCustomPermissions.canManageCustomRoles ?? null,
     }
 
     originalPermissions.value = { ...customPermissions.value }

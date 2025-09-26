@@ -2,7 +2,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
-import { permissionService, usePermissions } from '../scripts/permissionService.js'
+import { permissionService } from '../scripts/permissionService.js'
 import NewTasks from '../components/NewTasks.vue'
 import NewAnnouncements from '../components/NewAnnouncements.vue'
 import TaskSubmission from '../components/TaskSubmission.vue'
@@ -21,17 +21,7 @@ const { getUserByAccessToken } = AuthStore
 const route = useRoute()
 const router = useRouter()
 
-// Use permission composables
-const {
-  hasPermission,
-  isAdmin,
-  getRoleIcon,
-  getRoleColor,
-  canAccessAnnouncements,
-  canAccessMembers,
-  canAddTeamMembers,
-  canCustomizeRolesForNewMembers,
-} = usePermissions()
+// Using structured Permission object for cleaner permission checks
 
 const userPermissions = ref({})
 
@@ -100,20 +90,7 @@ const activeTab = ref(route.query.tab || 'tasks')
 // Get team ID from route params
 const teamId = ref(route.params.teamId)
 
-// Computed properties for permissions - using centralized permission service
-const canCreateTasks = computed(() => hasPermission('canManageTasks'))
-const canCreateAnnouncements = computed(() => hasPermission('canManageAnnouncements'))
-const canManageMembers = computed(
-  () => hasPermission('canAddMembers') || hasPermission('canRemoveMembers'),
-)
-const canManageTaskGroups = computed(() => hasPermission('canViewTaskGroups'))
-const canEditAnnouncements = computed(() => hasPermission('canManageAnnouncements'))
 
-// UI Feature Access - Users see features only if they have at least one permission from the group
-const showAnnouncementsFeature = computed(() => canAccessAnnouncements())
-const showMembersFeature = computed(() => hasPermission('canViewMembers'))
-const showAddMembersButton = computed(() => canAddTeamMembers())
-const allowCustomRoleSelection = computed(() => canCustomizeRolesForNewMembers())
 
 // Function to initialize/reload team data
 const initializeTeamData = async () => {
@@ -234,9 +211,9 @@ const setUserToUserToken = (userToken) => {
 
 const fetchUserPermissions = async () => {
   try {
-    // Use permission service to fetch and set permissions
-    await permissionService.fetchUserPermissions(teamId.value, user.value.userId)
-    userPermissions.value = permissionService.userPermissions
+    // Use permission service to fetch and set actions
+    await permissionService.fetchUserActions(teamId.value, user.value.userId)
+    userPermissions.value = permissionService.userActions
     console.log('User permissions:', userPermissions.value)
   } catch (error) {
     console.error('Error fetching user permissions:', error)
@@ -290,7 +267,7 @@ const updateRoleFlags = () => {
   // Keep for backward compatibility if needed elsewhere
   const userRole = userPermissions.value.role || 'Member'
   console.log('Role flags updated:', {
-    isAdmin: isAdmin(),
+    isAdmin: permissionService.isAdmin(),
     role: userRole,
   })
 }
@@ -793,6 +770,7 @@ const confirmDeleteTeam = async () => {
         v-if="userLoaded && deleteAnnouncementDialog"
         v-model:dialog="deleteAnnouncementDialog"
         v-model:announcementId="selectedAnnouncementForDeletion"
+        :teamId="teamId"
         @announcement-deleted="fetchAnnouncements"
       />
 
@@ -825,7 +803,7 @@ const confirmDeleteTeam = async () => {
         :teamId="teamId"
         :teamMembers="teamMembers"
         :roleUpdateTrigger="roleUpdateTrigger"
-        :allowCustomRoleSelection="allowCustomRoleSelection"
+        :allowCustomRoleSelection="permissionService.canManageCustomRoles()"
         @members-added="fetchTeamMembers"
       />
       <!-- Delete Members Dialog -->
@@ -871,23 +849,23 @@ const confirmDeleteTeam = async () => {
               <v-icon start>mdi-timeline-clock</v-icon>
               Workflow
             </v-tab>
-            <v-tab value="task-groups" v-if="canManageTaskGroups">
+            <v-tab value="task-groups" v-if="permissionService.canViewTaskGroups()">
               <v-icon start>mdi-folder-multiple</v-icon>
               Task Groups
             </v-tab>
-            <v-tab value="announcements" v-if="showAnnouncementsFeature">
+            <v-tab value="announcements" v-if="permissionService.canViewAnnouncements()">
               <v-icon start>mdi-bullhorn</v-icon>
               Announcements
             </v-tab>
-            <v-tab value="members" v-if="showMembersFeature">
+            <v-tab value="members" v-if="permissionService.canViewMembers()">
               <v-icon start>mdi-account-group</v-icon>
               Members
             </v-tab>
-            <v-tab value="roles" v-if="isAdmin()">
+            <v-tab value="roles" v-if="permissionService.isAdmin()">
               <v-icon start>mdi-account-key</v-icon>
               Roles
             </v-tab>
-            <v-tab id="tour-delete-team-tab" value="delete-team" v-if="isAdmin()">
+            <v-tab id="tour-delete-team-tab" value="delete-team" v-if="permissionService.isAdmin()">
               <v-icon start>mdi-delete</v-icon>
               Delete Team
             </v-tab>
@@ -896,7 +874,7 @@ const confirmDeleteTeam = async () => {
           <!-- Action buttons row based on active tab -->
           <v-row id="tour-team-actions" class="mt-4">
             <!-- Tasks tab actions -->
-            <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && canCreateTasks">
+            <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && permissionService.canManageTasks()">
               <v-btn
                 v-tooltip:bottom="'Add new tasks to the team'"
                 @click="newTaskDialog = !newTaskDialog"
@@ -915,7 +893,7 @@ const confirmDeleteTeam = async () => {
               cols="12"
               md="6"
               lg="4"
-              v-if="activeTab === 'announcements' && canCreateAnnouncements"
+              v-if="activeTab === 'announcements' && permissionService.canManageAnnouncements()"
             >
               <v-btn
                 v-tooltip:bottom="'Add new announcement'"
@@ -931,7 +909,7 @@ const confirmDeleteTeam = async () => {
             </v-col>
 
             <template v-if="activeTab === 'members'">
-              <v-col cols="12" md="6" lg="4" v-if="showAddMembersButton">
+              <v-col cols="12" md="6" lg="4" v-if="permissionService.canAddMembers()">
                 <v-btn
                   v-tooltip:bottom="'Add team members'"
                   @click="addMembersDialog = true"
@@ -944,7 +922,7 @@ const confirmDeleteTeam = async () => {
                   Add Members
                 </v-btn>
               </v-col>
-              <v-col cols="12" md="6" lg="4" v-if="canManageMembers">
+              <v-col cols="12" md="6" lg="4" v-if="permissionService.canRemoveMembers()">
                 <v-btn
                   v-tooltip:bottom="'Remove team members'"
                   @click="deleteMembersDialog = true"
@@ -1171,7 +1149,7 @@ const confirmDeleteTeam = async () => {
         </v-window-item>
 
         <!-- Manage Tab -->
-        <v-window-item value="task-groups" v-if="canManageTaskGroups">
+        <v-window-item value="task-groups" v-if="permissionService.canViewTaskGroups()">
           <!-- Loading State for Task Groups -->
           <div v-if="refreshingTaskGroups">
             <v-row>
@@ -1558,7 +1536,7 @@ const confirmDeleteTeam = async () => {
                     </v-btn>
                     <v-spacer></v-spacer>
                     <v-btn
-                      v-if="canEditAnnouncements"
+                      v-if="permissionService.canManageAnnouncements()"
                       color="primary"
                       variant="outlined"
                       @click="editAnnnouncement(announcement._id)"
@@ -1566,7 +1544,7 @@ const confirmDeleteTeam = async () => {
                       Edit
                     </v-btn>
                     <v-btn
-                      v-if="canEditAnnouncements"
+                      v-if="permissionService.canDeleteAnnouncements()"
                       color="error"
                       variant="outlined"
                       @click="deleteAnnouncement(announcement._id)"
@@ -1648,7 +1626,7 @@ const confirmDeleteTeam = async () => {
                   :color="
                     member.customRole
                       ? member.customRole.color || 'purple'
-                      : getRoleColor(member.role)
+                      : permissionService.getRoleColor(member.role)
                   "
                 >
                   <v-card-item>
@@ -1668,11 +1646,11 @@ const confirmDeleteTeam = async () => {
                       </v-chip>
                       <v-chip
                         v-else
-                        :color="getRoleColor(member.role)"
+                        :color="permissionService.getRoleColor(member.role)"
                         size="small"
                         variant="tonal"
                       >
-                        <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
+                        <v-icon start size="small">{{ permissionService.getRoleIcon(member.role) }}</v-icon>
                         {{ member.role }}
                       </v-chip>
                     </v-card-subtitle>
@@ -1711,7 +1689,7 @@ const confirmDeleteTeam = async () => {
         </v-window-item>
 
         <!-- Management Tab -->
-        <v-window-item value="roles" v-if="canManageMembers || isAdmin()">
+        <v-window-item value="roles" v-if="(permissionService.canAddMembers() || permissionService.canRemoveMembers()) || permissionService.isAdmin()">
           <RoleManagementTabs
             :teamId="teamId"
             :userProps="user"
@@ -1721,7 +1699,7 @@ const confirmDeleteTeam = async () => {
         </v-window-item>
 
         <!-- Delete Team Tab -->
-        <v-window-item value="delete-team" v-if="isAdmin()">
+        <v-window-item value="delete-team" v-if="permissionService.isAdmin()">
           <div id="tour-delete-team-content" class="delete-team-container">
             <!-- Warning Header -->
             <v-row>

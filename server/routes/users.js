@@ -10,7 +10,7 @@ import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 import Role from '../models/Role.js'
-import { PERMISSIONS } from '../config/permissions.js'
+import { PERMISSIONS, computeUserActions } from '../config/permissions.js'
 import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
 import JWTAuth from '../verify/JWTAuth.js'
 import RefreshToken from '../models/RefreshToken.js'
@@ -378,7 +378,7 @@ export const changeUserRole = async (req, res) => {
 }
 
 /**
- * Get user's permissions in a team
+ * Get user's computed actions in a team - Frontend receives only allowed actions
  */
 export const getUserPermissions = async (req, res) => {
   try {
@@ -389,30 +389,38 @@ export const getUserPermissions = async (req, res) => {
     if (requestingUsername === 'admin') {
       // Global admin gets all permissions regardless of team membership
       const allPermissions = getRoleDefaultPermissions('Admin')
-      const globalAdminPermissions = {
+      const computedActions = computeUserActions(allPermissions)
+      const globalAdminResponse = {
         role: 'Admin',
         customRoleName: null,
-        ...allPermissions,
         isGlobalAdmin: true,
+        ...computedActions
       }
-      console.log('Global admin permissions granted:', {
+      console.log('Global admin actions granted:', {
         userId,
         teamId,
-        permissions: globalAdminPermissions,
+        actions: computedActions,
       })
-      return res.status(200).json(globalAdminPermissions)
+      return res.status(200).json(globalAdminResponse)
     }
 
-    // Get user's custom permissions (role + custom permissions)
-    const customPermissions = await getUserCustomPermissions(userId, teamId)
-    if (!customPermissions) {
+    // Get user's effective permissions (role + custom permissions)
+    const userPermissions = await getUserCustomPermissions(userId, teamId)
+    if (!userPermissions) {
       return res.status(404).json({ message: 'User not found in team' })
     }
 
-    // Add global admin flag
-    customPermissions.isGlobalAdmin = false
+    // Compute allowed actions from permissions
+    const computedActions = computeUserActions(userPermissions)
+    console.log("Permission for", userPermissions.role , req.user.username, "is", computedActions )
+    const response = {
+      role: userPermissions.role,
+      customRoleName: userPermissions.customRoleName || null,
+      isGlobalAdmin: false,
+      ...computedActions
+    }
 
-    res.status(200).json(customPermissions)
+    res.status(200).json(response)
   } catch (error) {
     console.error('Error getting user permissions:', error)
     res.status(500).json({ message: 'Internal server error' })

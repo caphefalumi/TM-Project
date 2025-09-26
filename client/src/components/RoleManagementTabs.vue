@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   permissionService,
-  usePermissions,
   AVAILABLE_PERMISSIONS,
 } from '../scripts/permissionService.js'
 
@@ -22,9 +21,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['roles-updated'])
-
-// Use permission composables
-const { hasPermission, getRoleIcon, getRoleColor } = usePermissions()
 
 // Reactive state
 const activeTab = ref('manage-roles')
@@ -412,7 +408,7 @@ watch(
 onMounted(async () => {
   if (props.teamId) {
     // Initialize permission service with user permissions
-    await permissionService.fetchUserPermissions(props.teamId, props.userProps.userId)
+    await permissionService.fetchUserActions(props.teamId, props.userProps.userId)
     fetchCustomRoles()
   }
 })
@@ -586,14 +582,14 @@ onMounted(async () => {
                     :color="
                       member.customRole
                         ? member.customRole.color || 'purple'
-                        : getRoleColor(member.role)
+                        : permissionService.getRoleColor(member.role)
                     "
                     class="mr-3"
                   >
                     <v-icon>{{
                       member.customRole
                         ? member.customRole.icon || 'mdi-star'
-                        : getRoleIcon(member.role)
+                        : permissionService.getRoleIcon(member.role)
                     }}</v-icon>
                   </v-avatar>
                   {{ member.username }} </v-card-title
@@ -608,8 +604,8 @@ onMounted(async () => {
                     <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
                     {{ member.customRole.name }}
                   </v-chip>
-                  <v-chip v-else :color="getRoleColor(member.role)" size="small" variant="tonal">
-                    <v-icon start size="small">{{ getRoleIcon(member.role) }}</v-icon>
+                  <v-chip v-else :color="permissionService.getRoleColor(member.role)" size="small" variant="tonal">
+                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.role) }}</v-icon>
                     {{ member.role }}
                   </v-chip>
                 </v-card-subtitle>
@@ -1070,8 +1066,8 @@ onMounted(async () => {
               <v-icon start>{{ selectedMember.customRole.icon || 'mdi-star' }}</v-icon>
               {{ selectedMember.customRole.name }}
             </v-chip>
-            <v-chip v-else :color="getRoleColor(selectedMember.role)" size="large" variant="tonal">
-              <v-icon start>{{ getRoleIcon(selectedMember.role) }}</v-icon>
+            <v-chip v-else :color="permissionService.getRoleColor(selectedMember.role)" size="large" variant="tonal">
+              <v-icon start>{{ permissionService.getRoleIcon(selectedMember.role) }}</v-icon>
               {{ selectedMember.role }}
             </v-chip>
           </div>
@@ -1326,13 +1322,13 @@ onMounted(async () => {
                 </v-chip>
                 <v-chip
                   v-else
-                  :color="getRoleColor(pendingRoleChange.member.role)"
+                  :color="permissionService.getRoleColor(pendingRoleChange.member.role)"
                   size="small"
                   variant="tonal"
                   class="mt-1"
                 >
                   <v-icon start size="small">{{
-                    getRoleIcon(pendingRoleChange.member.role)
+                    permissionService.getRoleIcon(pendingRoleChange.member.role)
                   }}</v-icon>
                   {{ pendingRoleChange.member.role }}
                 </v-chip>
@@ -1345,7 +1341,7 @@ onMounted(async () => {
                     pendingRoleChange.roleId
                       ? customRoles.find((r) => r._id === pendingRoleChange.roleId)?.color ||
                         'purple'
-                      : getRoleColor(pendingRoleChange.roleType)
+                      : permissionService.getRoleColor(pendingRoleChange.roleType)
                   "
                   size="small"
                   variant="tonal"
@@ -1356,7 +1352,7 @@ onMounted(async () => {
                       pendingRoleChange.roleId
                         ? customRoles.find((r) => r._id === pendingRoleChange.roleId)?.icon ||
                           'mdi-star'
-                        : getRoleIcon(pendingRoleChange.roleType)
+                        : permissionService.getRoleIcon(pendingRoleChange.roleType)
                     }}
                   </v-icon>
                   {{ pendingRoleChange.roleName }}
