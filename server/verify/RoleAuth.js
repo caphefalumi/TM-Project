@@ -48,6 +48,7 @@ export const getUserCustomPermissions = async (userId, teamId) => {
     return {
       role: userTeamRole.role,
       customRoleName: userTeamRole.roleId ? userTeamRole.roleId.name : null,
+      customRoleColor: userTeamRole.roleId ? userTeamRole.roleId.color : null,
       ...effectivePermissions,
       isGlobalAdmin: false,
     }
