@@ -281,8 +281,8 @@ const removeUser = (userId) => {
 }
 
 // Computed: permission for task group
-const canViewTaskGroup = computed(() => permissionService.canViewTaskGroup())
-const canEditTaskGroup = computed(() => permissionService.canManageTasks() || permissionService.canAssignTasks())
+const canAccessTaskGroup = computed(() => permissionService.canAccessTaskGroup())
+const canEditTaskGroup = computed(() => permissionService.canManageTasks())
 const canDeleteTaskGroup = computed(() => permissionService.canDeleteTasks())
 
 function showNoPermission() {
@@ -305,7 +305,7 @@ onMounted(() => {
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
-      <v-card-text v-if="!canViewTaskGroup">
+      <v-card-text v-if="!canAccessTaskGroup">
         <v-alert type="error">You dont have permission to perform this action</v-alert>
       </v-card-text>
       <v-card-text v-else>

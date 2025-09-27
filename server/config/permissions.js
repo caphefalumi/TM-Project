@@ -12,7 +12,6 @@ export const PERMISSIONS = {
   // Task management permissions
   MANAGE_TASKS: 'canManageTasks',
   DELETE_TASKS: 'canDeleteTasks',
-  ASSIGN_TASKS: 'canAssignTasks',
 
   // Announcement management permissions
   MANAGE_ANNOUNCEMENTS: 'canManageAnnouncements',
@@ -54,7 +53,6 @@ export const computeUserActions = (userPermissions) => {
     // Advanced permissions - based on role and custom permissions
     canManageTasks: userPermissions[PERMISSIONS.MANAGE_TASKS] || false,
     canDeleteTasks: userPermissions[PERMISSIONS.DELETE_TASKS] || false,
-    canAssignTasks: userPermissions[PERMISSIONS.ASSIGN_TASKS] || false,
 
     // Announcement actions
     canManageAnnouncements: userPermissions[PERMISSIONS.MANAGE_ANNOUNCEMENTS] || false,
