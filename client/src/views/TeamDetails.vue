@@ -118,7 +118,7 @@ const initializeTeamData = async () => {
 
     // Check if team exists
     if (!team.value || !team.value.teamId) {
-      teamNotFound.value = true
+      // teamNotFound.value = true
       userLoaded.value = true
       return
     }
