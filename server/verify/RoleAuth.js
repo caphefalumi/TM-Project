@@ -167,11 +167,51 @@ export const requireAdmin = (req, res, next) => {
     })
 }
 
+const extractTeamIdFromRequest = (req) => {
+  if (!req || typeof req !== 'object') {
+    return null
+  }
+
+  if (req.permissionContext?.teamId) {
+    return req.permissionContext.teamId
+  }
+
+  const possibleSources = [
+    req.params?.teamId,
+    req.params?.team_id,
+    req.body?.teamId,
+    req.body?.team_id,
+    req.query?.teamId,
+    req.query?.team_id,
+  ]
+
+  for (const value of possibleSources) {
+    if (value) {
+      return value
+    }
+  }
+
+  // Nested payloads (e.g. bulk operations) may include teamId within arrays
+  if (Array.isArray(req.body?.users)) {
+    for (const user of req.body.users) {
+      if (user?.teamId || user?.team_id) {
+        return user.teamId || user.team_id
+      }
+    }
+  }
+
+  if (req.body?.team && (req.body.team.teamId || req.body.team.team_id || req.body.team.id)) {
+    return req.body.team.teamId || req.body.team.team_id || req.body.team.id
+  }
+
+  return null
+}
+
 export const requirePermission = (permission) => {
   return async (req, res, next) => {
     try {
       const userId = req.user?.userId
-      const teamId = req.params.teamId || req.body.teamId
+      const teamId = extractTeamIdFromRequest(req)
       const globalUsername = req.user?.username
 
       if (!userId) {
@@ -184,7 +224,7 @@ export const requirePermission = (permission) => {
       }
 
       if (!teamId) {
-        return res.status(400).json({ message: 'Team ID is required' })
+        return res.status(400).json({ message: 'Team ID is required for this action' })
       }
 
       const allowed = await hasPermission(userId, teamId, permission, globalUsername)

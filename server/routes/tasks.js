@@ -10,6 +10,18 @@ const getTasksOfAUser = async (req, res) => {
 
   try {
     const { userId } = req.params
+    const requestingUserId = req.user?.userId
+    const requestingUsername = req.user?.username
+
+    if (!requestingUserId) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    const isSameUser = requestingUserId === userId
+    const isGlobalAdmin = requestingUsername === 'admin'
+    if (!isSameUser && !isGlobalAdmin) {
+      return res.status(403).json({ message: 'You can only view your own tasks' })
+    }
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' })
     }
@@ -209,7 +221,7 @@ const submitATask = async (req, res) => {
     }
 
     // Check if the task exists
-    const task = await Tasks.findById(taskId)
+    const task = req.taskDocument || (await Tasks.findById(taskId))
     if (!task) {
       return res.status(404).json({ message: 'Task not found' })
     }

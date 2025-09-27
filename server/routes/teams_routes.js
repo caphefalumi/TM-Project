@@ -61,15 +61,35 @@ router.delete(
 )
 router.get('/', authenticateAccessToken, getTeamThatUserIsMember)
 router.get('/admin', authenticateAccessToken, getTeamNameThatUserIsAdmin)
-router.get('/:teamId/sub-teams', authenticateAccessToken, getAllSubTeams)
+router.get(
+  '/:teamId/sub-teams',
+  authenticateAccessToken,
+  requirePermission('VIEW_TEAM'),
+  getAllSubTeams,
+)
 
-router.get('/:teamId', authenticateAccessToken, getTeamDetails)
+router.get('/:teamId', authenticateAccessToken, requirePermission('VIEW_TEAM'), getTeamDetails)
 router.delete('/:teamId', authenticateAccessToken, requireAdmin, deleteATeam)
-router.get('/:teamId/users', getUsersOfTeam)
+router.get('/:teamId/users', authenticateAccessToken, requirePermission('VIEW_MEMBERS'), getUsersOfTeam)
 // Tasks inside team
-router.get('/:teamId/:userId/tasks', getTasksOfAUserInATeam)
-router.get('/:teamId/task-groups', authenticateAccessToken, getAllTaskGroups)
-router.get('/:teamId/task-groups/:taskGroupId', authenticateAccessToken, getTasksByGroupId)
+router.get(
+  '/:teamId/:userId/tasks',
+  authenticateAccessToken,
+  requirePermission('VIEW_TASKS'),
+  getTasksOfAUserInATeam,
+)
+router.get(
+  '/:teamId/task-groups',
+  authenticateAccessToken,
+  requirePermission('VIEW_TASKS'),
+  getAllTaskGroups,
+)
+router.get(
+  '/:teamId/task-groups/:taskGroupId',
+  authenticateAccessToken,
+  requirePermission('VIEW_TASKS'),
+  getTasksByGroupId,
+)
 router.put(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
@@ -84,7 +104,12 @@ router.delete(
 )
 
 // Announcements inside team
-router.get('/:teamId/announcements', getAnnouncementsOfTeam)
+router.get(
+  '/:teamId/announcements',
+  authenticateAccessToken,
+  requirePermission('VIEW_ANNOUNCEMENTS'),
+  getAnnouncementsOfTeam,
+)
 router.post(
   '/:teamId/announcements',
   authenticateAccessToken,
