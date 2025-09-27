@@ -20,7 +20,6 @@ const RoleSchema = new mongoose.Schema({
       'canViewTasks',
       'canViewAnnouncements',
       'canViewMembers',
-      // 'canViewTaskGroups', // Removed
       'canSubmitTasks',
 
       // Tasks group permissions

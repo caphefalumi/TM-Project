@@ -143,7 +143,7 @@ class PermissionService {
   /**
    * Check if user has any permission to access Task Group (manage, delete)
    */
-  canAccessTaskGroup() {
+  canViewTaskGroup() {
     return (
       this.canManageTasks() ||
       this.canDeleteTasks()
