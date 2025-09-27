@@ -44,12 +44,6 @@ export const AVAILABLE_PERMISSIONS = [
     category: 'Tasks',
     description: 'Can delete tasks',
   },
-  {
-    key: 'canAssignTasks',
-    label: 'Assign Tasks',
-    category: 'Tasks',
-    description: 'Can assign tasks to members',
-  },
 
   // Announcement management permissions
   {
@@ -135,7 +129,6 @@ class PermissionService {
 
   canManageTasks() { return this.userActions.canManageTasks || false }
   canDeleteTasks() { return this.userActions.canDeleteTasks || false }
-  canAssignTasks() { return this.userActions.canAssignTasks || false }
 
   canManageAnnouncements() { return this.userActions.canManageAnnouncements || false }
   canDeleteAnnouncements() { return this.userActions.canDeleteAnnouncements || false }
@@ -148,13 +141,12 @@ class PermissionService {
   canManageCustomRoles() { return this.userActions.canManageCustomRoles || false }
 
   /**
-   * Check if user has any permission to access Task Group (manage, delete, assign)
+   * Check if user has any permission to access Task Group (manage, delete)
    */
-  canViewTaskGroup() {
+  canAccessTaskGroup() {
     return (
       this.canManageTasks() ||
-      this.canDeleteTasks() ||
-      this.canAssignTasks()
+      this.canDeleteTasks()
     )
   }
 
