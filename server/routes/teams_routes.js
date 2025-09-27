@@ -68,7 +68,7 @@ router.delete('/:teamId', authenticateAccessToken, requireAdmin, deleteATeam)
 router.get('/:teamId/users', authenticateAccessToken, requirePermission('VIEW_MEMBERS'), getUsersOfTeam)
 // Tasks inside team
 router.get('/:teamId/:userId/tasks', getTasksOfAUserInATeam)
-router.get('/:teamId/task-groups', authenticateAccessToken, requirePermission('MANAGE_TASKS'), getAllTaskGroups)
+router.get('/:teamId/task-groups', authenticateAccessToken, requirePermission(['MANAGE_TASKS', 'DELETE_TASKS']), getAllTaskGroups)
 router.get('/:teamId/task-groups/:taskGroupId', authenticateAccessToken, requirePermission('MANAGE_TASKS'), getTasksByGroupId)
 router.put(
   '/:teamId/task-groups/:taskGroupId',
