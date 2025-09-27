@@ -91,6 +91,23 @@ const openTaskView = (task) => {
   viewTaskDialog.value = true
 }
 
+// Notification state for permission errors
+const noPermissionNotification = ref(false)
+let notificationTimeout = null
+
+function showNoPermission() {
+  noPermissionNotification.value = true
+  if (notificationTimeout) clearTimeout(notificationTimeout)
+  notificationTimeout = setTimeout(() => {
+    noPermissionNotification.value = false
+  }, 3500)
+}
+
+function closeNoPermissionNotification() {
+  noPermissionNotification.value = false
+  if (notificationTimeout) clearTimeout(notificationTimeout)
+}
+
 // Methods
 const fetchTaskGroupDetails = async () => {
   loading.value = true
@@ -281,13 +298,9 @@ const removeUser = (userId) => {
 }
 
 // Computed: permission for task group
-const canAccessTaskGroup = computed(() => permissionService.canAccessTaskGroup())
+const canViewTaskGroup = computed(() => permissionService.canViewTaskGroup())
 const canEditTaskGroup = computed(() => permissionService.canManageTasks())
 const canDeleteTaskGroup = computed(() => permissionService.canDeleteTasks())
-
-function showNoPermission() {
-  alert('You dont have permission to perform this action')
-}
 
 onMounted(() => {
   if (props.dialog && props.taskGroupId) {
@@ -305,10 +318,24 @@ onMounted(() => {
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
-      <v-card-text v-if="!canAccessTaskGroup">
+      <v-card-text v-if="!canViewTaskGroup">
         <v-alert type="error">You dont have permission to perform this action</v-alert>
       </v-card-text>
       <v-card-text v-else>
+        <!-- Notification for no permission -->
+        <transition name="fade">
+          <div
+            v-if="noPermissionNotification"
+            class="aws-style-notification"
+            @click="closeNoPermissionNotification"
+            style="position: fixed; top: 32px; right: 32px; z-index: 9999; min-width: 320px; max-width: 400px; background: #232f3e; color: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 18px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 1rem;"
+          >
+            <v-icon color="warning" size="28">mdi-alert-circle</v-icon>
+            <span>You dont have permission to perform this action</span>
+            <v-spacer></v-spacer>
+            <v-icon color="grey-lighten-1" size="20">mdi-close</v-icon>
+          </div>
+        </transition>
         <!-- Loading State -->
         <v-card-text v-if="loading">
           <v-row class="justify-center">
@@ -369,7 +396,7 @@ onMounted(() => {
           <!-- Tabs -->
           <v-tabs v-model="activeTab" class="mb-4">
             <v-tab value="overview">Overview</v-tab>
-            <v-tab value="edit" v-if="canEditTaskGroup">Edit Task Group</v-tab>
+            <v-tab value="edit">Edit Task Group</v-tab>
           </v-tabs>
 
           <!-- Tab Content -->
@@ -421,7 +448,7 @@ onMounted(() => {
             </v-window-item>
 
             <!-- Edit Tab -->
-            <v-window-item value="edit" v-if="canEditTaskGroup">
+            <v-window-item value="edit">
               <v-form @submit.prevent="canEditTaskGroup ? updateTaskGroup() : showNoPermission()">
                 <v-row class="pa-2">
                   <v-col cols="12" md="6">
@@ -513,12 +540,19 @@ onMounted(() => {
                   <v-col cols="12">
                     <v-row>
                       <v-col cols="auto">
-                        <v-btn type="submit" color="primary" :loading="saving" size="large">
+                        <v-btn
+                          type="button"
+                          color="primary"
+                          :loading="saving"
+                          size="large"
+                          @click="canEditTaskGroup ? updateTaskGroup() : showNoPermission()"
+                        >
                           Update Task Group
                         </v-btn>
                       </v-col>
-                      <v-col cols="auto" v-if="canDeleteTaskGroup">
+                      <v-col cols="auto">
                         <v-btn
+                          type="button"
                           @click="canDeleteTaskGroup ? deleteTaskGroup() : showNoPermission()"
                           color="red-darken-2"
                           :loading="saving"
@@ -547,3 +581,15 @@ onMounted(() => {
     />
   </v-dialog>
 </template>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+.aws-style-notification:hover {
+  filter: brightness(0.95);
+}
+</style>
