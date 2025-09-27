@@ -287,7 +287,6 @@ const fetchTeamTasks = async () => {
     isLoadingTasks.value = true
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(
-      // '/api/teams/:teamId/:userId/tasks'
       `${PORT}/api/teams/${teamId.value}/${user.value.userId}/tasks`,
       {
         method: 'GET',
