@@ -1,5 +1,6 @@
 import Role from '../models/Role.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
+import { ROLES } from '../verify/RoleAuth.js'
 
 // Create a new custom role for a team
 export const createRole = async (req, res) => {
@@ -139,7 +140,7 @@ export const deleteRole = async (req, res) => {
       await UsersOfTeam.updateMany(
         { roleId: roleId },
         {
-          role: 'Member',
+          roleType: ROLES.MEMBER,
           roleId: null,
           customPermissions: {}, // Clear any custom permissions
         },
@@ -162,11 +163,11 @@ export const deleteRole = async (req, res) => {
 export const assignCustomRoleToUser = async (req, res) => {
   try {
     const { teamId, userId } = req.params
-    const { roleId, role } = req.body
+    const { roleId, roleType } = req.body
     const requestingUserId = req.user.userId
 
-    if (!role) {
-      return res.status(400).json({ message: 'Role is required' })
+    if (!roleType) {
+      return res.status(400).json({ message: 'Role type is required' })
     }
 
     if (requestingUserId === userId) {
@@ -180,7 +181,10 @@ export const assignCustomRoleToUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found in team' })
     }
 
-    if (roleId) {
+    if (roleType === ROLES.CUSTOM) {
+      if (!roleId) {
+        return res.status(400).json({ message: 'Custom role ID is required for custom roles' })
+      }
       const customRole = await Role.findById(roleId)
       if (!customRole || customRole.team_id.toString() !== teamId) {
         return res.status(404).json({ message: 'Custom role not found' })
@@ -191,11 +195,11 @@ export const assignCustomRoleToUser = async (req, res) => {
     let demotedAdmin = null
 
     const updateData = {
-      role,
-      roleId: roleId || null,
+      roleType,
+      roleId: roleType === ROLES.CUSTOM ? roleId : null,
     }
 
-    if (!roleId) {
+    if (roleType !== ROLES.CUSTOM) {
       updateData.customPermissions = {}
     }
 
@@ -204,8 +208,8 @@ export const assignCustomRoleToUser = async (req, res) => {
       message: 'Role assigned successfully',
       userId,
       teamId,
-      role,
-      customRoleId: roleId,
+      roleType,
+      customRoleId: roleType === ROLES.CUSTOM ? roleId : null,
       demotedAdmin: demotedAdmin,
     })
   } catch (error) {

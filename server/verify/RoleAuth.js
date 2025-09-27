@@ -2,8 +2,29 @@ import UsersOfTeam from '../models/UsersOfTeam.js'
 import { PERMISSIONS, ROLE_PERMISSIONS } from '../config/permissions.js'
 
 export const ROLES = {
-  ADMIN: 'Admin',
-  MEMBER: 'Member',
+  ADMIN: 'admin',
+  MEMBER: 'member',
+  CUSTOM: 'custom',
+}
+
+const ROLE_TYPE_TO_BASE_ROLE = {
+  [ROLES.ADMIN]: 'Admin',
+  [ROLES.MEMBER]: 'Member',
+  [ROLES.CUSTOM]: 'Member',
+}
+
+export const getBaseRoleFromRoleType = (roleType) => {
+  if (!roleType) {
+    return 'Member'
+  }
+  return ROLE_TYPE_TO_BASE_ROLE[roleType] || 'Member'
+}
+
+export const getRoleLabel = (roleType, customRole) => {
+  if (roleType === ROLES.CUSTOM && customRole) {
+    return customRole.name
+  }
+  return getBaseRoleFromRoleType(roleType)
 }
 
 // Simplified permission constants - use centralized config for actual permissions
@@ -17,10 +38,11 @@ export const getUserCustomPermissions = async (userId, teamId) => {
     }
 
     // Start with default role permissions
-    let rolePermissions = getRoleDefaultPermissions(userTeamRole.role)
+    const baseRole = getBaseRoleFromRoleType(userTeamRole.roleType)
+    let rolePermissions = getRoleDefaultPermissions(baseRole)
 
     // If user has a custom role assigned, add custom role permissions to base role permissions
-    if (userTeamRole.roleId && userTeamRole.roleId.permissions) {
+    if (userTeamRole.roleType === ROLES.CUSTOM && userTeamRole.roleId && userTeamRole.roleId.permissions) {
       // Start with base role permissions (Member gets basic permissions)
       const customRolePermissions = { ...rolePermissions }
 
@@ -46,7 +68,9 @@ export const getUserCustomPermissions = async (userId, teamId) => {
     })
 
     return {
-      role: userTeamRole.role,
+      roleType: userTeamRole.roleType,
+      baseRole,
+      roleLabel: getRoleLabel(userTeamRole.roleType, userTeamRole.roleId),
       customRoleName: userTeamRole.roleId ? userTeamRole.roleId.name : null,
       customRoleColor: userTeamRole.roleId ? userTeamRole.roleId.color : null,
       ...effectivePermissions,
@@ -58,9 +82,13 @@ export const getUserCustomPermissions = async (userId, teamId) => {
   }
 }
 
-export const getRoleDefaultPermissions = (role) => {
+export const getRoleDefaultPermissions = (roleIdentifier) => {
+  const baseRole = ROLE_PERMISSIONS[roleIdentifier]
+    ? roleIdentifier
+    : getBaseRoleFromRoleType(roleIdentifier)
+
   // Use the centralized default permissions configuration
-  const permissions = ROLE_PERMISSIONS[role] || []
+  const permissions = ROLE_PERMISSIONS[baseRole] || []
 
   // Convert to object format for easy access
   const permissionObject = {}
@@ -128,7 +156,7 @@ export const requireAdmin = (req, res, next) => {
 
   UsersOfTeam.findOne({ userId, teamId })
     .then((userTeam) => {
-      if (!userTeam || userTeam.role !== ROLES.ADMIN) {
+      if (!userTeam || userTeam.roleType !== ROLES.ADMIN) {
         return res.status(403).json({ message: 'Admin access required' })
       }
       next()
@@ -180,7 +208,7 @@ export const requirePermission = (permission) => {
 export const getUserRoleInTeam = async (userId, teamId) => {
   try {
     const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
-    return userTeamRole ? userTeamRole.role : null
+    return userTeamRole ? userTeamRole.roleType : null
   } catch (error) {
     console.error('Error getting user role:', error)
     return null
@@ -191,7 +219,7 @@ export const hasElevatedPrivileges = async (userId) => {
   try {
     const roles = await UsersOfTeam.find({
       userId,
-      role: { $in: ['Admin'] },
+      roleType: { $in: [ROLES.ADMIN] },
     })
     return roles.length > 0
   } catch (error) {
@@ -202,6 +230,8 @@ export const hasElevatedPrivileges = async (userId) => {
 
 export default {
   ROLES,
+  getBaseRoleFromRoleType,
+  getRoleLabel,
   GLOBAL_ADMIN_ACCESS,
   hasPermission,
   requirePermission,
