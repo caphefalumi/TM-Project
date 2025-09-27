@@ -237,11 +237,10 @@ const fetchSubTeams = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}/sub-teams`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-      credentials: 'include',
+      }
     })
 
     if (!response.ok) {
@@ -292,6 +291,7 @@ const fetchTeamTasks = async () => {
       `${PORT}/api/teams/${teamId.value}/${user.value.userId}/tasks`,
       {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -349,6 +349,7 @@ const fetchAnnouncements = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}/announcements`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -376,6 +377,7 @@ const fetchTeamMembers = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}/users`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -450,6 +452,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
   try {
     const response = await fetch(`${PORT}/api/announcements/${announcementId}/like`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -645,11 +648,10 @@ const confirmDeleteTeam = async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
       method: 'DELETE',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
-      credentials: 'include', // Important: sends refresh token cookie
       body: JSON.stringify({
         teamId: teamId.value,
       }),
@@ -861,11 +863,11 @@ const confirmDeleteTeam = async () => {
               <v-icon start>mdi-clipboard-text</v-icon>
               Tasks
             </v-tab>
-            <v-tab id="tour-workflow-tab" value="workflow">
+            <v-tab id="tour-workflow-tab" value="workflow" v-if="permissionService.canViewTaskGroup()">
               <v-icon start>mdi-timeline-clock</v-icon>
               Workflow
             </v-tab>
-            <v-tab value="task-groups" v-if="permissionService.canViewTaskGroups()">
+            <v-tab value="task-groups" v-if="permissionService.canViewTaskGroup()">
               <v-icon start>mdi-folder-multiple</v-icon>
               Task Groups
             </v-tab>
@@ -1141,7 +1143,7 @@ const confirmDeleteTeam = async () => {
         </v-window-item>
 
         <!-- Workflow Tab -->
-        <v-window-item value="workflow">
+        <v-window-item value="workflow" v-if="permissionService.canViewTaskGroup()">
           <v-row>
             <v-col cols="12">
               <div class="d-flex align-center justify-space-between mb-3">
@@ -1165,7 +1167,7 @@ const confirmDeleteTeam = async () => {
         </v-window-item>
 
         <!-- Manage Tab -->
-        <v-window-item value="task-groups" v-if="permissionService.canViewTaskGroups()">
+        <v-window-item value="task-groups" v-if="permissionService.canViewTaskGroup()">
           <!-- Loading State for Task Groups -->
           <div v-if="refreshingTaskGroups">
             <v-row>
