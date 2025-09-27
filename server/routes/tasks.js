@@ -9,7 +9,7 @@ const getTasksOfAUser = async (req, res) => {
   // Requires userId as a parameter
 
   try {
-    const { userId } = req.user.userId
+    const userId = req.user.userId
     if (!userId ) {
       return res.status(400).json({ message: 'User ID is required' })
     }
