@@ -202,11 +202,12 @@ class RefreshTokenManager {
   }
 
   static async isUnauthorizedAccess(refreshTokens) {
-    if (await RefreshToken.findOne({ token: refreshTokens, revoked: true })) {
-      await this.revokeAllUserTokens(result.userId, 'security')
-      return true
+    const result = await RefreshToken.findOne({ token: refreshTokens })
+    if (!result) {
+      return false
     }
-    return false
+    await this.revokeAllUserTokens(result.userId, 'security')
+    return true
   }
 
   /**

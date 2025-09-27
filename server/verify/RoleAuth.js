@@ -13,14 +13,14 @@ const ROLE_TYPE_TO_BASE_ROLE = {
   [ROLES.CUSTOM]: 'Member',
 }
 
-const getBaseRoleFromRoleType = (roleType) => {
+export const getBaseRoleFromRoleType = (roleType) => {
   if (!roleType) {
     return 'Member'
   }
   return ROLE_TYPE_TO_BASE_ROLE[roleType] || 'Member'
 }
 
-const getRoleLabel = (roleType, customRole) => {
+export const getRoleLabel = (roleType, customRole) => {
   if (roleType === ROLES.CUSTOM && customRole) {
     return customRole.name
   }
