@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import ViewTask from './ViewTask.vue'
+import { permissionService } from '../scripts/permissionService.js'
 
 const emit = defineEmits(['update:dialog', 'task-group-updated'])
 
@@ -279,6 +280,15 @@ const removeUser = (userId) => {
   editForm.value.assignedUsers = editForm.value.assignedUsers.filter((id) => id !== userId)
 }
 
+// Computed: permission for task group
+const canViewTaskGroup = computed(() => permissionService.canViewTaskGroup())
+const canEditTaskGroup = computed(() => permissionService.canManageTasks() || permissionService.canAssignTasks())
+const canDeleteTaskGroup = computed(() => permissionService.canDeleteTasks())
+
+function showNoPermission() {
+  alert('You dont have permission to perform this action')
+}
+
 onMounted(() => {
   if (props.dialog && props.taskGroupId) {
     fetchTaskGroupDetails()
@@ -295,232 +305,236 @@ onMounted(() => {
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
-
-      <!-- Loading State -->
-      <v-card-text v-if="loading">
-        <v-row class="justify-center">
-          <v-col cols="auto">
-            <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-          </v-col>
-        </v-row>
-        <v-row class="justify-center mt-4">
-          <v-col cols="auto">
-            <p class="text-h6">Loading task group details...</p>
-          </v-col>
-        </v-row>
+      <v-card-text v-if="!canViewTaskGroup">
+        <v-alert type="error">You dont have permission to perform this action</v-alert>
       </v-card-text>
-
-      <!-- Main Content -->
       <v-card-text v-else>
-        <!-- Alert Messages -->
-        <v-alert v-if="success" type="success" class="mb-4" :text="message"></v-alert>
-        <v-alert v-if="error" type="error" class="mb-4" :text="message"></v-alert>
+        <!-- Loading State -->
+        <v-card-text v-if="loading">
+          <v-row class="justify-center">
+            <v-col cols="auto">
+              <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+            </v-col>
+          </v-row>
+          <v-row class="justify-center mt-4">
+            <v-col cols="auto">
+              <p class="text-h6">Loading task group details...</p>
+            </v-col>
+          </v-row>
+        </v-card-text>
 
-        <!-- Task Group Summary -->
-        <v-row class="mb-4">
-          <v-col cols="12">
-            <v-card variant="outlined" class="mb-4">
-              <v-card-title>Task Group Overview</v-card-title>
-              <v-card-text>
-                <v-row>
-                  <v-col cols="6" md="3">
-                    <v-card class="text-center pa-3" color="primary" variant="tonal">
-                      <v-card-title class="text-h4">{{ taskGroup.totalTasks }}</v-card-title>
-                      <v-card-subtitle>Total Tasks</v-card-subtitle>
-                    </v-card>
-                  </v-col>
-                  <v-col cols="6" md="3">
-                    <v-card class="text-center pa-3" color="success" variant="tonal">
-                      <v-card-title class="text-h4">{{ taskGroup.completedTasks }}</v-card-title>
-                      <v-card-subtitle>Completed</v-card-subtitle>
-                    </v-card>
-                  </v-col>
-                  <v-col cols="6" md="3">
-                    <v-card class="text-center pa-3" color="info" variant="tonal">
-                      <v-card-title class="text-h4">{{ taskGroup.totalUsers }}</v-card-title>
-                      <v-card-subtitle>Assigned Users</v-card-subtitle>
-                    </v-card>
-                  </v-col>
-                  <v-col cols="6" md="3">
-                    <v-card class="text-center pa-3" color="warning" variant="tonal">
-                      <v-card-title class="text-h4">{{ completionRate }}%</v-card-title>
-                      <v-card-subtitle>Completion Rate</v-card-subtitle>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+        <!-- Main Content -->
+        <v-card-text v-else>
+          <!-- Alert Messages -->
+          <v-alert v-if="success" type="success" class="mb-4" :text="message"></v-alert>
+          <v-alert v-if="error" type="error" class="mb-4" :text="message"></v-alert>
 
-        <!-- Tabs -->
-        <v-tabs v-model="activeTab" class="mb-4">
-          <v-tab value="overview">Overview</v-tab>
-          <v-tab value="edit">Edit Task Group</v-tab>
-        </v-tabs>
-
-        <!-- Tab Content -->
-        <v-window v-model="activeTab">
-          <!-- Overview Tab -->
-          <v-window-item value="overview">
-            <v-row>
-              <v-col cols="12">
-                <h3 class="text-h6 mb-3">Tasks by User</h3>
-                <v-card
-                  v-for="(task, index) in taskGroup.tasks"
-                  :key="task._id"
-                  class="mb-3"
-                  variant="outlined"
-                  @click="openTaskView(task)"
-                  style="cursor: pointer"
-                  hover
-                >
-                  <v-card-title class="d-flex align-center">
-                    <v-icon class="mr-2">mdi-account</v-icon>
-                    {{ getUsernameById(task.userId) }}
-                    <v-spacer></v-spacer>
-                    <v-chip :color="getPriorityColor(task.priority)" size="small" class="mr-2">
-                      {{ task.priority }}
-                    </v-chip>
-                    <v-chip :color="getSubmissionColor(task)" size="small">
-                      {{ getSubmissionStatus(task) }}
-                    </v-chip>
-                  </v-card-title>
-                  <v-card-text>
-                    <v-row class="align-center">
-                      <v-col cols="9">
-                        <strong>{{ task.title }}</strong>
-                        <p class="text-caption text-grey mb-0">
-                          Start: {{ formatDate(task.startDate) }} &nbsp;&nbsp;Due:
-                          {{ formatDate(task.dueDate) }}
-                        </p>
-                      </v-col>
-                      <v-col cols="3" class="text-right">
-                        <v-chip color="info" size="small" class="mb-1">
-                          Weight: {{ task.weighted }}
-                        </v-chip>
-                      </v-col>
-                    </v-row>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-window-item>
-
-          <!-- Edit Tab -->
-          <v-window-item value="edit">
-            <v-form @submit.prevent="updateTaskGroup">
-              <v-row class="pa-2">
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="editForm.title"
-                    label="Task Title"
-                    required
-                    variant="outlined"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="editForm.category"
-                    :items="categoryOptions"
-                    label="Category"
-                    required
-                    variant="outlined"
-                  ></v-select>
-                </v-col>
-                <v-col cols="12">
-                  <v-textarea
-                    v-model="editForm.description"
-                    label="Description"
-                    rows="3"
-                    variant="outlined"
-                  ></v-textarea>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="editForm.priority"
-                    :items="priorityOptions"
-                    label="Priority"
-                    required
-                    variant="outlined"
-                  ></v-select>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="editForm.dueDate"
-                    label="Due Date"
-                    type="date"
-                    required
-                    variant="outlined"
-                    min="2025-01-01"
-                    max="2035-12-31"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model.number="editForm.weighted"
-                    label="Task Weight"
-                    type="number"
-                    min="0"
-                    required
-                    variant="outlined"
-                    hint="Higher weight = more important task"
-                    persistent-hint
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12">
-                  <v-select
-                    v-model="editForm.assignedUsers"
-                    :items="teamMemberOptions"
-                    label="Assigned Users"
-                    multiple
-                    chips
-                    closable-chips
-                    required
-                    variant="outlined"
-                    hint="Select which team members should complete this task"
-                    persistent-hint
-                  >
-                    <template v-slot:selection="{ item, index }">
-                      <v-chip
-                        v-if="index < 3"
-                        :key="item.value"
-                        size="small"
-                        closable
-                        @click:close="removeUser(item.value)"
-                      >
-                        {{ item.title }}
-                      </v-chip>
-                      <span v-if="index === 3" class="text-grey text-caption align-self-center">
-                        (+{{ editForm.assignedUsers.length - 3 }} others)
-                      </span>
-                    </template>
-                  </v-select>
-                </v-col>
-                <v-col cols="12">
+          <!-- Task Group Summary -->
+          <v-row class="mb-4">
+            <v-col cols="12">
+              <v-card variant="outlined" class="mb-4">
+                <v-card-title>Task Group Overview</v-card-title>
+                <v-card-text>
                   <v-row>
-                    <v-col cols="auto">
-                      <v-btn type="submit" color="primary" :loading="saving" size="large">
-                        Update Task Group
-                      </v-btn>
+                    <v-col cols="6" md="3">
+                      <v-card class="text-center pa-3" color="primary" variant="tonal">
+                        <v-card-title class="text-h4">{{ taskGroup.totalTasks }}</v-card-title>
+                        <v-card-subtitle>Total Tasks</v-card-subtitle>
+                      </v-card>
                     </v-col>
-                    <v-col cols="auto">
-                      <v-btn
-                        @click="deleteTaskGroup"
-                        color="red-darken-2"
-                        :loading="saving"
-                        size="large"
-                        variant="outlined"
-                      >
-                        Delete Task Group
-                      </v-btn>
+                    <v-col cols="6" md="3">
+                      <v-card class="text-center pa-3" color="success" variant="tonal">
+                        <v-card-title class="text-h4">{{ taskGroup.completedTasks }}</v-card-title>
+                        <v-card-subtitle>Completed</v-card-subtitle>
+                      </v-card>
+                    </v-col>
+                    <v-col cols="6" md="3">
+                      <v-card class="text-center pa-3" color="info" variant="tonal">
+                        <v-card-title class="text-h4">{{ taskGroup.totalUsers }}</v-card-title>
+                        <v-card-subtitle>Assigned Users</v-card-subtitle>
+                      </v-card>
+                    </v-col>
+                    <v-col cols="6" md="3">
+                      <v-card class="text-center pa-3" color="warning" variant="tonal">
+                        <v-card-title class="text-h4">{{ completionRate }}%</v-card-title>
+                        <v-card-subtitle>Completion Rate</v-card-subtitle>
+                      </v-card>
                     </v-col>
                   </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- Tabs -->
+          <v-tabs v-model="activeTab" class="mb-4">
+            <v-tab value="overview">Overview</v-tab>
+            <v-tab value="edit" v-if="canEditTaskGroup">Edit Task Group</v-tab>
+          </v-tabs>
+
+          <!-- Tab Content -->
+          <v-window v-model="activeTab">
+            <!-- Overview Tab -->
+            <v-window-item value="overview">
+              <v-row>
+                <v-col cols="12">
+                  <h3 class="text-h6 mb-3">Tasks by User</h3>
+                  <v-card
+                    v-for="(task, index) in taskGroup.tasks"
+                    :key="task._id"
+                    class="mb-3"
+                    variant="outlined"
+                    @click="openTaskView(task)"
+                    style="cursor: pointer"
+                    hover
+                  >
+                    <v-card-title class="d-flex align-center">
+                      <v-icon class="mr-2">mdi-account</v-icon>
+                      {{ getUsernameById(task.userId) }}
+                      <v-spacer></v-spacer>
+                      <v-chip :color="getPriorityColor(task.priority)" size="small" class="mr-2">
+                        {{ task.priority }}
+                      </v-chip>
+                      <v-chip :color="getSubmissionColor(task)" size="small">
+                        {{ getSubmissionStatus(task) }}
+                      </v-chip>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-row class="align-center">
+                        <v-col cols="9">
+                          <strong>{{ task.title }}</strong>
+                          <p class="text-caption text-grey mb-0">
+                            Start: {{ formatDate(task.startDate) }} &nbsp;&nbsp;Due:
+                            {{ formatDate(task.dueDate) }}
+                          </p>
+                        </v-col>
+                        <v-col cols="3" class="text-right">
+                          <v-chip color="info" size="small" class="mb-1">
+                            Weight: {{ task.weighted }}
+                          </v-chip>
+                        </v-col>
+                      </v-row>
+                    </v-card-text>
+                  </v-card>
                 </v-col>
               </v-row>
-            </v-form>
-          </v-window-item>
-        </v-window>
+            </v-window-item>
+
+            <!-- Edit Tab -->
+            <v-window-item value="edit" v-if="canEditTaskGroup">
+              <v-form @submit.prevent="canEditTaskGroup ? updateTaskGroup() : showNoPermission()">
+                <v-row class="pa-2">
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="editForm.title"
+                      label="Task Title"
+                      required
+                      variant="outlined"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-select
+                      v-model="editForm.category"
+                      :items="categoryOptions"
+                      label="Category"
+                      required
+                      variant="outlined"
+                    ></v-select>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-textarea
+                      v-model="editForm.description"
+                      label="Description"
+                      rows="3"
+                      variant="outlined"
+                    ></v-textarea>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-select
+                      v-model="editForm.priority"
+                      :items="priorityOptions"
+                      label="Priority"
+                      required
+                      variant="outlined"
+                    ></v-select>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="editForm.dueDate"
+                      label="Due Date"
+                      type="date"
+                      required
+                      variant="outlined"
+                      min="2025-01-01"
+                      max="2035-12-31"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model.number="editForm.weighted"
+                      label="Task Weight"
+                      type="number"
+                      min="0"
+                      required
+                      variant="outlined"
+                      hint="Higher weight = more important task"
+                      persistent-hint
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-select
+                      v-model="editForm.assignedUsers"
+                      :items="teamMemberOptions"
+                      label="Assigned Users"
+                      multiple
+                      chips
+                      closable-chips
+                      required
+                      variant="outlined"
+                      hint="Select which team members should complete this task"
+                      persistent-hint
+                    >
+                      <template v-slot:selection="{ item, index }">
+                        <v-chip
+                          v-if="index < 3"
+                          :key="item.value"
+                          size="small"
+                          closable
+                          @click:close="removeUser(item.value)"
+                        >
+                          {{ item.title }}
+                        </v-chip>
+                        <span v-if="index === 3" class="text-grey text-caption align-self-center">
+                          (+{{ editForm.assignedUsers.length - 3 }} others)
+                        </span>
+                      </template>
+                    </v-select>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-row>
+                      <v-col cols="auto">
+                        <v-btn type="submit" color="primary" :loading="saving" size="large">
+                          Update Task Group
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="auto" v-if="canDeleteTaskGroup">
+                        <v-btn
+                          @click="canDeleteTaskGroup ? deleteTaskGroup() : showNoPermission()"
+                          color="red-darken-2"
+                          :loading="saving"
+                          size="large"
+                          variant="outlined"
+                        >
+                          Delete Task Group
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
+              </v-form>
+            </v-window-item>
+          </v-window>
+        </v-card-text>
       </v-card-text>
     </v-card>
 

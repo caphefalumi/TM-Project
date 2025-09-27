@@ -175,7 +175,9 @@ const fetchTasks = async () => {
   loading.value = true
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const response = await fetch(`${PORT}/api/tasks/${user.value.userId}`, {
+    const response = await fetch(`${PORT}/api/tasks/`, {
+      method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

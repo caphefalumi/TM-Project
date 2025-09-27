@@ -9,14 +9,9 @@ const getTasksOfAUser = async (req, res) => {
   // Requires userId as a parameter
 
   try {
-    const { userId } = req.params
-    if (!userId) {
+    const { userId } = req.user.userId
+    if (!userId ) {
       return res.status(400).json({ message: 'User ID is required' })
-    }
-    // Check if the user exists in any team
-    const userExists = await UsersOfTeam.exists({ userId })
-    if (!userExists) {
-      return res.status(200).json({ message: 'User not found in any team', tasks: [] })
     }
     // Fetch tasks for the user across all teams
     // Sort tasks by DueDate in ascending order

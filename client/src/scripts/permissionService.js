@@ -1,4 +1,3 @@
-
 export const AVAILABLE_PERMISSIONS = [
   // Basic permissions
   {
@@ -24,12 +23,6 @@ export const AVAILABLE_PERMISSIONS = [
     label: 'View Members',
     category: 'Basic',
     description: 'Can view team member list',
-  },
-  {
-    key: 'canViewTaskGroups',
-    label: 'View Task Groups',
-    category: 'Basic',
-    description: 'Can view task groups',
   },
   {
     key: 'canSubmitTasks',
@@ -137,7 +130,6 @@ class PermissionService {
   canViewTasks() { return this.userActions.canViewTasks || false }
   canViewAnnouncements() { return this.userActions.canViewAnnouncements || false }
   canViewMembers() { return this.userActions.canViewMembers || false }
-  canViewTaskGroups() { return this.userActions.canViewTaskGroups || false }
 
   canSubmitTasks() { return this.userActions.canSubmitTasks || false }
 
@@ -155,7 +147,16 @@ class PermissionService {
   canCreateSubTeams() { return this.userActions.canCreateSubTeams || false }
   canManageCustomRoles() { return this.userActions.canManageCustomRoles || false }
 
-
+  /**
+   * Check if user has any permission to access Task Group (manage, delete, assign)
+   */
+  canViewTaskGroup() {
+    return (
+      this.canManageTasks() ||
+      this.canDeleteTasks() ||
+      this.canAssignTasks()
+    )
+  }
 
   /**
    * Get user's role

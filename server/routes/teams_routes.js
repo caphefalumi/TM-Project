@@ -61,15 +61,15 @@ router.delete(
 )
 router.get('/', authenticateAccessToken, getTeamThatUserIsMember)
 router.get('/admin', authenticateAccessToken, getTeamNameThatUserIsAdmin)
-router.get('/:teamId/sub-teams', authenticateAccessToken, getAllSubTeams)
+router.get('/:teamId/sub-teams', authenticateAccessToken, requirePermission('VIEW_TEAM'), getAllSubTeams)
 
-router.get('/:teamId', authenticateAccessToken, getTeamDetails)
+router.get('/:teamId', authenticateAccessToken, requirePermission('VIEW_TEAM'), getTeamDetails)
 router.delete('/:teamId', authenticateAccessToken, requireAdmin, deleteATeam)
-router.get('/:teamId/users', getUsersOfTeam)
+router.get('/:teamId/users', authenticateAccessToken, requirePermission('VIEW_MEMBERS'), getUsersOfTeam)
 // Tasks inside team
 router.get('/:teamId/:userId/tasks', getTasksOfAUserInATeam)
-router.get('/:teamId/task-groups', authenticateAccessToken, getAllTaskGroups)
-router.get('/:teamId/task-groups/:taskGroupId', authenticateAccessToken, getTasksByGroupId)
+router.get('/:teamId/task-groups', authenticateAccessToken, requirePermission('MANAGE_TASKS'), getAllTaskGroups)
+router.get('/:teamId/task-groups/:taskGroupId', authenticateAccessToken, requirePermission('MANAGE_TASKS'), getTasksByGroupId)
 router.put(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
@@ -79,12 +79,12 @@ router.put(
 router.delete(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
-  requirePermission('MANAGE_TASKS'),
+  requirePermission('DELETE_TASKS'),
   deleteTaskGroup,
 )
 
 // Announcements inside team
-router.get('/:teamId/announcements', getAnnouncementsOfTeam)
+router.get('/:teamId/announcements', authenticateAccessToken, requirePermission('VIEW_ANNOUNCEMENTS'), getAnnouncementsOfTeam)
 router.post(
   '/:teamId/announcements',
   authenticateAccessToken,
@@ -106,7 +106,7 @@ router.delete(
 
 // Role Management
 router.put('/:teamId/members/:userId/role', authenticateAccessToken, requireAdmin, changeUserRole)
-router.get('/:teamId/members/:userId/permissions', authenticateAccessToken, getUserPermissions)
+router.get('/:teamId/members/:userId/permissions', authenticateAccessToken, requirePermission('VIEW_TEAM'), getUserPermissions)
 router.put(
   '/:teamId/members/:userId/permissions',
   authenticateAccessToken,
@@ -116,8 +116,7 @@ router.put(
 
 // Custom Roles Management for Teams
 router.post('/:teamId/roles', authenticateAccessToken, requireAdmin, createRole)
-router.get('/:teamId/roles', authenticateAccessToken, getRolesByTeam)
-router.get('/:teamId/roles/:roleId', authenticateAccessToken, getRoleById)
+router.get('/:teamId/roles', authenticateAccessToken, requirePermission('VIEW_TEAM'), getRolesByTeam)
 router.put('/:teamId/roles/:roleId', authenticateAccessToken, requireAdmin, updateRole)
 router.delete('/:teamId/roles/:roleId', authenticateAccessToken, requireAdmin, deleteRole)
 

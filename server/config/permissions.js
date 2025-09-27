@@ -5,7 +5,6 @@ export const PERMISSIONS = {
   VIEW_TASKS: 'canViewTasks',
   VIEW_ANNOUNCEMENTS: 'canViewAnnouncements',
   VIEW_MEMBERS: 'canViewMembers',
-  VIEW_TASK_GROUPS: 'canViewTaskGroups',
 
   // Basic action permissions
   SUBMIT_TASKS: 'canSubmitTasks',
@@ -38,7 +37,6 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_TASKS,
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
     PERMISSIONS.VIEW_MEMBERS,
-    PERMISSIONS.VIEW_TASK_GROUPS,
     PERMISSIONS.SUBMIT_TASKS,
   ],
 }
@@ -51,7 +49,6 @@ export const computeUserActions = (userPermissions) => {
     canViewTasks: true,
     canViewAnnouncements: true,
     canViewMembers: true,
-    canViewTaskGroups: true,
     canSubmitTasks: true,
 
     // Advanced permissions - based on role and custom permissions

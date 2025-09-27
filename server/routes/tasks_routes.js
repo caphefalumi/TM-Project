@@ -7,8 +7,8 @@ const { addTaskToUsers, getTasksOfAUser, submitATask, getTaskSubmission } = Task
 const router = express.Router()
 
 router.post('/create', authenticateAccessToken, requirePermission('MANAGE_TASKS'), addTaskToUsers)
-router.post('/submit', authenticateAccessToken, submitATask)
-router.get('/submission/:taskId', authenticateAccessToken, getTaskSubmission)
-router.get('/:userId', getTasksOfAUser)
+router.post('/submit', authenticateAccessToken, requirePermission('SUBMIT_TASKS'), submitATask)
+router.get('/submission/:taskId', authenticateAccessToken, requirePermission('VIEW_TASKS'), getTaskSubmission)
+router.get('/', authenticateAccessToken, getTasksOfAUser)
 
 export default router

@@ -296,18 +296,6 @@
                 <v-row>
                   <v-col cols="12" md="6">
                     <div class="permission-item d-flex align-center justify-space-between">
-                      <span class="permission-label">View Task Groups</span>
-                      <v-btn
-                        :icon="getPermissionIcon('canViewTaskGroups')"
-                        :color="getPermissionColor('canViewTaskGroups')"
-                        size="small"
-                        variant="text"
-                        @click="updatePermission('canViewTaskGroups')"
-                      ></v-btn>
-                    </div>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <div class="permission-item d-flex align-center justify-space-between">
                       <span class="permission-label">Create and Edit Tasks</span>
                       <v-btn
                         :icon="getPermissionIcon('canManageTasks')"
@@ -700,7 +688,6 @@ const openPermissionsDialog = async (member) => {
       canViewMembers: currentCustomPermissions.canViewMembers ?? null,
       canSubmitTasks: currentCustomPermissions.canSubmitTasks ?? null,
       canManageAnnouncements: currentCustomPermissions.canManageAnnouncements ?? null,
-      canViewTaskGroups: currentCustomPermissions.canViewTaskGroups ?? null,
       canManageTasks: currentCustomPermissions.canManageTasks ?? null,
       canDeleteTasks: currentCustomPermissions.canDeleteTasks ?? null,
       canDeleteAnnouncements: currentCustomPermissions.canDeleteAnnouncements ?? null,
