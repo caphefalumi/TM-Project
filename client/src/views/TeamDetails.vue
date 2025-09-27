@@ -15,6 +15,7 @@ import RoleManagement from '../components/RoleManagement.vue'
 import RoleManagementTabs from '../components/RoleManagementTabs.vue'
 import NewMembers from '../components/NewMembers.vue'
 import WorkflowView from '../components/WorkflowView.vue'
+import NotFound from './NotFound.vue'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -90,7 +91,7 @@ const activeTab = ref(route.query.tab || 'tasks')
 // Get team ID from route params
 const teamId = ref(route.params.teamId)
 
-
+const teamNotFound = ref(false)
 
 // Function to initialize/reload team data
 const initializeTeamData = async () => {
@@ -99,6 +100,7 @@ const initializeTeamData = async () => {
   isLoadingAnnouncements.value = true
   isLoadingMembers.value = true
   isLoadingTeamDetails.value = true
+  teamNotFound.value = false
 
   const userFromToken = await getUserByAccessToken()
   if (userFromToken) {
@@ -114,6 +116,13 @@ const initializeTeamData = async () => {
     // Update role-based flags
     updateRoleFlags()
 
+    // Check if team exists
+    if (!team.value || !team.value.teamId) {
+      teamNotFound.value = true
+      userLoaded.value = true
+      return
+    }
+
     // Check if user is a member of the team or is global admin
     if (
       teamMembers.value.some((member) => member.userId === user.value.userId) ||
@@ -122,14 +131,15 @@ const initializeTeamData = async () => {
       console.log('User is a member of the team or has admin access:', teamId.value)
     } else {
       console.error('User is not a member of the team and is not admin:', teamId.value)
-      // Redirect to home if not a member and not admin
-      userLoaded.value = false
-      router.push('/home')
+      // Show not found if not a member and not admin
+      teamNotFound.value = true
+      userLoaded.value = true
       return
     }
     userLoaded.value = true
   } else {
-    router.push('/')
+    teamNotFound.value = true
+    userLoaded.value = true
   }
 }
 
@@ -265,7 +275,8 @@ const fetchSubTeams = async () => {
 const updateRoleFlags = () => {
   // Role flags are now handled by the permission service
   // Keep for backward compatibility if needed elsewhere
-  const userRole = userPermissions.value.role || 'Member'
+  const userRole =
+    userPermissions.value.roleLabel || userPermissions.value.baseRole || 'Member'
   console.log('Role flags updated:', {
     isAdmin: permissionService.isAdmin(),
     role: userRole,
@@ -601,11 +612,11 @@ const filteredMembers = computed(() => {
     if (!roleQuery) return teamMembers.value // If just # without role name, show all
 
     return teamMembers.value.filter((member) => {
-      // Check custom role first, then base role
-      if (member.customRole) {
+      if (member.customRole?.name) {
         return member.customRole.name.toLowerCase().includes(roleQuery)
       }
-      return member.role.toLowerCase().includes(roleQuery)
+      const roleName = member.roleLabel || member.baseRole || ''
+      return roleName.toLowerCase().includes(roleQuery)
     })
   }
 
@@ -713,7 +724,12 @@ const confirmDeleteTeam = async () => {
       </v-row>
     </div>
 
-    <!-- Actual content when loaded -->
+    <!-- Team Not Found State (keep sidebar visible) -->
+    <div v-else-if="teamNotFound">
+      <NotFound />
+    </div>
+
+    <!-- Actual content when loaded and team exists -->
     <div v-else>
       <!-- Header with back button -->
       <v-row class="align-center">
@@ -1626,7 +1642,7 @@ const confirmDeleteTeam = async () => {
                   :color="
                     member.customRole
                       ? member.customRole.color || 'purple'
-                      : permissionService.getRoleColor(member.role)
+                      : permissionService.getRoleColor(member.baseRole)
                   "
                 >
                   <v-card-item>
@@ -1646,12 +1662,12 @@ const confirmDeleteTeam = async () => {
                       </v-chip>
                       <v-chip
                         v-else
-                        :color="permissionService.getRoleColor(member.role)"
+                        :color="permissionService.getRoleColor(member.baseRole)"
                         size="small"
                         variant="tonal"
                       >
-                        <v-icon start size="small">{{ permissionService.getRoleIcon(member.role) }}</v-icon>
-                        {{ member.role }}
+                        <v-icon start size="small">{{ permissionService.getRoleIcon(member.baseRole) }}</v-icon>
+                        {{ member.roleLabel || member.baseRole }}
                       </v-chip>
                     </v-card-subtitle>
                   </v-card-item>

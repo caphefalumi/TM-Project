@@ -6,8 +6,14 @@ const user = ref({
   username: '',
   email: '',
 })
+const ROLE_TYPES = {
+  ADMIN: 'admin',
+  MEMBER: 'member',
+  CUSTOM: 'custom',
+}
+
 const newMemberData = ref({
-  role: 'Member',
+  role: ROLE_TYPES.MEMBER,
 })
 
 const success = ref(false)
@@ -54,7 +60,7 @@ const filteredUsers = computed(() => {
 const resetForm = () => {
   searchUsernameField.value = ''
   selectedUsers.value = []
-  newMemberData.value.role = 'Member' // Reset to default Member role
+  newMemberData.value.role = ROLE_TYPES.MEMBER // Reset to default Member role
 }
 
 const props = defineProps({
@@ -132,13 +138,15 @@ const fetchRoles = async () => {
     const defaultRoles = [
       {
         title: 'Admin',
-        value: 'Admin',
+        value: ROLE_TYPES.ADMIN,
+        roleType: ROLE_TYPES.ADMIN,
         icon: 'mdi-crown',
         color: 'red',
       },
       {
         title: 'Member',
-        value: 'Member',
+        value: ROLE_TYPES.MEMBER,
+        roleType: ROLE_TYPES.MEMBER,
         icon: 'mdi-account',
         color: 'blue',
       },
@@ -146,6 +154,7 @@ const fetchRoles = async () => {
     const customRoleOptions = data.roles.map((role) => ({
       title: role.name,
       value: `custom:${role._id}`, // Use unique identifier for custom roles
+      roleType: ROLE_TYPES.CUSTOM,
       roleId: role._id,
       icon: role.icon || 'mdi-star',
       color: role.color || 'purple',
@@ -282,31 +291,22 @@ const addUsers = async () => {
   // Find the selected role object from the list
   const selectedRoleObj = listOfRoles.value.find((r) => r.value === newMemberData.value.role)
 
-  let roleId = null
-  let isCustomRole = false
-
-  // Check if it's a custom role (starts with 'custom:')
-  if (selectedRoleObj && selectedRoleObj.value.startsWith('custom:')) {
-    // For custom roles, only send the role ID
-    roleId = selectedRoleObj.roleId
-    isCustomRole = true
-  } else {
-    // For default roles (Admin/Member), send the role name as roleId for backend compatibility
-    roleId = newMemberData.value.role // 'Admin' or 'Member'
-    isCustomRole = false
-  }
+  const roleType = selectedRoleObj?.roleType || ROLE_TYPES.MEMBER
+  const roleId =
+    roleType === ROLE_TYPES.CUSTOM ? selectedRoleObj?.roleId ?? null : null
 
   console.log('Selected role info:', {
     selectedValue: newMemberData.value.role,
     selectedRoleObj,
+    roleType,
     roleId,
-    isCustomRole,
   })
 
-  // Update all selected users with only the role ID
+  // Update all selected users with role data
   const usersWithRoles = selectedUsers.value.map((user) => ({
     ...user,
-    roleId: roleId,
+    roleType,
+    roleId,
   }))
   console.log('usersWithRoles:', usersWithRoles)
 

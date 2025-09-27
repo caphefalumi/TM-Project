@@ -85,7 +85,12 @@ const router = createRouter({
       path: '/feedback',
       component: () => import('../views/FeedbackView.vue'),
       meta: { requiresAuth: true, title: 'Feedback' },
-    }
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      name: "CatchAll",
+      component: () => import("@/views/NotFound.vue"),
+    },
   ],
 })
 

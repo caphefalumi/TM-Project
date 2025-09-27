@@ -51,6 +51,23 @@ const searchQuery = ref('')
 const pendingRoleChange = ref(null)
 const confirmRoleDialog = ref(false)
 
+const getRoleDisplayName = (roleType, roleId = null) => {
+  if (roleType === 'admin') {
+    return 'Admin'
+  }
+
+  if (roleType === 'member') {
+    return 'Member'
+  }
+
+  if (roleType === 'custom' && roleId) {
+    const role = customRoles.value.find((r) => r._id === roleId)
+    return role ? role.name : 'Custom Role'
+  }
+
+  return 'Member'
+}
+
 // Permissions viewer dialog state
 const permissionsViewDialog = ref(false)
 const selectedRoleForView = ref(null)
@@ -283,7 +300,7 @@ const assignRole = async (member, roleType, roleId = null) => {
     // Use unified endpoint for role assignment
     const endpoint = `${PORT}/api/teams/${props.teamId}/members/${member.userId}/assign-role`
     const body = {
-      role: roleType,
+      roleType,
       roleId: roleId || null,
     }
 
@@ -304,7 +321,27 @@ const assignRole = async (member, roleType, roleId = null) => {
     const result = await response.json()
 
     success.value = true
-    message.value = `Role assigned to ${member.username} successfully!`
+    const roleName = getRoleDisplayName(roleType, roleId)
+    message.value = `Role assigned to ${member.username} successfully! (${roleName})`
+
+    const baseRole = roleType === 'admin' ? 'Admin' : 'Member'
+    member.roleType = roleType
+    member.baseRole = baseRole
+    member.roleLabel = roleType === 'custom' ? roleName : baseRole
+    if (roleType === 'custom' && roleId) {
+      const role = customRoles.value.find((r) => r._id === roleId)
+      member.customRole = role
+        ? {
+            id: role._id,
+            name: role.name,
+            permissions: role.permissions,
+            icon: role.icon,
+            color: role.color,
+          }
+        : null
+    } else {
+      member.customRole = null
+    }
 
     memberRoleDialog.value = false
     confirmRoleDialog.value = false
@@ -319,11 +356,12 @@ const assignRole = async (member, roleType, roleId = null) => {
 }
 
 const confirmRoleChange = (member, roleType, roleId = null) => {
+  const roleName = getRoleDisplayName(roleType, roleId)
   pendingRoleChange.value = {
     member,
     roleType,
     roleId,
-    roleName: roleId ? customRoles.value.find((r) => r._id === roleId)?.name : roleType,
+    roleName,
   }
   confirmRoleDialog.value = true
 }
@@ -582,14 +620,14 @@ onMounted(async () => {
                     :color="
                       member.customRole
                         ? member.customRole.color || 'purple'
-                        : permissionService.getRoleColor(member.role)
+                        : permissionService.getRoleColor(member.baseRole)
                     "
                     class="mr-3"
                   >
                     <v-icon>{{
                       member.customRole
                         ? member.customRole.icon || 'mdi-star'
-                        : permissionService.getRoleIcon(member.role)
+                        : permissionService.getRoleIcon(member.baseRole)
                     }}</v-icon>
                   </v-avatar>
                   {{ member.username }} </v-card-title
@@ -604,9 +642,14 @@ onMounted(async () => {
                     <v-icon start size="small">{{ member.customRole.icon || 'mdi-star' }}</v-icon>
                     {{ member.customRole.name }}
                   </v-chip>
-                  <v-chip v-else :color="permissionService.getRoleColor(member.role)" size="small" variant="tonal">
-                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.role) }}</v-icon>
-                    {{ member.role }}
+                  <v-chip
+                    v-else
+                    :color="permissionService.getRoleColor(member.baseRole)"
+                    size="small"
+                    variant="tonal"
+                  >
+                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.baseRole) }}</v-icon>
+                    {{ member.roleLabel || member.baseRole }}
                   </v-chip>
                 </v-card-subtitle>
               </v-card-item>
@@ -1066,9 +1109,14 @@ onMounted(async () => {
               <v-icon start>{{ selectedMember.customRole.icon || 'mdi-star' }}</v-icon>
               {{ selectedMember.customRole.name }}
             </v-chip>
-            <v-chip v-else :color="permissionService.getRoleColor(selectedMember.role)" size="large" variant="tonal">
-              <v-icon start>{{ permissionService.getRoleIcon(selectedMember.role) }}</v-icon>
-              {{ selectedMember.role }}
+            <v-chip
+              v-else
+              :color="permissionService.getRoleColor(selectedMember.baseRole)"
+              size="large"
+              variant="tonal"
+            >
+              <v-icon start>{{ permissionService.getRoleIcon(selectedMember.baseRole) }}</v-icon>
+              {{ selectedMember.roleLabel || selectedMember.baseRole }}
             </v-chip>
           </div>
 
@@ -1080,9 +1128,9 @@ onMounted(async () => {
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
                   :color="
-                    !selectedMember.customRole && selectedMember.role === 'Member' ? 'primary' : ''
+                    !selectedMember.customRole && selectedMember.roleType === 'member' ? 'primary' : ''
                   "
-                  @click="confirmRoleChange(selectedMember, 'Member')"
+                  @click="confirmRoleChange(selectedMember, 'member')"
                 >
                   <v-icon size="40" color="primary">mdi-account</v-icon>
                   <div class="text-subtitle-2 mt-2">Member</div>
@@ -1093,9 +1141,9 @@ onMounted(async () => {
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
                   :color="
-                    !selectedMember.customRole && selectedMember.role === 'Admin' ? 'red' : ''
+                    !selectedMember.customRole && selectedMember.roleType === 'admin' ? 'red' : ''
                   "
-                  @click="confirmRoleChange(selectedMember, 'Admin')"
+                  @click="confirmRoleChange(selectedMember, 'admin')"
                 >
                   <v-icon size="40" color="red">mdi-crown</v-icon>
                   <div class="text-subtitle-2 mt-2">Admin</div>
@@ -1111,8 +1159,8 @@ onMounted(async () => {
                 <v-card
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
-                  :color="selectedMember.customRole?._id === role._id ? role.color || 'purple' : ''"
-                  @click="confirmRoleChange(selectedMember, role.name, role._id)"
+                  :color="selectedMember.customRole?.id === role._id ? role.color || 'purple' : ''"
+                  @click="confirmRoleChange(selectedMember, 'custom', role._id)"
                 >
                   <v-icon size="40" :color="role.color || 'purple'">{{
                     role.icon || 'mdi-star'
@@ -1322,15 +1370,15 @@ onMounted(async () => {
                 </v-chip>
                 <v-chip
                   v-else
-                  :color="permissionService.getRoleColor(pendingRoleChange.member.role)"
+                  :color="permissionService.getRoleColor(pendingRoleChange.member.baseRole)"
                   size="small"
                   variant="tonal"
                   class="mt-1"
                 >
                   <v-icon start size="small">{{
-                    permissionService.getRoleIcon(pendingRoleChange.member.role)
+                    permissionService.getRoleIcon(pendingRoleChange.member.baseRole)
                   }}</v-icon>
-                  {{ pendingRoleChange.member.role }}
+                  {{ pendingRoleChange.member.roleLabel || pendingRoleChange.member.baseRole }}
                 </v-chip>
               </div>
               <v-icon class="mx-4" color="grey">mdi-arrow-right</v-icon>

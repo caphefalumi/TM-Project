@@ -11,7 +11,13 @@ import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 import Role from '../models/Role.js'
 import { PERMISSIONS, computeUserActions } from '../config/permissions.js'
-import { ROLES, getUserCustomPermissions, getRoleDefaultPermissions } from '../verify/RoleAuth.js'
+import {
+  ROLES,
+  getUserCustomPermissions,
+  getRoleDefaultPermissions,
+  getBaseRoleFromRoleType,
+  getRoleLabel,
+} from '../verify/RoleAuth.js'
 import JWTAuth from '../verify/JWTAuth.js'
 import RefreshToken from '../models/RefreshToken.js'
 import Mailer from '../scripts/mailer.js'
@@ -90,13 +96,13 @@ export const addUsersToTeam = async (req, res) => {
     // Check if requesting user is admin in this team or global admin
     const requesterInTeam = await UsersOfTeam.findOne({ userId: requestingUserId, teamId })
     const isRequestingUserAdmin =
-      requesterInTeam?.role === 'Admin' || req.user?.username === 'admin'
+      requesterInTeam?.roleType === ROLES.ADMIN || req.user?.username === 'admin'
 
     const addedUsers = []
     const usersToInsert = []
 
     for (const user of users) {
-      const { userId, username, roleId } = user
+      const { userId, username, roleId, roleType } = user
       if (!userId || !username) {
         console.log('Missing required fields for user:', user)
         continue
@@ -109,40 +115,48 @@ export const addUsersToTeam = async (req, res) => {
         continue
       }
 
-      // Determine actual role
-      let actualRole = 'Member'
-      let actualRoleId = null
+      // Determine actual role type assignment
+      let assignedRoleType = ROLES.MEMBER
+      let assignedRoleId = null
+      let customRoleDoc = null
 
-      if (isRequestingUserAdmin && roleId) {
-        if (roleId === 'Admin' || roleId === 'Member') {
-          actualRole = roleId
-        } else {
-          // custom role
+      const normalizedRoleType = typeof roleType === 'string' ? roleType.toLowerCase() : null
+
+      if (isRequestingUserAdmin) {
+        const fallbackRoleId = typeof roleId === 'string' ? roleId.toLowerCase() : null
+
+        if (normalizedRoleType === ROLES.ADMIN || fallbackRoleId === ROLES.ADMIN) {
+          assignedRoleType = ROLES.ADMIN
+        } else if (normalizedRoleType === ROLES.MEMBER || fallbackRoleId === ROLES.MEMBER) {
+          assignedRoleType = ROLES.MEMBER
+        } else if (normalizedRoleType === ROLES.CUSTOM || roleId) {
           const customRole = await Role.findOne({ _id: roleId, team_id: teamId })
           if (!customRole) {
             console.log(`Custom role ${roleId} not found for team ${teamId}`)
             return res.status(400).json({ message: `Invalid custom role for team` })
           }
-          actualRole = customRole.name
-          actualRoleId = roleId
+          assignedRoleType = ROLES.CUSTOM
+          assignedRoleId = roleId
+          customRoleDoc = customRole
         }
       }
 
       // Prepare data for bulk insert
       usersToInsert.push({
         userId,
-        username,
         teamId,
-        role: actualRole,
-        roleId: actualRoleId,
+        roleType: assignedRoleType,
+        roleId: assignedRoleId,
       })
 
       addedUsers.push({
         userId,
         teamId,
         username,
-        role: actualRole,
-        customRole: !!actualRoleId,
+        roleType: assignedRoleType,
+        roleLabel: getRoleLabel(assignedRoleType, customRoleDoc),
+        customRole: assignedRoleType === ROLES.CUSTOM,
+        customRoleId: assignedRoleId,
         addedByAdmin: isRequestingUserAdmin,
       })
 
@@ -185,7 +199,7 @@ export const getUsersOfTeam = async (req, res) => {
     }
 
     const users = await UsersOfTeam.find({ teamId })
-      .select('userId role roleId')
+      .select('userId roleType roleId customPermissions')
       .populate('roleId', 'name permissions icon color')
 
     if (users.length === 0) {
@@ -205,20 +219,32 @@ export const getUsersOfTeam = async (req, res) => {
     })
 
     // Transform the data to include username and custom role information
-    const transformedUsers = users.map((user) => ({
-      userId: user.userId,
-      username: userIdToUsername[user.userId] || 'Unknown User',
-      role: user.role, // Default role (Admin/Member)
-      customRole: user.roleId
-        ? {
-            id: user.roleId._id,
-            name: user.roleId.name,
-            permissions: user.roleId.permissions,
-            icon: user.roleId.icon,
-            color: user.roleId.color,
-          }
-        : null,
-    }))
+    const transformedUsers = users.map((user) => {
+      const baseRole = getBaseRoleFromRoleType(user.roleType)
+      const roleLabel = getRoleLabel(user.roleType, user.roleId)
+
+      const userIdStr = user.userId.toString()
+
+      return {
+        userId: user.userId,
+        username: userIdToUsername[userIdStr] || 'Unknown User',
+        roleType: user.roleType,
+        baseRole,
+        roleLabel,
+        customRole: user.roleId
+          ? {
+              id: user.roleId._id,
+              name: user.roleId.name,
+              permissions: user.roleId.permissions,
+              icon: user.roleId.icon,
+              color: user.roleId.color,
+            }
+          : null,
+        customPermissions: user.customPermissions
+          ? user.customPermissions.toObject?.() ?? user.customPermissions
+          : {},
+      }
+    })
 
     return res.status(200).json(transformedUsers)
   } catch (error) {
@@ -287,14 +313,28 @@ export const deleteUsersFromTeam = async (req, res) => {
 export const changeUserRole = async (req, res) => {
   try {
     const { teamId, userId } = req.params
-    const { role, newRole, roleId } = req.body
+    const { roleType, newRoleType, roleId, role, newRole } = req.body
     const requestingUserId = req.user.userId
 
-    // Support both 'role' and 'newRole' for backward compatibility
-    const targetRole = role || newRole
+    // Support both new (roleType) and legacy (role/newRole) payloads
+    const normalizedRoleType = (roleType || newRoleType || '').toLowerCase()
+    let targetRoleType = null
 
-    if (!targetRole) {
-      return res.status(400).json({ message: 'Role is required' })
+    if (Object.values(ROLES).includes(normalizedRoleType)) {
+      targetRoleType = normalizedRoleType
+    } else if (typeof role === 'string' || typeof newRole === 'string') {
+      const legacyRole = (role || newRole || '').toLowerCase()
+      if (legacyRole === 'admin') {
+        targetRoleType = ROLES.ADMIN
+      } else if (legacyRole === 'member') {
+        targetRoleType = ROLES.MEMBER
+      } else if (legacyRole === 'custom') {
+        targetRoleType = ROLES.CUSTOM
+      }
+    }
+
+    if (!targetRoleType) {
+      return res.status(400).json({ message: 'Role type is required' })
     }
 
     // Prevent users from changing their own role
@@ -304,10 +344,9 @@ export const changeUserRole = async (req, res) => {
       })
     }
 
-    // If it's not a standard role, validate the custom role
-    if (!Object.values(ROLES).includes(targetRole) && !roleId) {
+    if (targetRoleType === ROLES.CUSTOM && !roleId) {
       return res.status(400).json({
-        message: 'Invalid role or missing custom role ID',
+        message: 'Custom role ID is required for custom role assignments',
         validRoles: Object.values(ROLES),
       })
     }
@@ -318,19 +357,26 @@ export const changeUserRole = async (req, res) => {
       return res.status(404).json({ message: 'User not found in team' })
     }
 
+    let customRoleDoc = null
+
     // If assigning a custom role, validate it exists and belongs to the team
-    if (roleId) {
+    if (targetRoleType === ROLES.CUSTOM) {
       const customRole = await Role.findById(roleId)
       if (!customRole || customRole.team_id.toString() !== teamId) {
         return res
           .status(404)
           .json({ message: 'Custom role not found or does not belong to this team' })
       }
+      customRoleDoc = customRole
     }
 
     // Prevent self-demotion if user is the last admin (safety check)
-    if (requestingUserId === userId && targetUser.role === 'Admin' && targetRole !== 'Admin') {
-      const adminCount = await UsersOfTeam.countDocuments({ teamId, role: 'Admin' })
+    if (
+      requestingUserId === userId &&
+      targetUser.roleType === ROLES.ADMIN &&
+      targetRoleType !== ROLES.ADMIN
+    ) {
+      const adminCount = await UsersOfTeam.countDocuments({ teamId, roleType: ROLES.ADMIN })
       if (adminCount === 1) {
         return res.status(400).json({ message: 'Cannot demote the last admin of the team' })
       }
@@ -341,13 +387,12 @@ export const changeUserRole = async (req, res) => {
 
     // Update the role and custom role assignment
     const updateData = {
-      role: targetRole,
-      roleId: roleId || null,
+      roleType: targetRoleType,
+      roleId: targetRoleType === ROLES.CUSTOM ? roleId : null,
     }
 
     // Only reset custom permissions when changing to a standard role (no custom role assigned)
-    // Keep individual permission overrides when assigning custom roles
-    if (!roleId) {
+    if (targetRoleType !== ROLES.CUSTOM) {
       updateData.customPermissions = {}
     }
 
@@ -359,7 +404,9 @@ export const changeUserRole = async (req, res) => {
       message: 'Role updated successfully',
       user: {
         userId: updatedUser.userId,
-        role: updatedUser.role,
+        roleType: updatedUser.roleType,
+        baseRole: getBaseRoleFromRoleType(updatedUser.roleType),
+        roleLabel: getRoleLabel(updatedUser.roleType, updatedUser.roleId || customRoleDoc),
         customRole: updatedUser.roleId
           ? {
               id: updatedUser.roleId._id,
@@ -388,13 +435,15 @@ export const getUserPermissions = async (req, res) => {
     // Check if requesting user is global admin first
     if (requestingUsername === 'admin') {
       // Global admin gets all permissions regardless of team membership
-      const allPermissions = getRoleDefaultPermissions('Admin')
+      const allPermissions = getRoleDefaultPermissions(ROLES.ADMIN)
       const computedActions = computeUserActions(allPermissions)
       const globalAdminResponse = {
-        role: 'Admin',
+        roleType: ROLES.ADMIN,
+        baseRole: getBaseRoleFromRoleType(ROLES.ADMIN),
+        roleLabel: getRoleLabel(ROLES.ADMIN),
         customRoleName: null,
         isGlobalAdmin: true,
-        ...computedActions
+        ...computedActions,
       }
       console.log('Global admin actions granted:', {
         userId,
@@ -412,12 +461,20 @@ export const getUserPermissions = async (req, res) => {
 
     // Compute allowed actions from permissions
     const computedActions = computeUserActions(userPermissions)
-    console.log("Permission for", userPermissions.role , req.user.username, "is", computedActions )
+    console.log(
+      'Permission for',
+      userPermissions.roleLabel || userPermissions.baseRole,
+      req.user.username,
+      'is',
+      computedActions,
+    )
     const response = {
-      role: userPermissions.role,
+      roleType: userPermissions.roleType,
+      baseRole: userPermissions.baseRole,
+      roleLabel: userPermissions.roleLabel,
       customRoleName: userPermissions.customRoleName || null,
       isGlobalAdmin: false,
-      ...computedActions
+      ...computedActions,
     }
 
     res.status(200).json(response)
