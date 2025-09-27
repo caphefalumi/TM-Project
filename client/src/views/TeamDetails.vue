@@ -15,6 +15,7 @@ import RoleManagement from '../components/RoleManagement.vue'
 import RoleManagementTabs from '../components/RoleManagementTabs.vue'
 import NewMembers from '../components/NewMembers.vue'
 import WorkflowView from '../components/WorkflowView.vue'
+import NotFound from './NotFound.vue'
 
 const { getUserByAccessToken } = AuthStore
 
@@ -90,7 +91,7 @@ const activeTab = ref(route.query.tab || 'tasks')
 // Get team ID from route params
 const teamId = ref(route.params.teamId)
 
-
+const teamNotFound = ref(false)
 
 // Function to initialize/reload team data
 const initializeTeamData = async () => {
@@ -99,6 +100,7 @@ const initializeTeamData = async () => {
   isLoadingAnnouncements.value = true
   isLoadingMembers.value = true
   isLoadingTeamDetails.value = true
+  teamNotFound.value = false
 
   const userFromToken = await getUserByAccessToken()
   if (userFromToken) {
@@ -114,6 +116,13 @@ const initializeTeamData = async () => {
     // Update role-based flags
     updateRoleFlags()
 
+    // Check if team exists
+    if (!team.value || !team.value.teamId) {
+      teamNotFound.value = true
+      userLoaded.value = true
+      return
+    }
+
     // Check if user is a member of the team or is global admin
     if (
       teamMembers.value.some((member) => member.userId === user.value.userId) ||
@@ -122,14 +131,15 @@ const initializeTeamData = async () => {
       console.log('User is a member of the team or has admin access:', teamId.value)
     } else {
       console.error('User is not a member of the team and is not admin:', teamId.value)
-      // Redirect to home if not a member and not admin
-      userLoaded.value = false
-      router.push('/home')
+      // Show not found if not a member and not admin
+      teamNotFound.value = true
+      userLoaded.value = true
       return
     }
     userLoaded.value = true
   } else {
-    router.push('/')
+    teamNotFound.value = true
+    userLoaded.value = true
   }
 }
 
@@ -714,7 +724,12 @@ const confirmDeleteTeam = async () => {
       </v-row>
     </div>
 
-    <!-- Actual content when loaded -->
+    <!-- Team Not Found State (keep sidebar visible) -->
+    <div v-else-if="teamNotFound">
+      <NotFound />
+    </div>
+
+    <!-- Actual content when loaded and team exists -->
     <div v-else>
       <!-- Header with back button -->
       <v-row class="align-center">
