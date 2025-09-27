@@ -893,17 +893,6 @@ const confirmDeleteTeam = async () => {
           <v-row id="tour-team-actions" class="mt-4">
             <!-- Tasks tab actions -->
             <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && permissionService.canManageTasks()">
-              <v-btn
-                v-tooltip:bottom="'Add new tasks to the team'"
-                @click="newTaskDialog = !newTaskDialog"
-                color="primary"
-                class="w-100 project-card rounded-lg font-weight-bold"
-                size="large"
-                variant="outlined"
-              >
-                <v-icon start>mdi-file-document-plus-outline</v-icon>
-                Add New Tasks
-              </v-btn>
             </v-col>
 
             <!-- Announcements tab actions -->
@@ -1371,6 +1360,17 @@ const confirmDeleteTeam = async () => {
               <v-col cols="12">
                 <div class="d-flex align-center justify-space-between mb-3">
                   <h3 class="text-h6">Task Groups</h3>
+                  <v-btn
+                    v-tooltip:bottom="'Add new tasks to the team'"
+                    @click="newTaskDialog = !newTaskDialog"
+                    color="primary"
+                    class="project-card rounded-lg font-weight-bold"
+                    size="large"
+                    variant="outlined"
+                  >
+                    <v-icon start>mdi-file-document-plus-outline</v-icon>
+                    Add New Tasks
+                  </v-btn>
                 </div>
               </v-col>
               <v-col

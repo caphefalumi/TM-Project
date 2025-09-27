@@ -187,7 +187,17 @@ export const requirePermission = (permission) => {
         return res.status(400).json({ message: 'Team ID is required' })
       }
 
-      const allowed = await hasPermission(userId, teamId, permission, globalUsername)
+      let allowed = false
+      if (Array.isArray(permission)) {
+        for (const perm of permission) {
+          if (await hasPermission(userId, teamId, perm, globalUsername)) {
+            allowed = true
+            break
+          }
+        }
+      } else {
+        allowed = await hasPermission(userId, teamId, permission, globalUsername)
+      }
 
       if (!allowed) {
         return res.status(403).json({
