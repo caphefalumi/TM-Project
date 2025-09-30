@@ -2,9 +2,11 @@
 import SideBar from './components/Sidebar.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from './stores/auth.js'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // Notification system
 const showSignOutDialog = ref(false)
@@ -14,9 +16,7 @@ const showSignOutPopup = (message = 'You have been signed out.') => {
   signOutMessage.value = message
   showSignOutDialog.value = true
 
-  // Clean up any stored session data
-  sessionStorage.removeItem('isLoggedIn')
-  localStorage.removeItem('currentUser')
+  authStore.clearAuth()
 
   // Stop auto refresh
   stopTokenRefresh()
@@ -48,7 +48,11 @@ const refreshAccessToken = async () => {
     })
 
     if (response.ok) {
-      sessionStorage.setItem('isLoggedIn', true)
+      authStore.setLoggedIn(true)
+
+      if (!authStore.user) {
+        await authStore.fetchUser()
+      }
       console.log('Access token auto-refreshed successfully')
       return true
     } else if (response.status === 401) {
@@ -66,6 +70,7 @@ const refreshAccessToken = async () => {
         console.error('Error parsing response:', parseError)
       }
 
+      authStore.clearAuth()
       console.warn('Auto token refresh failed:', response.status, response.statusText)
       return false
     } else {
@@ -74,6 +79,7 @@ const refreshAccessToken = async () => {
     }
   } catch (error) {
     console.error('Error during auto token refresh:', error)
+    authStore.clearAuth()
     return false
   }
 }

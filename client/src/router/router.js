@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 
 // Frequently used components - eagerly loaded for better performance
 import LandingView from '../views/LandingView.vue'
@@ -111,6 +112,7 @@ router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
   const redirectIfAuthenticated = to.matched.some((record) => record.meta.redirectIfAuthenticated)
+  const authStore = useAuthStore()
 
   if (!requiresAuth && !redirectIfAuthenticated) {
     next()
@@ -123,6 +125,8 @@ router.beforeEach(async (to, from, next) => {
     console.log('User fetched from authStore:', user)
 
     if (user) {
+      authStore.setUserFromApi(user)
+
       console.log('User authenticated successfully:', user.username)
 
       if (redirectIfAuthenticated) {
@@ -147,6 +151,7 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (requiresAuth) {
+      authStore.clearAuth()
       console.error('Authentication failed, redirecting to login')
       next('/login')
     } else {
