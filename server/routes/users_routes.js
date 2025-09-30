@@ -11,7 +11,7 @@ const router = express.Router()
 
 router.get('/', authenticateAccessToken, getAuthenticatedUser)
 router.get('/all', authenticateAccessToken, getAllUsers)
-router.patch('/profile', authenticateAccessToken, updateUserProfile)
+router.put('/profile', authenticateAccessToken, updateUserProfile)
 router.delete('/account', authenticateAccessToken, deleteUserAccount)
 router.post('/email/verify', verifyEmailChange)
 
