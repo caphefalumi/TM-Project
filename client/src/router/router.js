@@ -113,7 +113,6 @@ router.beforeEach(async (to, from, next) => {
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
   const redirectIfAuthenticated = to.matched.some((record) => record.meta.redirectIfAuthenticated)
   const authStore = useAuthStore()
-  authStore.initCrossTabSync()
 
   if (!requiresAuth && !redirectIfAuthenticated) {
     next()

@@ -393,7 +393,6 @@ export default {
   name: 'AccountPersonalView',
   setup() {
     const authStore = useAuthStore()
-    authStore.initCrossTabSync()
     return { authStore }
   },
   data() {

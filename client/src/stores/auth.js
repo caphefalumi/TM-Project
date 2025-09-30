@@ -2,15 +2,11 @@ import { defineStore } from 'pinia'
 import AuthStore from '../scripts/authStore.js'
 
 const isClient = typeof window !== 'undefined'
-const hasBroadcastChannel = isClient && 'BroadcastChannel' in window
 
 const tabId =
   isClient && typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : `tab-${Math.random().toString(36).slice(2)}`
-
-const broadcastChannel = hasBroadcastChannel ? new BroadcastChannel('auth-store') : null
-let channelInitialized = false
 
 const normalizeUser = (userData) => {
   if (!userData) return null
@@ -31,88 +27,46 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     isLoggedIn: false,
     user: null,
-    lastUpdateSource: tabId,
   }),
   getters: {
     hasUser: (state) => !!state.user,
-    isExternalUpdate: (state) => state.lastUpdateSource !== tabId,
   },
   actions: {
-    setAuthentication({ isLoggedIn, user }, source = tabId, shouldBroadcast = true) {
+    setAuthentication({ isLoggedIn, user }) {
       this.isLoggedIn = !!isLoggedIn
       this.user = user ? { ...user } : null
-      this.lastUpdateSource = source
-
       if (!this.isLoggedIn) {
         this.user = null
       }
-
-      if (shouldBroadcast) {
-        this.broadcastState(source)
-      }
     },
-    setLoggedIn(value, source = tabId, shouldBroadcast = true) {
-      this.setAuthentication({ isLoggedIn: value, user: value ? this.user : null }, source, shouldBroadcast)
+    setLoggedIn(value) {
+      this.setAuthentication({ isLoggedIn: value, user: value ? this.user : null })
     },
-    setUser(user, source = tabId, shouldBroadcast = true) {
+    setUser(user) {
       const normalized = user ? { ...user } : null
-      this.setAuthentication({ isLoggedIn: !!normalized, user: normalized }, source, shouldBroadcast)
+      this.setAuthentication({ isLoggedIn: !!normalized, user: normalized })
       return this.user
     },
-    setUserFromApi(userData, source = tabId, shouldBroadcast = true) {
+    setUserFromApi(userData) {
       const normalized = normalizeUser(userData)
-      this.setAuthentication({ isLoggedIn: !!normalized, user: normalized }, source, shouldBroadcast)
+      this.setAuthentication({ isLoggedIn: !!normalized, user: normalized })
       return normalized
     },
-    clearAuth(source = tabId, shouldBroadcast = true) {
-      this.setAuthentication({ isLoggedIn: false, user: null }, source, shouldBroadcast)
+    clearAuth() {
+      this.setAuthentication({ isLoggedIn: false, user: null })
     },
-    broadcastState(source = tabId) {
-      if (!broadcastChannel) return
-
-      broadcastChannel.postMessage({
-        source,
-        payload: {
-          isLoggedIn: this.isLoggedIn,
-          user: this.user,
-        },
-      })
-    },
-    initCrossTabSync() {
-      if (!broadcastChannel || channelInitialized) return
-
-      channelInitialized = true
-
-      broadcastChannel.addEventListener('message', (event) => {
-        const { source, payload } = event.data || {}
-        if (!payload || source === tabId) {
-          return
-        }
-
-        this.setAuthentication(
-          {
-            isLoggedIn: payload.isLoggedIn,
-            user: payload.user ? { ...payload.user } : null,
-          },
-          source,
-          false,
-        )
-      })
-    },
-    async fetchUser(source = tabId) {
+    async fetchUser() {
       const userData = await AuthStore.getUserByAccessToken()
       if (userData) {
-        return this.setUserFromApi(userData, source)
+        return this.setUserFromApi(userData)
       }
-
       return null
     },
-    async ensureUser(source = tabId) {
+    async ensureUser() {
       if (this.user) {
         return this.user
       }
-
-      return await this.fetchUser(source)
+      return await this.fetchUser()
     },
     async logout() {
       await AuthStore.logout()

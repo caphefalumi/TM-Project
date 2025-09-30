@@ -6,7 +6,6 @@ import { useAuthStore } from '../stores/auth.js'
 
 const router = useRouter()
 const authStore = useAuthStore()
-authStore.initCrossTabSync()
 
 onMounted(async () => {
   try {

@@ -9,7 +9,6 @@ import NotificationCenter from './NotificationCenter.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-authStore.initCrossTabSync()
 
 const appTitle = 'Teams Management'
 

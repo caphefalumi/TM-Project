@@ -7,7 +7,6 @@ import { useAuthStore } from './stores/auth.js'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-authStore.initCrossTabSync()
 
 // Notification system
 const showSignOutDialog = ref(false)
