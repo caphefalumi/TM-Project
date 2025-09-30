@@ -18,7 +18,8 @@ app.use(
       'https://tm-project-weld.vercel.app',
     ],
     credentials: true,
-  }),
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  })
 )
 connectDB()
 
@@ -46,6 +47,9 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ limit: '10mb', extended: true }))
 app.use(cookieParser())
 app.use(routes)
+
+// Handle preflight requests for all routes
+app.options('*', cors());
 
 const PORT = process.env.PORT || 3000
 
