@@ -554,16 +554,16 @@ const filteredAndSortedTasks = computed(() => {
 
   // Filter by task name search
   if (taskSearchQuery.value) {
-    const searchTerm = taskSearchQuery.value.toLowerCase().trim()
+    const searchTerm = taskSearchQuery.value.trim()
     filtered = filtered.filter((task) => {
-      const taskTitle = task.title.toLowerCase()
+      const taskTitle = task.title
       return taskTitle.includes(searchTerm)
     })
   }
 
   // Filter by tag search
   if (taskTagSearchQuery.value) {
-    const tagSearchTerms = taskTagSearchQuery.value.toLowerCase().trim().split(/\s+/)
+    const tagSearchTerms = taskTagSearchQuery.value.trim().split(/\s+/)
     filtered = filtered.filter((task) => {
       const taskTags = task.tags ? task.tags.map((tag) => tag.toLowerCase()) : []
 
@@ -606,7 +606,7 @@ const filteredMembers = computed(() => {
     return teamMembers.value
   }
 
-  const query = memberSearchQuery.value.toLowerCase().trim()
+  const query = memberSearchQuery.value.trim()
 
   // If query starts with #, search by role
   if (query.startsWith('#')) {
@@ -623,7 +623,7 @@ const filteredMembers = computed(() => {
   }
 
   // Otherwise, search by username
-  return teamMembers.value.filter((member) => member.username.toLowerCase().includes(query))
+  return teamMembers.value.filter((member) => member.username.includes(query))
 })
 
 const taskFilterOptions = [

@@ -446,8 +446,8 @@ export default {
       return 'January 2024'
     },
     requiresUsernameAcknowledgement() {
-      const currentUsername = this.user.username?.toLowerCase() || ''
-      const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
+      const currentUsername = this.user.username || ''
+      const newUsername = this.editUsernameForm.username?.trim() || ''
       return newUsername && newUsername !== currentUsername
     },
     pendingEmailMatchesInput() {
@@ -466,8 +466,8 @@ export default {
       return true
     },
     canSaveProfile() {
-      const newUsername = this.editForm.username?.trim().toLowerCase() || ''
-      const currentUsername = this.user.username?.toLowerCase() || ''
+      const newUsername = this.editForm.username?.trim() || ''
+      const currentUsername = this.user.username || ''
       const newEmail = this.editForm.email?.trim().toLowerCase() || ''
       const currentEmail = this.user.email?.toLowerCase() || ''
 
@@ -499,8 +499,8 @@ export default {
       return true
     },
     canSaveUsername() {
-      const newUsername = this.editUsernameForm.username?.trim().toLowerCase() || ''
-      const currentUsername = this.user.username?.toLowerCase() || ''
+      const newUsername = this.editUsernameForm.username?.trim() || ''
+      const currentUsername = this.user.username || ''
       const usernameChanged = newUsername && newUsername !== currentUsername
       if (!usernameChanged) return false
       if (this.requiresUsernameAcknowledgement && !this.acknowledgements.username) return false

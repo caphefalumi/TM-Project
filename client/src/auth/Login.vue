@@ -147,7 +147,7 @@ const createRefreshToken = async () => {
   try {
     const user = {
       userId: userId.value,
-      username: username.value.toLowerCase(),
+      username: username.value,
       email: userEmail.value,
     }
     const res = await fetch(`${PORT}/api/sessions/me`, {
@@ -256,7 +256,7 @@ const loginUsingOAuth = async (response) => {
     if (userData) {
       const userEmail = userData.email
       const userUsername = userData.given_name
-      username.value = userUsername
+      username.value = userUsername // Use as provided by OAuth
 
       validateEmail(userEmail)
       // API returns Object --> Validate whether this email is registered or not
@@ -282,7 +282,7 @@ const registerWithOAuth = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username: username.value,
+        username: username.value, // Use as entered
         email: userEmail.value,
       }),
     })

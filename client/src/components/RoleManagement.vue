@@ -545,7 +545,7 @@ const availableRoles = ref([
 const filteredMembers = computed(() => {
   if (!searchQuery.value) return props.teamMembers
   return props.teamMembers.filter((member) =>
-    member.username.toLowerCase().includes(searchQuery.value.toLowerCase()),
+    member.username.includes(searchQuery.value),
   )
 })
 
