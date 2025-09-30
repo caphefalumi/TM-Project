@@ -1,13 +1,15 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 import NotificationCenter from './NotificationCenter.vue'
 
 // Import Admin.Vue if username is 'admin'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
+authStore.initCrossTabSync()
 
 const appTitle = 'Teams Management'
 
@@ -22,109 +24,70 @@ const currentTitle = computed(() => {
   return appTitle
 })
 
-const { getUserByAccessToken } = AuthStore
 // Controls the visibility of the navigation drawer.
 // `ref(null)` allows Vuetify to automatically manage the state
 // based on the screen size (starts open on desktop, closed on mobile).
-
-const user = ref({
-  userId: '',
-  username: '',
-  email: '',
-})
-
 const drawer = ref(null)
+
+const user = computed(() => {
+  return (
+    authStore.user || {
+      userId: '',
+      username: 'Guest',
+      email: '',
+    }
+  )
+})
 
 const originalUserId = ref('')
 
-let storageListener = null
-
 onMounted(async () => {
-  const userData = await getUserByAccessToken()
-  user.value = await getUserByAccessToken()
-  if (userData) {
-    user.value.userId = userData.userId
-    user.value.username = userData.username
-    user.value.email = userData.email
-
+  const userData = await authStore.ensureUser()
+  if (userData?.userId) {
     originalUserId.value = userData.userId
-
-    localStorage.setItem(
-      'currentUser',
-      JSON.stringify({
-        userId: userData.userId,
-        username: userData.username,
-        timestamp: Date.now(),
-      }),
-    )
-  } else {
-    user.value.username = 'Guest'
-    user.value.email = ''
-  }
-
-  setupCrossTabDetection()
-})
-
-onUnmounted(() => {
-  if (storageListener) {
-    window.removeEventListener('storage', storageListener)
   }
 })
 
-const setupCrossTabDetection = () => {
-  storageListener = (event) => {
-    // Only listen for changes to currentUser
-    if (event.key === 'currentUser' && event.newValue) {
-      try {
-        const newUserData = JSON.parse(event.newValue)
-
-        // If a different user has logged in (different userId)
-        if (originalUserId.value && newUserData.userId !== originalUserId.value) {
-          // Show popup message
-          if (
-            confirm(
-              `Another user (${newUserData.username}) has logged in. This page will reload to update the session.`,
-            )
-          ) {
-            // Force reload the page
-            window.location.reload()
-          } else {
-            // If user cancels, still reload for security
-            setTimeout(() => {
-              window.location.reload()
-            }, 2000)
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing user data from localStorage:', error)
+watch(
+  () => authStore.user,
+  (newUser) => {
+    if (!newUser) {
+      if (!authStore.isExternalUpdate) {
+        originalUserId.value = ''
       }
+      return
     }
-  }
 
-  window.addEventListener('storage', storageListener)
-}
+    if (authStore.isExternalUpdate) {
+      if (originalUserId.value && newUser.userId && newUser.userId !== originalUserId.value) {
+        const confirmed = confirm(
+          `Another user (${newUser.username}) has logged in. This page will reload to update the session.`,
+        )
+
+        if (confirmed) {
+          window.location.reload()
+        } else {
+          setTimeout(() => {
+            window.location.reload()
+          }, 2000)
+        }
+      }
+      return
+    }
+
+    if (newUser.userId && newUser.userId !== originalUserId.value) {
+      originalUserId.value = newUser.userId
+    }
+  },
+  { deep: true },
+)
 
 const logout = async () => {
   try {
     drawer.value = false // Close the drawer
     console.log('Logging out user:', user.value.username)
-    sessionStorage.removeItem('isLoggedIn')
+    await authStore.logout()
 
-    // Clear the current user from localStorage
-    localStorage.removeItem('currentUser')
-
-    // Use AuthStore logout which handles session cleanup
-    const { logout: authLogout } = AuthStore
-    await authLogout()
-
-    // Clear local user data
-    user.value = {
-      userId: '',
-      username: 'Guest',
-      email: '',
-    }
-
-    // Clear original user ID
     originalUserId.value = ''
 
     console.log('Logout successful, redirecting to login page')

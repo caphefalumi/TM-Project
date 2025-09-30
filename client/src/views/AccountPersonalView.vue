@@ -387,22 +387,17 @@
 </template>
 
 <script>
-import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 
 export default {
   name: 'AccountPersonalView',
+  setup() {
+    const authStore = useAuthStore()
+    authStore.initCrossTabSync()
+    return { authStore }
+  },
   data() {
     return {
-      user: {
-        userId: '',
-        username: '',
-        email: '',
-        pendingEmail: null,
-        emailVerified: true,
-        lastUsernameChangeAt: null,
-        lastEmailChangeAt: null,
-        emailVerificationExpires: null,
-      },
       message: null,
       messageTimeout: null,
       showPasswordResetPopup: false,
@@ -434,6 +429,20 @@ export default {
     }
   },
   computed: {
+    user() {
+      return (
+        this.authStore.user || {
+          userId: '',
+          username: '',
+          email: '',
+          pendingEmail: null,
+          emailVerified: true,
+          lastUsernameChangeAt: null,
+          lastEmailChangeAt: null,
+          emailVerificationExpires: null,
+        }
+      )
+    },
     memberSince() {
       return 'January 2024'
     },
@@ -569,25 +578,19 @@ export default {
     },
 
     setUserFromResponse(userData) {
-      if (!userData) return
-
-      this.user = {
-        userId: userData.userId ? userData.userId.toString() : '',
-        username: userData.username || '',
-        email: userData.email || '',
-        pendingEmail: userData.pendingEmail || null,
-        emailVerified: userData.emailVerified !== false,
-        lastUsernameChangeAt: userData.lastUsernameChangeAt || null,
-        lastEmailChangeAt: userData.lastEmailChangeAt || null,
-        emailVerificationExpires: userData.emailVerificationExpires || null,
+      if (!userData) {
+        this.authStore.clearAuth()
+        return
       }
+
+      this.authStore.setUserFromApi(userData)
     },
 
     async loadUserData() {
       try {
-        const userData = await AuthStore.getUserByAccessToken()
-        if (userData) {
-          this.setUserFromResponse(userData)
+        const userData = await this.authStore.fetchUser()
+        if (!userData) {
+          this.authStore.clearAuth()
         }
       } catch (error) {
         console.error('Error loading user data:', error)
@@ -633,15 +636,6 @@ export default {
           if (data.user) {
             this.setUserFromResponse(data.user)
           }
-
-          localStorage.setItem(
-            'currentUser',
-            JSON.stringify({
-              userId: this.user.userId,
-              username: this.user.username,
-              timestamp: Date.now(),
-            }),
-          )
 
           this.closeEditProfile()
 
@@ -710,14 +704,6 @@ export default {
         const data = await response.json().catch(() => ({}))
         if (response.ok) {
           if (data.user) this.setUserFromResponse(data.user)
-          localStorage.setItem(
-            'currentUser',
-            JSON.stringify({
-              userId: this.user.userId,
-              username: this.user.username,
-              timestamp: Date.now(),
-            }),
-          )
           this.closeEditUsername()
           this.showMessage(data.message || 'Username updated successfully!', 'success')
         } else {
@@ -763,14 +749,6 @@ export default {
         const data = await response.json().catch(() => ({}))
         if (response.ok) {
           if (data.user) this.setUserFromResponse(data.user)
-          localStorage.setItem(
-            'currentUser',
-            JSON.stringify({
-              userId: this.user.userId,
-              username: this.user.username,
-              timestamp: Date.now(),
-            }),
-          )
           this.closeEditEmail()
           this.showMessage(
             data.message || 'Email updated successfully!',
@@ -819,10 +797,7 @@ export default {
         })
 
         if (response.ok) {
-          sessionStorage.removeItem('isLoggedIn')
-          localStorage.removeItem('currentUser')
-
-          await AuthStore.logout()
+          await this.authStore.logout()
           this.$router.push('/login')
           this.showMessage('Account deleted successfully', 'success')
         } else {

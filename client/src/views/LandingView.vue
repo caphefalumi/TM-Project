@@ -1,13 +1,27 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth.js'
 
 const router = useRouter()
+const authStore = useAuthStore()
+authStore.initCrossTabSync()
 const isVisible = ref(false)
 
-onMounted(() => {
-  if (sessionStorage.getItem('isLoggedIn')) {
-    router.push('/home')
+onMounted(async () => {
+  try {
+    if (authStore.isLoggedIn && authStore.user) {
+      router.push('/home')
+      return
+    }
+
+    const existingUser = await authStore.ensureUser()
+    if (existingUser) {
+      router.push('/home')
+      return
+    }
+  } catch (error) {
+    console.error('Error checking authentication status:', error)
   }
   // Trigger animations after component is mounted
   setTimeout(() => {

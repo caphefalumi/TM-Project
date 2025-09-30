@@ -2,15 +2,25 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { decodeCredential } from 'vue3-google-login'
+import { useAuthStore } from '../stores/auth.js'
 
 const router = useRouter()
+const authStore = useAuthStore()
+authStore.initCrossTabSync()
 
-onMounted(() => {
-  // Check if user is already logged in
-  const isLoggedIn = sessionStorage.getItem('isLoggedIn')
-  console.log('Is Logged In:', isLoggedIn)
-  if (isLoggedIn) {
-    router.push('/home')
+onMounted(async () => {
+  try {
+    if (authStore.isLoggedIn && authStore.user) {
+      router.push('/home')
+      return
+    }
+
+    const existingUser = await authStore.ensureUser()
+    if (existingUser) {
+      router.push('/home')
+    }
+  } catch (error) {
+    console.error('Error checking existing session:', error)
   }
 })
 
@@ -40,17 +50,8 @@ const sendToHomePage = async () => {
   console.log('User Email:', userEmail.value)
   console.log('Authenticate:', authenticate.value)
   if (authenticate.value) {
-    sessionStorage.setItem('isLoggedIn', true)
-
-    // Store current user info in localStorage for cross-tab detection
-    localStorage.setItem(
-      'currentUser',
-      JSON.stringify({
-        userId: userId.value,
-        username: username.value,
-        timestamp: Date.now(),
-      }),
-    )
+    authStore.setLoggedIn(true)
+    await authStore.fetchUser()
 
     success.value = 'Session created successfully!'
     setTimeout(() => router.push('/home'), 1500)
