@@ -121,7 +121,7 @@ router.beforeEach(async (to, from, next) => {
 
   try {
     console.log(`Checking authentication for route: ${to.path}`)
-    const user = await getUserByAccessToken()
+    const user = await authStore.ensureUser();
     console.log('User fetched from authStore:', user)
 
     if (user) {
