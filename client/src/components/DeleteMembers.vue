@@ -48,7 +48,7 @@ const removableMembers = computed(() => {
   return props.members.filter(
     (member) =>
       member.userId !== props.userProps.userId &&
-      member.username.toLowerCase().includes(searchUsernameField.value.toLowerCase()),
+      member.username.includes(searchUsernameField.value),
   )
 })
 

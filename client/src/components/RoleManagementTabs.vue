@@ -136,7 +136,7 @@ const filteredMembers = computed(() => {
     return members
   }
   return members.filter((member) =>
-    member.username.toLowerCase().includes(searchQuery.value.toLowerCase()),
+    member.username.includes(searchQuery.value),
   )
 })
 

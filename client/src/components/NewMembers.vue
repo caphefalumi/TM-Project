@@ -51,8 +51,8 @@ const filteredUsers = computed(() => {
     return availableUsers
   }
 
-  const _search = searchUsernameField.value.toLowerCase()
-  const res = availableUsers.filter((_user) => _user.username.toLowerCase().includes(_search))
+  const _search = searchUsernameField.value
+  const res = availableUsers.filter((_user) => _user.username.includes(_search))
 
   return res.slice(0, 5) // Limit to 5 results
 })
