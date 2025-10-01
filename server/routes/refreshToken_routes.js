@@ -1,13 +1,14 @@
 import express from 'express'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
-import { authenticateAccessToken } from '../verify/JWTAuth.js'
-import { addRefreshToken, revokeRefreshToken, renewAccessToken } from './tokens.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import {
+  addRefreshToken,
+  revokeRefreshToken,
+  renewAccessToken,
+} from '../controllers/tokensController.js'
 
 const router = express.Router()
 
-/**
- * Get user's active refresh tokens (session-like data)
- */
 router.get('/active', authenticateAccessToken, async (req, res) => {
   try {
     const userId = req.user.userId
@@ -30,9 +31,6 @@ router.get('/active', authenticateAccessToken, async (req, res) => {
   }
 })
 
-/**
- * Check for security issues
- */
 router.get('/security', authenticateAccessToken, async (req, res) => {
   try {
     const userId = req.user.userId
@@ -53,20 +51,15 @@ router.get('/security', authenticateAccessToken, async (req, res) => {
   }
 })
 
-// Token Handling
 router.post('/me', addRefreshToken)
 router.delete('/me', revokeRefreshToken)
 router.post('/refresh', renewAccessToken)
 
-/**
- * Revoke a specific token
- */
 router.delete('/:tokenId', authenticateAccessToken, async (req, res) => {
   try {
     const { tokenId } = req.params
     const userId = req.user.userId
 
-    // Verify the token belongs to the user
     const token = await RefreshTokenManager.getTokenByString(req.cookies.refreshToken)
     if (!token || token.userId !== userId) {
       return res.status(403).json({ error: 'Unauthorized' })
@@ -88,9 +81,6 @@ router.delete('/:tokenId', authenticateAccessToken, async (req, res) => {
   }
 })
 
-/**
- * Revoke all other tokens except current
- */
 router.delete('/others/all', authenticateAccessToken, async (req, res) => {
   try {
     const userId = req.user.userId

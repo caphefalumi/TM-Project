@@ -17,12 +17,10 @@ import {
   getRoleDefaultPermissions,
   getBaseRoleFromRoleType,
   getRoleLabel,
-} from '../verify/RoleAuth.js'
-import JWTAuth from '../verify/JWTAuth.js'
+} from '../middleware/roleMiddleware.js'
+import { generateAccessToken, generateRefreshToken } from '../services/tokenService.js'
 import RefreshToken from '../models/RefreshToken.js'
 import Mailer from '../scripts/mailer.js'
-
-const { generateAccessToken, generateRefreshToken } = JWTAuth
 
 const USERNAME_LOCK_DURATION = 14 * 24 * 60 * 60 * 1000
 const EMAIL_LOCK_DURATION = 90 * 24 * 60 * 60 * 1000
