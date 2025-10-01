@@ -1,12 +1,13 @@
 import express from 'express'
-import { authenticateAccessToken } from '../verify/JWTAuth.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
 import {
   getAuthenticatedUser,
   getAllUsers,
   updateUserProfile,
   deleteUserAccount,
   verifyEmailChange,
-} from './users.js'
+} from '../controllers/usersController.js'
+
 const router = express.Router()
 
 router.get('/', authenticateAccessToken, getAuthenticatedUser)

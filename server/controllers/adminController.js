@@ -5,18 +5,6 @@ import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Announcements from '../models/Announcements.js'
 import { createNotification } from '../scripts/notificationsService.js'
 
-// Admin middleware to check if user is admin
-const checkAdminAccess = (req, res, next) => {
-  // Check if the authenticated user is admin
-  if (req.user && req.user.username === 'admin') {
-    next()
-  } else {
-    return res.status(403).json({
-      message: 'Access denied. Admin privileges required.',
-    })
-  }
-}
-
 // Recursive function to get parent team breadcrumbs
 const getParentsTeam = async (parentTeamId) => {
   if (parentTeamId === 'none' || parentTeamId === null || !parentTeamId) {
@@ -268,7 +256,6 @@ const sendNotificationToUser = async (req, res) => {
 }
 
 export default {
-  checkAdminAccess,
   getAllTeamsForAdmin,
   getAllUsersForAdmin,
   getAllAnnouncementsForAdmin,

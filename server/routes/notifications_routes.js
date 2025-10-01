@@ -1,5 +1,5 @@
 import express from 'express'
-import Notifications from './notifications.js'
+import NotificationsController from '../controllers/notificationsController.js'
 
 const router = express.Router()
 const {
@@ -9,20 +9,16 @@ const {
   getNotificationPreferences,
   updateNotificationPreferences,
   getNotificationStats,
-} = Notifications
+} = NotificationsController
 
-// Notifications
 router.get('/:userId', getUserNotifications)
 router.delete('/:userId', deleteNotifications)
 
-// Preferences
 router.get('/:userId/preferences', getNotificationPreferences)
 router.put('/:userId/preferences', updateNotificationPreferences)
 
-// Stats
 router.get('/:userId/stats', getNotificationStats)
 
-// Mark read
 router.post('/:userId/mark-read', markNotificationsAsRead)
 
 export default router

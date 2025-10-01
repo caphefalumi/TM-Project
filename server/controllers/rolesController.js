@@ -1,6 +1,6 @@
 import Role from '../models/Role.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
-import { ROLES } from '../verify/RoleAuth.js'
+import { ROLES } from '../middleware/roleMiddleware.js'
 
 // Create a new custom role for a team
 export const createRole = async (req, res) => {
