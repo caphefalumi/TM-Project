@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-import TeamsRoutes from './teams.js'
+import TeamsController from './teamsController.js'
 import Account from '../models/Account.js'
 import Mailer from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Tasks from '../models/Tasks.js'
-const { addTeamPro } = TeamsRoutes
+const { addTeamPro } = TeamsController
 
 import 'dotenv/config'
 

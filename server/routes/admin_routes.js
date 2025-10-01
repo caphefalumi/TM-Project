@@ -1,11 +1,10 @@
 import express from 'express'
-import Admin from './admin.js'
-import JWTAuth from '../verify/JWTAuth.js'
+import AdminController from '../controllers/adminController.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import { checkAdminAccess } from '../middleware/adminMiddleware.js'
 
 const router = express.Router()
-const { authenticateAccessToken } = JWTAuth
 const {
-  checkAdminAccess,
   getAllTeamsForAdmin,
   getAllUsersForAdmin,
   getAllAnnouncementsForAdmin,
@@ -13,14 +12,17 @@ const {
   deleteUserAsAdmin,
   deleteAnnouncementAsAdmin,
   sendNotificationToUser,
-} = Admin
+} = AdminController
 
-// Admin Dashboard
 router.get('/teams', authenticateAccessToken, checkAdminAccess, getAllTeamsForAdmin)
 router.get('/users', authenticateAccessToken, checkAdminAccess, getAllUsersForAdmin)
-router.get('/announcements', authenticateAccessToken, checkAdminAccess, getAllAnnouncementsForAdmin)
+router.get(
+  '/announcements',
+  authenticateAccessToken,
+  checkAdminAccess,
+  getAllAnnouncementsForAdmin,
+)
 
-// Admin Actions
 router.post('/notify', authenticateAccessToken, checkAdminAccess, sendNotificationToUser)
 router.delete('/teams/:teamId', authenticateAccessToken, checkAdminAccess, deleteTeamAsAdmin)
 router.delete('/users/:userId', authenticateAccessToken, checkAdminAccess, deleteUserAsAdmin)
