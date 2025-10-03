@@ -5,29 +5,29 @@ export const createOrUpdateRating = async (req, res) => {
 
   // Validate required fields based on Rating schema
   if (!userId || !message || !issue || !featureRating || !perfRating) {
-    return res.status(400).json({ 
-      error: 'Missing required fields. Required: userId, message, issue, featureRating, perfRating' 
+    return res.status(400).json({
+      error: 'Missing required fields. Required: userId, message, issue, featureRating, perfRating'
     })
   }
 
   // Validate rating ranges
   if (featureRating < 1 || featureRating > 5 || perfRating < 1 || perfRating > 5) {
-    return res.status(400).json({ 
-      error: 'Rating values must be between 1 and 5' 
+    return res.status(400).json({
+      error: 'Rating values must be between 1 and 5'
     })
   }
 
   if (uiRating && (uiRating < 1 || uiRating > 5)) {
-    return res.status(400).json({ 
-      error: 'UI Rating value must be between 1 and 5' 
+    return res.status(400).json({
+      error: 'UI Rating value must be between 1 and 5'
     })
   }
 
   // Validate issue enum values
   const validIssueTypes = ['Very bad', 'Bad', 'Average', 'Good', 'Excellent']
   if (!validIssueTypes.includes(issue)) {
-    return res.status(400).json({ 
-      error: `Invalid issue type. Must be one of: ${validIssueTypes.join(', ')}` 
+    return res.status(400).json({
+      error: `Invalid issue type. Must be one of: ${validIssueTypes.join(', ')}`
     })
   }
 
@@ -42,21 +42,21 @@ export const createOrUpdateRating = async (req, res) => {
       existingRating.featureRating = featureRating
       existingRating.perfRating = perfRating
       if (uiRating) existingRating.uiRating = uiRating
-      
+
       await existingRating.save()
       return res.status(200).json({ success: 'Feedback updated successfully' })
     }
 
     // Create new rating
-    const newRating = new Rating({ 
-      userId, 
-      message, 
-      issue, 
-      featureRating, 
+    const newRating = new Rating({
+      userId,
+      message,
+      issue,
+      featureRating,
       perfRating,
       uiRating: uiRating || undefined
     })
-    
+
     await newRating.save()
     return res.status(201).json({ success: 'Feedback submitted successfully' })
   } catch (error) {
@@ -87,7 +87,7 @@ export const getAllRatings = async (req, res) => {
       return acc
     }, {})
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       ratings,
       statistics: {
         totalRatings,
@@ -118,25 +118,5 @@ export const getUserRating = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user rating:', error)
     return res.status(500).json({ error: 'Failed to fetch user feedback' })
-  }
-}
-
-// Legacy function for team ratings (keeping for backward compatibility)
-export const getTeamRatings = async (req, res) => {
-  const { teamId } = req.params
-
-  try {
-    const ratings = await Rating.find({ teamId })
-    if (!ratings || ratings.length === 0) {
-      return res.status(404).json({ error: 'No ratings found for this team' })
-    }
-
-    const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0)
-    const averageRating = totalRating / ratings.length
-
-    return res.status(200).json({ averageRating, count: ratings.length })
-  } catch (error) {
-    console.error('Error fetching team ratings:', error)
-    return res.status(500).json({ error: 'Failed to fetch team ratings' })
   }
 }
