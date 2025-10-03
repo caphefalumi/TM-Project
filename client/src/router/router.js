@@ -64,6 +64,7 @@ const router = createRouter({
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true, title: 'Teams' } },
     {
       path: '/teams/:teamId',
+      name: 'TeamDetails',
       component: TeamDetails,
       meta: { requiresAuth: true, title: 'Team Details' },
     },
