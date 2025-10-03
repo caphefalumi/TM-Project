@@ -1,5 +1,6 @@
 <script setup>
 import SideBar from './components/Sidebar.vue'
+import CacheDebugger from './components/CacheDebugger.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
@@ -8,7 +9,16 @@ import { useComponentCache } from './composables/useComponentCache.js'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const { includeComponents, initializeMainViews } = useComponentCache()
+const { includeComponents, initializeMainViews, getCacheStats, cleanExpiredCache } = useComponentCache()
+
+// Development mode check - Use custom DEV env variable if set, otherwise default to false
+const isDev = computed(() => {
+  const customDev = import.meta.env.VITE_DEV
+  if (customDev !== undefined) {
+    return customDev === 'true'
+  }
+  return false
+})
 
 // Notification system
 const showSignOutDialog = ref(false)
@@ -142,6 +152,14 @@ onMounted(() => {
   }
   // Initialize main views in component cache
   initializeMainViews()
+  
+  // Set up periodic cache cleanup every 5 minutes
+  setInterval(() => {
+    const cleaned = cleanExpiredCache()
+    if (cleaned > 0) {
+      console.log(`🧹 Cleaned ${cleaned} expired cache entries`)
+    }
+  }, 5 * 60 * 1000) // 5 minutes
 })
 
 onUnmounted(() => {
@@ -156,9 +174,11 @@ onUnmounted(() => {
     <SideBar v-if="showSidebar"></SideBar>
     <!-- Main content area -->
     <v-main>
-      <router-view v-slot="{ Component }">
+      <router-view v-slot="{ Component, route }">
         <keep-alive :include="includeComponents">
-          <component :is="Component" />
+          <component 
+            :is="Component"
+          />
         </keep-alive>
       </router-view>
     </v-main>
@@ -181,5 +201,8 @@ onUnmounted(() => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    
+    <!-- Cache debugger for development -->
+    <CacheDebugger v-if="isDev" />
   </v-app>
 </template>

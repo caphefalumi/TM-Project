@@ -1,8 +1,14 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, onActivated, onDeactivated, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import { permissionService } from '../scripts/permissionService.js'
+import { useComponentCache } from '../composables/useComponentCache.js'
+
+// Set component name for Vue keep-alive
+defineOptions({
+  name: 'TeamDetails'
+})
 import NewTasks from '../components/NewTasks.vue'
 import NewAnnouncements from '../components/NewAnnouncements.vue'
 import TaskSubmission from '../components/TaskSubmission.vue'
@@ -18,12 +24,23 @@ import WorkflowView from '../components/WorkflowView.vue'
 import NotFound from './NotFound.vue'
 
 const { getUserByAccessToken } = AuthStore
+const { 
+  addTeamToCache, 
+  updateTeamAccess, 
+  removeTeamFromCache, 
+  getTeamComponentKey,
+  needsRefresh,
+  markAsRefreshed,
+  isTeamCacheValid,
+  cleanExpiredCache,
+  getCacheStats 
+} = useComponentCache()
 
 const route = useRoute()
 const router = useRouter()
+const currentInstance = getCurrentInstance()
 
 // Using structured Permission object for cleaner permission checks
-
 const userPermissions = ref({})
 
 const user = ref({
@@ -90,11 +107,103 @@ const activeTab = ref(route.query.tab || 'tasks')
 
 // Get team ID from route params
 const teamId = ref(route.params.teamId)
+const componentKey = ref(null)
+const isFromCache = ref(false)
+
+// Internal cache for team data to handle multiple teams within the same component instance
+const teamDataCache = ref(new Map())
 
 const teamNotFound = ref(false)
 
+// Internal team data caching methods
+const getCachedTeamData = (id) => {
+  const cached = teamDataCache.value.get(id)
+  return cached
+}
+
+const setCachedTeamData = (id, data) => {
+  teamDataCache.value.set(id, {
+    ...data,
+    lastAccessed: Date.now()
+  })
+  updateTeamAccess(id)
+}
+
+// Update cache with current team data
+const updateCacheWithCurrentData = () => {
+  if (!teamId.value) return
+  
+  setCachedTeamData(teamId.value, {
+    user: { ...user.value },
+    team: { ...team.value },
+    tasks: [...tasks.value],
+    announcements: [...announcements.value],
+    teamMembers: [...teamMembers.value],
+    subTeams: [...subTeams.value],
+    taskGroups: [...taskGroups.value],
+    userPermissions: { ...userPermissions.value }
+  })
+}
+
+const loadFromInternalCache = (id) => {
+  // Check if external cache is still valid first
+  if (!isTeamCacheValid(id)) {
+    teamDataCache.value.delete(id)
+    return false
+  }
+  
+  const cached = getCachedTeamData(id)
+  if (cached) {
+    // Restore all the reactive data from cache
+    user.value = cached.user || user.value
+    team.value = cached.team || team.value
+    tasks.value = cached.tasks || []
+    announcements.value = cached.announcements || []
+    teamMembers.value = cached.teamMembers || []
+    subTeams.value = cached.subTeams || []
+    taskGroups.value = cached.taskGroups || []
+    userPermissions.value = cached.userPermissions || {}
+    
+    // Set loading states to false
+    isLoadingTasks.value = false
+    isLoadingAnnouncements.value = false
+    isLoadingMembers.value = false
+    isLoadingTeamDetails.value = false
+    isLoadingSubTeams.value = false
+    refreshingTaskGroups.value = false
+    
+    // Restore permission service state
+    if (cached.userPermissions) {
+      permissionService.setUserActions(cached.userPermissions)
+    }
+    
+    updateTeamAccess(id)
+    return true
+  }
+  return false
+}
+
+// Setup dynamic component caching
+const setupComponentCaching = () => {
+  if (!teamId.value) return
+  
+  // Add this team to the external cache tracking
+  addTeamToCache(teamId.value)
+  
+  // Check if we have internal cached data for this team
+  const hasCachedData = getCachedTeamData(teamId.value)
+  if (hasCachedData) {
+    isFromCache.value = true
+  } else {
+    isFromCache.value = false
+  }
+}
+
 // Function to initialize/reload team data
-const initializeTeamData = async () => {
+const initializeTeamData = async (forceRefresh = false) => {
+  // This function always loads fresh data from API
+  // Cache checks should be done before calling this function
+
   // Set all loading states to true
   isLoadingTasks.value = true
   isLoadingAnnouncements.value = true
@@ -136,7 +245,16 @@ const initializeTeamData = async () => {
       userLoaded.value = true
       return
     }
+    
+    // Cache the loaded data once after all fetches complete
+    updateCacheWithCurrentData()
+    
+    // Mark as successfully loaded from API
+    isFromCache.value = false
+    updateTeamAccess(teamId.value)
     userLoaded.value = true
+    
+
   } else {
     teamNotFound.value = true
     userLoaded.value = true
@@ -146,15 +264,40 @@ const initializeTeamData = async () => {
 // Watch for route parameter changes
 watch(
   () => route.params.teamId,
-  (newTeamId) => {
-    if (newTeamId) {
+  async (newTeamId, oldTeamId) => {
+    if (newTeamId && newTeamId !== oldTeamId) {
+
       teamId.value = newTeamId
-      // Reset state before loading new team data
+      
+      // Setup caching for the new team
+      setupComponentCaching()
+      
+      // Check if this team has valid cached data
+      // Reset loading state immediately for route changes
       userLoaded.value = false
-      userPermissions.value = {}
-      // Reset permission service state
-      permissionService.setPermissions({})
-      initializeTeamData()
+      
+      const hasCachedData = getCachedTeamData(newTeamId)
+      const externalCacheValid = isTeamCacheValid(newTeamId)
+      
+      if (hasCachedData && externalCacheValid) {
+        // Load from cache immediately
+        if (loadFromInternalCache(newTeamId)) {
+          userLoaded.value = true
+        } else {
+          // Cache load failed, initialize fresh data
+          permissionService.setUserActions({})
+          userPermissions.value = {}
+          await initializeTeamData()
+        }
+      } else {
+        // If no valid cache or cache load failed, initialize fresh data
+        // Reset permission service state for new team
+        permissionService.setUserActions({})
+        userPermissions.value = {}
+        
+        // Initialize data for new team
+        await initializeTeamData()
+      }
     }
   },
   { immediate: false },
@@ -202,6 +345,11 @@ watch(
 )
 
 onMounted(async () => {
+
+  
+  // Setup component caching for initial team
+  setupComponentCaching()
+  
   // Set default tab parameter if not present
   if (!route.query.tab) {
     router.replace({
@@ -209,11 +357,78 @@ onMounted(async () => {
       query: { ...route.query, tab: 'tasks' },
     })
   }
-  await initializeTeamData()
+  
+  // Check if we have valid cached data and load it immediately
+  const hasCachedData = getCachedTeamData(teamId.value)
+  const externalCacheValid = isTeamCacheValid(teamId.value)
+  
+
+  
+  if (hasCachedData && externalCacheValid) {
+
+    if (loadFromInternalCache(teamId.value)) {
+      userLoaded.value = true
+    } else {
+
+      await initializeTeamData()
+    }
+  } else if (!userLoaded.value) {
+
+    await initializeTeamData()
+  } else {
+
+  }
+})
+
+// Keep-alive lifecycle hooks for cache management
+onActivated(async () => {
+
+  
+  // Check if external cache is valid first
+  const externalCacheValid = isTeamCacheValid(teamId.value)
+  const hasCachedData = getCachedTeamData(teamId.value)
+  
+  if (!externalCacheValid && hasCachedData) {
+    // External cache expired, remove internal cache too
+
+    teamDataCache.value.delete(teamId.value)
+  }
+  
+  // Re-check cache data after cleanup
+  const refreshedCachedData = getCachedTeamData(teamId.value)
+  
+  if (refreshedCachedData && externalCacheValid && !userLoaded.value) {
+
+    if (loadFromInternalCache(teamId.value)) {
+      userLoaded.value = true
+    } else {
+
+      await initializeTeamData()
+    }
+  } else if (!userLoaded.value) {
+    // If no valid cached data and not loaded, initialize
+
+    await initializeTeamData()
+  }
+  
+  // Update access time when component is activated
+  if (teamId.value && externalCacheValid) {
+    updateTeamAccess(teamId.value)
+  }
+  
+  // Log cache statistics for debugging
+
+})
+
+onDeactivated(() => {
+
+  
+  // Component is being cached, no cleanup needed
+  // The data remains intact for next activation
 })
 
 const setUserToUserToken = (userToken) => {
-  console.log('User Token:', userToken)
+
   user.value.userId = userToken.userId
   user.value.username = userToken.username
   user.value.email = userToken.email
@@ -224,7 +439,8 @@ const fetchUserPermissions = async () => {
     // Use permission service to fetch and set actions
     await permissionService.fetchUserActions(teamId.value, user.value.userId)
     userPermissions.value = permissionService.userActions
-    console.log('User permissions:', userPermissions.value)
+    // Update cache after fetching permissions
+    updateCacheWithCurrentData()
   } catch (error) {
     console.error('Error fetching user permissions:', error)
     userPermissions.value = {}
@@ -251,7 +467,6 @@ const fetchSubTeams = async () => {
     }
 
     const data = await response.json()
-    console.log('Fetched sub-teams raw response:', data)
 
     // Handle both array and object responses
     if (Array.isArray(data)) {
@@ -262,7 +477,10 @@ const fetchSubTeams = async () => {
       console.warn('Unexpected sub-teams response format:', data)
       subTeams.value = []
     }
-    console.log('Sub-teams after processing:', subTeams.value.length, 'teams found')
+    
+    // Update cache after fetching sub-teams
+    updateCacheWithCurrentData()
+
   } catch (error) {
     console.error('Failed to fetch sub-teams:', error)
     subTeams.value = []
@@ -276,10 +494,7 @@ const updateRoleFlags = () => {
   // Keep for backward compatibility if needed elsewhere
   const userRole =
     userPermissions.value.roleLabel || userPermissions.value.baseRole || 'Member'
-  console.log('Role flags updated:', {
-    isAdmin: permissionService.isAdmin(),
-    role: userRole,
-  })
+
 }
 
 const fetchTeamTasks = async () => {
@@ -305,7 +520,8 @@ const fetchTeamTasks = async () => {
     } else {
       // Extract the tasks array from the response object
       tasks.value = data.tasks || []
-      console.log('Fetched team tasks:', tasks.value)
+      // Update cache after fetching tasks
+      updateCacheWithCurrentData()
     }
   } catch (error) {
     console.error('Failed to fetch team tasks:', error)
@@ -333,7 +549,8 @@ const fetchTeamDetails = async () => {
       team.value = {}
     } else {
       team.value = data.team || {}
-      console.log('Fetched team details:', team.value)
+      // Update cache after fetching team details
+      updateCacheWithCurrentData()
     }
   } catch (error) {
     console.error('Failed to fetch team details:', error)
@@ -355,13 +572,14 @@ const fetchAnnouncements = async () => {
     })
 
     const data = await response.json()
-    console.log('Announcements response:', data)
+
     if (!response.ok) {
       console.error('Failed to fetch announcements:', data.message)
       announcements.value = []
     } else {
       announcements.value = data.announcements || []
-      console.log('Fetched team announcements:', announcements.value)
+      // Update cache after fetching announcements
+      updateCacheWithCurrentData()
     }
   } catch (error) {
     console.error('Failed to fetch announcements:', error)
@@ -388,7 +606,8 @@ const fetchTeamMembers = async () => {
       teamMembers.value = []
     } else {
       teamMembers.value = result
-      console.log('Fetched team members:', teamMembers.value)
+      // Update cache after fetching team members
+      updateCacheWithCurrentData()
     }
   } catch (error) {
     console.error('Failed to fetch team members:', error)
@@ -402,6 +621,20 @@ const handleRolesUpdated = async () => {
   isLoadingMembers.value = true
   await fetchTeamMembers()
   roleUpdateTrigger.value += 1 // Increment trigger to update role list in NewMembers
+}
+
+// Force refresh team data and invalidate cache
+const forceRefreshTeamData = async () => {
+
+  
+  // Remove from cache
+  teamDataCache.value.delete(teamId.value)
+  removeTeamFromCache(teamId.value)
+  
+  // Re-add to cache and initialize fresh data
+  setupComponentCaching()
+  userLoaded.value = false
+  await initializeTeamData(true)
 }
 
 const editAnnnouncement = (announcementId) => {
@@ -474,6 +707,8 @@ const toggleLikeAnnouncement = async (announcementId) => {
         // User has not liked the announcement, so we add their like
         currentAnnouncement.likeUsers.push(user.value.userId)
       }
+      // Update cache after like/unlike
+      updateCacheWithCurrentData()
     }
   } catch (error) {
     console.error('Error liking announcement:', error)
@@ -500,6 +735,8 @@ const getTaskGroups = async () => {
       console.log('Task groups ', data.taskGroups)
       taskGroups.value = data.taskGroups || []
       console.log('Fetched task groups:', taskGroups.value)
+      // Update cache after fetching task groups
+      updateCacheWithCurrentData()
     }
   } catch (error) {
     console.error('Failed to fetch task groups:', error)
@@ -660,6 +897,9 @@ const confirmDeleteTeam = async () => {
       throw new Error('Failed to delete team')
     }
 
+    // Remove from cache since team no longer exists
+    removeTeamFromCache(teamId.value)
+
     // Success - redirect to teams page with success message
     router.push({
       path: '/teams',
@@ -673,6 +913,21 @@ const confirmDeleteTeam = async () => {
     isDeletingTeam.value = false
   }
 }
+
+// Utility method for manual cache management (useful for debugging)
+const refreshTeamData = async () => {
+
+  await initializeTeamData(true)
+}
+
+// Development mode check
+const isDev = computed(() => {
+  const customDev = import.meta.env.VITE_DEV
+  if (customDev !== undefined) {
+    return customDev === 'true'
+  }
+  return false
+})
 </script>
 
 <template>
@@ -739,13 +994,37 @@ const confirmDeleteTeam = async () => {
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
         </v-col>
+        <v-col cols="auto" v-if="isDev">
+          <v-btn 
+            icon 
+            @click="refreshTeamData" 
+            variant="text"
+            :loading="isLoadingTeamDetails"
+            color="primary"
+          >
+            <v-icon>mdi-refresh</v-icon>
+          </v-btn>
+        </v-col>
         <v-col>
           <div v-if="isLoadingTeamDetails">
             <v-skeleton-loader type="heading" width="300px" class="mb-2"></v-skeleton-loader>
             <v-skeleton-loader type="text" width="400px"></v-skeleton-loader>
           </div>
           <div id="tour-team-header" v-else>
-            <h1 class="text-h4 font-weight-bold">{{ team.title }}</h1>
+            <div class="d-flex align-center mb-2">
+              <h1 class="text-h4 font-weight-bold">{{ team.title }}</h1>
+              <!-- Cache indicator for development -->
+              <v-chip 
+                v-if="isFromCache && isDev" 
+                color="success" 
+                size="x-small" 
+                class="ml-2"
+                variant="outlined"
+              >
+                <v-icon start size="x-small">mdi-cached</v-icon>
+                Cached
+              </v-chip>
+            </div>
             <p class="text-grey">{{ team.description }}</p>
           </div>
         </v-col>
