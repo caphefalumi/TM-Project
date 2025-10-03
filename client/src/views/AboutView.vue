@@ -1,18 +1,43 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
+import { useComponentCache } from '../composables/useComponentCache.js'
 
+// Define component name for keep-alive
+defineOptions({
+  name: 'AboutView'
+})
+
+const { needsRefresh, markAsRefreshed } = useComponentCache()
 const isVisible = ref(false)
 
-onMounted(() => {
-  // Trigger animation after component is mounted
+const triggerAnimation = () => {
+  isVisible.value = false
   setTimeout(() => {
     isVisible.value = true
   }, 100)
+}
+
+onMounted(() => {
+  // Trigger animation after component is mounted
+  triggerAnimation()
+})
+
+// Handle component reactivation when navigating back
+onActivated(() => {
+  console.log('🔄 AboutView: Component reactivated (keep-alive working!)')
+  if (needsRefresh('AboutView')) {
+    console.log('🔃 AboutView: Refreshing animation due to explicit refresh request')
+    triggerAnimation()
+    markAsRefreshed('AboutView')
+  } else {
+    console.log('✅ AboutView: Using cached state (no refresh needed)')
+  }
 })
 </script>
 
 <template>
   <v-container fluid class="about-container">
+
     <!-- Hero Section -->
     <v-row justify="center" class="hero-section">
       <v-col cols="12" class="text-center">
@@ -256,6 +281,11 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   padding: 0;
+  pointer-events: none;
+}
+
+.card-container .floating-card {
+  pointer-events: auto;
 }
 
 .floating-card {
@@ -272,6 +302,7 @@ onMounted(() => {
   max-width: 350px;
   width: 100%;
   margin: 20px auto;
+  cursor: pointer;
 }
 
 .floating-card.animate-in {
@@ -293,6 +324,7 @@ onMounted(() => {
   height: 200%;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .floating-card:hover .card-glow {
@@ -321,11 +353,6 @@ onMounted(() => {
   color: #475569;
 }
 
-/* Creator Card Specific */
-.creator-card:nth-child(1) {
-  transition-delay: 0.1s;
-}
-
 .creators-avatars {
   position: relative;
   padding: 5px 0;
@@ -346,19 +373,19 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.creator-card:hover .creator-avatar-item {
+.floating-card.creator-card:hover .creator-avatar-item {
   transform: scale(1.1);
 }
 
-.creator-card:hover .creator-avatar-item:nth-child(1) {
+.floating-card.creator-card:hover .creator-avatar-item:nth-child(1) {
   transform: scale(1.1) rotate(10deg);
 }
 
-.creator-card:hover .creator-avatar-item:nth-child(2) {
+.floating-card.creator-card:hover .creator-avatar-item:nth-child(2) {
   transform: scale(1.1) rotate(-5deg);
 }
 
-.creator-card:hover .creator-avatar-item:nth-child(3) {
+.floating-card.creator-card:hover .creator-avatar-item:nth-child(3) {
   transform: scale(1.1) rotate(8deg);
 }
 
