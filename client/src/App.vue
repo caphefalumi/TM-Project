@@ -3,10 +3,12 @@ import SideBar from './components/Sidebar.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
+import { useComponentCache } from './composables/useComponentCache.js'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { includeComponents, initializeMainViews } = useComponentCache()
 
 // Notification system
 const showSignOutDialog = ref(false)
@@ -138,6 +140,8 @@ onMounted(() => {
   if (showSidebar.value) {
     startTokenRefresh()
   }
+  // Initialize main views in component cache
+  initializeMainViews()
 })
 
 onUnmounted(() => {
@@ -152,7 +156,11 @@ onUnmounted(() => {
     <SideBar v-if="showSidebar"></SideBar>
     <!-- Main content area -->
     <v-main>
-      <router-view></router-view>
+      <router-view v-slot="{ Component }">
+        <keep-alive :include="includeComponents">
+          <component :is="Component" />
+        </keep-alive>
+      </router-view>
     </v-main>
 
     <!-- Sign Out Notification Dialog -->

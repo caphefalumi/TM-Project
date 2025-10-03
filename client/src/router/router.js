@@ -9,14 +9,17 @@ import Register from '../auth/Register.vue'
 import TeamsView from '../views/TeamsView.vue'
 import TeamDetails from '../views/TeamDetails.vue'
 import Dashboard from '../views/Dashboard.vue'
+import FeedbackView from '../views/FeedbackView.vue'
+import AboutView from '../views/AboutView.vue'
+import NotFound from '../views/NotFound.vue'
 
+// Lazy-loaded components for less frequently accessed routes
 const ForgotPassword = () => import('../auth/ForgotPassword.vue')
 const ResetPassword = () => import('../auth/ResetPassword.vue')
 const VerifyEmailView = () => import('../views/VerifyEmailView.vue')
 const AdminView = () => import('../views/AdminView.vue')
 const AccountPersonalView = () => import('../views/AccountPersonalView.vue')
 const AccountSecurityView = () => import('../views/AccountSecurityView.vue')
-const AboutView = () => import('../views/AboutView.vue')
 
 const { getUserByAccessToken } = AuthStore
 
@@ -84,13 +87,14 @@ const router = createRouter({
     },
     {
       path: '/feedback',
-      component: () => import('../views/FeedbackView.vue'),
+      component: FeedbackView,
       meta: { requiresAuth: true, title: 'Feedback' },
     },
     {
       path: "/:pathMatch(.*)*",
       name: "CatchAll",
-      component: () => import("@/views/NotFound.vue"),
+      component: NotFound,
+      meta: { requiresAuth: false, title: '404 Not Found' },
     },
   ],
 })

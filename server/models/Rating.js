@@ -14,25 +14,25 @@ const RatingSchema = new mongoose.Schema({
   },
   issue: {
     type: String,
-    enum: ['bug', 'feature', 'performance', 'ui', 'other'],
+    enum: ['Very bad', 'Bad', 'Average', 'Good', 'Excellent'],
     required: true
   },
   featureRating: {
     type: Number,
     min: 1,
-    max: 10,
+    max: 5,
     required: true
   },
   perfRating: {
     type: Number,
     min: 1,
-    max: 10,
+    max: 5,
     required: true
   },
   uiRating: {
     type: Number,
     min: 1,
-    max: 10
+    max: 5
   },
   createdAt: {
     type: Date,

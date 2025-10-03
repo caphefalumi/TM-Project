@@ -1,10 +1,17 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import { startAppTour } from '../scripts/tour.js'
+import { useComponentCache } from '../composables/useComponentCache.js'
+
+// Define component name for keep-alive
+defineOptions({
+  name: 'Dashboard'
+})
 
 const { getUserByAccessToken } = AuthStore
+const { needsRefresh, markAsRefreshed } = useComponentCache()
 
 const router = useRouter()
 
@@ -42,6 +49,22 @@ onMounted(async () => {
   } else {
     console.log('No user token found, redirecting to login')
     router.push('/login')
+  }
+})
+
+// Handle component reactivation when navigating back
+onActivated(async () => {
+  console.log('🔄 Dashboard: Component reactivated (keep-alive working!)')
+  if (needsRefresh('Dashboard')) {
+    console.log('🔃 Dashboard: Refreshing data due to explicit refresh request')
+    const userToken = await getUserByAccessToken()
+    if (userToken) {
+      setUserToUserToken(userToken)
+      await fetchTasks()
+    }
+    markAsRefreshed('Dashboard')
+  } else {
+    console.log('✅ Dashboard: Using cached data (no refresh needed)')
   }
 })
 
@@ -197,6 +220,11 @@ const fetchTasks = async () => {
   }
 }
 
+// Refresh handler that works with cache system
+const handleRefresh = async () => {
+  await fetchTasks()
+}
+
 // Navigate to team when task is clicked
 const navigateToTeam = (task) => {
   console.log('Navigating to team for task:', task)
@@ -251,7 +279,7 @@ const toggleSortOrder = () => {
           Start Tour
         </v-btn>
         <v-btn
-          @click="fetchTasks"
+          @click="handleRefresh"
           :loading="loading"
           color="primary"
           size="large"

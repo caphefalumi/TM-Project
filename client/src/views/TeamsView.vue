@@ -1,10 +1,17 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import NewTeams from '../components/NewTeams.vue'
+import { useComponentCache } from '../composables/useComponentCache.js'
+
+// Define component name for keep-alive
+defineOptions({
+  name: 'TeamsView'
+})
 
 const { getUserByAccessToken } = AuthStore
+const { needsRefresh, markAsRefreshed } = useComponentCache()
 
 // --- Router Instance ---
 const router = useRouter()
@@ -21,7 +28,7 @@ const user = ref({
   email: '',
 })
 
-onMounted(async () => {
+const initializeTeamsData = async () => {
   userLoaded.value = false
   isLoadingTeams.value = true
   const userFromToken = await getUserByAccessToken()
@@ -34,6 +41,22 @@ onMounted(async () => {
   } else {
     user.value.username = 'Guest'
     isLoadingTeams.value = false
+  }
+}
+
+onMounted(async () => {
+  await initializeTeamsData()
+})
+
+// Handle component reactivation when navigating back
+onActivated(async () => {
+  console.log('🔄 TeamsView: Component reactivated (keep-alive working!)')
+  if (needsRefresh('TeamsView')) {
+    console.log('🔃 TeamsView: Refreshing data due to explicit refresh request')
+    await initializeTeamsData()
+    markAsRefreshed('TeamsView')
+  } else {
+    console.log('✅ TeamsView: Using cached data (no refresh needed)')
   }
 })
 
@@ -192,6 +215,11 @@ const handleTeamUpdated = async () => {
   isLoadingTeams.value = false
 }
 
+// Refresh handler that works with cache system
+const handleRefresh = async () => {
+  await initializeTeamsData()
+}
+
 const navigateToTeam = (teamId) => {
   router.push(`/teams/${teamId}`)
 }
@@ -222,6 +250,27 @@ const getProgressColor = (percentage) => {
   <!-- Main content area -->
 
   <v-container fluid>
+    <!-- Header Section -->
+    <v-row class="align-center mb-6">
+      <v-col cols="12" md="8">
+        <h1 class="text-h4 font-weight-bold">Teams</h1>
+        <p class="text-h6 text-grey">Manage and explore your teams</p>
+      </v-col>
+      <v-col cols="12" md="4" class="text-right">
+        <v-btn
+          @click="handleRefresh"
+          :loading="isLoadingTeams"
+          color="primary"
+          size="large"
+          variant="outlined"
+          class="mr-2"
+        >
+          <v-icon start>mdi-refresh</v-icon>
+          Refresh
+        </v-btn>
+      </v-col>
+    </v-row>
+
     <NewTeams
       v-if="userLoaded"
       v-model:dialog="isCreatingNewTeam"
