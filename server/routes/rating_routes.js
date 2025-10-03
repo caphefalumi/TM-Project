@@ -1,10 +1,10 @@
 import express from 'express'
 import { authenticateAccessToken } from '../middleware/authMiddleware.js'
-import { 
-  createOrUpdateRating, 
-  getAllRatings, 
-  getUserRating, 
-  getTeamRatings 
+import { requireAdmin } from '../middleware/roleMiddleware.js'
+import {
+  createOrUpdateRating,
+  getAllRatings,
+  getUserRating
 } from '../controllers/ratingController.js'
 
 const app = express.Router()
@@ -13,12 +13,9 @@ const app = express.Router()
 app.post('/', authenticateAccessToken, createOrUpdateRating)
 
 // Get all ratings (admin functionality)
-app.get('/', authenticateAccessToken, getAllRatings)
+app.get('/', authenticateAccessToken, requireAdmin, getAllRatings)
 
 // Get rating for specific user
-app.get('/user/:userId', authenticateAccessToken, getUserRating)
-
-// Get team ratings (legacy - keeping for backward compatibility)
-app.get('/team/:teamId', authenticateAccessToken, getTeamRatings)
+app.get('/user/:userId', authenticateAccessToken, requireAdmin, getUserRating)
 
 export default app
