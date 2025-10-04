@@ -4,14 +4,16 @@ import { useRouter } from 'vue-router'
 import { decodeCredential } from 'vue3-google-login'
 import { useAuthStore } from '../stores/auth.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
+const { clearAllCaches } = useComponentCache()
+import { open } from '@tauri-apps/plugin-shell'
+import { listen } from '@tauri-apps/api/event'
 
 const router = useRouter()
 const authStore = useAuthStore()
 // Check if running in Tauri
 const isTauri = computed(() => {
-  return true
+  return window.isTauri
 })
-const { clearAllCaches } = useComponentCache()
 
 onMounted(async () => {
   try {
@@ -43,8 +45,6 @@ const success = ref('')
 const showResendVerification = ref(false)
 
 const sendToHomePage = async () => {
-  clearAllCaches()
-  console.log('[Auth] Cleared all caches before creating new session')
   // Send to home if user already has an account
   // Clear all caches from any previous session before creating new session
   clearAllCaches()
@@ -53,8 +53,9 @@ const sendToHomePage = async () => {
   setTimeout(() => (success.value = 'Creating secure session...'), 500)
   await createRefreshToken()
   await getAccessToHome()
-  console.log('User ID:', username.value)
-  console.log('User Email:', userEmail.value)
+  console.log('User ID:', userId.value)
+  console.log('Username:', username.value)
+  console.log('Email:', userEmail.value)
   console.log('Authenticate:', authenticate.value)
   if (authenticate.value) {
     authStore.setLoggedIn(true)
@@ -156,10 +157,17 @@ const loginUsingLocal = async () => {
       // Show resend verification option if error is about email not verified
       if (data.error && data.error.includes('Email not verified')) {
         showResendVerification.value = true
+        userEmail.value = username.value // Store for resend verification
       }
     } else if (data.success) {
       console.log('Local Login Data:', data)
       success.value = data.success
+      // Extract user data from response
+      if (data.user) {
+        userId.value = data.user.userId
+        username.value = data.user.username
+        userEmail.value = data.user.email
+      }
       sendToHomePage()
     }
   } catch (err) {
@@ -200,6 +208,7 @@ const loginUsingOAuth = async (response) => {
           username.value = data.username
           userId.value = data.userId
           userEmail.value = data.email
+          console.log('Existing user, logging in...', data)
           sendToHomePage()
         }
       }
@@ -226,6 +235,109 @@ const loginUsingOAuth = async (response) => {
   } catch (error) {
     error.value = error
   }
+}
+
+function generateCodeVerifier() {
+  const array = new Uint8Array(64)
+  crypto.getRandomValues(array)
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
+async function generateCodeChallenge(verifier) {
+  const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
+  const bytes = new Uint8Array(buffer)
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
+async function loginWithGoogleInTauri() {
+  const CLIENT_ID = import.meta.env.VITE_DESKTOP_CLIENT_ID
+  const PORT = import.meta.env.VITE_API_PORT
+  const codeVerifier = generateCodeVerifier()
+  const codeChallenge = await generateCodeChallenge(codeVerifier)
+  const state = Math.random().toString(36).substring(2)
+
+  // Store state and code_verifier on backend for validation
+  try {
+    await fetch(`${PORT}/api/auth/oauth/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state, codeVerifier })
+    })
+  } catch (err) {
+    console.error('Failed to store OAuth state:', err)
+    error.value = 'Failed to initialize OAuth flow'
+    return
+  }
+
+  // Use backend as redirect URI - backend will handle the OAuth callback
+  const REDIRECT_URI = `${PORT}/api/auth/oauth/callback`
+  const SCOPE = 'openid email profile'
+
+  const authUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+    `&response_type=code` +
+    `&scope=${encodeURIComponent(SCOPE)}` +
+    `&state=${state}` +
+    `&code_challenge=${codeChallenge}` +
+    `&code_challenge_method=S256`
+
+  console.log('Auth URL:', authUrl)
+  // Open browser for login
+  await open(authUrl)
+  console.log('Opened Google login...')
+
+  // Poll backend for OAuth completion
+  const maxAttempts = 60 // 2 minutes timeout
+  let attempts = 0
+
+  const pollInterval = setInterval(async () => {
+    attempts++
+
+    if (attempts > maxAttempts) {
+      clearInterval(pollInterval)
+      error.value = 'OAuth timeout - please try again'
+      return
+    }
+
+    try {
+      const res = await fetch(`${PORT}/api/auth/oauth/status?state=${state}`)
+      const data = await res.json()
+
+      if (data.status === 'completed') {
+        clearInterval(pollInterval)
+
+        // Extract user data from completed OAuth flow
+        if (data.userEmail) {
+          userEmail.value = data.userEmail
+          username.value = data.username || ''
+
+          if (data.action === 'register') {
+            success.value = 'Authorization completed! Please enter username.'
+            usingOAuthRegister.value = true
+          } else if (data.action === 'login') {
+            userId.value = data.userId
+            username.value = data.username
+            userEmail.value = data.userEmail
+            console.log('Existing user, logging in...', data)
+            await sendToHomePage()
+          }
+        }
+      } else if (data.status === 'error') {
+        clearInterval(pollInterval)
+        error.value = data.message || 'OAuth failed'
+      }
+    } catch (err) {
+      console.error('Polling error:', err)
+    }
+  }, 2000) // Poll every 2 seconds
 }
 
 const registerWithOAuth = async () => {
