@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       build_windows:
-        description: 'Build for Windows?'
+        description: 'Build for Windows'
         required: false
         default: true
         type: boolean
       build_linux:
-        description: 'Build for Linux?'
+        description: 'Build for Linux'
         required: false
         default: true
         type: boolean
@@ -35,6 +35,21 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            client/src-tauri/target
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: rust-build-${{ runner.os }}-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: client/.bun
+          key: bun-${{ runner.os }}-${{ hashFiles('client/bun.lock') }}
 
       - name: Install Linux build dependencies
         if: matrix.os == 'ubuntu-latest'
