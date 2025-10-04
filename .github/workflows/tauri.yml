@@ -55,7 +55,7 @@ jobs:
         working-directory: client
         run: bun install --frozen-lockfile
 
-      - name: Build Tauri frontend bundle
+      - name: Build Tauri app
         working-directory: client
         run: bunx --bun tauri build
 
