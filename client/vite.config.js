@@ -21,5 +21,11 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      external: [
+        '@tauri-apps/plugin-shell',
+        '@tauri-apps/api/event'
+      ]
+    }
   },
 })

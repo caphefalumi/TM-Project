@@ -5,8 +5,6 @@ import { decodeCredential } from 'vue3-google-login'
 import { useAuthStore } from '../stores/auth.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 const { clearAllCaches } = useComponentCache()
-import { open } from '@tauri-apps/plugin-shell'
-import { listen } from '@tauri-apps/api/event'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -290,9 +288,16 @@ async function loginWithGoogleInTauri() {
     `&code_challenge_method=S256`
 
   console.log('Auth URL:', authUrl)
-  // Open browser for login
-  await open(authUrl)
-  console.log('Opened Google login...')
+  // Open browser for login - dynamically import Tauri module
+  try {
+    const { open } = await import('@tauri-apps/plugin-shell')
+    await open(authUrl)
+    console.log('Opened Google login...')
+  } catch (err) {
+    console.error('Failed to open browser:', err)
+    error.value = 'Failed to open browser for login'
+    return
+  }
 
   // Poll backend for OAuth completion
   const maxAttempts = 60 // 2 minutes timeout
