@@ -108,6 +108,39 @@ const activeTab = ref(route.query.tab || 'tasks')
 // Get team ID from route params
 const teamId = ref(route.params.teamId)
 const componentKey = ref(null)
+
+// Reactive computed properties for permissions to ensure Vue reactivity
+const canViewTaskGroup = computed(() => {
+  return userPermissions.value?.canViewTaskGroup === true || permissionService.isAdmin()
+})
+
+const canViewAnnouncements = computed(() => {
+  return userPermissions.value?.canViewAnnouncements === true || permissionService.isAdmin()
+})
+
+const canViewMembers = computed(() => {
+  return userPermissions.value?.canViewMembers === true || permissionService.isAdmin()
+})
+
+const isAdmin = computed(() => {
+  return permissionService.isAdmin()
+})
+
+const canManageTasks = computed(() => {
+  return userPermissions.value?.canManageTasks === true || permissionService.isAdmin()
+})
+
+const canManageAnnouncements = computed(() => {
+  return userPermissions.value?.canManageAnnouncements === true || permissionService.isAdmin()
+})
+
+const canAddMembers = computed(() => {
+  return userPermissions.value?.canAddMembers === true || permissionService.isAdmin()
+})
+
+const canRemoveMembers = computed(() => {
+  return userPermissions.value?.canRemoveMembers === true || permissionService.isAdmin()
+})
 const isFromCache = ref(false)
 
 // Internal cache for team data to handle multiple teams within the same component instance
@@ -141,7 +174,8 @@ const updateCacheWithCurrentData = () => {
     teamMembers: [...teamMembers.value],
     subTeams: [...subTeams.value],
     taskGroups: [...taskGroups.value],
-    userPermissions: { ...userPermissions.value }
+    userPermissions: { ...userPermissions.value },
+    activeTab: activeTab.value
   })
 }
 
@@ -163,6 +197,7 @@ const loadFromInternalCache = (id) => {
     subTeams.value = cached.subTeams || []
     taskGroups.value = cached.taskGroups || []
     userPermissions.value = cached.userPermissions || {}
+    activeTab.value = cached.activeTab || route.query.tab || 'tasks'
     
     // Set loading states to false
     isLoadingTasks.value = false
@@ -1141,27 +1176,27 @@ const isDev = computed(() => {
               <v-icon start>mdi-clipboard-text</v-icon>
               Tasks
             </v-tab>
-            <v-tab id="tour-workflow-tab" value="workflow" v-if="permissionService.canViewTaskGroup()">
+            <v-tab id="tour-workflow-tab" value="workflow">
               <v-icon start>mdi-timeline-clock</v-icon>
               Workflow
             </v-tab>
-            <v-tab value="task-groups" v-if="permissionService.canViewTaskGroup()">
+            <v-tab value="task-groups" v-if="canViewTaskGroup">
               <v-icon start>mdi-folder-multiple</v-icon>
               Task Groups
             </v-tab>
-            <v-tab value="announcements" v-if="permissionService.canViewAnnouncements()">
+            <v-tab value="announcements" v-if="canViewAnnouncements">
               <v-icon start>mdi-bullhorn</v-icon>
               Announcements
             </v-tab>
-            <v-tab value="members" v-if="permissionService.canViewMembers()">
+            <v-tab value="members" v-if="canViewMembers">
               <v-icon start>mdi-account-group</v-icon>
               Members
             </v-tab>
-            <v-tab value="roles" v-if="permissionService.isAdmin()">
+            <v-tab value="roles" v-if="isAdmin">
               <v-icon start>mdi-account-key</v-icon>
               Roles
             </v-tab>
-            <v-tab id="tour-delete-team-tab" value="delete-team" v-if="permissionService.isAdmin()">
+            <v-tab id="tour-delete-team-tab" value="delete-team" v-if="isAdmin">
               <v-icon start>mdi-delete</v-icon>
               Delete Team
             </v-tab>
@@ -1170,7 +1205,7 @@ const isDev = computed(() => {
           <!-- Action buttons row based on active tab -->
           <v-row id="tour-team-actions" class="mt-4">
             <!-- Tasks tab actions -->
-            <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && permissionService.canManageTasks()">
+            <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && canManageTasks">
             </v-col>
 
             <!-- Announcements tab actions -->
@@ -1178,7 +1213,7 @@ const isDev = computed(() => {
               cols="12"
               md="6"
               lg="4"
-              v-if="activeTab === 'announcements' && permissionService.canManageAnnouncements()"
+              v-if="activeTab === 'announcements' && canManageAnnouncements"
             >
               <v-btn
                 v-tooltip:bottom="'Add new announcement'"
@@ -1194,7 +1229,7 @@ const isDev = computed(() => {
             </v-col>
 
             <template v-if="activeTab === 'members'">
-              <v-col cols="12" md="6" lg="4" v-if="permissionService.canAddMembers()">
+              <v-col cols="12" md="6" lg="4" v-if="canAddMembers">
                 <v-btn
                   v-tooltip:bottom="'Add team members'"
                   @click="addMembersDialog = true"
@@ -1207,7 +1242,7 @@ const isDev = computed(() => {
                   Add Members
                 </v-btn>
               </v-col>
-              <v-col cols="12" md="6" lg="4" v-if="permissionService.canRemoveMembers()">
+              <v-col cols="12" md="6" lg="4" v-if="canRemoveMembers">
                 <v-btn
                   v-tooltip:bottom="'Remove team members'"
                   @click="deleteMembersDialog = true"
@@ -1410,7 +1445,7 @@ const isDev = computed(() => {
         </v-window-item>
 
         <!-- Workflow Tab -->
-        <v-window-item value="workflow" v-if="permissionService.canViewTaskGroup()">
+        <v-window-item value="workflow">
           <v-row>
             <v-col cols="12">
               <div class="d-flex align-center justify-space-between mb-3">
@@ -1434,7 +1469,7 @@ const isDev = computed(() => {
         </v-window-item>
 
         <!-- Manage Tab -->
-        <v-window-item value="task-groups" v-if="permissionService.canViewTaskGroup()">
+        <v-window-item value="task-groups" v-if="canViewTaskGroup">
           <!-- Loading State for Task Groups -->
           <div v-if="refreshingTaskGroups">
             <v-row>
@@ -1985,7 +2020,7 @@ const isDev = computed(() => {
         </v-window-item>
 
         <!-- Management Tab -->
-        <v-window-item value="roles" v-if="(permissionService.canAddMembers() || permissionService.canRemoveMembers()) || permissionService.isAdmin()">
+        <v-window-item value="roles" v-if="canAddMembers || canRemoveMembers || isAdmin">
           <RoleManagementTabs
             :teamId="teamId"
             :userProps="user"
@@ -1995,7 +2030,7 @@ const isDev = computed(() => {
         </v-window-item>
 
         <!-- Delete Team Tab -->
-        <v-window-item value="delete-team" v-if="permissionService.isAdmin()">
+        <v-window-item value="delete-team" v-if="isAdmin">
           <div id="tour-delete-team-content" class="delete-team-container">
             <!-- Warning Header -->
             <v-row>

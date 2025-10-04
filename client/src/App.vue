@@ -9,7 +9,7 @@ import { useComponentCache } from './composables/useComponentCache.js'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const { includeComponents, initializeMainViews, getCacheStats, cleanExpiredCache } = useComponentCache()
+const { includeComponents, initializeMainViews, getCacheStats, cleanExpiredCache, clearAllCaches, forceRemountKey } = useComponentCache()
 
 // Development mode check - Use custom DEV env variable if set, otherwise default to false
 const isDev = computed(() => {
@@ -29,6 +29,10 @@ const showSignOutPopup = (message = 'You have been signed out.') => {
   showSignOutDialog.value = true
 
   authStore.clearAuth()
+
+  // Clear all caches when token is invalid/revoked
+  clearAllCaches()
+  console.log('[Auth] Cleared all caches due to invalid/revoked token')
 
   // Stop auto refresh
   stopTokenRefresh()
@@ -157,7 +161,7 @@ onMounted(() => {
   setInterval(() => {
     const cleaned = cleanExpiredCache()
     if (cleaned > 0) {
-      console.log(`🧹 Cleaned ${cleaned} expired cache entries`)
+      console.log(`[Cache] Cleaned ${cleaned} expired cache entries`)
     }
   }, 5 * 60 * 1000) // 5 minutes
 })
@@ -178,6 +182,7 @@ onUnmounted(() => {
         <keep-alive :include="includeComponents">
           <component 
             :is="Component"
+            :key="`${route.path}-${forceRemountKey}`"
           />
         </keep-alive>
       </router-view>
