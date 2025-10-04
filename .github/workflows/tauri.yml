@@ -11,19 +11,24 @@ on:
       build_linux:
         description: 'Build for Linux'
         required: false
-        default: true
+        default: false
         type: boolean
   release:
     types: [published]
 
 jobs:
   build:
+    if: |
+      (github.event_name != 'workflow_dispatch') ||
+      (github.event.inputs.build_windows == 'true' && matrix.os == 'windows-latest') ||
+      (github.event.inputs.build_linux == 'true' && matrix.os == 'ubuntu-latest')
     name: Build frontend on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson('["ubuntu-latest","windows-latest"]') }}
+        os: [ubuntu-latest, windows-latest]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -78,10 +83,6 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build Tauri app
-        if: |
-          (github.event_name != 'workflow_dispatch') ||
-          (github.event.inputs.build_windows == 'true' && matrix.os == 'windows-latest') ||
-          (github.event.inputs.build_linux == 'true' && matrix.os == 'ubuntu-latest')
         working-directory: client
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
@@ -90,10 +91,6 @@ jobs:
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
-        if: |
-          (github.event_name != 'workflow_dispatch') ||
-          (github.event.inputs.build_windows == 'true' && matrix.os == 'windows-latest') ||
-          (github.event.inputs.build_linux == 'true' && matrix.os == 'ubuntu-latest')
         uses: actions/upload-artifact@v4
         with:
           name: tauri-bundle-${{ matrix.os }}
