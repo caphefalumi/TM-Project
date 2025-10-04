@@ -1,3 +1,5 @@
+import { useComponentCache } from '../composables/useComponentCache.js'
+
 const refreshAccessToken = async () => {
   const PORT = import.meta.env.VITE_API_PORT
   try {
@@ -15,6 +17,11 @@ const refreshAccessToken = async () => {
       try {
         const errorData = await response.json()
         if (errorData.error === 'TOKEN_REVOKED' || errorData.error === 'TOKEN_INVALID') {
+          // Clear all caches when token is invalid/revoked
+          const { clearAllCaches } = useComponentCache()
+          clearAllCaches()
+          console.log('[Auth] Cleared all caches due to invalid/revoked token in authStore')
+          
           return {
             success: false,
             tokenRevoked: true,

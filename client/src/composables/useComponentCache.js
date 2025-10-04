@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 // Global state for managing component cache
 const cachedComponents = ref(new Set())
 const refreshRequests = ref(new Set())
+const forceRemountKey = ref(0) // Key to force remount of all components
 
 // Dynamic component caching for team details (LRU-style with max limit)
 const dynamicTeamCache = ref(new Map()) // teamId -> { lastAccessed: timestamp, componentKey: string }
@@ -52,7 +53,7 @@ export function useComponentCache() {
       if (teamData) {
         removeFromCache(teamData.componentKey)
         dynamicTeamCache.value.delete(teamId)
-        console.log('⏰ Removed expired team from cache:', teamId)
+        console.log('Removed expired team from cache:', teamId)
       }
     })
     
@@ -66,11 +67,14 @@ export function useComponentCache() {
     // Clean expired entries first
     cleanExpiredCache()
     
-    const componentKey = 'TeamDetails' // Use the actual component name
+    const componentKey = 'TeamDetails'
     const now = Date.now()
     
+    // Check if team is already cached
+    const existingTeam = dynamicTeamCache.value.get(teamId)
+    
     // If cache is at limit, remove least recently accessed team
-    if (dynamicTeamCache.value.size >= MAX_TEAM_CACHE_SIZE) {
+    if (!existingTeam && dynamicTeamCache.value.size >= MAX_TEAM_CACHE_SIZE) {
       let oldestTeamId = null
       let oldestTime = now
       
@@ -83,11 +87,12 @@ export function useComponentCache() {
       
       if (oldestTeamId) {
         dynamicTeamCache.value.delete(oldestTeamId)
-        console.log('🗑️ Removed oldest team from cache:', oldestTeamId)
+        console.log('Removed oldest team from cache:', oldestTeamId)
       }
     }
     
     // Add/update team in cache tracking
+    const isNew = !existingTeam
     dynamicTeamCache.value.set(teamId, {
       lastAccessed: now,
       componentKey
@@ -95,7 +100,10 @@ export function useComponentCache() {
     
     // Ensure TeamDetails component is cached
     addToCache(componentKey)
-    console.log('✅ Added team to cache tracking:', teamId)
+    
+    if (isNew) {
+      console.log('Added team to cache tracking:', teamId)
+    }
     return componentKey
   }
 
@@ -105,7 +113,6 @@ export function useComponentCache() {
     const teamData = dynamicTeamCache.value.get(teamId)
     if (teamData) {
       teamData.lastAccessed = Date.now()
-      console.log('🕒 Updated team access time:', teamId)
     }
   }
 
@@ -119,7 +126,7 @@ export function useComponentCache() {
     const isValid = (now - teamData.lastAccessed) < CACHE_EXPIRY_TIME
     
     if (!isValid) {
-      console.log('💀 Team cache expired for:', teamId)
+      console.log('Team cache expired for:', teamId)
       removeTeamFromCache(teamId)
     }
     
@@ -132,7 +139,7 @@ export function useComponentCache() {
     const teamData = dynamicTeamCache.value.get(teamId)
     if (teamData) {
       dynamicTeamCache.value.delete(teamId)
-      console.log('🗑️ Removed team from cache tracking:', teamId)
+      console.log('Removed team from cache tracking:', teamId)
       // Don't remove TeamDetails component from cache, just the tracking data
     }
   }
@@ -148,7 +155,37 @@ export function useComponentCache() {
     
     // Remove team data from tracking, which will force reload
     dynamicTeamCache.value.delete(teamId)
-    console.log('🔄 Requested refresh for team:', teamId)
+    console.log('Requested refresh for team:', teamId)
+  }
+
+  // Clear all team caches (useful for logout)
+  const clearAllTeamCaches = () => {
+    const teamCount = dynamicTeamCache.value.size
+    dynamicTeamCache.value.clear()
+    console.log(`Cleared all team caches (${teamCount} teams)`)
+    return teamCount
+  }
+
+  // Clear all component caches (useful for logout)
+  const clearAllComponentCaches = () => {
+    const componentCount = cachedComponents.value.size
+    cachedComponents.value.clear()
+    refreshRequests.value.clear()
+    console.log(`Cleared all component caches (${componentCount} components)`)
+    return componentCount
+  }
+
+  // Clear everything - both components and team data (logout cleanup)
+  const clearAllCaches = () => {
+    const teamCount = clearAllTeamCaches()
+    const componentCount = clearAllComponentCaches()
+    
+    // Increment the remount key to force all components to remount
+    // This ensures that all cached component instances are destroyed and recreated
+    forceRemountKey.value++
+    
+    console.log(`[Cache] Cleared all caches - ${componentCount} components, ${teamCount} teams (remount key: ${forceRemountKey.value})`)
+    return { components: componentCount, teams: teamCount, remountKey: forceRemountKey.value }
   }
 
   // Get list of components to include in keep-alive
@@ -162,14 +199,14 @@ export function useComponentCache() {
   const initializeMainViews = () => {
     const mainViews = ['Dashboard', 'TeamsView', 'FeedbackView', 'AboutView', 'TeamDetails']
     mainViews.forEach(view => addToCache(view))
-    console.log('✅ Initialized main views for keep-alive caching:', mainViews)
+    console.log('Initialized main views for keep-alive caching:', mainViews)
   }
 
   // Force refresh all main views (useful for debugging)
   const refreshAllMainViews = () => {
     const mainViews = ['Dashboard', 'TeamsView', 'FeedbackView', 'AboutView', 'TeamDetails']
     mainViews.forEach(view => requestRefresh(view))
-    console.log('🔄 Requested refresh for all main views:', mainViews)
+    console.log('Requested refresh for all main views:', mainViews)
   }
 
   // Get cache statistics for debugging
@@ -206,6 +243,7 @@ export function useComponentCache() {
     includeComponents,
     initializeMainViews,
     refreshAllMainViews,
+    forceRemountKey, // Export the remount key for router-view
     // Dynamic team caching methods
     addTeamToCache,
     updateTeamAccess,
@@ -214,6 +252,9 @@ export function useComponentCache() {
     refreshTeam,
     isTeamCacheValid,
     cleanExpiredCache,
-    getCacheStats
+    getCacheStats,
+    clearAllTeamCaches,
+    clearAllComponentCaches,
+    clearAllCaches
   }
 }
