@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "tm-client",
+  "productName": "Teams Management",
   "version": "0.1.0",
-  "identifier": "com.teamsmanagement.dev",
+  "identifier": "com.teams-management.dev",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
