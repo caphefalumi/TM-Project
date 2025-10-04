@@ -56,6 +56,10 @@ jobs:
 
       - name: Build Tauri app
         working-directory: client
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
+          # Add more env vars as needed
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
