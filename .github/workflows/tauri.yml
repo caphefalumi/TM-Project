@@ -11,35 +11,27 @@ on:
       build_linux:
         description: 'Build for Linux'
         required: false
-        default: false
+        default: true
         type: boolean
   release:
     types: [published]
 
 jobs:
-  build:
+  build_windows:
     if: |
-      (github.event_name != 'workflow_dispatch') ||
-      (github.event.inputs.build_windows == 'true' && matrix.os == 'windows-latest') ||
-      (github.event.inputs.build_linux == 'true' && matrix.os == 'ubuntu-latest')
-    name: Build frontend on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.build_windows == 'true'
+    runs-on: windows-latest
+    name: Build Tauri app (Windows)
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Rust build
         uses: actions/cache@v4
@@ -48,16 +40,68 @@ jobs:
             client/src-tauri/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: rust-build-${{ runner.os }}-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+          key: rust-build-windows-${{ hashFiles('client/src-tauri/Cargo.lock') }}
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
           path: client/.bun
-          key: bun-${{ runner.os }}-${{ hashFiles('client/bun.lock') }}
+          key: bun-windows-${{ hashFiles('client/bun.lock') }}
+
+      - name: Install Windows build dependencies
+        run: choco install -y nsis
+        shell: powershell
+
+      - name: Install frontend dependencies
+        working-directory: client
+        run: bun install --frozen-lockfile
+
+      - name: Build Tauri app (Windows)
+        working-directory: client
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
+        run: bunx --bun tauri build
+
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-bundle-windows
+          path: client/src-tauri/target/release/bundle
+          if-no-files-found: error
+
+  build_linux:
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.build_linux == 'true'
+    runs-on: ubuntu-latest
+    name: Build Tauri app (Linux)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            client/src-tauri/target
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: rust-build-linux-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: client/.bun
+          key: bun-linux-${{ hashFiles('client/bun.lock') }}
 
       - name: Install Linux build dependencies
-        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -72,27 +116,20 @@ jobs:
             libwebkit2gtk-4.1-dev \
             patchelf
 
-      - name: Install Windows build dependencies
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install -y nsis
-        shell: powershell
-
       - name: Install frontend dependencies
         working-directory: client
         run: bun install --frozen-lockfile
 
-      - name: Build Tauri app
+      - name: Build Tauri app (Linux)
         working-directory: client
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
-          # Add more env vars as needed
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-bundle-${{ matrix.os }}
+          name: tauri-bundle-linux
           path: client/src-tauri/target/release/bundle
           if-no-files-found: error
