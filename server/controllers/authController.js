@@ -378,6 +378,208 @@ const resendEmailVerification = async (req, res) => {
   }
 }
 
+const oauthSessions = new Map()
+
+const startDesktopOAuth = async (req, res) => {
+  const { state, codeVerifier } = req.body
+
+  if (!state || !codeVerifier) {
+    return res.status(400).json({ error: 'Missing required parameters' })
+  }
+
+  // Store OAuth session data temporarily (expires in 10 minutes)
+  oauthSessions.set(state, {
+    codeVerifier,
+    timestamp: Date.now(),
+    status: 'pending'
+  })
+
+  // Clean up old sessions
+  setTimeout(() => {
+    const session = oauthSessions.get(state)
+    if (session && session.status === 'pending') {
+      oauthSessions.delete(state)
+    }
+  }, 10 * 60 * 1000) // 10 minutes
+
+  return res.status(200).json({ success: true })
+}
+
+const handleDesktopOAuthCallback = async (req, res) => {
+  const { code, state, error: oauthError } = req.query
+
+  if (oauthError) {
+    console.error('OAuth error:', oauthError)
+    const session = oauthSessions.get(state)
+    if (session) {
+      session.status = 'error'
+      session.error = oauthError
+    }
+    return res.status(400).send(`
+      <html>
+        <head><title>Authentication Failed</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h1>❌ Authentication Failed</h1>
+          <p>${oauthError}</p>
+          <p>You can close this window and try again.</p>
+        </body>
+      </html>
+    `)
+  }
+
+  if (!code || !state) {
+    return res.status(400).json({ error: 'Missing code or state' })
+  }
+
+  const session = oauthSessions.get(state)
+  if (!session) {
+    return res.status(400).send(`
+      <html>
+        <head><title>Session Expired</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h1>⏱️ Session Expired</h1>
+          <p>Your authentication session has expired. Please try again.</p>
+        </body>
+      </html>
+    `)
+  }
+
+  try {
+    // Exchange authorization code for tokens
+    const CLIENT_ID = process.env.DESKTOP_CLIENT_ID
+    const CLIENT_SECRET = process.env.DESKTOP_CLIENT_SECRET // You'll need to add this to .env
+    const REDIRECT_URI = `${process.env.API_URL}/api/auth/oauth/callback`
+
+    // Build token request params
+    const tokenParams = {
+      client_id: CLIENT_ID,
+      code,
+      code_verifier: session.codeVerifier,
+      redirect_uri: REDIRECT_URI,
+      grant_type: 'authorization_code'
+    }
+
+    // Only add client_secret if it exists (required for Web apps, not for Desktop apps with PKCE)
+    if (CLIENT_SECRET) {
+      tokenParams.client_secret = CLIENT_SECRET
+    }
+
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(tokenParams).toString()
+    })
+
+    const tokens = await tokenResponse.json()
+    console.log('Token response status:', tokenResponse.status)
+    console.log('Token response:', tokens)
+
+    if (!tokens.access_token) {
+      const errorMsg = tokens.error_description || tokens.error || 'Failed to get access token'
+      console.error('Token exchange failed:', tokens)
+      throw new Error(errorMsg)
+    }
+
+    // Get user info from Google
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${tokens.access_token}`
+      }
+    })
+
+    const userData = await userInfoResponse.json()
+
+    if (!userData.email) {
+      throw new Error('Failed to get user email')
+    }
+
+    // Check if user exists
+    const existingUser = await Account.findOne({ email: userData.email.toLowerCase() })
+
+    if (existingUser) {
+      // User exists - prepare login data
+      session.status = 'completed'
+      session.action = 'login'
+      session.userId = existingUser._id.toString()
+      session.username = existingUser.username
+      session.userEmail = existingUser.email
+    } else {
+      // New user - prepare registration data
+      session.status = 'completed'
+      session.action = 'register'
+      session.userEmail = userData.email.toLowerCase()
+      session.username = userData.given_name || userData.name || ''
+    }
+
+    // Show success page
+    return res.status(200).send(`
+      <html>
+        <head><title>Authentication Successful</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h1>✓ Authentication Successful</h1>
+          <p>You can close this window and return to the app.</p>
+          <script>
+            // Try to close the window after 2 seconds
+            setTimeout(() => { window.close(); }, 2000);
+          </script>
+        </body>
+      </html>
+    `)
+  } catch (err) {
+    console.error('OAuth callback error:', err)
+    session.status = 'error'
+    session.error = err.message
+
+    return res.status(500).send(`
+      <html>
+        <head><title>Authentication Error</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h1>Authentication Error</h1>
+          <p>${err.message}</p>
+          <p>You can close this window and try again.</p>
+        </body>
+      </html>
+    `)
+  }
+}
+
+const checkDesktopOAuthStatus = async (req, res) => {
+  const { state } = req.query
+
+  if (!state) {
+    return res.status(400).json({ error: 'Missing state parameter' })
+  }
+
+  const session = oauthSessions.get(state)
+
+  if (!session) {
+    return res.status(404).json({ status: 'not_found' })
+  }
+
+  if (session.status === 'completed') {
+    // Return the data and clean up
+    const data = {
+      status: session.status,
+      action: session.action,
+      userId: session.userId,
+      username: session.username,
+      userEmail: session.userEmail
+    }
+    oauthSessions.delete(state)
+    return res.status(200).json(data)
+  } else if (session.status === 'error') {
+    const data = {
+      status: 'error',
+      message: session.error
+    }
+    oauthSessions.delete(state)
+    return res.status(200).json(data)
+  }
+
+  // Still pending
+  return res.status(200).json({ status: 'pending' })
+}
+
 export default {
   oAuthentication,
   oAuthenticationRegister,
@@ -387,4 +589,7 @@ export default {
   resetPassword,
   verifyToken,
   resendEmailVerification,
+  startDesktopOAuth,
+  handleDesktopOAuthCallback,
+  checkDesktopOAuthStatus,
 }

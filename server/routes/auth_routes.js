@@ -12,10 +12,18 @@ const {
   resetPassword,
   verifyToken,
   resendEmailVerification,
+  startDesktopOAuth,
+  handleDesktopOAuthCallback,
+  checkDesktopOAuthStatus,
 } = AuthenticationController
 
 router.post('/oauth', oAuthentication)
 router.post('/google/register', oAuthenticationRegister)
+
+// Desktop OAuth endpoints
+router.post('/oauth/start', startDesktopOAuth)
+router.get('/oauth/callback', handleDesktopOAuthCallback)
+router.get('/oauth/status', checkDesktopOAuthStatus)
 
 router.post('/local/register', localRegister)
 router.post('/local/login', localLogin)
