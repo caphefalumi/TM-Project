@@ -3,8 +3,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { decodeCredential } from 'vue3-google-login'
 import { useAuthStore } from '../stores/auth.js'
+import { useComponentCache } from '../composables/useComponentCache.js'
+
 const router = useRouter()
 const authStore = useAuthStore()
+const { clearAllCaches } = useComponentCache()
 
 // Check if running in Tauri
 const isTauri = computed(() => {
@@ -41,6 +44,8 @@ const success = ref('')
 const showResendVerification = ref(false)
 
 const sendToHomePage = async () => {
+  clearAllCaches()
+  console.log('[Auth] Cleared all caches before creating new session')
   // Send to home if user already has an account
   setTimeout(() => (success.value = 'Creating secure session...'), 500)
   await createRefreshToken()
