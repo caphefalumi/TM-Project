@@ -11,7 +11,12 @@ on:
       build_linux:
         description: 'Build for Linux'
         required: false
-        default: true
+        default: false
+        type: boolean
+      build_macos:
+        description: 'Build for macOS'
+        required: false
+        default: false
         type: boolean
   release:
     types: [published]
@@ -131,5 +136,54 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-bundle-linux
+          path: client/src-tauri/target/release/bundle
+          if-no-files-found: error
+
+  build_macos:
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.build_macos == 'true'
+    runs-on: macos-latest
+    name: Build Tauri app (macOS)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            client/src-tauri/target
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: rust-build-macos-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: client/.bun
+          key: bun-macos-${{ hashFiles('client/bun.lock') }}
+
+      - name: Install frontend dependencies
+        working-directory: client
+        run: bun install --frozen-lockfile
+
+      - name: Build Tauri app (macOS)
+        working-directory: client
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
+        run: bunx --bun tauri build
+
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-bundle-macos
           path: client/src-tauri/target/release/bundle
           if-no-files-found: error
