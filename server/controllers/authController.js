@@ -11,43 +11,32 @@ import 'dotenv/config'
 
 const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
 
-const getUserIDAndEmailByName = async (req, res) => {
-  let { username } = req.params
-  if (!username) {
-    return res.status(400).json({ error: 'Username is required' })
-  }
-  try {
-    const account = await Account.findOne({ username })
-    if (!account) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-    return res.status(200).json({
-      userId: account._id,
-      email: account.email,
-      success: 'User found',
-    })
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-}
-
 // This is only called when user submit forms in OAuth for registration / login
 // Returns message for Gmail OAuth
 
 const oAuthentication = async (req, res) => {
   let { email } = req.body
   if (!email) {
+    console.log('No email provided')
+
     return res.status(400).json({ error: 'Email is required' })
   }
   email = email.toLowerCase()
   const existingUser = await Account.findOne({ email })
   if (!existingUser) {
     // No user --> require username for register
+    console.log('OAuth registration for new user with email:', email)
+
     return res.status(202).json({ success: 'register' })
   } else {
     // Has user --> authorize
-    return res.status(202).json({ success: 'login', username: existingUser.username })
+    console.log('OAuth login for existing user:', existingUser.username)
+    return res.status(202).json({
+      success: 'login',
+      username: existingUser.username,
+      userId: existingUser._id.toString(),
+      email: existingUser.email
+    })
   }
 }
 
@@ -167,7 +156,12 @@ const oAuthenticationRegister = async (req, res) => {
     await createSampleTeamAndTasks(account)
     res
       .status(201)
-      .json({ success: 'Account created successfully. Sample team and tasks created.' })
+      .json({
+        success: 'Account created successfully. Sample team and tasks created.',
+        userId: account._id.toString(),
+        username: account.username,
+        email: account.email
+      })
   } catch (err) {
     res.status(400).json({ error: err })
   }
@@ -385,7 +379,6 @@ const resendEmailVerification = async (req, res) => {
 }
 
 export default {
-  getUserIDAndEmailByName,
   oAuthentication,
   oAuthenticationRegister,
   localRegister,

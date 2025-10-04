@@ -8,7 +8,6 @@ const {
   oAuthenticationRegister,
   localRegister,
   localLogin,
-  getUserIDAndEmailByName,
   forgotPassword,
   resetPassword,
   verifyToken,
@@ -17,7 +16,6 @@ const {
 
 router.post('/oauth', oAuthentication)
 router.post('/google/register', oAuthenticationRegister)
-router.get('/user/:username', getUserIDAndEmailByName)
 
 router.post('/local/register', localRegister)
 router.post('/local/login', localLogin)
