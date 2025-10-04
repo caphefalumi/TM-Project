@@ -7,12 +7,11 @@ import { useComponentCache } from '../composables/useComponentCache.js'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { clearAllCaches } = useComponentCache()
-
 // Check if running in Tauri
 const isTauri = computed(() => {
   return true
 })
+const { clearAllCaches } = useComponentCache()
 
 onMounted(async () => {
   try {
@@ -47,6 +46,10 @@ const sendToHomePage = async () => {
   clearAllCaches()
   console.log('[Auth] Cleared all caches before creating new session')
   // Send to home if user already has an account
+  // Clear all caches from any previous session before creating new session
+  clearAllCaches()
+  console.log('[Auth] Cleared all caches before creating new session')
+
   setTimeout(() => (success.value = 'Creating secure session...'), 500)
   await createRefreshToken()
   await getAccessToHome()

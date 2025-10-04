@@ -124,7 +124,6 @@ const fetchRoles = async () => {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        credentials: 'include', // Important: sends refresh token cookie
       },
     })
 
@@ -153,7 +152,7 @@ const fetchRoles = async () => {
     ]
     const customRoleOptions = data.roles.map((role) => ({
       title: role.name,
-      value: `custom:${role._id}`, // Use unique identifier for custom roles
+      value: `custom:${role._id}`,
       roleType: ROLE_TYPES.CUSTOM,
       roleId: role._id,
       icon: role.icon || 'mdi-star',
@@ -161,9 +160,6 @@ const fetchRoles = async () => {
     }))
 
     listOfRoles.value = [...defaultRoles, ...customRoleOptions]
-
-    console.log('Fetched team roles:', data.roles)
-    console.log('Combined role options:', listOfRoles.value)
   } catch (error) {
     console.error('Failed to fetch custom roles:', error)
   }
@@ -215,25 +211,36 @@ const setUserFromProps = (userProps) => {
 
 onMounted(async () => {
   setUserFromProps(props.userProps)
-  await fetchRoles() // Fetch custom roles for this team
   await fetchUsers()
 })
 
-// Watch for teamId changes to refetch custom roles
+// Fetch roles when dialog opens (not on mount)
 watch(
-  () => props.teamId,
-  (newTeamId) => {
-    if (newTeamId) {
-      fetchRoles()
+  () => props.dialog,
+  async (isOpen) => {
+    if (isOpen && props.teamId) {
+      await fetchRoles()
     }
   },
 )
 
-// Watch for role updates to refresh the role list
+// Watch for teamId changes to refetch custom roles (only if dialog is open)
+watch(
+  () => props.teamId,
+  async (newTeamId, oldTeamId) => {
+    if (newTeamId && newTeamId !== oldTeamId && props.dialog) {
+      await fetchRoles()
+    }
+  },
+)
+
+// Watch for role updates to refresh the role list (only if dialog is open)
 watch(
   () => props.roleUpdateTrigger,
-  () => {
-    fetchRoles()
+  async (newValue, oldValue) => {
+    if (newValue !== oldValue && props.dialog && props.teamId) {
+      await fetchRoles()
+    }
   },
 )
 
