@@ -119,6 +119,12 @@ router.beforeEach(async (to, from, next) => {
   const redirectIfAuthenticated = to.matched.some((record) => record.meta.redirectIfAuthenticated)
   const authStore = useAuthStore()
 
+  // Skip auth check if only query params changed (same route, e.g., tab changes)
+  if (to.path === from.path && to.name === from.name) {
+    next()
+    return
+  }
+
   if (!requiresAuth && !redirectIfAuthenticated) {
     next()
     return

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import { useComponentCache } from '../composables/useComponentCache.js'
 import NotificationCenter from './NotificationCenter.vue'
 
 // Import Admin.Vue if username is 'admin'
@@ -9,6 +10,7 @@ import NotificationCenter from './NotificationCenter.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const { clearAllCaches } = useComponentCache()
 
 const appTitle = 'Teams Management'
 
@@ -83,18 +85,15 @@ watch(
 
 const logout = async () => {
   try {
-    drawer.value = false // Close the drawer
-    console.log('Logging out user:', user.value.username)
+    drawer.value = false
     await authStore.logout()
+
+    clearAllCaches()
 
     originalUserId.value = ''
 
-    console.log('Logout successful, redirecting to login page')
-    // Redirect to the login page
     router.push('/')
   } catch (error) {
-    console.error('Logout failed:', error)
-    // Even if logout fails, still redirect to login for security
     router.push('/')
   }
 }

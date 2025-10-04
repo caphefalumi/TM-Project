@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { decodeCredential } from 'vue3-google-login'
 import { useAuthStore } from '../stores/auth.js'
+import { useComponentCache } from '../composables/useComponentCache.js'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { clearAllCaches } = useComponentCache()
 
 onMounted(async () => {
   try {
@@ -38,6 +40,10 @@ const showResendVerification = ref(false)
 
 const sendToHomePage = async () => {
   // Send to home if user already has an account
+  // Clear all caches from any previous session before creating new session
+  clearAllCaches()
+  console.log('[Auth] Cleared all caches before creating new session')
+  
   setTimeout(() => (success.value = 'Creating secure session...'), 500)
   await getUserId(username.value)
   console.log('User ID:', userId.value)
