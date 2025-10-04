@@ -1,11 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { decodeCredential } from 'vue3-google-login'
 import { useAuthStore } from '../stores/auth.js'
-
 const router = useRouter()
 const authStore = useAuthStore()
+
+// Check if running in Tauri
+const isTauri = computed(() => {
+  return true
+})
 
 onMounted(async () => {
   try {
@@ -39,10 +43,6 @@ const showResendVerification = ref(false)
 const sendToHomePage = async () => {
   // Send to home if user already has an account
   setTimeout(() => (success.value = 'Creating secure session...'), 500)
-  await getUserId(username.value)
-  console.log('User ID:', userId.value)
-  await getUserEmail(username.value)
-  console.log('User Email:', userEmail.value)
   await createRefreshToken()
   await getAccessToHome()
   console.log('User ID:', username.value)
@@ -66,56 +66,6 @@ function goToRegister() {
 
 const goBack = () => {
   router.push('/')
-}
-
-const getUserId = async (name) => {
-  // Get user ID from the server
-  const PORT = import.meta.env.VITE_API_PORT
-  try {
-    let param = name.replace(/ /g, '%20') // Encode spaces in username
-    if (!param) {
-      error.value = 'Username is required'
-      return
-    }
-    const res = await fetch(`${PORT}/api/auth/user/${param}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    const data = await res.json()
-    if (!res.ok || data.error) {
-      error.value = data.error
-    } else {
-      userId.value = data.userId
-      success.value = 'User ID retrieved successfully!'
-    }
-  } catch (err) {
-    error.value = 'Network error'
-  }
-}
-
-const getUserEmail = async (name) => {
-  // Get user email from the server
-  const PORT = import.meta.env.VITE_API_PORT
-  try {
-    let param = name.replace(/ /g, '%20') // Encode spaces in username
-    if (!param) {
-      error.value = 'Username is required'
-      return
-    }
-    const res = await fetch(`${PORT}/api/auth/user/${param}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    const data = await res.json()
-    if (!res.ok || data.error) {
-      error.value = data.error
-    } else {
-      userEmail.value = data.email
-      success.value = 'User email retrieved successfully!'
-    }
-  } catch (err) {
-    error.value = 'Network error'
-  }
 }
 
 const getAccessToHome = async () => {
@@ -240,6 +190,8 @@ const loginUsingOAuth = async (response) => {
           usingOAuthRegister.value = true
         } else if (data.success === 'login') {
           username.value = data.username
+          userId.value = data.userId
+          userEmail.value = data.email
           sendToHomePage()
         }
       }
@@ -294,6 +246,9 @@ const registerWithOAuth = async () => {
       console.log('Data:', data)
       if (data.success) {
         success.value = data.success
+        userId.value = data.userId
+        username.value = data.username
+        userEmail.value = data.email
         sendToHomePage()
       } else if (data.error) {
         error.value = data.error
@@ -380,7 +335,23 @@ const resendVerificationEmail = async () => {
                 Login
               </v-btn>
               <v-divider class="my-4">OR</v-divider>
-              <GoogleLogin class="w-100 oauth-button" :callback="loginUsingOAuth"></GoogleLogin>
+              <!-- Show different button for Tauri vs Web -->
+              <GoogleLogin
+                v-if="!isTauri"
+                class="w-100 oauth-button"
+                :callback="loginUsingOAuth"
+              >
+              </GoogleLogin>
+              <v-btn
+                v-else
+                @click="loginWithGoogleInTauri"
+                color="white"
+                block
+                class="mb-2 oauth-button-tauri"
+                prepend-icon="mdi-google"
+              >
+                Sign in with Google (Opens in Browser)
+              </v-btn>
             </v-form>
             <v-form v-else @submit.prevent="registerWithOAuth">
               <v-text-field
