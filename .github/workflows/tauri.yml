@@ -66,6 +66,7 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
+          VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
@@ -130,6 +131,7 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
+          VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
@@ -179,6 +181,7 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
+          VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
