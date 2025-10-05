@@ -6,7 +6,6 @@ import { useAuthStore } from '../stores/auth.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 const { clearAllCaches } = useComponentCache()
 import { open } from '@tauri-apps/plugin-shell'
-import { listen } from '@tauri-apps/api/event'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -14,6 +13,7 @@ const authStore = useAuthStore()
 const isTauri = computed(() => {
   return window.isTauri
 })
+
 
 onMounted(async () => {
   try {
