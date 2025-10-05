@@ -1,12 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { decodeCredential } from 'vue3-google-login'
 import { useAuthStore } from '../stores/auth.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 const { clearAllCaches } = useComponentCache()
 import { open } from '@tauri-apps/plugin-shell'
-
+import vIconLogin from '../components/vIconLogin.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 // Check if running in Tauri
@@ -178,62 +177,38 @@ const loginUsingLocal = async () => {
 }
 
 const loginUsingOAuth = async (response) => {
+  console.log('OAuth Response:', response)
   // Login with OAuth Button logic
-  const validateEmail = async (email) => {
-    isLoading.value = true
-    error.value = ''
-    success.value = ''
-    userEmail.value = email
-    const PORT = import.meta.env.VITE_API_PORT
-
-    try {
-      const res = await fetch(`${PORT}/api/auth/oauth`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-        }),
-      })
-
-      if (!res.ok) {
-        error.value = res.error || 'Validate email failed'
-      } else {
-        success.value = 'Authorization completed! Please enter username.'
-        const data = await res.json()
-        console.log('Data:', data)
-
-        if (data.success === 'register') {
-          usingOAuthRegister.value = true
-        } else if (data.success === 'login') {
-          username.value = data.username
-          userId.value = data.userId
-          userEmail.value = data.email
-          console.log('Existing user, logging in...', data)
-          sendToHomePage()
-        }
-      }
-    } catch (err) {
-      error.value = 'Network error'
-    } finally {
-      isLoading.value = false
-    }
-  }
-
+  isLoading.value = true
+  error.value = ''
+  success.value = ''
   try {
-    const userData = decodeCredential(response.credential)
-    console.log('Handle the userData:', userData)
-    if (userData) {
-      const userEmail = userData.email
-      const userUsername = userData.given_name
-      username.value = userUsername // Use as provided by OAuth
-
-      validateEmail(userEmail)
-      // API returns Object --> Validate whether this email is registered or not
-    } else {
-      error.value = 'Authorization failed'
+    // Use the access_token from the OAuth response
+    const res = await fetch(`${import.meta.env.VITE_API_PORT}/api/auth/oauth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        token: response.access_token,
+      }),
+    })
+    const data = await res.json()
+    if (data.success === 'register') {
+      usingOAuthRegister.value = true
+      success.value = 'Authorization completed! Please enter username.'
+    } else if (data.success === 'login') {
+      username.value = data.username
+      userId.value = data.userId
+      userEmail.value = data.email
+      console.log('Existing user, logging in...', data)
+      sendToHomePage()
+    } else if (data.error) {
+      error.value = data.error
     }
-  } catch (error) {
-    error.value = error
+  } catch (err) {
+    error.value = err.response?.data?.error || 'OAuth login failed'
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -460,7 +435,12 @@ const resendVerificationEmail = async () => {
                 v-if="!isTauri"
                 class="w-100 oauth-button"
                 :callback="loginUsingOAuth"
+                auto-login
+                popup-type="TOKEN"
               >
+                <v-icon-login
+                  provider="google"
+                />
               </GoogleLogin>
               <v-btn
                 v-else
