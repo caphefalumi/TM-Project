@@ -1448,12 +1448,13 @@ const isDev = computed(() => {
         <v-window-item value="workflow">
           <v-row>
             <v-col cols="12">
-              <div class="d-flex align-center justify-space-between mb-3">
-                <h2 class="text-h5 mb-4">Team's Workflow</h2>
+              <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3">
+                <h2 class="text-h5">Team's Workflow</h2>
                 <v-btn
                   color="primary"
                   variant="outlined"
-                  size="small"
+                  size="large"
+                  class="flex-grow-1 flex-md-grow-0 mt-2"
                   @click="getTaskGroups"
                   :loading="refreshingTaskGroups"
                 >
@@ -1598,12 +1599,13 @@ const isDev = computed(() => {
           <div v-else>
             <v-row>
               <v-col cols="12">
-                <div class="d-flex align-center justify-space-between mb-3">
-                  <h2 class="text-h5 mb-4">Manage Team - Task Groups</h2>
+                <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3">
+                  <h2 class="text-h5">Manage Team - Task Groups</h2>
                   <v-btn
                     color="primary"
                     variant="outlined"
-                    size="small"
+                    size="large"
+                    class="flex-grow-1 flex-md-grow-0 mt-4"
                     @click="getTaskGroups"
                     :loading="refreshingTaskGroups"
                   >
@@ -1671,13 +1673,13 @@ const isDev = computed(() => {
             <!-- Task Groups List -->
             <v-row v-if="taskGroups.length > 0">
               <v-col cols="12">
-                <div class="d-flex align-center justify-space-between mb-3">
+                <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3">
                   <h3 class="text-h6">Task Groups</h3>
                   <v-btn
                     v-tooltip:bottom="'Add new tasks to the team'"
                     @click="newTaskDialog = !newTaskDialog"
                     color="primary"
-                    class="project-card rounded-lg font-weight-bold"
+                    class="project-card rounded-lg font-weight-bold flex-grow-1 flex-md-grow-0"
                     size="large"
                     variant="outlined"
                   >
@@ -1773,7 +1775,7 @@ const isDev = computed(() => {
                     </p>
                     <v-btn color="primary" @click="newTaskDialog = true" size="large">
                       <v-icon start>mdi-plus</v-icon>
-                      Create First Task Group
+                      Create Task Group
                     </v-btn>
                   </v-card-text>
                 </v-card>
@@ -1850,38 +1852,48 @@ const isDev = computed(() => {
                   <v-card-text>
                     <p>{{ announcement.content }}</p>
                   </v-card-text>
-                  <v-card-actions>
-                    <v-btn
-                      @click="toggleLikeAnnouncement(announcement._id)"
-                      :color="getLikeColor(announcement)"
-                      variant="outlined"
-                    >
-                      <v-icon start>mdi-thumb-up</v-icon>Like ({{ announcement.likeUsers.length }})
-                    </v-btn>
-                    <v-btn
-                      @click="viewAnnouncement(announcement._id)"
-                      color="secondary"
-                      variant="outlined"
-                    >
-                      <v-icon start>mdi-comment-text</v-icon>Comments
-                    </v-btn>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      v-if="permissionService.canManageAnnouncements()"
-                      color="primary"
-                      variant="outlined"
-                      @click="editAnnnouncement(announcement._id)"
-                    >
-                      Edit
-                    </v-btn>
-                    <v-btn
-                      v-if="permissionService.canDeleteAnnouncements()"
-                      color="error"
-                      variant="outlined"
-                      @click="deleteAnnouncement(announcement._id)"
-                    >
-                      Delete
-                    </v-btn>
+                  <v-card-actions class="pa-3">
+                    <div class="d-flex flex-wrap announcement-actions-wrapper w-100">
+                      <v-btn
+                        @click="toggleLikeAnnouncement(announcement._id)"
+                        :color="getLikeColor(announcement)"
+                        variant="outlined"
+                        class="announcement-action-btn"
+                      >
+                        <v-icon start>mdi-thumb-up</v-icon>
+                        <span>Like ({{ announcement.likeUsers.length }})</span>
+                      </v-btn>
+                      <v-btn
+                        @click="viewAnnouncement(announcement._id)"
+                        color="secondary"
+                        variant="outlined"
+                        class="announcement-action-btn"
+                      >
+                        <v-icon start>mdi-comment-text</v-icon>
+                        <span>Comments</span>
+                      </v-btn>
+                      <v-spacer class="d-none d-sm-flex"></v-spacer>
+                      <v-btn
+                        v-if="permissionService.canManageAnnouncements()"
+                        color="primary"
+                        variant="outlined"
+                        @click="editAnnnouncement(announcement._id)"
+                        class="announcement-action-btn"
+                      >
+                        <v-icon start>mdi-pencil</v-icon>
+                        <span>Edit</span>
+                      </v-btn>
+                      <v-btn
+                        v-if="permissionService.canDeleteAnnouncements()"
+                        color="error"
+                        variant="outlined"
+                        @click="deleteAnnouncement(announcement._id)"
+                        class="announcement-action-btn"
+                      >
+                        <v-icon start>mdi-delete</v-icon>
+                        <span>Delete</span>
+                      </v-btn>
+                    </div>
                   </v-card-actions>
                 </v-card>
               </v-col>
@@ -2067,19 +2079,23 @@ const isDev = computed(() => {
             <v-row>
               <v-col cols="12">
                 <v-card variant="outlined" class="mb-4">
-                  <v-card-title class="d-flex align-center">
-                    <v-icon class="mr-2" color="error">mdi-family-tree</v-icon>
-                    Teams to be Deleted
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      @click="fetchSubTeams"
-                      variant="outlined"
-                      size="small"
-                      :loading="isLoadingSubTeams"
-                    >
-                      <v-icon start>mdi-refresh</v-icon>
-                      Refresh
-                    </v-btn>
+                  <v-card-title>
+                    <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 w-100">
+                      <div class="d-flex align-center">
+                        <v-icon class="mr-2" color="error">mdi-family-tree</v-icon>
+                        Teams to be Deleted
+                      </div>
+                      <v-btn
+                        @click="fetchSubTeams"
+                        variant="outlined"
+                        size="large"
+                        class="flex-grow-1 flex-md-grow-0 mt-2 mb-2"
+                        :loading="isLoadingSubTeams"
+                      >
+                        <v-icon start>mdi-refresh</v-icon>
+                        Refresh
+                      </v-btn>
+                    </div>
                   </v-card-title>
 
                   <v-card-text>
@@ -2231,7 +2247,7 @@ const isDev = computed(() => {
                       :loading="isDeletingTeam"
                     >
                       <v-icon start>mdi-delete-forever</v-icon>
-                      Delete Team Permanently
+                      Delete Team
                     </v-btn>
                   </v-card-actions>
                 </v-card>
@@ -2247,7 +2263,7 @@ const isDev = computed(() => {
 <style scoped>
 .project-card {
   transition: all 0.3s ease;
-  border: 1px solid #e0e0e0;
+  border: 1px solid;
   cursor: pointer;
   min-height: 60px;
 }
@@ -2395,5 +2411,30 @@ const isDev = computed(() => {
   height: 8px;
   border-radius: 50%;
   background: rgba(var(--v-theme-primary), 0.6);
+}
+
+/* Announcement Action Buttons */
+.announcement-actions-wrapper {
+  gap: 8px; /* 8px gap in all directions (horizontal and vertical) */
+}
+
+.announcement-action-btn {
+  /* Mobile: 2 buttons per row with 8px gap between them */
+  /* Total width = 100%, gap = 8px, so each button = (100% - 8px) / 2 */
+  flex: 0 0 calc((100% - 8px) / 2);
+  min-width: 0;
+}
+
+/* Tablet and up: auto width */
+@media (min-width: 600px) {
+  .announcement-action-btn {
+    flex: 0 0 auto;
+    min-width: auto;
+  }
+  
+  /* Remove margin on mobile, only apply on desktop */
+  .announcement-action-btn:not(:first-child) {
+    margin-left: 0;
+  }
 }
 </style>

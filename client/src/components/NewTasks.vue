@@ -357,7 +357,7 @@ const getFieldPreviewValue = (field) => {
       <v-card-text class="pa-0">
         <v-row no-gutters class="fill-height">
           <!-- Left Side - Task Creation Form -->
-          <v-col id="tour-task-form" cols="6" class="pa-4 border-end">
+          <v-col id="tour-task-form" cols="12" md="6" class="pa-4 border-end">
             <div class="task-creation-side">
               <h3 class="text-h6 mb-4">Task Details</h3>
 
@@ -710,7 +710,7 @@ const getFieldPreviewValue = (field) => {
           </v-col>
 
           <!-- Right Side - Preview -->
-          <v-col id="tour-task-preview" cols="6" class="pa-4 bg-grey-lighten-5">
+          <v-col id="tour-task-preview" cols="12" md="6" class="pa-4 bg-grey-lighten-5">
             <div class="task-preview-side">
               <h3 class="text-h6 mb-4">Task Preview</h3>
 
@@ -858,22 +858,47 @@ const getFieldPreviewValue = (field) => {
 </template>
 
 <style scoped>
+/* Border on the right for desktop, on the bottom for mobile */
 .border-end {
-  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+@media (min-width: 960px) {
+  .border-end {
+    border-right: 1px solid #e0e0e0;
+    border-bottom: none;
+  }
 }
 
 .task-creation-side {
-  height: 500px;
+  max-height: 500px;
   overflow-y: auto;
 }
 
 .task-preview-side {
-  height: 500px;
+  max-height: 500px;
   overflow-y: auto;
+}
+
+/* Adjust heights for mobile */
+@media (max-width: 959px) {
+  .task-creation-side {
+    max-height: 400px;
+  }
+  
+  .task-preview-side {
+    max-height: 400px;
+  }
 }
 
 .fill-height {
   min-height: 500px;
+}
+
+@media (max-width: 959px) {
+  .fill-height {
+    min-height: auto;
+  }
 }
 
 .close-button {
