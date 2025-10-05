@@ -35,7 +35,6 @@ const password = ref('')
 const userEmail = ref('')
 const userId = ref('')
 
-const authenticate = ref(false)
 const showPassword = ref(false)
 const usingOAuthRegister = ref(false)
 const isLoading = ref(false)
@@ -50,20 +49,14 @@ const sendToHomePage = async () => {
   console.log('[Auth] Cleared all caches before creating new session')
 
   await createRefreshToken()
+  authStore.setLoggedIn(true)
+
   console.log('User ID:', userId.value)
   console.log('Username:', username.value)
   console.log('Email:', userEmail.value)
-  console.log('Authenticate:', authenticate.value)
-  if (authenticate.value) {
-    authStore.setLoggedIn(true)
-    await authStore.fetchUser()
-
-    success.value = 'Session created successfully!'
-    router.push('/home')
-  } else {
-    error.value = 'Authentication failed. Please try again.'
-    success.value = ''
-  }
+  await authStore.fetchUser()
+  success.value = 'Session created successfully!'
+  router.push('/home')
 }
 
 function goToRegister() {
@@ -239,11 +232,8 @@ async function loginWithGoogleInTauri() {
     `&code_challenge=${codeChallenge}` +
     `&code_challenge_method=S256`
 
-  console.log('Auth URL:', authUrl)
   // Open browser for login
   await open(authUrl)
-  console.log('Opened Google login...')
-
   // Poll backend for OAuth completion
   const maxAttempts = 60 // 2 minutes timeout
   let attempts = 0
@@ -417,16 +407,11 @@ const resendVerificationEmail = async () => {
                   provider="google"
                 />
               </GoogleLogin>
-              <v-btn
+              <v-icon-login
                 v-else
+                provider="google"
                 @click="loginWithGoogleInTauri"
-                color="white"
-                block
-                class="mb-2 oauth-button-tauri"
-                prepend-icon="mdi-google"
-              >
-                Sign in with Google (Opens in Browser)
-              </v-btn>
+              />
             </v-form>
             <v-form v-else @submit.prevent="registerWithOAuth">
               <v-text-field
