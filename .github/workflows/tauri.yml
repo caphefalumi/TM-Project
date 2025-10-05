@@ -73,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-bundle-windows
-          path: client/src-tauri/target/release/bundle
+          path: client/src-tauri/target/release/bundle/nsis
           if-no-files-found: error
 
   build_linux:
