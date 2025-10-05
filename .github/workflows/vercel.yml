@@ -24,15 +24,14 @@ jobs:
 
       - run: npm install -g vercel
 
-      - name: Deploy server
-        working-directory: ./server
-        run: vercel --prod --token=$VERCEL_TOKEN --yes
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SERVER_PROJECT_ID }}
-
       - name: Deploy client
         working-directory: ./client
         run: vercel --prod --token=$VERCEL_TOKEN --yes
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
 
+      - name: Deploy server
+        working-directory: ./server
+        run: vercel --prod --token=$VERCEL_TOKEN --yes
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SERVER_PROJECT_ID }}
