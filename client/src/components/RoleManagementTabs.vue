@@ -492,9 +492,15 @@ onMounted(async () => {
       <v-window-item value="manage-roles">
         <v-row class="mt-4">
           <v-col cols="12">
-            <div class="d-flex justify-space-between align-center mb-4">
+            <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-4">
               <h3 class="text-h6">Custom Roles ({{ customRoles.length }})</h3>
-              <v-btn @click="openCreateRoleDialog" color="primary" variant="elevated">
+              <v-btn 
+                @click="openCreateRoleDialog" 
+                color="primary" 
+                variant="elevated"
+                size="large"
+                class="flex-grow-1 flex-md-grow-0 mt-4"
+              >
                 <v-icon start>mdi-plus</v-icon>
                 Create Custom Role
               </v-btn>

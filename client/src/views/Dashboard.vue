@@ -262,32 +262,35 @@ const toggleSortOrder = () => {
   <v-container fluid class="pa-6">
     <!-- Header Section -->
     <v-row id="tour-dashboard-welcome" class="align-center mb-6">
-      <v-col cols="12" md="8">
+      <v-col cols="12" md="6">
         <h1 class="text-h4 font-weight-bold">Hi, {{ user.username }}!</h1>
         <p class="text-h6 text-grey">Here's your task overview and calendar</p>
       </v-col>
-      <v-col cols="12" md="4" class="text-right">
-        <v-btn
-          id="tour-help-button"
-          @click="() => startAppTour(router)"
-          color="success"
-          size="large"
-          variant="outlined"
-          class="mr-2"
-        >
-          <v-icon start>mdi-map-marker-path</v-icon>
-          Start Tour
-        </v-btn>
-        <v-btn
-          @click="handleRefresh"
-          :loading="loading"
-          color="primary"
-          size="large"
-          variant="outlined"
-        >
-          <v-icon start>mdi-refresh</v-icon>
-          Refresh
-        </v-btn>
+      <v-col cols="12" md="6">
+        <div class="d-flex flex-column flex-md-row gap-2">
+          <v-btn
+            id="tour-help-button"
+            @click="() => startAppTour(router)"
+            color="success"
+            size="large"
+            variant="outlined"
+            class="flex-grow-1"
+          >
+            <v-icon start>mdi-map-marker-path</v-icon>
+            Start Tour
+          </v-btn>
+          <v-btn
+            @click="handleRefresh"
+            :loading="loading"
+            color="primary"
+            size="large"
+            variant="outlined"
+            class="flex-grow-1"
+          >
+            <v-icon start>mdi-refresh</v-icon>
+            Refresh
+          </v-btn>
+        </div>
       </v-col>
     </v-row>
 
