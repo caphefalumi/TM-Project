@@ -39,6 +39,112 @@ vi.mock('@tauri-apps/plugin-shell', () => ({
 import AuthStore from '../src/scripts/authStore.js'
 import { open } from '@tauri-apps/plugin-shell'
 
+const createStubComponent = (name) => ({
+  name,
+  template: '<div><slot div>',
+})
+
+const VFormStub = {
+  name: 'v-form',
+  emits: ['submit'],
+  template: '<form @submit.prevent="$emit(\'submit\', $event)"><slot orm>',
+}
+
+const VTextFieldStub = {
+  name: 'v-text-field',
+  props: {
+    modelValue: {
+      type: [String, Number],
+      default: '',
+    },
+    label: {
+      type: String,
+      default: '',
+    },
+    type: {
+      type: String,
+      default: 'text',
+    },
+  },
+  emits: ['update:modelValue', 'click:append-inner'],
+  template: `
+    <div class="v-text-field">
+      <input
+        :type="type || 'text'"
+        :data-label="label"
+        :value="modelValue"
+        @input="$emit('update:modelValue', $event.target.value)"
+      >
+      <button type="button" class="append-inner" @click="$emit('click:append-inner')"></button>
+      <slot></slot>
+    </div>
+  `,
+}
+
+const VBtnStub = {
+  name: 'v-btn',
+  props: {
+    type: {
+      type: String,
+      default: 'button',
+    },
+    disabled: Boolean,
+  },
+  emits: ['click'],
+  template: `
+    <button :type="type || 'button'" :disabled="disabled" @click="$emit('click', $event)">
+      <slot></slot>
+    </button>
+  `,
+}
+
+const VAlertStub = {
+  name: 'v-alert',
+  props: {
+    type: {
+      type: String,
+      default: 'info',
+    },
+  },
+  template: '<div class="v-alert" :data-type="type"><slot></slot></div>',
+}
+
+const VIconStub = {
+  name: 'v-icon',
+  template: '<span class="v-icon"><slot></slot></span>',
+}
+
+const VIconLoginStub = {
+  name: 'v-icon-login',
+  template: '<div class="v-icon-login"><slot></slot></div>',
+}
+
+const GoogleLoginStub = {
+  name: 'GoogleLogin',
+  emits: ['success', 'error'],
+  template: '<div class="google-login"><slot></slot></div>',
+}
+
+const baseStubs = {
+  'v-container': createStubComponent('v-container'),
+  'v-row': createStubComponent('v-row'),
+  'v-col': createStubComponent('v-col'),
+  'v-card': createStubComponent('v-card'),
+  'v-card-title': createStubComponent('v-card-title'),
+  'v-card-text': createStubComponent('v-card-text'),
+  'v-divider': {
+    name: 'v-divider',
+    template: '<div class="v-divider"><slot></slot></div>',
+  },
+  'v-form': VFormStub,
+  'v-text-field': VTextFieldStub,
+  'v-btn': VBtnStub,
+  'v-icon': VIconStub,
+  'v-alert': VAlertStub,
+  'v-icon-login': VIconLoginStub,
+  GoogleLogin: GoogleLoginStub,
+}
+
 describe('Login View', () => {
   let wrapper
   let router
@@ -80,27 +186,17 @@ describe('Login View', () => {
   })
 
   const mountLogin = async (options = {}) => {
+    const { global: globalOptions, ...mountOptions } = options
     wrapper = mount(Login, {
       global: {
         plugins: [router, pinia],
+        ...globalOptions,
         stubs: {
-          'v-container': false,
-          'v-row': false,
-          'v-col': false,
-          'v-card': false,
-          'v-card-title': false,
-          'v-card-text': false,
-          'v-form': false,
-          'v-text-field': false,
-          'v-btn': false,
-          'v-icon': false,
-          'v-alert': false,
-          'v-divider': false,
-          'GoogleLogin': true,
-          'v-icon-login': true,
+          ...baseStubs,
+          ...(globalOptions?.stubs || {}),
         },
-        ...options,
       },
+      ...mountOptions,
     })
     await flushPromises()
     return wrapper
@@ -108,11 +204,9 @@ describe('Login View', () => {
 
   describe('Form Rendering', () => {
     it('should render login form with username and password fields', async () => {
-      // Act
       await mountLogin()
 
-      // Assert
-      const usernameField = wrapper.find('input[type="text"]')
+      const usernameField = wrapper.find('input[data-label="Username"]')
       const passwordField = wrapper.find('input[type="password"]')
       const loginButton = wrapper.find('button[type="submit"]')
 
@@ -122,10 +216,8 @@ describe('Login View', () => {
     })
 
     it('should have back button and navigation links', async () => {
-      // Act
       await mountLogin()
 
-      // Assert
       const backButton = wrapper.findAll('button').find(btn =>
         btn.html().includes('mdi-arrow-left')
       )
@@ -140,72 +232,60 @@ describe('Login View', () => {
 
   describe('Form Validation', () => {
     it('should show error when fields are empty', async () => {
-      // Arrange
       await mountLogin()
       const form = wrapper.find('form')
 
-      // Act
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.exists()).toBe(true)
       expect(errorAlert.text()).toContain('All fields are required')
     })
 
     it('should show error when only username is provided', async () => {
-      // Arrange
       await mountLogin()
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const form = wrapper.find('form')
 
-      // Act
       await usernameInput.setValue('testuser')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('All fields are required')
     })
 
     it('should show error when only password is provided', async () => {
-      // Arrange
       await mountLogin()
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
-      // Act
       await passwordInput.setValue('password123')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('All fields are required')
     })
   })
 
   describe('Local Authentication', () => {
     it('should display error message when API returns error', async () => {
-      // Arrange
       await mountLogin()
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({ error: 'Invalid credentials' }, false, 401)
       )
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
-      // Act
       await usernameInput.setValue('wronguser')
       await passwordInput.setValue('wrongpass')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/auth/local/login',
         expect.objectContaining({
@@ -216,18 +296,16 @@ describe('Login View', () => {
           }),
         })
       )
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('Invalid credentials')
     })
 
     it('should handle successful login and navigate to home', async () => {
-      // Arrange
       const mockUser = createMockUser()
       AuthStore.getUserByAccessToken.mockResolvedValue(mockUser)
 
       await mountLogin()
 
-      // Mock successful login response
       fetchMock.mockImplementation((url) => {
         if (url.includes('/api/auth/local/login')) {
           return mockFetchResponse({
@@ -241,17 +319,15 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
-      // Act
       await usernameInput.setValue('testuser')
       await passwordInput.setValue('password123')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/auth/local/login',
         expect.any(Object)
@@ -267,29 +343,25 @@ describe('Login View', () => {
     })
 
     it('should handle network error gracefully', async () => {
-      // Arrange
       await mountLogin()
       fetchMock.mockRejectedValue(new Error('Network error'))
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
-      // Act
       await usernameInput.setValue('testuser')
       await passwordInput.setValue('password123')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('Network error')
     })
   })
 
   describe('Email Verification Flow', () => {
     it('should show resend verification button when email not verified', async () => {
-      // Arrange
       await mountLogin()
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse(
@@ -299,17 +371,15 @@ describe('Login View', () => {
         )
       )
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
-      // Act
       await usernameInput.setValue('testuser')
       await passwordInput.setValue('password123')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
       const resendButton = wrapper.findAll('button').find(btn =>
         btn.text().includes('Resend Verification Email')
       )
@@ -317,10 +387,8 @@ describe('Login View', () => {
     })
 
     it('should resend verification email successfully', async () => {
-      // Arrange
       await mountLogin()
 
-      // First mock: login fails with email not verified
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse(
           { error: 'Email not verified. Please check your inbox.' },
@@ -329,7 +397,7 @@ describe('Login View', () => {
         )
       )
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
@@ -338,19 +406,16 @@ describe('Login View', () => {
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Second mock: resend verification succeeds
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({ success: 'Verification email sent' })
       )
 
-      // Act
       const resendButton = wrapper.findAll('button').find(btn =>
         btn.text().includes('Resend Verification Email')
       )
       await resendButton.trigger('click')
       await flushPromises()
 
-      // Assert
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/auth/resend-verification',
         expect.objectContaining({
@@ -358,26 +423,22 @@ describe('Login View', () => {
           body: JSON.stringify({ email: 'testuser' }),
         })
       )
-      const successAlert = wrapper.find('.v-alert[type="success"]')
+      const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Verification email sent')
     })
   })
 
   describe('OAuth Flow (Web)', () => {
     it('should render Google OAuth button for web', async () => {
-      // Arrange
       window.isTauri = false
 
-      // Act
       await mountLogin()
 
-      // Assert
       const googleLogin = wrapper.findComponent({ name: 'GoogleLogin' })
       expect(googleLogin.exists()).toBe(true)
     })
 
     it('should handle OAuth registration flow', async () => {
-      // Arrange
       await mountLogin()
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
@@ -385,12 +446,10 @@ describe('Login View', () => {
         })
       )
 
-      // Act - simulate OAuth callback with token
       const oauthResponse = { access_token: 'mock-oauth-token' }
       await wrapper.vm.loginUsingOAuth(oauthResponse)
       await flushPromises()
 
-      // Assert
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/auth/oauth',
         expect.objectContaining({
@@ -400,12 +459,11 @@ describe('Login View', () => {
         })
       )
       expect(wrapper.vm.usingOAuthRegister).toBe(true)
-      const successAlert = wrapper.find('.v-alert[type="success"]')
+      const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Authorization completed')
     })
 
     it('should handle OAuth login for existing user', async () => {
-      // Arrange
       const mockUser = createMockUser()
       AuthStore.getUserByAccessToken.mockResolvedValue(mockUser)
 
@@ -426,29 +484,24 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      // Act
       const oauthResponse = { access_token: 'mock-oauth-token' }
       await wrapper.vm.loginUsingOAuth(oauthResponse)
       await flushPromises()
 
-      // Assert
       expect(router.currentRoute.value.path).toBe('/home')
     })
 
     it('should show error when OAuth fails', async () => {
-      // Arrange
       await mountLogin()
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({ error: 'OAuth authentication failed' }, false, 401)
       )
 
-      // Act
       const oauthResponse = { access_token: 'invalid-token' }
       await wrapper.vm.loginUsingOAuth(oauthResponse)
       await flushPromises()
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('OAuth authentication failed')
     })
   })
@@ -460,23 +513,20 @@ describe('Login View', () => {
     })
 
     afterEach(() => {
-      vi.restoreCurrentTimers()
+      vi.useRealTimers()
+      window.isTauri = false
     })
 
     it('should render Tauri-specific OAuth button', async () => {
-      // Act
       await mountLogin()
 
-      // Assert
       const tauriButton = wrapper.findComponent({ name: 'v-icon-login' })
       expect(tauriButton.exists()).toBe(true)
     })
 
     it('should open browser and poll for OAuth completion', async () => {
-      // Arrange
       await mountLogin()
 
-      // Mock OAuth start endpoint
       fetchMock.mockImplementation((url) => {
         if (url.includes('/api/auth/oauth/start')) {
           return mockFetchResponse({ success: true })
@@ -487,18 +537,15 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      // Act
       const promise = wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
 
-      // Assert - browser should open
       expect(open).toHaveBeenCalled()
       const openCall = open.mock.calls[0][0]
       expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
       expect(openCall).toContain('client_id=test-client-id')
       expect(openCall).toContain('code_challenge_method=S256')
 
-      // Assert - should start polling
       await advanceTimersAndFlush(2000)
       expect(fetchMock).toHaveBeenCalledWith(
         expect.stringContaining('/api/auth/oauth/status'),
@@ -507,7 +554,6 @@ describe('Login View', () => {
     })
 
     it('should handle successful OAuth polling for new user', async () => {
-      // Arrange
       await mountLogin()
 
       let pollCount = 0
@@ -529,24 +575,20 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      // Act
       const promise = wrapper.vm.loginWithGoogleInTauri()
 
-      // Simulate polling
       await flushPromises()
       await advanceTimersAndFlush(2000)
       await advanceTimersAndFlush(2000)
       await flushPromises()
 
-      // Assert
       expect(wrapper.vm.usingOAuthRegister).toBe(true)
       expect(wrapper.vm.userEmail).toBe('newuser@example.com')
-      const successAlert = wrapper.find('.v-alert[type="success"]')
+      const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Authorization completed')
     })
 
     it('should handle successful OAuth polling for existing user', async () => {
-      // Arrange
       const mockUser = createMockUser()
       AuthStore.getUserByAccessToken.mockResolvedValue(mockUser)
 
@@ -576,19 +618,16 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      // Act
       wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
       await advanceTimersAndFlush(2000)
       await advanceTimersAndFlush(2000)
       await flushPromises()
 
-      // Assert
       expect(router.currentRoute.value.path).toBe('/home')
     })
 
     it('should timeout after max polling attempts', async () => {
-      // Arrange
       await mountLogin()
 
       fetchMock.mockImplementation((url) => {
@@ -601,22 +640,18 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      // Act
       wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
 
-      // Advance past max attempts (60 attempts * 2 seconds)
       for (let i = 0; i < 61; i++) {
         await advanceTimersAndFlush(2000)
       }
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('OAuth timeout')
     })
 
     it('should handle OAuth error status', async () => {
-      // Arrange
       await mountLogin()
 
       let pollCount = 0
@@ -637,28 +672,24 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      // Act
       wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
       await advanceTimersAndFlush(2000)
       await advanceTimersAndFlush(2000)
       await flushPromises()
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('User denied access')
     })
   })
 
   describe('OAuth Registration Completion', () => {
     it('should complete OAuth registration with username', async () => {
-      // Arrange
       const mockUser = createMockUser()
       AuthStore.getUserByAccessToken.mockResolvedValue(mockUser)
 
       await mountLogin()
 
-      // Set OAuth register mode
       wrapper.vm.usingOAuthRegister = true
       wrapper.vm.userEmail = 'newuser@example.com'
       await flushPromises()
@@ -678,14 +709,12 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      // Act
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       await usernameInput.setValue('newusername')
       const form = wrapper.find('form')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/auth/google/register',
         expect.objectContaining({
@@ -700,7 +729,6 @@ describe('Login View', () => {
     })
 
     it('should show error if username is already taken', async () => {
-      // Arrange
       await mountLogin()
       wrapper.vm.usingOAuthRegister = true
       wrapper.vm.userEmail = 'newuser@example.com'
@@ -710,85 +738,74 @@ describe('Login View', () => {
         mockFetchResponse({ error: 'Username already exists' }, false, 409)
       )
 
-      // Act
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       await usernameInput.setValue('existinguser')
       const form = wrapper.find('form')
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('Username already exists')
     })
   })
 
   describe('Navigation', () => {
     it('should navigate to register page when clicking Sign up', async () => {
-      // Arrange
       await mountLogin()
 
-      // Act
       const signUpButton = wrapper.findAll('button').find(btn =>
         btn.text().includes('Sign up')
       )
       await signUpButton.trigger('click')
       await flushPromises()
 
-      // Assert
       expect(router.currentRoute.value.path).toBe('/register')
     })
 
     it('should navigate to forgot password page', async () => {
-      // Arrange
       await mountLogin()
 
-      // Act
       const forgotPasswordButton = wrapper.findAll('button').find(btn =>
         btn.text().includes('Forgot Password')
       )
       await forgotPasswordButton.trigger('click')
       await flushPromises()
 
-      // Assert
       expect(router.currentRoute.value.path).toBe('/forgot-password')
     })
 
     it('should navigate back to landing page', async () => {
-      // Arrange
       await mountLogin()
 
-      // Act
       const backButton = wrapper.findAll('button').find(btn =>
         btn.html().includes('mdi-arrow-left')
       )
       await backButton.trigger('click')
       await flushPromises()
 
-      // Assert
       expect(router.currentRoute.value.path).toBe('/')
     })
   })
 
   describe('Password Visibility Toggle', () => {
     it('should toggle password visibility', async () => {
-      // Arrange
       await mountLogin()
-      const passwordField = wrapper.find('input[type="password"]')
-
-      // Act - click eye icon
-      const eyeIcon = wrapper.findAll('.v-icon').find(icon =>
-        icon.html().includes('mdi-eye')
+      const passwordFields = wrapper.findAll('.v-text-field')
+      const passwordWrapper = passwordFields.find(field =>
+        field.find('input').attributes('data-label') === 'Password'
       )
-      await eyeIcon.trigger('click')
+      expect(passwordWrapper).toBeDefined()
+      const passwordInput = passwordWrapper.find('input')
+      expect(passwordInput.attributes('type')).toBe('password')
+
+      const toggleButton = passwordWrapper.find('.append-inner')
+      await toggleButton.trigger('click')
       await flushPromises()
 
-      // Assert
       expect(wrapper.vm.showPassword).toBe(true)
 
-      // Should now be text type
-      const textField = wrapper.find('input[type="text"]')
-      expect(textField.exists()).toBe(true)
+      const toggledInput = passwordWrapper.find('input')
+      expect(toggledInput.attributes('type')).toBe('text')
     })
   })
 })
