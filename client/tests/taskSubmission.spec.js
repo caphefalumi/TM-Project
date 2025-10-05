@@ -63,24 +63,6 @@ describe('TaskSubmission Component', () => {
     wrapper = mount(TaskSubmission, {
       global: {
         plugins: [pinia],
-        stubs: {
-          'v-dialog': false,
-          'v-card': false,
-          'v-card-title': false,
-          'v-card-text': false,
-          'v-card-actions': false,
-          'v-text-field': false,
-          'v-textarea': false,
-          'v-select': false,
-          'v-file-input': false,
-          'v-btn': false,
-          'v-icon': false,
-          'v-alert': false,
-          'v-chip': false,
-          'v-divider': false,
-          'v-row': false,
-          'v-col': false,
-        },
       },
       props: {
         ...defaultProps,

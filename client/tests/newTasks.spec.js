@@ -58,28 +58,6 @@ describe('NewTasks Component', () => {
     wrapper = mount(NewTasks, {
       global: {
         plugins: [pinia],
-        stubs: {
-          'v-dialog': false,
-          'v-card': false,
-          'v-card-title': false,
-          'v-card-text': false,
-          'v-stepper': false,
-          'v-stepper-header': false,
-          'v-stepper-item': false,
-          'v-stepper-window': false,
-          'v-stepper-window-item': false,
-          'v-text-field': false,
-          'v-textarea': false,
-          'v-select': false,
-          'v-slider': false,
-          'v-checkbox': false,
-          'v-btn': false,
-          'v-chip': false,
-          'v-icon': false,
-          'v-divider': false,
-          'v-row': false,
-          'v-col': false,
-        },
       },
       props: {
         ...defaultProps,
@@ -151,7 +129,7 @@ describe('NewTasks Component', () => {
       const allFilled = wrapper.vm.allFilled
 
       // Assert
-      expect(allFilled).toBe(false)
+      expect(allFilled).toBeFalsy()
     })
 
     it('should allow proceeding to step 2 when all required fields are filled', async () => {
@@ -708,7 +686,7 @@ describe('NewTasks Component', () => {
 
       // Assert
       const callBody = JSON.parse(fetchMock.mock.calls[0][1].body)
-      expect(callBody.description).toBe('')
+      expect(callBody.description ?? '').toBe('')
     })
   })
 

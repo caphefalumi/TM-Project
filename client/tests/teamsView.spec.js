@@ -91,27 +91,15 @@ describe('TeamsView', () => {
   })
 
   const mountTeamsView = async (options = {}) => {
+    const { stubs: localStubs = {}, ...globalOptions } = options
     wrapper = mount(TeamsView, {
       global: {
         plugins: [router, pinia],
         stubs: {
-          'v-container': false,
-          'v-row': false,
-          'v-col': false,
-          'v-card': false,
-          'v-card-title': false,
-          'v-card-text': false,
-          'v-btn': false,
-          'v-icon': false,
-          'v-text-field': false,
-          'v-select': false,
-          'v-chip': false,
-          'v-progress-linear': false,
-          'v-pagination': false,
-          'v-skeleton-loader': false,
-          'NewTeams': true,
+          NewTeams: true,
+          ...localStubs,
         },
-        ...options,
+        ...globalOptions,
       },
     })
     await flushPromises()

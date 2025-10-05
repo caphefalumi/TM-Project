@@ -18,6 +18,8 @@ import {
 } from './helpers.js'
 import { useAuthStore } from '../src/stores/auth.js'
 
+import { h } from 'vue'
+
 // Mock dependencies
 vi.mock('../src/scripts/authStore.js', () => ({
   default: {
@@ -38,6 +40,21 @@ vi.mock('@tauri-apps/plugin-shell', () => ({
 
 import AuthStore from '../src/scripts/authStore.js'
 import { open } from '@tauri-apps/plugin-shell'
+
+const GoogleLoginStub = {
+  name: 'GoogleLogin',
+  emits: ['success', 'error'],
+  render() {
+    return h('div', { class: 'google-login' }, this.$slots.default ? this.$slots.default() : [])
+  },
+}
+
+const VIconLoginStub = {
+  name: 'v-icon-login',
+  render() {
+    return h('div', { class: 'v-icon-login' }, this.$slots.default ? this.$slots.default() : [])
+  },
+}
 
 describe('Login View', () => {
   let wrapper
@@ -80,27 +97,18 @@ describe('Login View', () => {
   })
 
   const mountLogin = async (options = {}) => {
+    const { global: globalOptions, ...mountOptions } = options
     wrapper = mount(Login, {
       global: {
         plugins: [router, pinia],
+        ...globalOptions,
         stubs: {
-          'v-container': false,
-          'v-row': false,
-          'v-col': false,
-          'v-card': false,
-          'v-card-title': false,
-          'v-card-text': false,
-          'v-form': false,
-          'v-text-field': false,
-          'v-btn': false,
-          'v-icon': false,
-          'v-alert': false,
-          'v-divider': false,
-          'GoogleLogin': true,
-          'v-icon-login': true,
+          GoogleLogin: GoogleLoginStub,
+          'v-icon-login': VIconLoginStub,
+          ...(globalOptions?.stubs || {}),
         },
-        ...options,
       },
+      ...mountOptions,
     })
     await flushPromises()
     return wrapper
@@ -112,7 +120,7 @@ describe('Login View', () => {
       await mountLogin()
 
       // Assert
-      const usernameField = wrapper.find('input[type="text"]')
+      const usernameField = wrapper.find('input[data-label="Username"]')
       const passwordField = wrapper.find('input[type="password"]')
       const loginButton = wrapper.find('button[type="submit"]')
 
@@ -149,7 +157,7 @@ describe('Login View', () => {
       await flushPromises()
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.exists()).toBe(true)
       expect(errorAlert.text()).toContain('All fields are required')
     })
@@ -157,7 +165,7 @@ describe('Login View', () => {
     it('should show error when only username is provided', async () => {
       // Arrange
       await mountLogin()
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const form = wrapper.find('form')
 
       // Act
@@ -166,7 +174,7 @@ describe('Login View', () => {
       await flushPromises()
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('All fields are required')
     })
 
@@ -182,7 +190,7 @@ describe('Login View', () => {
       await flushPromises()
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('All fields are required')
     })
   })
@@ -195,7 +203,7 @@ describe('Login View', () => {
         mockFetchResponse({ error: 'Invalid credentials' }, false, 401)
       )
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
@@ -216,7 +224,7 @@ describe('Login View', () => {
           }),
         })
       )
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('Invalid credentials')
     })
 
@@ -241,7 +249,7 @@ describe('Login View', () => {
         return mockFetchResponse({ error: 'Not found' }, false, 404)
       })
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
@@ -271,7 +279,7 @@ describe('Login View', () => {
       await mountLogin()
       fetchMock.mockRejectedValue(new Error('Network error'))
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
@@ -282,7 +290,7 @@ describe('Login View', () => {
       await flushPromises()
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('Network error')
     })
   })
@@ -299,7 +307,7 @@ describe('Login View', () => {
         )
       )
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
@@ -329,7 +337,7 @@ describe('Login View', () => {
         )
       )
 
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       const passwordInput = wrapper.find('input[type="password"]')
       const form = wrapper.find('form')
 
@@ -358,7 +366,7 @@ describe('Login View', () => {
           body: JSON.stringify({ email: 'testuser' }),
         })
       )
-      const successAlert = wrapper.find('.v-alert[type="success"]')
+      const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Verification email sent')
     })
   })
@@ -400,7 +408,7 @@ describe('Login View', () => {
         })
       )
       expect(wrapper.vm.usingOAuthRegister).toBe(true)
-      const successAlert = wrapper.find('.v-alert[type="success"]')
+      const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Authorization completed')
     })
 
@@ -448,7 +456,7 @@ describe('Login View', () => {
       await flushPromises()
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('OAuth authentication failed')
     })
   })
@@ -460,7 +468,8 @@ describe('Login View', () => {
     })
 
     afterEach(() => {
-      vi.restoreCurrentTimers()
+      vi.useRealTimers()
+      window.isTauri = false
     })
 
     it('should render Tauri-specific OAuth button', async () => {
@@ -541,7 +550,7 @@ describe('Login View', () => {
       // Assert
       expect(wrapper.vm.usingOAuthRegister).toBe(true)
       expect(wrapper.vm.userEmail).toBe('newuser@example.com')
-      const successAlert = wrapper.find('.v-alert[type="success"]')
+      const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Authorization completed')
     })
 
@@ -611,7 +620,7 @@ describe('Login View', () => {
       }
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('OAuth timeout')
     })
 
@@ -645,7 +654,7 @@ describe('Login View', () => {
       await flushPromises()
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('User denied access')
     })
   })
@@ -679,7 +688,7 @@ describe('Login View', () => {
       })
 
       // Act
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       await usernameInput.setValue('newusername')
       const form = wrapper.find('form')
       await form.trigger('submit.prevent')
@@ -711,14 +720,14 @@ describe('Login View', () => {
       )
 
       // Act
-      const usernameInput = wrapper.find('input[type="text"]')
+      const usernameInput = wrapper.find('input[data-label="Username"]')
       await usernameInput.setValue('existinguser')
       const form = wrapper.find('form')
       await form.trigger('submit.prevent')
       await flushPromises()
 
       // Assert
-      const errorAlert = wrapper.find('.v-alert[type="error"]')
+      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('Username already exists')
     })
   })
@@ -774,21 +783,25 @@ describe('Login View', () => {
     it('should toggle password visibility', async () => {
       // Arrange
       await mountLogin()
-      const passwordField = wrapper.find('input[type="password"]')
+      const passwordFields = wrapper.findAll('.v-text-field')
+      const passwordWrapper = passwordFields.find(field =>
+        field.find('input').attributes('data-label') === 'Password'
+      )
+      expect(passwordWrapper).toBeDefined()
+      const passwordInput = passwordWrapper.find('input')
+      expect(passwordInput.attributes('type')).toBe('password')
 
       // Act - click eye icon
-      const eyeIcon = wrapper.findAll('.v-icon').find(icon =>
-        icon.html().includes('mdi-eye')
-      )
-      await eyeIcon.trigger('click')
+      const toggleButton = passwordWrapper.find('.append-inner')
+      await toggleButton.trigger('click')
       await flushPromises()
 
       // Assert
       expect(wrapper.vm.showPassword).toBe(true)
 
       // Should now be text type
-      const textField = wrapper.find('input[type="text"]')
-      expect(textField.exists()).toBe(true)
+      const toggledInput = passwordWrapper.find('input')
+      expect(toggledInput.attributes('type')).toBe('text')
     })
   })
 })

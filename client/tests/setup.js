@@ -1,6 +1,8 @@
 import { vi } from 'vitest'
 import { config } from '@vue/test-utils'
 
+import vuetifyStubs from './vuetifyStubs.js'
+
 // Mock window.isTauri
 global.window.isTauri = false
 
@@ -43,4 +45,5 @@ global.ResizeObserver = class ResizeObserver {
 config.global.stubs = {
   transition: false,
   'transition-group': false,
+  ...vuetifyStubs,
 }
