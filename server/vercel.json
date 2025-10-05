@@ -1,9 +1,8 @@
-{
-  "version": 2,
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/app.js"
-    }
-  ]
+{ "version": 2, 
+	"rewrites": 
+	[
+		{ "source": "/(.*)", 
+			"destination": "/api" 
+		}
+	]
 }
