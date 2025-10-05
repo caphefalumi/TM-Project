@@ -50,7 +50,7 @@ jobs:
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
-          path: client/.bun
+          path: ~/.bun
           key: bun-windows-${{ hashFiles('client/bun.lock') }}
 
       - name: Install Windows build dependencies
@@ -104,7 +104,7 @@ jobs:
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
-          path: client/.bun
+          path: ~/.bun
           key: bun-linux-${{ hashFiles('client/bun.lock') }}
 
       - name: Install Linux build dependencies
@@ -169,7 +169,7 @@ jobs:
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
-          path: client/.bun
+          path: ~/.bun
           key: bun-macos-${{ hashFiles('client/bun.lock') }}
 
       - name: Install frontend dependencies
