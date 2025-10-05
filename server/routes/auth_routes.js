@@ -28,10 +28,6 @@ router.get('/oauth/status', checkDesktopOAuthStatus)
 router.post('/local/register', localRegister)
 router.post('/local/login', localLogin)
 
-router.get('/login-protected', authenticateAccessToken, (req, res) => {
-  res.status(200).json({ success: 'Login access token is valid', user: req.user })
-})
-
 router.post('/forgot-password', forgotPassword)
 router.post('/verify-reset-token', verifyToken)
 router.post('/reset-password', resetPassword)
