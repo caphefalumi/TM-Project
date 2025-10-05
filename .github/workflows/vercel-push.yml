@@ -1,0 +1,28 @@
+name: Vercel Push Deploy
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy client to Vercel
+        working-directory: ./client
+        run: |
+          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy server to Vercel
+        working-directory: ../server
+        run: |
+          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
