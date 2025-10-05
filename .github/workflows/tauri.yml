@@ -53,10 +53,6 @@ jobs:
           path: ~/.bun
           key: bun-windows-${{ hashFiles('client/bun.lock') }}
 
-      - name: Install Windows build dependencies
-        run: choco install -y nsis
-        shell: powershell
-
       - name: Install frontend dependencies
         working-directory: client
         run: bun install --frozen-lockfile
