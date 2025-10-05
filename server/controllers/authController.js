@@ -15,13 +15,21 @@ const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
 // Returns message for Gmail OAuth
 
 const oAuthentication = async (req, res) => {
-  let { email } = req.body
-  if (!email) {
-    console.log('No email provided')
+  const googleAccessToken = req.body.token
+	if (!googleAccessToken) {
+		return res.status(400).json({ message: "No access token provided" })
+	}
+  const response = await fetch(
+    "https://www.googleapis.com/oauth2/v2/userinfo",
+    {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${googleAccessToken}` },
+    }
+  )
+  const googleUser = await response.json()
 
-    return res.status(400).json({ error: 'Email is required' })
-  }
-  email = email.toLowerCase()
+  const { email } = googleUser
+
   const existingUser = await Account.findOne({ email })
   if (!existingUser) {
     // No user --> require username for register
