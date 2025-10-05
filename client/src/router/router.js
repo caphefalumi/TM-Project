@@ -4,8 +4,8 @@ import { useAuthStore } from '../stores/auth.js'
 
 // Frequently used components - eagerly loaded for better performance
 import LandingView from '../views/LandingView.vue'
-import Login from '../auth/Login.vue'
-import Register from '../auth/Register.vue'
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 import TeamsView from '../views/TeamsView.vue'
 import TeamDetails from '../views/TeamDetails.vue'
 import Dashboard from '../views/Dashboard.vue'
@@ -14,8 +14,8 @@ import AboutView from '../views/AboutView.vue'
 import NotFound from '../views/NotFound.vue'
 
 // Lazy-loaded components for less frequently accessed routes
-const ForgotPassword = () => import('../auth/ForgotPassword.vue')
-const ResetPassword = () => import('../auth/ResetPassword.vue')
+const ForgotPassword = () => import('../views/ForgotPassword.vue')
+const ResetPassword = () => import('../views/ResetPassword.vue')
 const VerifyEmailView = () => import('../views/VerifyEmailView.vue')
 const AdminView = () => import('../views/AdminView.vue')
 const AccountPersonalView = () => import('../views/AccountPersonalView.vue')
