@@ -49,9 +49,7 @@ const sendToHomePage = async () => {
   clearAllCaches()
   console.log('[Auth] Cleared all caches before creating new session')
 
-  setTimeout(() => (success.value = 'Creating secure session...'), 500)
   await createRefreshToken()
-  await getAccessToHome()
   console.log('User ID:', userId.value)
   console.log('Username:', username.value)
   console.log('Email:', userEmail.value)
@@ -61,7 +59,7 @@ const sendToHomePage = async () => {
     await authStore.fetchUser()
 
     success.value = 'Session created successfully!'
-    setTimeout(() => router.push('/home'), 1500)
+    router.push('/home')
   } else {
     error.value = 'Authentication failed. Please try again.'
     success.value = ''
@@ -74,29 +72,6 @@ function goToRegister() {
 
 const goBack = () => {
   router.push('/')
-}
-
-const getAccessToHome = async () => {
-  // Get access to home page using login-specific validation
-  const PORT = import.meta.env.VITE_API_PORT
-  try {
-    const res = await fetch(`${PORT}/api/auth/login-protected`, {
-      method: 'GET',
-      credentials: 'include', // Include cookies for authentication
-      headers: { 'Content-Type': 'application/json' },
-    })
-    const data = await res.json()
-    if (!res.ok || data.error) {
-      error.value = data.error || 'Access validation failed'
-      console.log('Error accessing home:', data.error)
-    } else {
-      success.value = 'Access to home granted!'
-      authenticate.value = true
-      console.log('Home Access Data:', data)
-    }
-  } catch (err) {
-    error.value = 'Network error'
-  }
 }
 
 const createRefreshToken = async () => {
