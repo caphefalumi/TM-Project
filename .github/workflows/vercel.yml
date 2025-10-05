@@ -24,7 +24,7 @@ jobs:
           vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy server to Vercel
-        working-directory: ../server
+        working-directory: ./server
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SERVER_PROJECT_ID }}
         run: |
