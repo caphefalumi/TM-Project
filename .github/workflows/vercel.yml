@@ -1,7 +1,6 @@
 name: Vercel Push Deploy
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
   push:
     branches:
@@ -19,10 +18,14 @@ jobs:
 
       - name: Deploy client to Vercel
         working-directory: ./client
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
         run: |
           vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy server to Vercel
         working-directory: ../server
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SERVER_PROJECT_ID }}
         run: |
           vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
