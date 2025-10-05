@@ -11,7 +11,11 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "start:all": "concurrently \"bun run dev\" \"bun run server\"",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
@@ -31,10 +35,15 @@
     "@tauri-apps/plugin-shell": "^2.3.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/test-utils": "^2.4.6",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "concurrently": "^9.2.1",
     "eslint": "^9.37.0",
     "eslint-plugin-vue": "~10.4.0",
     "globals": "^16.4.0",
+    "happy-dom": "^15.11.7",
+    "jsdom": "^25.0.1",
     "vite": "^7.1.9",
     "vite-plugin-vue-devtools": "^8.0.2",
     "vitest": "^3.2.4"
