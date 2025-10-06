@@ -149,7 +149,7 @@ describe('Router Guards', () => {
           next()
         }
       } catch (error) {
-        console.error('Auth check failed:', error)
+        console.log('Auth check failed:', error)
         next('/login')
       }
     })

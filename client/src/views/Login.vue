@@ -49,7 +49,7 @@ onMounted(async () => {
       }
     }
   } catch (error) {
-    console.error('Error checking existing session:', error)
+    console.log('Error checking existing session:', error)
   }
 })
 
@@ -290,7 +290,7 @@ const loginWithGoogleInTauri = async () => {
     }
     
   } catch (err) {
-    console.error('[OAuth] Error:', err)
+    console.log('[OAuth] Error:', err)
     error.value = err
   } finally {
     isLoading.value = false

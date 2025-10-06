@@ -28,11 +28,11 @@ class SessionService {
           ...data,
         }
       } else {
-        console.error('Failed to fetch active sessions:', response.statusText)
+        console.log('Failed to fetch active sessions:', response.statusText)
         return { success: false, error: response.statusText }
       }
     } catch (error) {
-      console.error('Error fetching active sessions:', error)
+      console.log('Error fetching active sessions:', error)
       return { success: false, error: error.message }
     }
   }
@@ -64,11 +64,11 @@ class SessionService {
           ...data,
         }
       } else {
-        console.error('Failed to check security:', response.statusText)
+        console.log('Failed to check security:', response.statusText)
         return { success: false, error: response.statusText }
       }
     } catch (error) {
-      console.error('Error checking security:', error)
+      console.log('Error checking security:', error)
       return { success: false, error: error.message }
     }
   }
@@ -88,11 +88,11 @@ class SessionService {
         const data = await response.json()
         return { success: true, message: data.message }
       } else {
-        console.error('Failed to revoke session:', response.statusText)
+        console.log('Failed to revoke session:', response.statusText)
         return { success: false, error: response.statusText }
       }
     } catch (error) {
-      console.error('Error revoking session:', error)
+      console.log('Error revoking session:', error)
       return { success: false, error: error.message }
     }
   }
@@ -117,11 +117,11 @@ class SessionService {
           count: data.count,
         }
       } else {
-        console.error('Failed to revoke other sessions:', response.statusText)
+        console.log('Failed to revoke other sessions:', response.statusText)
         return { success: false, error: response.statusText }
       }
     } catch (error) {
-      console.error('Error revoking other sessions:', error)
+      console.log('Error revoking other sessions:', error)
       return { success: false, error: error.message }
     }
   }

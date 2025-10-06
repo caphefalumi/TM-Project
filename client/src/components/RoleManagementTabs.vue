@@ -175,7 +175,7 @@ const fetchCustomRoles = async () => {
     const data = await response.json()
     customRoles.value = data.roles || []
   } catch (err) {
-    console.error('Error fetching custom roles:', err)
+    console.log('Error fetching custom roles:', err)
     error.value = true
     message.value = 'Failed to fetch custom roles'
   } finally {
@@ -212,7 +212,7 @@ const createCustomRole = async () => {
     resetNewRole()
     await fetchCustomRoles()
   } catch (err) {
-    console.error('Error creating custom role:', err)
+    console.log('Error creating custom role:', err)
     error.value = true
     message.value = 'Failed to create custom role'
   } finally {
@@ -251,7 +251,7 @@ const updateCustomRole = async () => {
     await fetchCustomRoles()
     emit('roles-updated')
   } catch (err) {
-    console.error('Error updating custom role:', err)
+    console.log('Error updating custom role:', err)
     error.value = true
     message.value = 'Failed to update custom role'
   } finally {
@@ -284,7 +284,7 @@ const deleteCustomRole = async () => {
     await fetchCustomRoles()
     emit('roles-updated')
   } catch (err) {
-    console.error('Error deleting custom role:', err)
+    console.log('Error deleting custom role:', err)
     error.value = true
     message.value = 'Failed to delete custom role'
   } finally {
@@ -347,7 +347,7 @@ const assignRole = async (member, roleType, roleId = null) => {
     confirmRoleDialog.value = false
     emit('roles-updated')
   } catch (err) {
-    console.error('Error assigning role:', err)
+    console.log('Error assigning role:', err)
     error.value = true
     message.value = err.message || 'Failed to assign role'
   } finally {

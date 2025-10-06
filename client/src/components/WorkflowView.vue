@@ -564,7 +564,7 @@ export default {
 
         return this.sortTasks(transformedTasks)
       } catch (error) {
-        console.error('Error transforming task groups:', error)
+        console.log('Error transforming task groups:', error)
       }
     },
     sortTasks(tasks) {

@@ -51,7 +51,7 @@ const addRefreshToken = async (req, res) => {
       accessToken,
     })
   } catch (error) {
-    console.error('Error creating tokens:', error)
+    console.log('Error creating tokens:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -121,7 +121,7 @@ const renewAccessToken = async (req, res) => {
 
     res.status(200).json({ accessToken })
   } catch (error) {
-    console.error('Error renewing access token:', error)
+    console.log('Error renewing access token:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -149,7 +149,7 @@ const revokeRefreshToken = async (req, res) => {
   console.log('Revoking refresh tokens for user:', userId)
 
   if (!userId) {
-    console.error('User ID is required to revoke refresh token')
+    console.log('User ID is required to revoke refresh token')
     return res.status(400).json({ error: 'User ID is required' })
   }
 
@@ -162,7 +162,7 @@ const revokeRefreshToken = async (req, res) => {
       message: 'User logged out successfully',
     })
   } catch (error) {
-    console.error('Error revoking refresh token:', error)
+    console.log('Error revoking refresh token:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }

@@ -15,7 +15,7 @@ const cleanupExpiredTokens = async () => {
 
     return result.deletedCount
   } catch (error) {
-    console.error('Error cleaning up expired tokens:', error)
+    console.log('Error cleaning up expired tokens:', error)
     throw error
   }
 }

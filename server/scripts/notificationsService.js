@@ -64,7 +64,7 @@ const createNotification = async (notificationData) => {
     console.log(`Notification created for user ${recipientUserId}:`, savedNotification)
     return savedNotification
   } catch (error) {
-    console.error('Error creating notification:', error)
+    console.log('Error creating notification:', error)
     throw error
   }
 }
@@ -84,7 +84,7 @@ const getUserNotificationPreferences = async (userId) => {
 
     return preferences
   } catch (error) {
-    console.error('Error getting user notification preferences:', error)
+    console.log('Error getting user notification preferences:', error)
     throw error
   }
 }
@@ -113,7 +113,7 @@ const cleanupOldNotifications = async (userId, maxNotifications) => {
       console.log(`Cleaned up ${notificationsToDelete} old notifications for user ${userId}`)
     }
   } catch (error) {
-    console.error('Error cleaning up old notifications:', error)
+    console.log('Error cleaning up old notifications:', error)
   }
 }
 
@@ -131,7 +131,7 @@ const createTeamMemberAddedNotification = async (newMemberUserId, teamId, addedB
     const actor = await Account.findById(addedByUserId)
 
     if (!team || !actor) {
-      console.error('Team or actor not found for team member added notification')
+      console.log('Team or actor not found for team member added notification')
       return null
     }
 
@@ -147,7 +147,7 @@ const createTeamMemberAddedNotification = async (newMemberUserId, teamId, addedB
       },
     })
   } catch (error) {
-    console.error('Error creating team member added notification:', error)
+    console.log('Error creating team member added notification:', error)
     throw error
   }
 }
@@ -172,7 +172,7 @@ const createAnnouncementLikedNotification = async (
 
     const liker = await Account.findById(likerUserId)
     if (!liker) {
-      console.error('Liker not found for announcement liked notification')
+      console.log('Liker not found for announcement liked notification')
       return null
     }
 
@@ -189,7 +189,7 @@ const createAnnouncementLikedNotification = async (
       },
     })
   } catch (error) {
-    console.error('Error creating announcement liked notification:', error)
+    console.log('Error creating announcement liked notification:', error)
     throw error
   }
 }
@@ -215,7 +215,7 @@ const createAnnouncementCommentedNotification = async (
 
     const commenter = await Account.findById(commenterUserId)
     if (!commenter) {
-      console.error('Commenter not found for announcement commented notification')
+      console.log('Commenter not found for announcement commented notification')
       return null
     }
 
@@ -233,7 +233,7 @@ const createAnnouncementCommentedNotification = async (
       },
     })
   } catch (error) {
-    console.error('Error creating announcement commented notification:', error)
+    console.log('Error creating announcement commented notification:', error)
     throw error
   }
 }
@@ -260,7 +260,7 @@ const createCommentRepliedNotification = async (
 
     const replier = await Account.findById(replierUserId)
     if (!replier) {
-      console.error('Replier not found for comment replied notification')
+      console.log('Replier not found for comment replied notification')
       return null
     }
 
@@ -279,7 +279,7 @@ const createCommentRepliedNotification = async (
       },
     })
   } catch (error) {
-    console.error('Error creating comment replied notification:', error)
+    console.log('Error creating comment replied notification:', error)
     throw error
   }
 }
@@ -299,7 +299,7 @@ const createTeamAnnouncementCreatedNotification = async (
     const creator = await Account.findById(creatorUserId)
 
     if (!team || !creator) {
-      console.error('Team or creator not found for team announcement created notification')
+      console.log('Team or creator not found for team announcement created notification')
       return null
     }
 
@@ -332,7 +332,7 @@ const createTeamAnnouncementCreatedNotification = async (
 
     return notifications
   } catch (error) {
-    console.error('Error creating team announcement created notifications:', error)
+    console.log('Error creating team announcement created notifications:', error)
     throw error
   }
 }

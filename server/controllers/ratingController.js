@@ -60,7 +60,7 @@ export const createOrUpdateRating = async (req, res) => {
     await newRating.save()
     return res.status(201).json({ success: 'Feedback submitted successfully' })
   } catch (error) {
-    console.error('Error saving rating:', error)
+    console.log('Error saving rating:', error)
     return res.status(500).json({ error: 'Failed to save feedback' })
   }
 }
@@ -98,7 +98,7 @@ export const getAllRatings = async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Error fetching ratings:', error)
+    console.log('Error fetching ratings:', error)
     return res.status(500).json({ error: 'Failed to fetch feedback' })
   }
 }
@@ -116,7 +116,7 @@ export const getUserRating = async (req, res) => {
 
     return res.status(200).json({ rating })
   } catch (error) {
-    console.error('Error fetching user rating:', error)
+    console.log('Error fetching user rating:', error)
     return res.status(500).json({ error: 'Failed to fetch user feedback' })
   }
 }

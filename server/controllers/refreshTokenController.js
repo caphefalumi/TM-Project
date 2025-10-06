@@ -17,7 +17,7 @@ export const getActiveTokens = async (req, res) => {
       tokens: stats.tokens,
     })
   } catch (error) {
-    console.error('Error fetching active tokens:', error)
+    console.log('Error fetching active tokens:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -37,7 +37,7 @@ export const getSecurityStatus = async (req, res) => {
       details: suspiciousActivity,
     })
   } catch (error) {
-    console.error('Error checking security:', error)
+    console.log('Error checking security:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -63,7 +63,7 @@ export const deleteTokenById = async (req, res) => {
       message: 'Session ended successfully',
     })
   } catch (error) {
-    console.error('Error revoking token:', error)
+    console.log('Error revoking token:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -89,7 +89,7 @@ export const deleteOtherTokens = async (req, res) => {
       count: result.modifiedCount,
     })
   } catch (error) {
-    console.error('Error revoking other tokens:', error)
+    console.log('Error revoking other tokens:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }

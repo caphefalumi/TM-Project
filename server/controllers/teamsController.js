@@ -13,7 +13,7 @@ const getCategories = async (req, res) => {
     }
     return res.status(200).json(categories)
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    console.log('Error fetching categories:', error)
     throw error
   }
 }
@@ -33,7 +33,7 @@ const addUserToTeam = async (userId, teamId, roleType = ROLES.MEMBER) => {
       await userOfTeam.save()
     }
   } catch (error) {
-    console.error('Error adding user to team:', error)
+    console.log('Error adding user to team:', error)
     throw error
   }
 }
@@ -59,13 +59,13 @@ const addTeamPro = async (req, res) => {
       // Add the user who created the team as an admin
       teamId = await Teams.findOne({ title, category, description }).select('_id')
       if (!teamId) {
-        console.error('Team not found after creation:', title)
+        console.log('Team not found after creation:', title)
         return res.status(404).json({ message: 'Team not found' })
       } else {
         await addUserToTeam(userId, teamId._id, ROLES.ADMIN)
       }
     } catch (error) {
-      console.error('Error adding team:', error)
+      console.log('Error adding team:', error)
       return res.status(500).json({ message: 'Internal server error' })
     }
   }
@@ -89,7 +89,7 @@ const addTeam = async (title, category, description) => {
     })
     await team.save()
   } catch (error) {
-    console.error('Error creating team:', error)
+    console.log('Error creating team:', error)
     throw error
   }
 }
@@ -99,10 +99,10 @@ const addSubTeam = async (title, category, description, parentTeamId) => {
   try {
     const parentTeam = await Teams.findById(parentTeamId)
     if (!parentTeam) {
-      console.error('Parent team not found:', parentTeamId)
+      console.log('Parent team not found:', parentTeamId)
       return
     } else if (parentTeamId === 'none') {
-      console.error('Sub-team cannot have "none" as parentTeamId')
+      console.log('Sub-team cannot have "none" as parentTeamId')
       return
     } else {
       const subTeam = new Teams({
@@ -114,7 +114,7 @@ const addSubTeam = async (title, category, description, parentTeamId) => {
       await subTeam.save()
     }
   } catch (error) {
-    console.error('Error creating sub-team:', error)
+    console.log('Error creating sub-team:', error)
     throw error
   }
 }
@@ -170,7 +170,7 @@ const getTeamNameThatUserIsAdmin = async (req, res) => {
     )
     return res.status(200).json(teamsData)
   } catch (error) {
-    console.error('Error fetching teams for user:', error)
+    console.log('Error fetching teams for user:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -249,7 +249,7 @@ const getTeamThatUserIsMember = async (req, res) => {
     )
     return res.status(200).json(teamsData)
   } catch (error) {
-    console.error('Error fetching teams for user:', error)
+    console.log('Error fetching teams for user:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -275,7 +275,7 @@ const getAllSubTeams = async (req, res) => {
 
     return res.status(200).json({ subTeams: allSubTeams })
   } catch (error) {
-    console.error('Error fetching sub-teams:', error)
+    console.log('Error fetching sub-teams:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -294,7 +294,7 @@ const recursiveDeleteSubTeams = async (teamId) => {
       }
     }
   } catch (error) {
-    console.error('Error recursively deleting sub-teams:', error)
+    console.log('Error recursively deleting sub-teams:', error)
     throw error
   }
 }
@@ -323,7 +323,7 @@ const deleteATeam = async (req, res) => {
 
     return res.status(200).json({ message: 'Team and associated users deleted successfully' })
   } catch (error) {
-    console.error('Error deleting team:', error)
+    console.log('Error deleting team:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -361,7 +361,7 @@ const getProgressBar = async (userId, teamId) => {
       progressPercentage,
     }
   } catch (error) {
-    console.error('Error calculating progress bar:', error)
+    console.log('Error calculating progress bar:', error)
     return {
       completedWeight: 0,
       totalWeight: 0,
@@ -383,7 +383,7 @@ const getTeamDetails = async (req, res) => {
     }
     return res.status(200).json({ team })
   } catch (error) {
-    console.error('Error fetching team details:', error)
+    console.log('Error fetching team details:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }

@@ -275,7 +275,7 @@ const initializeTeamData = async (forceRefresh = false) => {
     ) {
       console.log('User is a member of the team or has admin access:', teamId.value)
     } else {
-      console.error('User is not a member of the team and is not admin:', teamId.value)
+      console.log('User is not a member of the team and is not admin:', teamId.value)
       // Show not found if not a member and not admin
       teamNotFound.value = true
       userLoaded.value = true
@@ -478,7 +478,7 @@ const fetchUserPermissions = async () => {
     // Update cache after fetching permissions
     updateCacheWithCurrentData()
   } catch (error) {
-    console.error('Error fetching user permissions:', error)
+    console.log('Error fetching user permissions:', error)
     userPermissions.value = {}
   }
 }
@@ -495,7 +495,7 @@ const fetchSubTeams = async () => {
     })
 
     if (!ok) {
-      console.error('Failed to fetch sub-teams. Status:', status, 'Error:', data)
+      console.log('Failed to fetch sub-teams. Status:', status, 'Error:', data)
       subTeams.value = []
       return
     }
@@ -514,7 +514,7 @@ const fetchSubTeams = async () => {
     updateCacheWithCurrentData()
 
   } catch (error) {
-    console.error('Failed to fetch sub-teams:', error)
+    console.log('Failed to fetch sub-teams:', error)
     subTeams.value = []
   } finally {
     isLoadingSubTeams.value = false
@@ -544,7 +544,7 @@ const fetchTeamTasks = async () => {
     )
 
     if (!ok) {
-      console.error('Failed to fetch team tasks:', data?.message || `Status ${status}`)
+      console.log('Failed to fetch team tasks:', data?.message || `Status ${status}`)
       tasks.value = []
     } else {
       // Extract the tasks array from the response object
@@ -553,7 +553,7 @@ const fetchTeamTasks = async () => {
       updateCacheWithCurrentData()
     }
   } catch (error) {
-    console.error('Failed to fetch team tasks:', error)
+    console.log('Failed to fetch team tasks:', error)
     tasks.value = []
   } finally {
     isLoadingTasks.value = false
@@ -572,7 +572,7 @@ const fetchTeamDetails = async () => {
     })
 
     if (!ok) {
-      console.error('Failed to fetch team details:', data?.message || `Status ${status}`)
+      console.log('Failed to fetch team details:', data?.message || `Status ${status}`)
       team.value = {}
     } else {
       team.value = data.team || {}
@@ -580,7 +580,7 @@ const fetchTeamDetails = async () => {
       updateCacheWithCurrentData()
     }
   } catch (error) {
-    console.error('Failed to fetch team details:', error)
+    console.log('Failed to fetch team details:', error)
   } finally {
     isLoadingTeamDetails.value = false
   }
@@ -598,7 +598,7 @@ const fetchAnnouncements = async () => {
     })
 
     if (!ok) {
-      console.error('Failed to fetch announcements:', data?.message || `Status ${status}`)
+      console.log('Failed to fetch announcements:', data?.message || `Status ${status}`)
       announcements.value = []
     } else {
       announcements.value = data.announcements || []
@@ -606,7 +606,7 @@ const fetchAnnouncements = async () => {
       updateCacheWithCurrentData()
     }
   } catch (error) {
-    console.error('Failed to fetch announcements:', error)
+    console.log('Failed to fetch announcements:', error)
   } finally {
     isLoadingAnnouncements.value = false
   }
@@ -624,7 +624,7 @@ const fetchTeamMembers = async () => {
     })
 
     if (!ok) {
-      console.error('Failed to fetch team members:', data?.message || `Status ${status}`)
+      console.log('Failed to fetch team members:', data?.message || `Status ${status}`)
       teamMembers.value = []
     } else {
       teamMembers.value = data
@@ -632,7 +632,7 @@ const fetchTeamMembers = async () => {
       updateCacheWithCurrentData()
     }
   } catch (error) {
-    console.error('Failed to fetch team members:', error)
+    console.log('Failed to fetch team members:', error)
   } finally {
     isLoadingMembers.value = false
   }
@@ -669,7 +669,7 @@ const editAnnnouncement = (announcementId) => {
     updateAnnouncementDialog.value = true
     selectedTaskForSubmission.value = announcementToEdit.value
   } else {
-    console.error('Announcement not found with ID:', announcementId)
+    console.log('Announcement not found with ID:', announcementId)
   }
   updateAnnouncementDialog.value = true
 }
@@ -679,7 +679,7 @@ const deleteAnnouncement = (announcementId) => {
     selectedAnnouncementForDeletion.value = announcementId
     console.log('Selected announcement for deletion:', selectedAnnouncementForDeletion.value)
   } else {
-    console.error('Announcement not found with ID:', announcementId)
+    console.log('Announcement not found with ID:', announcementId)
   }
   deleteAnnouncementDialog.value = true
 }
@@ -693,7 +693,7 @@ const viewAnnouncement = (announcementId) => {
   if (announcementToView.value) {
     viewAnnouncementDialog.value = true
   } else {
-    console.error('Announcement not found with ID:', announcementId)
+    console.log('Announcement not found with ID:', announcementId)
   }
 }
 
@@ -732,7 +732,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
       updateCacheWithCurrentData()
     }
   } catch (error) {
-    console.error('Error liking announcement:', error)
+    console.log('Error liking announcement:', error)
   }
 }
 
@@ -748,7 +748,7 @@ const getTaskGroups = async () => {
     })
 
     if (!ok) {
-      console.error('Failed to fetch task groups:', data?.message || `Status ${status}`)
+      console.log('Failed to fetch task groups:', data?.message || `Status ${status}`)
       taskGroups.value = []
     } else {
       console.log('Task groups ', data.taskGroups)
@@ -758,7 +758,7 @@ const getTaskGroups = async () => {
       updateCacheWithCurrentData()
     }
   } catch (error) {
-    console.error('Failed to fetch task groups:', error)
+    console.log('Failed to fetch task groups:', error)
   } finally {
     refreshingTaskGroups.value = false
   }
@@ -776,7 +776,7 @@ const submitTask = (taskId) => {
     selectedTaskForSubmission.value = task
     taskSubmissionDialog.value = true
   } else {
-    console.error('Task not found with ID:', taskId)
+    console.log('Task not found with ID:', taskId)
   }
 }
 
@@ -925,7 +925,7 @@ const confirmDeleteTeam = async () => {
       query: { message: 'Team deleted successfully', type: 'success' },
     })
   } catch (error) {
-    console.error('Error deleting team:', error)
+    console.log('Error deleting team:', error)
     // You might want to show a toast/snackbar error message here
     alert('Failed to delete team. Please try again.')
   } finally {

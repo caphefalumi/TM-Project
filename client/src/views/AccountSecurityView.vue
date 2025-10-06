@@ -122,7 +122,7 @@ export default {
           this.sessionStats.uniqueIPs = securityResult.uniqueIPs
         }
       } catch (error) {
-        console.error('Error loading session stats:', error)
+        console.log('Error loading session stats:', error)
       }
     },
   },

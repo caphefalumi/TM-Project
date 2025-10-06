@@ -64,7 +64,7 @@ const getAllTeamsForAdmin = async (req, res) => {
       teams: teamsWithStatsAndBreadcrumbs,
     })
   } catch (error) {
-    console.error('Error fetching teams for admin:', error)
+    console.log('Error fetching teams for admin:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -86,7 +86,7 @@ const getAllUsersForAdmin = async (req, res) => {
       users: users,
     })
   } catch (error) {
-    console.error('Error fetching users for admin:', error)
+    console.log('Error fetching users for admin:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -137,7 +137,7 @@ const getAllAnnouncementsForAdmin = async (req, res) => {
       announcements: announcementsWithInfo,
     })
   } catch (error) {
-    console.error('Error fetching announcements for admin:', error)
+    console.log('Error fetching announcements for admin:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -168,7 +168,7 @@ const deleteTeamAsAdmin = async (req, res) => {
       message: 'Team and all associated data deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting team:', error)
+    console.log('Error deleting team:', error)
     return res.status(500).json({ message: 'Failed to delete team' })
   }
 }
@@ -202,7 +202,7 @@ const deleteUserAsAdmin = async (req, res) => {
       message: 'User and all associated data deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting user:', error)
+    console.log('Error deleting user:', error)
     return res.status(500).json({ message: 'Failed to delete user' })
   }
 }
@@ -221,7 +221,7 @@ const deleteAnnouncementAsAdmin = async (req, res) => {
       message: 'Announcement deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting announcement:', error)
+    console.log('Error deleting announcement:', error)
     return res.status(500).json({ message: 'Failed to delete announcement' })
   }
 }

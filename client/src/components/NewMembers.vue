@@ -109,7 +109,7 @@ const fetchUsers = async () => {
       username: user.username,
     }))
   } catch (error) {
-    console.error('Failed to fetch users:', error)
+    console.log('Failed to fetch users:', error)
   }
 }
 
@@ -161,7 +161,7 @@ const fetchRoles = async () => {
 
     listOfRoles.value = [...defaultRoles, ...customRoleOptions]
   } catch (error) {
-    console.error('Failed to fetch custom roles:', error)
+    console.log('Failed to fetch custom roles:', error)
   }
 }
 
@@ -198,7 +198,7 @@ const sendMembersToServer = async () => {
     emit('members-added')
   } catch (error) {
     loading.value = false
-    console.error('Failed to add members:', error)
+    console.log('Failed to add members:', error)
   }
 }
 
@@ -330,7 +330,7 @@ const addUsers = async () => {
     }
   } catch (error) {
     loading.value = false
-    console.error('Failed to add members:', error)
+    console.log('Failed to add members:', error)
     // Restore original selectedUsers if there was an error
     selectedUsers.value = originalSelectedUsers
   }

@@ -260,10 +260,10 @@ const loadNotifications = async (page = 1) => {
       hasMoreNotifications.value = data.pagination.hasMore
       currentPage.value = page
     } else {
-      console.error('Failed to load notifications')
+      console.log('Failed to load notifications')
     }
   } catch (error) {
-    console.error('Error loading notifications:', error)
+    console.log('Error loading notifications:', error)
   } finally {
     loading.value = false
     loadingMore.value = false
@@ -295,10 +295,10 @@ const markAllAsRead = async () => {
       })
       unreadCount.value = 0
     } else {
-      console.error('Failed to mark notifications as read')
+      console.log('Failed to mark notifications as read')
     }
   } catch (error) {
-    console.error('Error marking notifications as read:', error)
+    console.log('Error marking notifications as read:', error)
   } finally {
     markingAsRead.value = false
   }
@@ -386,7 +386,7 @@ const markNotificationAsRead = async (notificationId) => {
       body: JSON.stringify({ notificationId }),
     })
   } catch (error) {
-    console.error('Error marking notification as read:', error)
+    console.log('Error marking notification as read:', error)
   }
 }
 
@@ -412,10 +412,10 @@ const deleteNotification = async (notificationId) => {
         notifications.value.splice(index, 1)
       }
     } else {
-      console.error('Failed to delete notification')
+      console.log('Failed to delete notification')
     }
   } catch (error) {
-    console.error('Error deleting notification:', error)
+    console.log('Error deleting notification:', error)
   }
 }
 
@@ -439,7 +439,7 @@ const loadPreferences = async () => {
       preferences.value = data.preferences
     }
   } catch (error) {
-    console.error('Error loading preferences:', error)
+    console.log('Error loading preferences:', error)
   }
 }
 
@@ -469,10 +469,10 @@ const saveSettings = async () => {
     if (response.ok) {
       showSettings.value = false
     } else {
-      console.error('Failed to save preferences')
+      console.log('Failed to save preferences')
     }
   } catch (error) {
-    console.error('Error saving preferences:', error)
+    console.log('Error saving preferences:', error)
   } finally {
     savingSettings.value = false
   }

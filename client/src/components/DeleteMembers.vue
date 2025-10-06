@@ -119,7 +119,7 @@ const removeMembers = async () => {
       closeDialog()
     }, 1500)
   } catch (err) {
-    console.error('Error removing members:', err)
+    console.log('Error removing members:', err)
     error.value = true
     success.value = false
     message.value = err.message || 'Failed to remove members'

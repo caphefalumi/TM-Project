@@ -20,7 +20,7 @@ onMounted(async () => {
       return
     }
   } catch (error) {
-    console.error('Error checking authentication status:', error)
+    console.log('Error checking authentication status:', error)
   }
   // Trigger animations after component is mounted
   setTimeout(() => {

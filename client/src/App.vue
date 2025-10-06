@@ -83,7 +83,7 @@ const refreshAccessToken = async () => {
           return false
         }
       } catch (parseError) {
-        console.error('Error parsing response:', parseError)
+        console.log('Error parsing response:', parseError)
       }
 
       authStore.clearAuth()
@@ -94,7 +94,7 @@ const refreshAccessToken = async () => {
       return false
     }
   } catch (error) {
-    console.error('Error during auto token refresh:', error)
+    console.log('Error during auto token refresh:', error)
     authStore.clearAuth()
     return false
   }

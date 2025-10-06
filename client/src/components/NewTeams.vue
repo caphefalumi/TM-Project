@@ -84,7 +84,7 @@ const fetchCategories = async () => {
     categories.value = await response.json()
     //console.log('Fetched categories:', categories.value)
   } catch (error) {
-    console.error('Failed to fetch categories:', error)
+    console.log('Failed to fetch categories:', error)
   }
 }
 
@@ -170,7 +170,7 @@ const createTeam = async () => {
     closeDialog()
   } catch (error) {
     loading.value = false // Reset loading state on error
-    console.error('Failed to create project:', error)
+    console.log('Failed to create project:', error)
   }
 }
 </script>

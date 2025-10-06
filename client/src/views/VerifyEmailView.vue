@@ -113,7 +113,7 @@ export default {
           }
         }
       } catch (error) {
-        console.error('Error verifying email:', error)
+        console.log('Error verifying email:', error)
         this.status = 'error'
         this.message = 'Something went wrong while verifying your email. Please try again.'
       } finally {

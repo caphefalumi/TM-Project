@@ -123,7 +123,7 @@ const submitComment = async () => {
       throw new Error(result.message || 'Failed to add comment')
     }
   } catch (err) {
-    console.error('Error submitting comment:', err)
+    console.log('Error submitting comment:', err)
     error.value = true
     message.value = err.message || 'Failed to add comment'
   } finally {

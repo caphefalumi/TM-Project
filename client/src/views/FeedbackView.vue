@@ -244,7 +244,7 @@ const submitFeedback = async () => {
     resetForm()
     showAlertMessage('success', result.success || 'Feedback submitted successfully!')
   } catch (err) {
-    console.error('Error submitting feedback:', err)
+    console.log('Error submitting feedback:', err)
     showAlertMessage('error', err.message)
   } finally {
     loading.value = false

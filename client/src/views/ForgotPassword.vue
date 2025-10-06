@@ -129,7 +129,7 @@ const handleForgotPassword = async () => {
       message.value = data.message || 'Failed to send reset link'
     }
   } catch (err) {
-    console.error('Forgot password error:', err)
+    console.log('Forgot password error:', err)
     error.value = true
     message.value = 'Network error occurred. Please try again.'
   } finally {
