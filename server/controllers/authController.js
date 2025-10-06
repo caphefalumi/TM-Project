@@ -5,7 +5,6 @@ import Account from '../models/Account.js'
 import Mailer from '../scripts/mailer.js'
 import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Tasks from '../models/Tasks.js'
-import OAuthSession from '../models/OAuthSession.js'
 const { addTeamPro } = TeamsController
 
 import 'dotenv/config'
