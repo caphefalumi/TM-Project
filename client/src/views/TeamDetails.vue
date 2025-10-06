@@ -1029,7 +1029,7 @@ const isDev = computed(() => {
             <v-skeleton-loader type="heading" width="300px" class="mb-2"></v-skeleton-loader>
             <v-skeleton-loader type="text" width="400px"></v-skeleton-loader>
           </div>
-          <div id="tour-team-header" v-else>
+          <div v-else>
             <div class="d-flex align-center mb-2">
               <h1 class="text-h4 font-weight-bold">{{ team.title }}</h1>
               <!-- Cache indicator for development -->
@@ -1155,12 +1155,12 @@ const isDev = computed(() => {
       <!-- Team navigation tabs with action buttons -->
       <v-row class="align-center mb-6">
         <v-col cols="12">
-          <v-tabs id="tour-team-tabs" v-model="activeTab" align-tabs="start">
+          <v-tabs v-model="activeTab" align-tabs="start">
             <v-tab value="tasks">
               <v-icon start>mdi-clipboard-text</v-icon>
               Tasks
             </v-tab>
-            <v-tab id="tour-workflow-tab" value="workflow">
+            <v-tab value="workflow">
               <v-icon start>mdi-timeline-clock</v-icon>
               Workflow
             </v-tab>
@@ -1180,14 +1180,14 @@ const isDev = computed(() => {
               <v-icon start>mdi-account-key</v-icon>
               Roles
             </v-tab>
-            <v-tab id="tour-delete-team-tab" value="delete-team" v-if="isAdmin">
+            <v-tab value="delete-team" v-if="isAdmin">
               <v-icon start>mdi-delete</v-icon>
               Delete Team
             </v-tab>
           </v-tabs>
 
           <!-- Action buttons row based on active tab -->
-          <v-row id="tour-team-actions" class="mt-4">
+          <v-row class="mt-4">
             <!-- Tasks tab actions -->
             <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && canManageTasks">
             </v-col>
@@ -1300,7 +1300,7 @@ const isDev = computed(() => {
           </div>
 
           <!-- Actual Tasks Content -->
-          <div id="tour-tasks-content" v-else>
+          <div v-else>
             <!-- Tasks Header and Controls -->
             <v-row v-if="userLoaded">
               <v-col cols="12">
@@ -1311,7 +1311,7 @@ const isDev = computed(() => {
 
               <!-- Search and Filter Controls -->
               <v-col cols="12">
-                <v-row id="tour-task-search">
+                <v-row>
                   <v-col cols="12" md="4">
                     <v-text-field
                       v-model="taskSearchQuery"
@@ -1448,7 +1448,7 @@ const isDev = computed(() => {
               </div>
             </v-col>
           </v-row>
-          <div id="tour-workflow-view">
+          <div>
             <WorkflowView v-model:taskGroups="taskGroups" />
           </div>
         </v-window-item>
@@ -1808,7 +1808,7 @@ const isDev = computed(() => {
           </div>
 
           <!-- Actual Announcements Content -->
-          <div id="tour-announcements" v-else>
+          <div v-else>
             <v-row>
               <v-col cols="12">
                 <h2 class="text-h5 mb-4">Team Announcements</h2>
@@ -1912,7 +1912,7 @@ const isDev = computed(() => {
           </div>
 
           <!-- Actual Members Content -->
-          <div id="tour-members" v-else>
+          <div v-else>
             <v-row>
               <v-col cols="12">
                 <div class="d-flex align-center justify-space-between mb-4">
@@ -2027,7 +2027,7 @@ const isDev = computed(() => {
 
         <!-- Delete Team Tab -->
         <v-window-item value="delete-team" v-if="isAdmin">
-          <div id="tour-delete-team-content" class="delete-team-container">
+          <div class="delete-team-container">
             <!-- Warning Header -->
             <v-row>
               <v-col cols="12">

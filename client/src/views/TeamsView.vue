@@ -282,7 +282,7 @@ const getProgressColor = (percentage) => {
 
     <!-- Search Bar with Filters -->
     <v-row
-      id="tour-team-search"
+
       v-if="!isLoadingTeams && userTeams.length > 0"
       class="mb-4 align-center"
     >
@@ -388,7 +388,7 @@ const getProgressColor = (percentage) => {
                 :style="{ 'transition-delay': `${index * 75}ms` }"
               >
                 <v-card
-                  id="tour-team-card"
+
                   class="team-card rounded-lg elevation-1 flex-fill"
                   flat
                   :data-team-id="team.teamId"
@@ -479,7 +479,7 @@ const getProgressColor = (percentage) => {
     </v-row>
     <v-btn
       v-if="userLoaded"
-      id="tour-create-team-button"
+
       class="fixed-float-btn"
       color="primary"
       fab
