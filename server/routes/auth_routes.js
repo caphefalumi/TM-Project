@@ -12,18 +12,20 @@ const {
   resetPassword,
   verifyToken,
   resendEmailVerification,
-  startDesktopOAuth,
-  handleDesktopOAuthCallback,
-  checkDesktopOAuthStatus,
+  googleOAuthCallback,
+  // handleDesktopOAuthCallback, - DEPRECATED
+  // checkDesktopOAuthStatus, - DEPRECATED
 } = AuthenticationController
 
 router.post('/oauth', oAuthentication)
 router.post('/google/register', oAuthenticationRegister)
 
-// Desktop OAuth endpoints
-router.post('/oauth/start', startDesktopOAuth)
-router.get('/oauth/callback', handleDesktopOAuthCallback)
-router.get('/oauth/status', checkDesktopOAuthStatus)
+// Google OAuth PKCE endpoints
+router.post('/google/callback', googleOAuthCallback)
+
+// Legacy OAuth endpoints - removed in favor of deeplink flow
+// router.get('/oauth/callback', handleDesktopOAuthCallback) - DEPRECATED
+// router.get('/oauth/status', checkDesktopOAuthStatus) - DEPRECATED
 
 router.post('/local/register', localRegister)
 router.post('/local/login', localLogin)

@@ -182,7 +182,10 @@ describe('Login View', () => {
     if (wrapper) {
       wrapper.unmount()
     }
-    vi.clearAllTimers()
+    vi.restoreAllMocks()
+    if (vi.isFakeTimers()) {
+      vi.useRealTimers()
+    }
   })
 
   const mountLogin = async (options = {}) => {
@@ -509,12 +512,14 @@ describe('Login View', () => {
   describe('OAuth Flow (Tauri Desktop)', () => {
     beforeEach(() => {
       vi.useFakeTimers()
-      window.isTauri = true
+      global.window.isTauri = true
     })
 
     afterEach(() => {
-      vi.useRealTimers()
-      window.isTauri = false
+      if (vi.isFakeTimers()) {
+        vi.useRealTimers()
+      }
+      global.window.isTauri = false
     })
 
     it('should render Tauri-specific OAuth button', async () => {
@@ -524,162 +529,90 @@ describe('Login View', () => {
       expect(tauriButton.exists()).toBe(true)
     })
 
-    it('should open browser and poll for OAuth completion', async () => {
+    it('should open browser with deeplink redirect', async () => {
       await mountLogin()
 
-      fetchMock.mockImplementation((url) => {
-        if (url.includes('/api/auth/oauth/start')) {
-          return mockFetchResponse({ success: true })
-        }
-        if (url.includes('/api/auth/oauth/status')) {
-          return mockFetchResponse({ status: 'pending' })
-        }
-        return mockFetchResponse({ error: 'Not found' }, false, 404)
-      })
-
-      const promise = wrapper.vm.loginWithGoogleInTauri()
+      await wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
 
       expect(open).toHaveBeenCalled()
       const openCall = open.mock.calls[0][0]
       expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
+      expect(openCall).toContain('redirect_uri=com.teams-management.dev%3A%2F%2Foauth%2Fcallback')
       expect(openCall).toContain('client_id=test-client-id')
       expect(openCall).toContain('code_challenge_method=S256')
-
-      await advanceTimersAndFlush(2000)
-      expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringContaining('/api/auth/oauth/status'),
-        undefined
-      )
     })
 
-    it('should handle successful OAuth polling for new user', async () => {
+    it('should initiate OAuth with deeplink for new user registration', async () => {
       await mountLogin()
 
-      let pollCount = 0
-      fetchMock.mockImplementation((url) => {
-        if (url.includes('/api/auth/oauth/start')) {
-          return mockFetchResponse({ success: true })
-        }
-        if (url.includes('/api/auth/oauth/status')) {
-          pollCount++
-          if (pollCount >= 2) {
-            return mockFetchResponse({
-              status: 'completed',
-              action: 'register',
-              userEmail: 'newuser@example.com',
-            })
-          }
-          return mockFetchResponse({ status: 'pending' })
-        }
-        return mockFetchResponse({ error: 'Not found' }, false, 404)
-      })
-
-      const promise = wrapper.vm.loginWithGoogleInTauri()
-
-      await flushPromises()
-      await advanceTimersAndFlush(2000)
-      await advanceTimersAndFlush(2000)
+      await wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
 
-      expect(wrapper.vm.usingOAuthRegister).toBe(true)
-      expect(wrapper.vm.userEmail).toBe('newuser@example.com')
+      expect(open).toHaveBeenCalled()
+      const openCall = open.mock.calls[0][0]
+      expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
+      expect(openCall).toContain('com.teams-management.dev')
+      
+      // Should show success message about opening browser
       const successAlert = wrapper.find('.v-alert[data-type="success"]')
-      expect(successAlert.text()).toContain('Authorization completed')
+      expect(successAlert.text()).toContain('Opening browser for authentication')
     })
 
-    it('should handle successful OAuth polling for existing user', async () => {
+    it('should initiate OAuth with deeplink for existing user login', async () => {
       const mockUser = createMockUser()
       AuthStore.getUserByAccessToken.mockResolvedValue(mockUser)
 
       await mountLogin()
 
-      let pollCount = 0
-      fetchMock.mockImplementation((url) => {
-        if (url.includes('/api/auth/oauth/start')) {
-          return mockFetchResponse({ success: true })
-        }
-        if (url.includes('/api/auth/oauth/status')) {
-          pollCount++
-          if (pollCount >= 2) {
-            return mockFetchResponse({
-              status: 'completed',
-              action: 'login',
-              userId: mockUser.userId,
-              username: mockUser.username,
-              userEmail: mockUser.email,
-            })
-          }
-          return mockFetchResponse({ status: 'pending' })
-        }
-        if (url.includes('/api/sessions/me')) {
-          return mockFetchResponse({ success: true })
-        }
-        return mockFetchResponse({ error: 'Not found' }, false, 404)
-      })
-
-      wrapper.vm.loginWithGoogleInTauri()
-      await flushPromises()
-      await advanceTimersAndFlush(2000)
-      await advanceTimersAndFlush(2000)
+      await wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
 
-      expect(router.currentRoute.value.path).toBe('/home')
+      expect(open).toHaveBeenCalled()
+      const openCall = open.mock.calls[0][0]
+      expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
+      expect(openCall).toContain('com.teams-management.dev')
+      
+      // Should show success message about opening browser
+      const successAlert = wrapper.find('.v-alert[data-type="success"]')
+      expect(successAlert.text()).toContain('Opening browser for authentication')
     })
 
-    it('should timeout after max polling attempts', async () => {
+    it('should handle OAuth initialization', async () => {
       await mountLogin()
 
-      fetchMock.mockImplementation((url) => {
-        if (url.includes('/api/auth/oauth/start')) {
-          return mockFetchResponse({ success: true })
-        }
-        if (url.includes('/api/auth/oauth/status')) {
-          return mockFetchResponse({ status: 'pending' })
-        }
-        return mockFetchResponse({ error: 'Not found' }, false, 404)
-      })
-
-      wrapper.vm.loginWithGoogleInTauri()
+      await wrapper.vm.loginWithGoogleInTauri()
       await flushPromises()
 
-      for (let i = 0; i < 61; i++) {
-        await advanceTimersAndFlush(2000)
+      expect(open).toHaveBeenCalled()
+      const openCall = open.mock.calls[0][0]
+      expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
+      expect(openCall).toContain('redirect_uri=com.teams-management.dev%3A%2F%2Foauth%2Fcallback')
+      
+      // Should not be loading anymore since OAuth is handled by deeplink
+      expect(wrapper.vm.isLoading).toBe(false)
+    })
+
+    it('should handle OAuth data from sessionStorage', async () => {
+      // Simulate OAuth data stored by OAuth2Redirect component
+      const oauthData = {
+        action: 'login',
+        userId: 'test-user-id',
+        username: 'testuser',
+        email: 'test@example.com'
       }
+      sessionStorage.setItem('oauth_login_data', JSON.stringify(oauthData))
 
-      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
-      expect(errorAlert.text()).toContain('OAuth timeout')
-    })
+      const mockUser = createMockUser()
+      AuthStore.getUserByAccessToken.mockResolvedValue(mockUser)
 
-    it('should handle OAuth error status', async () => {
       await mountLogin()
-
-      let pollCount = 0
-      fetchMock.mockImplementation((url) => {
-        if (url.includes('/api/auth/oauth/start')) {
-          return mockFetchResponse({ success: true })
-        }
-        if (url.includes('/api/auth/oauth/status')) {
-          pollCount++
-          if (pollCount >= 2) {
-            return mockFetchResponse({
-              status: 'error',
-              message: 'User denied access',
-            })
-          }
-          return mockFetchResponse({ status: 'pending' })
-        }
-        return mockFetchResponse({ error: 'Not found' }, false, 404)
-      })
-
-      wrapper.vm.loginWithGoogleInTauri()
-      await flushPromises()
-      await advanceTimersAndFlush(2000)
-      await advanceTimersAndFlush(2000)
       await flushPromises()
 
-      const errorAlert = wrapper.find('.v-alert[data-type="error"]')
-      expect(errorAlert.text()).toContain('User denied access')
+      // Should process the stored OAuth data and redirect
+      expect(wrapper.vm.userId).toBe('test-user-id')
+      expect(wrapper.vm.username).toBe('testuser')
+      expect(wrapper.vm.userEmail).toBe('test@example.com')
     })
   })
 
