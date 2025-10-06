@@ -23,7 +23,7 @@ const limiter = rateLimit({
 })
 
 // Instead of defining all endpoints here, delegate them:
-router.use('/api/auth', limiter, authRoutes) // /api/auth/*
+router.use('/api/auth', authRoutes) // /api/auth/*
 router.use('/api/users', userRoutes) // /api/users/*
 router.use('/api/teams', teamRoutes) // /api/teams/*
 router.use('/api/tasks', taskRoutes) // /api/tasks/*

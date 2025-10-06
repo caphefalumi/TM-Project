@@ -52,7 +52,7 @@ app.use(routes)
 const PORT = process.env.PORT || 3000
 
 // Start token cleanup scheduler
-initTokenCleanup()
+// initTokenCleanup()
 
 // For local development
 app.listen(PORT, () => {
