@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
+import { fetchJSON } from '../scripts/apiClient.js'
 import NewTeams from '../components/NewTeams.vue'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
@@ -50,13 +51,13 @@ onMounted(async () => {
 
 // Handle component reactivation when navigating back
 onActivated(async () => {
-  console.log('🔄 TeamsView: Component reactivated (keep-alive working!)')
+  console.log('TeamsView: Component reactivated (keep-alive working!)')
   if (needsRefresh('TeamsView')) {
     console.log('🔃 TeamsView: Refreshing data due to explicit refresh request')
     await initializeTeamsData()
     markAsRefreshed('TeamsView')
   } else {
-    console.log('✅ TeamsView: Using cached data (no refresh needed)')
+    console.log('TeamsView: Using cached data (no refresh needed)')
   }
 })
 
@@ -169,42 +170,42 @@ const setUserToUserToken = (userToken) => {
 const getTeamThatUserIsAdmin = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/admin`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/admin`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
+    if (!ok) {
+      throw new Error(data?.message || `Failed to fetch admin teams (Status ${status})`)
     }
-    teamsThatUserIsAdmin.value = await response.json()
+    teamsThatUserIsAdmin.value = data
     console.log('Fetched teams that user is admin of:', teamsThatUserIsAdmin.value)
   } catch (error) {
     console.error('Failed to fetch teams:', error)
+    teamsThatUserIsAdmin.value = []
   }
 }
 
 const fetchUserTeams = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
+    if (!ok) {
+      throw new Error(data?.message || `Failed to fetch user teams (Status ${status})`)
     }
-    userTeams.value = await response.json()
+    userTeams.value = data
     console.log('Fetched User Teams:', userTeams.value)
   } catch (error) {
     console.error('Failed to fetch User Teams:', error)
+    userTeams.value = []
   }
 }
 

@@ -24,13 +24,13 @@ onMounted(() => {
 
 // Handle component reactivation when navigating back
 onActivated(() => {
-  console.log('🔄 AboutView: Component reactivated (keep-alive working!)')
+  console.log('AboutView: Component reactivated (keep-alive working!)')
   if (needsRefresh('AboutView')) {
     console.log('🔃 AboutView: Refreshing animation due to explicit refresh request')
     triggerAnimation()
     markAsRefreshed('AboutView')
   } else {
-    console.log('✅ AboutView: Using cached state (no refresh needed)')
+    console.log('AboutView: Using cached state (no refresh needed)')
   }
 })
 </script>

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
+import { fetchJSON } from '../scripts/apiClient.js'
 import { startAppTour } from '../scripts/tour.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
@@ -54,7 +55,7 @@ onMounted(async () => {
 
 // Handle component reactivation when navigating back
 onActivated(async () => {
-  console.log('🔄 Dashboard: Component reactivated (keep-alive working!)')
+  console.log('Dashboard: Component reactivated (keep-alive working!)')
   if (needsRefresh('Dashboard')) {
     console.log('🔃 Dashboard: Refreshing data due to explicit refresh request')
     const userToken = await getUserByAccessToken()
@@ -64,7 +65,7 @@ onActivated(async () => {
     }
     markAsRefreshed('Dashboard')
   } else {
-    console.log('✅ Dashboard: Using cached data (no refresh needed)')
+    console.log('Dashboard: Using cached data (no refresh needed)')
   }
 })
 
@@ -198,23 +199,23 @@ const fetchTasks = async () => {
   loading.value = true
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const response = await fetch(`${PORT}/api/tasks/`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/tasks/`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
     })
-    const result = await response.json()
-    if (!response.ok) {
-      console.log('Failed to fetch tasks:', response.message)
-      throw new Error('Failed to fetch tasks')
+    
+    if (!ok) {
+      console.log('Failed to fetch tasks:', data?.message || `Status ${status}`)
+      throw new Error(data?.message || 'Failed to fetch tasks')
     } else {
-      console.log('Tasks fetched successfully:', result.tasks)
-      tasks.value = result.tasks || []
+      console.log('Tasks fetched successfully:', data.tasks)
+      tasks.value = data.tasks || []
     }
   } catch (error) {
     console.error('Error fetching tasks:', error)
+    tasks.value = []
   } finally {
     loading.value = false
   }

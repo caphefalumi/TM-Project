@@ -25,7 +25,7 @@ const addRefreshToken = async (req, res) => {
       sessionId: sessionId,
       ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      expiresAt: new Date(Date.now() + Number(process.env.REFRESH_TOKEN_MAX_AGE)), // 7 days
     })
 
     // Set cookies
@@ -33,7 +33,7 @@ const addRefreshToken = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // Convert string to number
       path: '/',
     })
 
@@ -41,7 +41,7 @@ const addRefreshToken = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: Number(process.env.ACCESS_TOKEN_MAX_AGE), // Convert string to number
       path: '/',
     })
 
@@ -100,7 +100,7 @@ const renewAccessToken = async (req, res) => {
       sessionId: currentTokenData.sessionId, // Preserve sessionId
       ipAddress: req.clientIp,
       userAgent: req.get('User-Agent'),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      expiresAt: new Date(Date.now() + Number(process.env.REFRESH_TOKEN_MAX_AGE)), // 7 days
     })
 
     console.log('Renewing access token for user:', user)
@@ -108,14 +108,14 @@ const renewAccessToken = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: Number(process.env.ACCESS_TOKEN_MAX_AGE), // Convert string to number
       path: '/',
     })
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // Convert string to number
     })
     await RefreshTokenManager.revokeTokenByString(currentRefreshToken, 'refresh_session')
 

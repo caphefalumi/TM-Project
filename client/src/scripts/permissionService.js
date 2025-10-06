@@ -1,3 +1,5 @@
+import { fetchJSON } from './apiClient.js'
+
 export const AVAILABLE_PERMISSIONS = [
   // Basic permissions
   {
@@ -217,20 +219,18 @@ class PermissionService {
   async fetchUserActions(teamId, userId) {
     try {
       const PORT = import.meta.env.VITE_API_PORT
-      const response = await fetch(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
+      const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
         method: 'GET',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
       })
 
-      if (response.ok) {
-        const actions = await response.json()
-        this.setUserActions(actions)
-        return actions
+      if (ok) {
+        this.setUserActions(data)
+        return data
       } else {
-        console.error('Failed to fetch user actions')
+        console.error('Failed to fetch user actions:', data?.message || `Status ${status}`)
         return {}
       }
     } catch (error) {
@@ -249,16 +249,21 @@ class PermissionService {
   async updateUserPermissions(teamId, userId, customPermissions) {
     try {
       const PORT = import.meta.env.VITE_API_PORT
-      const response = await fetch(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
+      const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ customPermissions }),
       })
 
-      return response.ok
+      if (ok) {
+        console.log('User permissions updated successfully')
+        return true
+      } else {
+        console.error('Failed to update user permissions:', data?.message || `Status ${status}`)
+        return false
+      }
     } catch (error) {
       console.error('Error updating user permissions:', error)
       return false
