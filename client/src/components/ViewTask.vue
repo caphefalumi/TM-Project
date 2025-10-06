@@ -93,7 +93,7 @@ const fetchTaskDetails = async () => {
       submission.value = null
     }
   } catch (err) {
-    console.error('Error fetching task details:', err)
+    console.log('Error fetching task details:', err)
     error.value = true
     message.value = 'Failed to fetch task details'
     // Fallback to props data

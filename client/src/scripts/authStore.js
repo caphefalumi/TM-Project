@@ -29,14 +29,14 @@ const refreshAccessToken = async () => {
           }
         }
       } catch (parseError) {
-        console.error('Error parsing response:', parseError)
+        console.log('Error parsing response:', parseError)
       }
     }
 
     console.warn('Refresh access token:', response.statusText)
     return { success: false, tokenRevoked: false }
   } catch (error) {
-    console.error('Error refreshing access token:', error)
+    console.log('Error refreshing access token:', error)
     return { success: false, tokenRevoked: false }
   }
 }
@@ -69,11 +69,11 @@ const getUserByAccessToken = async (retryCount = 0) => {
         return null
       }
     } else {
-      console.error('Failed to fetch user data:', response.statusText, 'Status:', response.status)
+      console.log('Failed to fetch user data:', response.statusText, 'Status:', response.status)
       return null
     }
   } catch (error) {
-    console.error('Error fetching user data:', error)
+    console.log('Error fetching user data:', error)
     return null
   }
 }
@@ -101,11 +101,11 @@ const logout = async () => {
       console.log('Logged out successfully:', data.message)
       return { success: true, message: data.message }
     } else {
-      console.error('Logout failed:', response.statusText)
+      console.log('Logout failed:', response.statusText)
       return { success: false, error: 'Logout failed' }
     }
   } catch (error) {
-    console.error('Error during logout:', error)
+    console.log('Error during logout:', error)
     return { success: false, error: error.message }
   }
 }

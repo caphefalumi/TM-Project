@@ -332,7 +332,7 @@ const submitTaskResponse = async () => {
       message.value = result.message || 'Failed to submit task.'
     }
   } catch (err) {
-    console.error('Error submitting task:', err)
+    console.log('Error submitting task:', err)
     error.value = true
     message.value = 'An error occurred during submission.'
   } finally {

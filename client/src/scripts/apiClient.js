@@ -52,14 +52,14 @@ const refreshAccessToken = async () => {
           }
         }
       } catch (parseError) {
-        console.error('[API Client] Error parsing refresh response:', parseError)
+        console.log('[API Client] Error parsing refresh response:', parseError)
       }
     }
 
-    console.error('[API Client] Failed to refresh access token:', response.statusText)
+    console.log('[API Client] Failed to refresh access token:', response.statusText)
     return { success: false, tokenRevoked: false }
   } catch (error) {
-    console.error('[API Client] Error refreshing access token:', error)
+    console.log('[API Client] Error refreshing access token:', error)
     return { success: false, tokenRevoked: false }
   }
 }
@@ -112,7 +112,7 @@ export const fetchWithTokenRefresh = async (url, options = {}, retryCount = 0) =
         // Retry the original request with refreshed token
         return await fetchWithTokenRefresh(url, options, 1)
       } else if (refreshResult.tokenRevoked) {
-        console.error('[API Client] Token was revoked, user needs to login again')
+        console.log('[API Client] Token was revoked, user needs to login again')
         
         // Emit custom event for App.vue to show sign-out dialog
         window.dispatchEvent(new CustomEvent('token-revoked', {
@@ -121,7 +121,7 @@ export const fetchWithTokenRefresh = async (url, options = {}, retryCount = 0) =
         
         return response // Return original 401 response
       } else {
-        console.error('[API Client] Token refresh failed, returning 401 response')
+        console.log('[API Client] Token refresh failed, returning 401 response')
         return response // Return original 401 response
       }
     }
@@ -130,7 +130,7 @@ export const fetchWithTokenRefresh = async (url, options = {}, retryCount = 0) =
     console.warn(`⚠️ [API Client] Already retried once for ${url}, returning 401`)
     return response
   } catch (error) {
-    console.error(`[API Client] Fetch error for ${url}:`, error)
+    console.log(`[API Client] Fetch error for ${url}:`, error)
     throw error
   }
 }
@@ -154,7 +154,7 @@ export const fetchWithTokenRefresh = async (url, options = {}, retryCount = 0) =
  * if (ok) {
  *   console.log('Teams:', data.teams)
  * } else {
- *   console.error('Failed:', data.message)
+ *   console.log('Failed:', data.message)
  * }
  */
 export const fetchJSON = async (url, options = {}) => {
@@ -178,7 +178,7 @@ export const fetchJSON = async (url, options = {}) => {
       }
     }
   } catch (error) {
-    console.error('[API Client] Failed to parse response:', error)
+    console.log('[API Client] Failed to parse response:', error)
     data = { error: 'Failed to parse response', details: error.message }
   }
 

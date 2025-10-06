@@ -101,7 +101,7 @@ const updateAnnouncement = async () => {
       message.value = data.message || 'Failed to update announcement.'
     }
   } catch (err) {
-    console.error('Update error:', err) // Add error debugging
+    console.log('Update error:', err) // Add error debugging
     error.value = true
     success.value = false
     message.value = 'An error occurred while updating the announcement.'

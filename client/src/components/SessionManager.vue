@@ -126,7 +126,7 @@ export default {
           })
         }
       } catch (error) {
-        console.error('Error loading sessions:', error)
+        console.log('Error loading sessions:', error)
       } finally {
         this.loading = false
       }
@@ -149,7 +149,7 @@ export default {
           this.$emit('show-message', 'Failed to end session', 'error')
         }
       } catch (error) {
-        console.error('Error revoking session:', error)
+        console.log('Error revoking session:', error)
         this.$emit('show-message', 'Error ending session', 'error')
       } finally {
         this.revoking = false
@@ -170,7 +170,7 @@ export default {
           this.$emit('show-message', 'Failed to end sessions', 'error')
         }
       } catch (error) {
-        console.error('Error revoking sessions:', error)
+        console.log('Error revoking sessions:', error)
         this.$emit('show-message', 'Error ending sessions', 'error')
       } finally {
         this.revoking = false

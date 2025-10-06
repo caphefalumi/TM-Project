@@ -104,7 +104,7 @@ const deleteTeams = async (teamId) => {
     closeDialog()
   } catch (error) {
     loading.value = false // Reset loading state on error
-    console.error('Failed to delete teams:', error)
+    console.log('Failed to delete teams:', error)
   }
 }
 </script>

@@ -145,7 +145,7 @@ export function startAppTour(router) {
         await router.push(target)
       } catch (error) {
         if (!isNavigationDuplicated(error)) {
-          console.error('Tour navigation failed:', error)
+          console.log('Tour navigation failed:', error)
         }
       }
       await sleep(options.afterNavigateDelay ?? 350)
@@ -216,7 +216,7 @@ export function startAppTour(router) {
         await router.push({ path: route.path, query: updatedQuery })
       } catch (error) {
         if (!isNavigationDuplicated(error)) {
-          console.error('Failed to switch team tab:', error)
+          console.log('Failed to switch team tab:', error)
         }
       }
       await sleep(300)
@@ -425,7 +425,7 @@ export function startAppTour(router) {
 
   if (shouldResume && startStepIndex > 0 && startStepIndex < tour.steps.length) {
     resumeTourAtStep(startStepIndex, startRoute).catch((error) =>
-      console.error('Failed to resume tour:', error),
+      console.log('Failed to resume tour:', error),
     )
   } else {
     tour.start()

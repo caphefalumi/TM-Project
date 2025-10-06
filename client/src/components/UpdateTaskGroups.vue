@@ -149,7 +149,7 @@ const fetchTaskGroupDetails = async () => {
       message.value = result.message || 'Failed to fetch task group details'
     }
   } catch (err) {
-    console.error('Error fetching task group:', err)
+    console.log('Error fetching task group:', err)
     error.value = true
     message.value = 'Failed to fetch task group details'
   } finally {
@@ -216,7 +216,7 @@ const updateTaskGroup = async () => {
       message.value = result.message || 'Failed to update task group'
     }
   } catch (err) {
-    console.error('Error updating task group:', err)
+    console.log('Error updating task group:', err)
     error.value = true
     message.value = 'Failed to update task group'
   } finally {
@@ -262,7 +262,7 @@ const deleteTaskGroup = async () => {
       message.value = result.message || 'Failed to delete task group'
     }
   } catch (err) {
-    console.error('Error deleting task group:', err)
+    console.log('Error deleting task group:', err)
     error.value = true
     message.value = 'Failed to delete task group'
   } finally {

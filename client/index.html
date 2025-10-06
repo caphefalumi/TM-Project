@@ -58,6 +58,11 @@
     </div>
     <script type="module" src="/src/main.js"></script>
     <script>
+      window.addEventListener('unhandledrejection', event => {
+        if (event.reason instanceof TypeError && event.reason.message.includes('fetch')) {
+          event.preventDefault()
+        }
+      })
       // Array of motivational/professional/friendly messages
       const messages = [
         'Getting your team ready to shine…',

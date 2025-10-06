@@ -259,7 +259,7 @@ const createTask = async () => {
       // You might want to emit an event to refresh tasks
     }
   } catch (error) {
-    console.error('Failed to create task:', error)
+    console.log('Failed to create task:', error)
   } finally {
     loading.value = false
   }

@@ -562,7 +562,7 @@ const fetchUserPermissions = async () => {
     await permissionService.fetchUserActions(props.teamId, user.value.userId)
     userPermissions.value = permissionService.userActions
   } catch (error) {
-    console.error('Error fetching user permissions:', error)
+    console.log('Error fetching user permissions:', error)
   }
 }
 
@@ -635,7 +635,7 @@ const executeRoleChange = async (member, newRoleType) => {
       }, 5000)
     }
   } catch (error) {
-    console.error('Error changing role:', error)
+    console.log('Error changing role:', error)
     error.value = true
     message.value = 'Network error occurred'
     setTimeout(() => {
@@ -702,7 +702,7 @@ const openPermissionsDialog = async (member) => {
     originalPermissions.value = { ...customPermissions.value }
     permissionsDialog.value = true
   } catch (error) {
-    console.error('Error fetching member permissions:', error)
+    console.log('Error fetching member permissions:', error)
   }
 }
 
@@ -760,7 +760,7 @@ const savePermissions = async () => {
       permissionMessage.value = 'Failed to update permissions'
     }
   } catch (error) {
-    console.error('Error saving permissions:', error)
+    console.log('Error saving permissions:', error)
     permissionError.value = true
     permissionMessage.value = 'Network error occurred'
   } finally {

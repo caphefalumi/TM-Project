@@ -19,7 +19,7 @@ class Mailer {
       console.log('Email sent successfully!')
       return true
     } catch (err) {
-      console.error('Error sending email:', err)
+      console.log('Error sending email:', err)
       return false
     }
   }

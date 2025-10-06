@@ -601,7 +601,7 @@ export default {
           this.authStore.clearAuth()
         }
       } catch (error) {
-        console.error('Error loading user data:', error)
+        console.log('Error loading user data:', error)
       }
     },
 
@@ -667,7 +667,7 @@ export default {
           this.showMessage(errorMessage, 'error')
         }
       } catch (error) {
-        console.error('Error updating profile:', error)
+        console.log('Error updating profile:', error)
         this.showMessage('Network error. Please try again.', 'error')
       } finally {
         this.isSaving = false
@@ -723,7 +723,7 @@ export default {
           this.showMessage(errorMessage, 'error')
         }
       } catch (error) {
-        console.error('Error updating username:', error)
+        console.log('Error updating username:', error)
         this.showMessage('Network error. Please try again.', 'error')
       } finally {
         this.isSavingUsername = false
@@ -771,7 +771,7 @@ export default {
           this.showMessage(errorMessage, 'error')
         }
       } catch (error) {
-        console.error('Error updating email:', error)
+        console.log('Error updating email:', error)
         this.showMessage('Network error. Please try again.', 'error')
       } finally {
         this.isSavingEmail = false
@@ -813,7 +813,7 @@ export default {
           this.showMessage(data.error || 'Failed to delete account', 'error')
         }
       } catch (error) {
-        console.error('Error deleting account:', error)
+        console.log('Error deleting account:', error)
         this.showMessage('Network error. Please try again.', 'error')
       } finally {
         this.isDeleting = false
@@ -851,7 +851,7 @@ export default {
           this.showMessage('Failed to send password reset email. Please try again.', 'error')
         }
       } catch (error) {
-        console.error('Error sending password reset email:', error)
+        console.log('Error sending password reset email:', error)
         this.showMessage('Network error. Please try again.', 'error')
       } finally {
         this.isResettingPassword = false

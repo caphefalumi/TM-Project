@@ -77,7 +77,7 @@ export const getUserCustomPermissions = async (userId, teamId) => {
       isGlobalAdmin: false,
     }
   } catch (error) {
-    console.error('Error getting user effective permissions:', error)
+    console.log('Error getting user effective permissions:', error)
     return null
   }
 }
@@ -131,7 +131,7 @@ export const hasPermission = async (userId, teamId, permission, globalUsername =
 
     return customPermissions[permissionField] || false
   } catch (error) {
-    console.error('Error checking permission:', error)
+    console.log('Error checking permission:', error)
     return false
   }
 }
@@ -162,7 +162,7 @@ export const requireAdmin = (req, res, next) => {
       next()
     })
     .catch((error) => {
-      console.error('Error checking admin role:', error)
+      console.log('Error checking admin role:', error)
       return res.status(500).json({ message: 'Internal server error' })
     })
 }
@@ -209,7 +209,7 @@ export const requirePermission = (permission) => {
 
       next()
     } catch (error) {
-      console.error('Permission check error:', error)
+      console.log('Permission check error:', error)
       return res.status(500).json({ message: 'Internal server error' })
     }
   }
@@ -220,7 +220,7 @@ export const getUserRoleInTeam = async (userId, teamId) => {
     const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
     return userTeamRole ? userTeamRole.roleType : null
   } catch (error) {
-    console.error('Error getting user role:', error)
+    console.log('Error getting user role:', error)
     return null
   }
 }
@@ -233,7 +233,7 @@ export const hasElevatedPrivileges = async (userId) => {
     })
     return roles.length > 0
   } catch (error) {
-    console.error('Error checking elevated privileges:', error)
+    console.log('Error checking elevated privileges:', error)
     return false
   }
 }

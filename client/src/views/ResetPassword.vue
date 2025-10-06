@@ -140,7 +140,7 @@ onMounted(async () => {
       error.value = true
     }
   } catch (err) {
-    console.error('Token verification error:', err)
+    console.log('Token verification error:', err)
     error.value = true
   }
 })
@@ -178,7 +178,7 @@ const handleResetPassword = async () => {
       error.value = true
     }
   } catch (err) {
-    console.error('Reset password error:', err)
+    console.log('Reset password error:', err)
     error.value = true
   } finally {
     loading.value = false

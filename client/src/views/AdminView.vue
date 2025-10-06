@@ -85,7 +85,7 @@ const loadAllData = async () => {
   try {
     await Promise.all([loadTeams(), loadUsers(), loadAnnouncements()])
   } catch (error) {
-    console.error('Error loading admin data:', error)
+    console.log('Error loading admin data:', error)
   } finally {
     loading.value = false
   }
@@ -105,7 +105,7 @@ const loadTeams = async () => {
       teams.value = data.teams || []
     }
   } catch (error) {
-    console.error('Error loading teams:', error)
+    console.log('Error loading teams:', error)
   }
 }
 
@@ -122,11 +122,11 @@ const loadUsers = async () => {
       users.value = data.users || []
     } else {
       const error = await response.json()
-      console.error('Failed to load users:', error.message)
+      console.log('Failed to load users:', error.message)
       alert(`Failed to load users: ${error.message}`)
     }
   } catch (error) {
-    console.error('Error loading users:', error)
+    console.log('Error loading users:', error)
   }
 }
 
@@ -151,7 +151,7 @@ const loadAnnouncements = async () => {
       )
     }
   } catch (error) {
-    console.error('Error loading announcements:', error)
+    console.log('Error loading announcements:', error)
   }
 }
 
@@ -184,7 +184,7 @@ const deleteTeam = async (team) => {
       alert(`Failed to delete team: ${error.message}`)
     }
   } catch (error) {
-    console.error('Error deleting team:', error)
+    console.log('Error deleting team:', error)
     alert('Failed to delete team')
   } finally {
     deleting.value = false
@@ -224,7 +224,7 @@ const sendNotification = async () => {
       alert(`Failed to send notification: ${error.message}`)
     }
   } catch (error) {
-    console.error('Error sending notification:', error)
+    console.log('Error sending notification:', error)
     alert('Failed to send notification')
   }
 }
@@ -257,7 +257,7 @@ const deleteUser = async (userToDelete) => {
       alert(`Failed to delete user: ${error.message}`)
     }
   } catch (error) {
-    console.error('Error deleting user:', error)
+    console.log('Error deleting user:', error)
     alert('Failed to delete user')
   } finally {
     deleting.value = false
@@ -290,7 +290,7 @@ const deleteAnnouncement = async (announcement) => {
       alert(`Failed to delete announcement: ${error.message}`)
     }
   } catch (error) {
-    console.error('Error deleting announcement:', error)
+    console.log('Error deleting announcement:', error)
     alert('Failed to delete announcement')
   } finally {
     deleting.value = false

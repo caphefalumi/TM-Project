@@ -22,7 +22,7 @@ const getTasksOfAUser = async (req, res) => {
 
     return res.status(200).json({ tasks })
   } catch (error) {
-    console.error('Error fetching tasks:', error)
+    console.log('Error fetching tasks:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -58,7 +58,7 @@ const getTasksOfAUserInATeam = async (req, res) => {
     }
     return res.status(200).json({ tasks })
   } catch (error) {
-    console.error('Error fetching tasks:', error)
+    console.log('Error fetching tasks:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -176,7 +176,7 @@ const addTaskToUsers = async (req, res) => {
       tasks: newTasks,
     })
   } catch (error) {
-    console.error('Error adding task:', error)
+    console.log('Error adding task:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -284,7 +284,7 @@ const submitATask = async (req, res) => {
       submission: savedSubmission,
     })
   } catch (error) {
-    console.error('Error submitting task:', error)
+    console.log('Error submitting task:', error)
     return res.status(500).json({ message: 'Internal server error', error: error.message })
   }
 }
@@ -335,7 +335,7 @@ const getTasksByGroupId = async (req, res) => {
       totalTasks: tasks.length,
     })
   } catch (error) {
-    console.error('Error fetching tasks by group ID:', error)
+    console.log('Error fetching tasks by group ID:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -464,7 +464,7 @@ const updateTaskGroup = async (req, res) => {
       taskGroupId,
     })
   } catch (error) {
-    console.error('Error updating task group:', error)
+    console.log('Error updating task group:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -500,7 +500,7 @@ const deleteTaskGroup = async (req, res) => {
       taskGroupId,
     })
   } catch (error) {
-    console.error('Error deleting task group:', error)
+    console.log('Error deleting task group:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -577,7 +577,7 @@ const getAllTaskGroups = async (req, res) => {
       })),
     })
   } catch (error) {
-    console.error('Error fetching task groups:', error)
+    console.log('Error fetching task groups:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -615,7 +615,7 @@ const getTaskSubmission = async (req, res) => {
       submission,
     })
   } catch (error) {
-    console.error('Error fetching task submission:', error)
+    console.log('Error fetching task submission:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }

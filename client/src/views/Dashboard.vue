@@ -214,7 +214,7 @@ const fetchTasks = async () => {
       tasks.value = data.tasks || []
     }
   } catch (error) {
-    console.error('Error fetching tasks:', error)
+    console.log('Error fetching tasks:', error)
     tasks.value = []
   } finally {
     loading.value = false
@@ -233,7 +233,7 @@ const navigateToTeam = (task) => {
     console.log('Navigating to team ID:', task.teamId)
     router.push(`/teams/${task.teamId}`)
   } else {
-    console.error('Task or teamId is missing:', task)
+    console.log('Task or teamId is missing:', task)
   }
 }
 

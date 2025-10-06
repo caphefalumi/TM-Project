@@ -71,7 +71,7 @@ const getUserNotifications = async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Error fetching user notifications:', error)
+    console.log('Error fetching user notifications:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -129,7 +129,7 @@ const markNotificationsAsRead = async (req, res) => {
       updatedCount: updateCount,
     })
   } catch (error) {
-    console.error('Error marking notifications as read:', error)
+    console.log('Error marking notifications as read:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -178,7 +178,7 @@ const deleteNotifications = async (req, res) => {
       deletedCount: deleteCount,
     })
   } catch (error) {
-    console.error('Error deleting notifications:', error)
+    console.log('Error deleting notifications:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -197,7 +197,7 @@ const getNotificationPreferences = async (req, res) => {
     const preferences = await getUserNotificationPreferences(userId)
     return res.status(200).json({ preferences })
   } catch (error) {
-    console.error('Error fetching notification preferences:', error)
+    console.log('Error fetching notification preferences:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -242,7 +242,7 @@ const updateNotificationPreferences = async (req, res) => {
       preferences: userPreferences,
     })
   } catch (error) {
-    console.error('Error updating notification preferences:', error)
+    console.log('Error updating notification preferences:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -292,7 +292,7 @@ const getNotificationStats = async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Error fetching notification stats:', error)
+    console.log('Error fetching notification stats:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }

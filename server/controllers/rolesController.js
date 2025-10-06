@@ -37,7 +37,7 @@ export const createRole = async (req, res) => {
       role: newRole,
     })
   } catch (error) {
-    console.error('Error creating role:', error)
+    console.log('Error creating role:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -54,7 +54,7 @@ export const getRolesByTeam = async (req, res) => {
       roles,
     })
   } catch (error) {
-    console.error('Error getting roles:', error)
+    console.log('Error getting roles:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -74,7 +74,7 @@ export const getRoleById = async (req, res) => {
       role,
     })
   } catch (error) {
-    console.error('Error getting role:', error)
+    console.log('Error getting role:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -117,7 +117,7 @@ export const updateRole = async (req, res) => {
       role,
     })
   } catch (error) {
-    console.error('Error updating role:', error)
+    console.log('Error updating role:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -154,7 +154,7 @@ export const deleteRole = async (req, res) => {
       reassignedUsers: usersWithRole.length,
     })
   } catch (error) {
-    console.error('Error deleting role:', error)
+    console.log('Error deleting role:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -213,7 +213,7 @@ export const assignCustomRoleToUser = async (req, res) => {
       demotedAdmin: demotedAdmin,
     })
   } catch (error) {
-    console.error('Error assigning custom role:', error)
+    console.log('Error assigning custom role:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }

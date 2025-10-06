@@ -183,7 +183,7 @@ const getTeamThatUserIsAdmin = async () => {
     teamsThatUserIsAdmin.value = data
     console.log('Fetched teams that user is admin of:', teamsThatUserIsAdmin.value)
   } catch (error) {
-    console.error('Failed to fetch teams:', error)
+    console.log('Failed to fetch teams:', error)
     teamsThatUserIsAdmin.value = []
   }
 }
@@ -204,7 +204,7 @@ const fetchUserTeams = async () => {
     userTeams.value = data
     console.log('Fetched User Teams:', userTeams.value)
   } catch (error) {
-    console.error('Failed to fetch User Teams:', error)
+    console.log('Failed to fetch User Teams:', error)
     userTeams.value = []
   }
 }

@@ -52,7 +52,7 @@ export const getAuthenticatedUser = async (req, res) => {
       success: 'User data retrieved successfully',
     })
   } catch (error) {
-    console.error('Error retrieving authenticated user:', error)
+    console.log('Error retrieving authenticated user:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -68,7 +68,7 @@ export const getAllUsers = async (req, res) => {
     }
     return res.status(200).json(users)
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.log('Error fetching users:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -163,7 +163,7 @@ export const addUsersToTeam = async (req, res) => {
       if (userId !== requestingUserId) {
         createTeamMemberAddedNotification(userId, teamId, requestingUserId)
           .then(() => console.log(`Notification sent for ${userId}`))
-          .catch((err) => console.error('Notification error:', err))
+          .catch((err) => console.log('Notification error:', err))
       }
     }
 
@@ -178,7 +178,7 @@ export const addUsersToTeam = async (req, res) => {
       details: addedUsers,
     })
   } catch (error) {
-    console.error('Error adding users to team:', error)
+    console.log('Error adding users to team:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -247,7 +247,7 @@ export const getUsersOfTeam = async (req, res) => {
 
     return res.status(200).json(transformedUsers)
   } catch (error) {
-    console.error('Error fetching users of team:', error)
+    console.log('Error fetching users of team:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -304,7 +304,7 @@ export const deleteUsersFromTeam = async (req, res) => {
     console.log('Users deleted from team successfully')
     return res.status(200).json({ message: 'Users deleted from team successfully' })
   } catch (error) {
-    console.error('Error deleting users from team:', error)
+    console.log('Error deleting users from team:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -418,7 +418,7 @@ export const changeUserRole = async (req, res) => {
       demotedAdmin: demotedAdmin,
     })
   } catch (error) {
-    console.error('Error changing user role:', error)
+    console.log('Error changing user role:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -478,7 +478,7 @@ export const getUserPermissions = async (req, res) => {
 
     res.status(200).json(response)
   } catch (error) {
-    console.error('Error getting user permissions:', error)
+    console.log('Error getting user permissions:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -523,7 +523,7 @@ export const updateUserPermissions = async (req, res) => {
       customPermissions,
     })
   } catch (error) {
-    console.error('Error updating user permissions:', error)
+    console.log('Error updating user permissions:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -681,7 +681,7 @@ export const updateUserProfile = async (req, res) => {
       try {
         await Mailer.sendEmail(mailOptions)
       } catch (error) {
-        console.error('Failed to send email verification:', error)
+        console.log('Failed to send email verification:', error)
         account.emailVerificationToken = undefined
         account.emailVerificationExpires = undefined
 
@@ -764,7 +764,7 @@ export const updateUserProfile = async (req, res) => {
       emailVerificationExpiresAt: account.emailVerificationExpires,
     })
   } catch (error) {
-    console.error('Error updating profile:', error)
+    console.log('Error updating profile:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -858,7 +858,7 @@ export const verifyEmailChange = async (req, res) => {
         `,
       })
     } catch (error) {
-      console.error('Failed to send confirmation email after verification:', error)
+      console.log('Failed to send confirmation email after verification:', error)
     }
 
     return res.status(200).json({
@@ -877,7 +877,7 @@ export const verifyEmailChange = async (req, res) => {
       emailCooldownEndsAt,
     })
   } catch (error) {
-    console.error('Error verifying email change:', error)
+    console.log('Error verifying email change:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -908,7 +908,7 @@ export const deleteUserAccount = async (req, res) => {
       success: 'Account deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting account:', error)
+    console.log('Error deleting account:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 }

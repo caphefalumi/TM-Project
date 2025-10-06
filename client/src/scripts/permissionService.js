@@ -230,11 +230,11 @@ class PermissionService {
         this.setUserActions(data)
         return data
       } else {
-        console.error('Failed to fetch user actions:', data?.message || `Status ${status}`)
+        console.log('Failed to fetch user actions:', data?.message || `Status ${status}`)
         return {}
       }
     } catch (error) {
-      console.error('Error fetching user actions:', error)
+      console.log('Error fetching user actions:', error)
       return {}
     }
   }
@@ -261,11 +261,11 @@ class PermissionService {
         console.log('User permissions updated successfully')
         return true
       } else {
-        console.error('Failed to update user permissions:', data?.message || `Status ${status}`)
+        console.log('Failed to update user permissions:', data?.message || `Status ${status}`)
         return false
       }
     } catch (error) {
-      console.error('Error updating user permissions:', error)
+      console.log('Error updating user permissions:', error)
       return false
     }
   }

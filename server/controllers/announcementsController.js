@@ -32,7 +32,7 @@ const getAnnouncementsOfTeam = async (req, res) => {
     }
     return res.status(200).json({ announcements })
   } catch (error) {
-    console.error('Error fetching announcements:', error)
+    console.log('Error fetching announcements:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -84,7 +84,7 @@ const addAnnouncement = async (req, res) => {
         )
       }
     } catch (notificationError) {
-      console.error('Error creating announcement notifications:', notificationError)
+      console.log('Error creating announcement notifications:', notificationError)
       // Don't fail the announcement creation if notification creation fails
     }
 
@@ -92,7 +92,7 @@ const addAnnouncement = async (req, res) => {
       .status(201)
       .json({ message: 'Announcement added successfully', announcement: newAnnouncement })
   } catch (error) {
-    console.error('Error adding announcement:', error)
+    console.log('Error adding announcement:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -113,7 +113,7 @@ const deleteAnnouncement = async (req, res) => {
     }
     return res.status(200).json({ message: 'Announcement deleted successfully' })
   } catch (error) {
-    console.error('Error deleting announcement:', error)
+    console.log('Error deleting announcement:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -151,7 +151,7 @@ const updateAnnouncement = async (req, res) => {
     await announcement.save()
     return res.status(200).json({ message: 'Announcement updated successfully', announcement })
   } catch (error) {
-    console.error('Error updating announcement:', error)
+    console.log('Error updating announcement:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -193,7 +193,7 @@ const toggleLikeAnnouncement = async (req, res) => {
           announcement.teamId,
         )
       } catch (notificationError) {
-        console.error('Error creating like notification:', notificationError)
+        console.log('Error creating like notification:', notificationError)
         // Don't fail the like operation if notification creation fails
       }
     }
@@ -201,7 +201,7 @@ const toggleLikeAnnouncement = async (req, res) => {
     await announcement.save()
     return res.status(200).json({ message: 'Like status toggled successfully', announcement })
   } catch (error) {
-    console.error('Error toggling like status:', error)
+    console.log('Error toggling like status:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
@@ -271,13 +271,13 @@ const addCommentToAnnouncement = async (req, res) => {
         )
       }
     } catch (notificationError) {
-      console.error('Error creating comment notification:', notificationError)
+      console.log('Error creating comment notification:', notificationError)
       // Don't fail the comment creation if notification creation fails
     }
 
     return res.status(201).json({ message: 'Comment added successfully', comment: savedComment })
   } catch (error) {
-    console.error('Error adding comment:', error)
+    console.log('Error adding comment:', error)
     return res.status(500).json({ message: 'Internal server error' })
   }
 }

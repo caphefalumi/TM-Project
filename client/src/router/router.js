@@ -148,7 +148,7 @@ router.beforeEach(async (to, from, next) => {
           console.log('Admin access granted')
           next()
         } else {
-          console.error('Access denied: Admin privileges required')
+          console.log('Access denied: Admin privileges required')
           next('/home')
         }
         return
@@ -160,13 +160,13 @@ router.beforeEach(async (to, from, next) => {
 
     if (requiresAuth) {
       authStore.clearAuth()
-      console.error('Authentication failed, redirecting to login')
+      console.log('Authentication failed, redirecting to login')
       next('/login')
     } else {
       next()
     }
   } catch (error) {
-    console.error('Auth check failed:', error)
+    console.log('Auth check failed:', error)
     next('/login')
   }
 })

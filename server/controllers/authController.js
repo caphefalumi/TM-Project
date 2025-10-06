@@ -132,7 +132,7 @@ async function createSampleTeamAndTasks(account) {
     ]
     await Tasks.insertMany(sampleTasks)
   } catch (error) {
-    console.error('Error creating sample team and tasks:', error)
+    console.log('Error creating sample team and tasks:', error)
     throw error
   }
 }
@@ -293,11 +293,11 @@ const forgotPassword = async (req, res) => {
       await Mailer.sendResetPassword(account, resetToken)
       res.json({ message: 'If an account with that email exists, a password reset link has been sent' })
     } catch (err) {
-      console.error('Failed to send password reset email:', err)
+      console.log('Failed to send password reset email:', err)
       res.status(500).json({ error: 'Failed to send password reset email. Please try again later.' })
     }
   } catch (error) {
-    console.error('Forgot password error:', error)
+    console.log('Forgot password error:', error)
     res.status(500).json({ error: 'An error occurred while processing your request' })
   }
 }
@@ -324,7 +324,7 @@ const verifyToken = async (req, res) => {
 
     return res.status(200).json({ success: 'Token is valid' })
   } catch (error) {
-    console.error('Token verification error:', error)
+    console.log('Token verification error:', error)
     return res.status(500).json({ error: 'An error occurred while verifying the token' })
   }
 }
@@ -349,11 +349,11 @@ const resetPassword = async (req, res) => {
       await Mailer.sendResetConfirmation(account)
       res.json({ message: 'Password reset successful' })
     } catch (err) {
-      console.error('Failed to send password reset confirmation email:', err)
+      console.log('Failed to send password reset confirmation email:', err)
       res.json({ message: 'Password reset successful, but confirmation email could not be sent' })
     }
   } catch (err) {
-    console.error('Reset password error:', err)
+    console.log('Reset password error:', err)
     res.status(500).json({ error: 'Failed to reset password' })
   }
 }
@@ -381,7 +381,7 @@ const resendEmailVerification = async (req, res) => {
     await Mailer.sendVerificationEmail(email, verificationToken)
     return res.status(200).json({ success: 'Verification email sent. Please check your inbox.' })
   } catch (err) {
-    console.error('Failed to send verification email:', err)
+    console.log('Failed to send verification email:', err)
     return res.status(500).json({ error: 'Failed to send verification email. Please try again later.' })
   }
 }
@@ -423,7 +423,7 @@ const googleOAuthCallback = async (req, res) => {
 
     if (!tokenResponse.ok || !tokens.access_token) {
       const errorMsg = tokens.error_description || tokens.error || 'Failed to get access token'
-      console.error('[OAuth PKCE] Token exchange failed:', errorMsg)
+      console.log('[OAuth PKCE] Token exchange failed:', errorMsg)
       throw new Error('Token exchange failed: ' + errorMsg)
     }
 
@@ -460,7 +460,7 @@ const googleOAuthCallback = async (req, res) => {
     }
 
   } catch (err) {
-    console.error('[OAuth PKCE] Callback error:', err)
+    console.log('[OAuth PKCE] Callback error:', err)
     return res.status(500).json({ error: err.message || 'Failed to process OAuth callback' })
   }
 }
