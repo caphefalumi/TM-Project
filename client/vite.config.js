@@ -16,6 +16,10 @@ export default defineConfig({
       overlay: false,
     },
   },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
+
   preview: {
     port: 5173,
   },
