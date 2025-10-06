@@ -126,7 +126,7 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
 <template>
   <div>
     <!-- App Bar at the top -->
-    <v-app-bar id="tour-app-header" app color="primary" dark>
+    <v-app-bar app color="primary" dark>
       <!-- The `d-lg-none` class hides drawer icon for large screens and up -->
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
@@ -134,7 +134,7 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
 
       <v-spacer></v-spacer>
 
-      <NotificationCenter id="tour-notification-center" v-if="user.userId" :userId="user.userId" />
+      <NotificationCenter v-if="user.userId" :userId="user.userId" />
 
       <v-btn icon @click="logout">
         <v-icon v-tooltip:bottom="'Log out'">mdi-logout</v-icon>
@@ -143,7 +143,7 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
 
     <!-- Navigation Drawer (Sidebar) -->
     <v-navigation-drawer
-      id="tour-sidebar-nav"
+
       v-model="drawer"
       :permanent="$vuetify.display.lgAndUp"
       app
@@ -193,7 +193,7 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
             :title="item.title"
             class="text-h5"
             link
-            id="tour-admin-nav"
+
           ></v-list-item>
         </template>
       </v-list>

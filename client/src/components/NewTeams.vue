@@ -179,7 +179,7 @@ const createTeam = async () => {
   <!-- this component is a popup dialog that allows users to create new team -->
   <!-- Using vuetify 3 -->
   <v-dialog v-model="props.dialog" max-width="600px" closable>
-    <v-card id="tour-create-team-dialog">
+    <v-card>
       <!-- IMPLEMENT: Set card title to bold style -->
       <v-card-title class="font-weight-bold text-center text-h5 mb-2 mt-2"
         >Create New Team</v-card-title
@@ -208,7 +208,7 @@ const createTeam = async () => {
         </v-expand-transition>
         <v-expand-transition v-if="props.teamsThatUserIsAdmin.length > 0">
           <v-select
-            id="tour-parent-team-select"
+
             v-model="newTeam.parentTeamId"
             :items="props.teamsThatUserIsAdmin"
             item-title="title"
