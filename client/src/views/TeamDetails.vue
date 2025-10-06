@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, computed, onActivated, onDeactivated, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
+import { fetchJSON } from '../scripts/apiClient.js'
 import { permissionService } from '../scripts/permissionService.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
@@ -486,22 +487,18 @@ const fetchSubTeams = async () => {
   try {
     isLoadingSubTeams.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${teamId.value}/sub-teams`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/sub-teams`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       }
     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Failed to fetch sub-teams. Status:', response.status, 'Error:', errorData)
+    if (!ok) {
+      console.error('Failed to fetch sub-teams. Status:', status, 'Error:', data)
       subTeams.value = []
       return
     }
-
-    const data = await response.json()
 
     // Handle both array and object responses
     if (Array.isArray(data)) {
@@ -536,21 +533,18 @@ const fetchTeamTasks = async () => {
   try {
     isLoadingTasks.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const { ok, status, data } = await fetchJSON(
       `${PORT}/api/teams/${teamId.value}/${user.value.userId}/tasks`,
       {
         method: 'GET',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
       },
     )
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      console.error('Failed to fetch team tasks:', data.message)
+    if (!ok) {
+      console.error('Failed to fetch team tasks:', data?.message || `Status ${status}`)
       tasks.value = []
     } else {
       // Extract the tasks array from the response object
@@ -570,17 +564,15 @@ const fetchTeamDetails = async () => {
   try {
     isLoadingTeamDetails.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    const data = await response.json()
-    if (!response.ok) {
-      console.error('Failed to fetch team details:', data.message)
+    if (!ok) {
+      console.error('Failed to fetch team details:', data?.message || `Status ${status}`)
       team.value = {}
     } else {
       team.value = data.team || {}
@@ -598,18 +590,15 @@ const fetchAnnouncements = async () => {
   try {
     isLoadingAnnouncements.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${teamId.value}/announcements`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/announcements`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      console.error('Failed to fetch announcements:', data.message)
+    if (!ok) {
+      console.error('Failed to fetch announcements:', data?.message || `Status ${status}`)
       announcements.value = []
     } else {
       announcements.value = data.announcements || []
@@ -627,20 +616,18 @@ const fetchTeamMembers = async () => {
   try {
     isLoadingMembers.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${teamId.value}/users`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/users`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    const result = await response.json()
-    if (!response.ok) {
-      console.error('Failed to fetch team members:')
+    if (!ok) {
+      console.error('Failed to fetch team members:', data?.message || `Status ${status}`)
       teamMembers.value = []
     } else {
-      teamMembers.value = result
+      teamMembers.value = data
       // Update cache after fetching team members
       updateCacheWithCurrentData()
     }
@@ -717,17 +704,16 @@ const toggleLikeAnnouncement = async (announcementId) => {
 
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const response = await fetch(`${PORT}/api/announcements/${announcementId}/like`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/announcements/${announcementId}/like`, {
       method: 'POST',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ userId: user.value.userId }),
     })
 
-    if (!response.ok) {
-      throw new Error('Failed to like announcement')
+    if (!ok) {
+      throw new Error(data?.message || `Failed to like announcement (Status ${status})`)
     } else {
       // Soft update the local state to reflect the like
       const currentAnnouncement = announcements.value.find(
@@ -754,17 +740,15 @@ const getTaskGroups = async () => {
   try {
     refreshingTaskGroups.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${teamId.value}/task-groups`, {
+    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/task-groups`, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    const data = await response.json()
-    if (!response.ok) {
-      console.error('Failed to fetch team details:', data.message)
+    if (!ok) {
+      console.error('Failed to fetch task groups:', data?.message || `Status ${status}`)
       taskGroups.value = []
     } else {
       console.log('Task groups ', data.taskGroups)

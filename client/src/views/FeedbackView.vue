@@ -274,13 +274,13 @@ const handleRefresh = () => {
 
 // Handle component reactivation when navigating back
 onActivated(async () => {
-  console.log('🔄 FeedbackView: Component reactivated (keep-alive working!)')
+  console.log('FeedbackView: Component reactivated (keep-alive working!)')
   if (needsRefresh('FeedbackView')) {
     console.log('🔃 FeedbackView: Refreshing form due to explicit refresh request')
     resetForm()
     markAsRefreshed('FeedbackView')
   } else {
-    console.log('✅ FeedbackView: Using cached form data (no refresh needed)')
+    console.log('FeedbackView: Using cached form data (no refresh needed)')
   }
   
   // Ensure user is still authenticated when component is reactivated

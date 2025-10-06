@@ -719,7 +719,7 @@ export const updateUserProfile = async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: 'None',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // Convert string to number
         path: '/',
       })
 
@@ -727,7 +727,7 @@ export const updateUserProfile = async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: 'None',
-        maxAge: 15 * 60 * 1000, // 15 minutes
+        maxAge: Number(process.env.ACCESS_TOKEN_MAX_AGE) * 60 * 1000, // in minutes
         path: '/',
       })
     }
@@ -833,7 +833,7 @@ export const verifyEmailChange = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: Number(process.env.ACCESS_TOKEN_MAX_AGE), // Convert string to number
       path: '/',
     })
 

@@ -79,7 +79,7 @@ const isDev = computed(() => {
 })
 
 const forceRefreshTeam = (teamId) => {
-  console.log('🔄 Force refreshing team from cache debugger:', teamId)
+  console.log('Force refreshing team from cache debugger:', teamId)
   removeTeamFromCache(teamId)
   
   // If we're currently on this team, trigger a page reload

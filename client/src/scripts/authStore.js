@@ -33,7 +33,7 @@ const refreshAccessToken = async () => {
       }
     }
 
-    console.error('Failed to refresh access token:', response.statusText)
+    console.warn('Refresh access token:', response.statusText)
     return { success: false, tokenRevoked: false }
   } catch (error) {
     console.error('Error refreshing access token:', error)
@@ -65,7 +65,7 @@ const getUserByAccessToken = async (retryCount = 0) => {
         // Retry the original request with the new access token
         return await getUserByAccessToken(1) // Prevent infinite recursion
       } else {
-        console.error('Token refresh failed, user needs to login again')
+        console.warn('Token refresh failed, user needs to login again')
         return null
       }
     } else {

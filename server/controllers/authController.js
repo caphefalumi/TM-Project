@@ -427,7 +427,7 @@ const handleDesktopOAuthCallback = async (req, res) => {
       <html>
         <head><title>Authentication Failed</title></head>
         <body style="font-family: Arial; text-align: center; padding: 50px;">
-          <h1>❌ Authentication Failed</h1>
+          <h1>Authentication Failed</h1>
           <p>${oauthError}</p>
           <p>You can close this window and try again.</p>
         </body>

@@ -150,10 +150,10 @@ const handleFileUpload = (fieldName, event) => {
 
   if (file) {
     // Check file size (limit to 5MB)
-    const maxSizeInBytes = 5 * 1024 * 1024 // 5MB
+    const maxSizeInBytes = 20 * 1024 * 1024 // 20MB
     if (file.size > maxSizeInBytes) {
       error.value = true
-      message.value = `File size too large. Please select an image smaller than 5MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`
+      message.value = `File size too large. Please select an image smaller than 20MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`
       return
     }
 
@@ -525,7 +525,7 @@ watch(
                   density="comfortable"
                   accept="image/*"
                   :required="field.config && field.config.required"
-                  hint="Maximum file size: 5MB. Large images will be automatically compressed."
+                  hint="Maximum file size: 20MB. Large images will be automatically compressed."
                   persistent-hint
                 ></v-file-input>
                 <!-- Display current image if available -->

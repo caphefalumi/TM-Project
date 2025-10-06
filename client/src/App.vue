@@ -148,6 +148,12 @@ watch(
   { immediate: true },
 )
 
+// Handle token revocation events from API client
+const handleTokenRevoked = (event) => {
+  const message = event.detail?.message || 'Your session has been terminated. Please sign in again.'
+  showSignOutPopup(message)
+}
+
 onMounted(() => {
   refreshAccessToken() // Initial token refresh on mount
   // Start token refresh if user is already authenticated
@@ -164,11 +170,17 @@ onMounted(() => {
       console.log(`[Cache] Cleaned ${cleaned} expired cache entries`)
     }
   }, 5 * 60 * 1000) // 5 minutes
+  
+  // Listen for token revocation events from API client
+  window.addEventListener('token-revoked', handleTokenRevoked)
 })
 
 onUnmounted(() => {
   // Clean up interval when component is destroyed
   stopTokenRefresh()
+  
+  // Clean up event listener
+  window.removeEventListener('token-revoked', handleTokenRevoked)
 })
 </script>
 

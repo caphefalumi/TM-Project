@@ -11,7 +11,7 @@ export function generateAccessToken(user) {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: '15m', // 15 minutes
+      expiresIn: process.env.ACCESS_TOKEN_TIME, // 15 minutes
     },
   )
 }
@@ -25,7 +25,7 @@ export function generateRefreshToken(user) {
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: '7d', // 7 days
+      expiresIn: process.env.REFRESH_TOKEN_TIME, // 7 days
     },
   )
 }
