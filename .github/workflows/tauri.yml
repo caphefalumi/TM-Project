@@ -63,6 +63,7 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
+          VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
@@ -128,6 +129,7 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
+          VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
@@ -178,6 +180,7 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
+          VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
         run: bunx --bun tauri build
 
       - name: Upload bundle artifacts
