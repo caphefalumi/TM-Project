@@ -30,7 +30,7 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
 export const getAuthenticatedUser = async (req, res) => {
   try {
     const account = await Account.findById(req.user.userId).select(
-      '_id username email emailVerified pendingEmail lastUsernameChangeAt lastEmailChangeAt emailVerificationExpires',
+      '_id username email emailVerified pendingEmail lastUsernameChangeAt lastEmailChangeAt emailVerificationExpires createdAt',
     )
 
     if (!account) {
@@ -47,6 +47,7 @@ export const getAuthenticatedUser = async (req, res) => {
         lastUsernameChangeAt: account.lastUsernameChangeAt,
         lastEmailChangeAt: account.lastEmailChangeAt,
         emailVerificationExpires: account.emailVerificationExpires,
+        createdAt: account.createdAt,
       },
       success: 'User data retrieved successfully',
     })
@@ -577,6 +578,7 @@ export const updateUserProfile = async (req, res) => {
           lastUsernameChangeAt: account.lastUsernameChangeAt,
           lastEmailChangeAt: account.lastEmailChangeAt,
           emailVerificationExpires: account.emailVerificationExpires,
+          createdAt: account.createdAt,
         },
         requiresEmailVerification: Boolean(account.pendingEmail),
         usernameCooldownEndsAt: usernameCooldownEndsAt
@@ -754,6 +756,7 @@ export const updateUserProfile = async (req, res) => {
         lastUsernameChangeAt: account.lastUsernameChangeAt,
         lastEmailChangeAt: account.lastEmailChangeAt,
         emailVerificationExpires: account.emailVerificationExpires,
+        createdAt: account.createdAt,
       },
       requiresEmailVerification: Boolean(account.pendingEmail),
       usernameCooldownEndsAt: usernameCooldownEndsAt ? usernameCooldownEndsAt.toISOString() : null,
@@ -869,6 +872,7 @@ export const verifyEmailChange = async (req, res) => {
         lastUsernameChangeAt: account.lastUsernameChangeAt,
         lastEmailChangeAt: account.lastEmailChangeAt,
         emailVerificationExpires: account.emailVerificationExpires,
+        createdAt: account.createdAt,
       },
       emailCooldownEndsAt,
     })

@@ -439,11 +439,20 @@ export default {
           lastUsernameChangeAt: null,
           lastEmailChangeAt: null,
           emailVerificationExpires: null,
+          createdAt: null,
         }
       )
     },
     memberSince() {
-      return 'January 2024'
+      if (!this.user.createdAt) return 'Unknown'
+      
+      const date = new Date(this.user.createdAt)
+      if (Number.isNaN(date.getTime())) return 'Unknown'
+      
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+      })
     },
     requiresUsernameAcknowledgement() {
       const currentUsername = this.user.username || ''

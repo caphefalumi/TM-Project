@@ -20,6 +20,7 @@ const VerifyEmailView = () => import('../views/VerifyEmailView.vue')
 const AdminView = () => import('../views/AdminView.vue')
 const AccountPersonalView = () => import('../views/AccountPersonalView.vue')
 const AccountSecurityView = () => import('../views/AccountSecurityView.vue')
+const OAuth2Redirect = () => import('../components/OAuth2Redirect.vue')
 
 const { getUserByAccessToken } = AuthStore
 
@@ -60,6 +61,11 @@ const router = createRouter({
       path: '/verify-email',
       component: VerifyEmailView,
       meta: { requiresAuth: false, title: 'Verify Email' },
+    },
+    {
+      path: '/oauth2redirect',
+      component: OAuth2Redirect,
+      meta: { requiresAuth: false, title: 'OAuth Redirect' },
     },
     { path: '/teams', component: TeamsView, meta: { requiresAuth: true, title: 'Teams' } },
     {

@@ -20,6 +20,7 @@ const normalizeUser = (userData) => {
     lastUsernameChangeAt: userData.lastUsernameChangeAt || null,
     lastEmailChangeAt: userData.lastEmailChangeAt || null,
     emailVerificationExpires: userData.emailVerificationExpires || null,
+    createdAt: userData.createdAt || null,
   }
 }
 

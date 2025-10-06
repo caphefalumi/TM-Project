@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Teams Management",
         "width": 1200,
         "height": 800,
@@ -21,6 +22,13 @@
     ],
     "security": {
       "csp": null 
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["com.teams-management.dev"]
+      }
     }
   },
   "bundle": {

@@ -9,6 +9,8 @@ edition = "2021"
 rust-version = "1.77.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
+tauri-plugin-single-instance = { version = "2.0.0", features = ["deep-link"] }
 
 [lib]
 name = "app_lib"
@@ -21,7 +23,12 @@ tauri-build = { version = "2.4.1", features = [] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
+url = "2.5"
 tauri = { version = "2.8.5", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-prevent-default = "3"
+tauri-plugin-deep-link = "2"
+tiny_http = "0.12"
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
