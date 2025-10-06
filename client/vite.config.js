@@ -16,14 +16,24 @@ export default defineConfig({
       overlay: false,
     },
   },
+  build: {
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vue: ['vue'],
+          'vue-router': ['vue-router'],
+          pinia: ['pinia'],
+        },
+      },
+    },
+  },
   esbuild: {
     drop: ['console', 'debugger'],
   },
 
   preview: {
     port: 5173,
-  },
-  build: {
-    chunkSizeWarningLimit: 1600,
   },
 })
