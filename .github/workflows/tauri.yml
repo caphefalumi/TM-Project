@@ -154,7 +154,7 @@ jobs:
           path: client/src-tauri/target/release/bundle/appimage/*.AppImage
           if-no-files-found: error
 
-      - name: Upload Linux signature
+      - name: Upload Linux AppImage signature
         uses: actions/upload-artifact@v4
         with:
           name: linux-signature
@@ -167,13 +167,13 @@ jobs:
           name: linux-deb
           path: client/src-tauri/target/release/bundle/deb/*.deb
           if-no-files-found: ignore
-
-      - name: Upload Linux RPM package
+      - name: Upload Linux DEB signature
         uses: actions/upload-artifact@v4
         with:
-          name: linux-rpm
-          path: client/src-tauri/target/release/bundle/rpm/*.rpm
-          if-no-files-found: ignore
+          name: linux-deb-signature
+          path: client/src-tauri/target/release/bundle/deb/*.sig
+          if-no-files-found: error
+
   build_macos:
     if: |
       github.event_name != 'workflow_dispatch' ||
@@ -315,16 +315,6 @@ jobs:
             fi
           fi
           
-          if [ -d "artifacts/linux-rpm" ]; then
-            echo "Processing Linux RPM..."
-            if find artifacts/linux-rpm -name "*.rpm" -exec cp {} release-assets/ \; 2>/dev/null; then
-              echo "Linux RPM added"
-              ASSETS_FOUND=true
-            else
-              echo "No Linux rpm found"
-            fi
-          fi
-          
           # macOS files
           if [ -d "artifacts/macos-dmg" ]; then
             echo "Processing macOS DMG..."
@@ -374,18 +364,34 @@ jobs:
         run: |
           VERSION="${{ steps.get_version.outputs.raw_version }}"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          NOTES="## Teams Management v${VERSION}"
+          NOTES="Teams Management v${VERSION}"
 
           # Get signatures from artifacts
           WIN_SIG=$(find artifacts -name "*.sig" -path "*/windows-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
           LINUX_SIG=$(find artifacts -name "*.sig" -path "*/linux-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
+          DEB_SIG=$(find artifacts -name "*.sig" -path "*/linux-deb*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
           MACOS_SIG=$(find artifacts -name "*.sig" -path "*/macos-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
-          
+          APP_SIG=$(find artifacts -name "*.sig" -path "*/macos-app*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
+
           # Get actual filenames from release assets
-          WIN_FILE=$(find release-assets -name "*.exe" -printf "%f\n" 2>/dev/null | head -1 || echo "teams-management_${VERSION}_x64_en-US.msi.zip")
-          LINUX_FILE=$(find release-assets -name "*.AppImage" -printf "%f\n" 2>/dev/null | head -1 || echo "teams-management_${VERSION}_amd64.AppImage")
-          MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 || echo "teams-management_${VERSION}_x64.dmg")
-          
+          WIN_FILE=$(find release-assets -name "*.exe" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x64-setup.exe")
+          LINUX_FILE=$(find release-assets -name "*.AppImage" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x86_64.AppImage")
+          DEB_FILE=$(find release-assets -name "*.deb" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_amd64.deb")
+          MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x64.dmg")
+          APP_FILE=$(find release-assets -name "*.app.tar.gz" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_arm64.app.tar.gz")
+
+          WIN_SIG=$WIN_SIG
+          LINUX_SIG=$LINUX_SIG
+          DEB_SIG=$DEB_SIG
+          MACOS_SIG=$MACOS_SIG
+          APP_SIG=$APP_SIG
+
+          WIN_FILE=$WIN_FILE
+          LINUX_FILE=$LINUX_FILE
+          DEB_FILE=$DEB_FILE
+          MACOS_FILE=$MACOS_FILE
+          APP_FILE=$APP_FILE
+
           # Generate complete update JSON
           jq -n \
             --arg version "$VERSION" \
@@ -395,24 +401,36 @@ jobs:
             --arg win_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${WIN_FILE}" \
             --arg linux_sig "$LINUX_SIG" \
             --arg linux_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${LINUX_FILE}" \
+            --arg deb_sig "$DEB_SIG" \
+            --arg deb_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${DEB_FILE}" \
             --arg macos_sig "$MACOS_SIG" \
             --arg macos_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${MACOS_FILE}" \
+            --arg app_sig "$APP_SIG" \
+            --arg app_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${APP_FILE}" \
             '{
               version: $version,
               notes: $notes,
               pub_date: $pub_date,
               platforms: {
-                "linux-x86_64": {
-                  signature: $linux_sig,
-                  url: $linux_url
-                },
                 "windows-x86_64": {
                   signature: $win_sig,
                   url: $win_url
                 },
-                "macos-x86_64": {
+                "linux-x86_64": {
+                  signature: $linux_sig,
+                  url: $linux_url
+                },
+                "linux-deb-x86_64": {
+                  signature: $deb_sig,
+                  url: $deb_url
+                },
+                "darwin-x86_64": {
                   signature: $macos_sig,
                   url: $macos_url
+                },
+                "darwin-aarch64": {
+                  signature: $app_sig,
+                  url: $app_url
                 }
               }
             }' > release-assets/latest.json
