@@ -6,7 +6,7 @@ const props = defineProps({
   refreshingTaskGroups: Boolean
 })
 
-const emit = defineEmits(['refresh-task-groups', 'update:taskGroups'])
+const emit = defineEmits(['refresh-task-groups'])
 </script>
 
 <template>
@@ -29,9 +29,6 @@ const emit = defineEmits(['refresh-task-groups', 'update:taskGroups'])
     </v-col>
   </v-row>
   <div>
-    <WorkflowView 
-      :model-value="taskGroups"
-      @update:model-value="$emit('update:taskGroups', $event)"
-    />
+    <WorkflowView :task-groups="taskGroups" />
   </div>
 </template>

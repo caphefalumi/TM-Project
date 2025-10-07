@@ -56,6 +56,7 @@ const editForm = ref({
   title: '',
   description: '',
   priority: '',
+  startDate: '',
   dueDate: '',
   category: '',
   weighted: 0,
@@ -138,6 +139,7 @@ const fetchTaskGroupDetails = async () => {
           title: firstTask.title,
           description: firstTask.description || '',
           priority: firstTask.priority,
+          startDate: firstTask.startDate ? new Date(firstTask.startDate).toISOString().substr(0, 10) : '',
           dueDate: firstTask.dueDate ? new Date(firstTask.dueDate).toISOString().substr(0, 10) : '',
           category: firstTask.category,
           weighted: firstTask.weighted || 0,
@@ -161,12 +163,23 @@ const updateTaskGroup = async () => {
   if (
     !editForm.value.title ||
     !editForm.value.priority ||
+    !editForm.value.startDate ||
     !editForm.value.dueDate ||
     !editForm.value.weighted ||
     editForm.value.assignedUsers.length === 0
   ) {
     error.value = true
     message.value = 'Please fill in all required fields and assign at least one user'
+    return
+  }
+
+  // Validate that start date is before or equal to due date
+  const startDate = new Date(editForm.value.startDate)
+  const dueDate = new Date(editForm.value.dueDate)
+  
+  if (startDate > dueDate) {
+    error.value = true
+    message.value = 'Start date must be before or equal to due date'
     return
   }
 
@@ -187,6 +200,7 @@ const updateTaskGroup = async () => {
           title: editForm.value.title,
           description: editForm.value.description,
           priority: editForm.value.priority,
+          startDate: new Date(editForm.value.startDate),
           dueDate: new Date(editForm.value.dueDate),
           category: editForm.value.category,
           weighted: Number(editForm.value.weighted),
@@ -363,25 +377,25 @@ onMounted(() => {
                 <v-card-title>Task Group Overview</v-card-title>
                 <v-card-text>
                   <v-row>
-                    <v-col cols="6" md="3">
+                    <v-col cols="12" md="3" sm="6">
                       <v-card class="text-center pa-3" color="primary" variant="tonal">
                         <v-card-title class="text-h4">{{ taskGroup.totalTasks }}</v-card-title>
                         <v-card-subtitle>Total Tasks</v-card-subtitle>
                       </v-card>
                     </v-col>
-                    <v-col cols="6" md="3">
+                    <v-col cols="12" md="3" sm="6">
                       <v-card class="text-center pa-3" color="success" variant="tonal">
                         <v-card-title class="text-h4">{{ taskGroup.completedTasks }}</v-card-title>
                         <v-card-subtitle>Completed</v-card-subtitle>
                       </v-card>
                     </v-col>
-                    <v-col cols="6" md="3">
+                    <v-col cols="12" md="3" sm="6">
                       <v-card class="text-center pa-3" color="info" variant="tonal">
                         <v-card-title class="text-h4">{{ taskGroup.totalUsers }}</v-card-title>
                         <v-card-subtitle>Assigned Users</v-card-subtitle>
                       </v-card>
                     </v-col>
-                    <v-col cols="6" md="3">
+                    <v-col cols="12" md="3" sm="6">
                       <v-card class="text-center pa-3" color="warning" variant="tonal">
                         <v-card-title class="text-h4">{{ completionRate }}%</v-card-title>
                         <v-card-subtitle>Completion Rate</v-card-subtitle>
@@ -487,17 +501,6 @@ onMounted(() => {
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="editForm.dueDate"
-                      label="Due Date"
-                      type="date"
-                      required
-                      variant="outlined"
-                      min="2025-01-01"
-                      max="2035-12-31"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-text-field
                       v-model.number="editForm.weighted"
                       label="Task Weight"
                       type="number"
@@ -505,6 +508,32 @@ onMounted(() => {
                       required
                       variant="outlined"
                       hint="Higher weight = more important task"
+                      persistent-hint
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="editForm.startDate"
+                      label="Start Date"
+                      type="date"
+                      required
+                      variant="outlined"
+                      min="2025-01-01"
+                      :max="editForm.dueDate || '2035-12-31'"
+                      hint="Must be before or equal to due date"
+                      persistent-hint
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="editForm.dueDate"
+                      label="Due Date"
+                      type="date"
+                      required
+                      variant="outlined"
+                      :min="editForm.startDate || '2025-01-01'"
+                      max="2035-12-31"
+                      hint="Must be after or equal to start date"
                       persistent-hint
                     ></v-text-field>
                   </v-col>

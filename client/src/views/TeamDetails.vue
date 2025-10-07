@@ -1176,7 +1176,7 @@ const isDev = computed(() => {
         <!-- Workflow Tab -->
         <v-window-item value="workflow">
           <WorkflowTab
-            v-model:task-groups="taskGroups"
+            :task-groups="taskGroups"
             :refreshing-task-groups="refreshingTaskGroups"
             @refresh-task-groups="getTaskGroups"
           />
