@@ -283,14 +283,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-dmg
-          path: client/src-tauri/target/release/bundle/dmg/*.dmg
+          path: client/src-tauri/target/release/bundle/*/*.dmg
           if-no-files-found: error
 
       - name: Upload macOS signature
         uses: actions/upload-artifact@v4
         with:
           name: macos-signature
-          path: client/src-tauri/target/release/bundle/dmg/*.sig
+          path: client/src-tauri/target/release/bundle/*/*.sig
           if-no-files-found: error
 
       - name: Upload macOS APP bundle
@@ -333,8 +333,6 @@ jobs:
     if: github.event.inputs.create_release == 'true'
     needs: 
       - build_windows
-      - build_linux  
-      - build_macos
     runs-on: ubuntu-latest
     name: Create GitHub Release
     
