@@ -1,10 +1,18 @@
-use tauri::{Manager, command};
-use tiny_http::{Server, Response};
 use serde_json::json;
+use tauri::{command, Manager};
+use tauri_plugin_updater::UpdaterExt;
+use tiny_http::{Response, Server};
 
 #[command]
-async fn wait_for_oauth_callback(code_verifier: String, expected_state: String, backend_url: String, client_id: String, client_secret: String) -> Result<serde_json::Value, String> {
-    let server = Server::http("127.0.0.1:1409").map_err(|e| format!("Failed to start server: {}", e))?;
+async fn wait_for_oauth_callback(
+    code_verifier: String,
+    expected_state: String,
+    backend_url: String,
+    client_id: String,
+    client_secret: String,
+) -> Result<serde_json::Value, String> {
+    let server =
+        Server::http("127.0.0.1:1409").map_err(|e| format!("Failed to start server: {}", e))?;
     println!("Listening for OAuth callback on port 1409...");
 
     // Wait for Google redirect
@@ -13,7 +21,8 @@ async fn wait_for_oauth_callback(code_verifier: String, expected_state: String, 
         println!("Received request: {}", url);
 
         // Send simple response to browser
-        let response = Response::from_string("Authentication successful! You may now close this window.");
+        let response =
+            Response::from_string("Authentication successful! You may now close this window.");
         if let Err(e) = request.respond(response) {
             eprintln!("Failed to respond to request: {}", e);
         }
@@ -22,11 +31,9 @@ async fn wait_for_oauth_callback(code_verifier: String, expected_state: String, 
         if url.contains("/oauth/callback") {
             let parsed_url = url::Url::parse(&format!("http://localhost:1409{}", url))
                 .map_err(|e| format!("Failed to parse URL: {}", e))?;
-            
-            let query_pairs: std::collections::HashMap<String, String> = parsed_url
-                .query_pairs()
-                .into_owned()
-                .collect();
+
+            let query_pairs: std::collections::HashMap<String, String> =
+                parsed_url.query_pairs().into_owned().collect();
 
             // Check for OAuth error
             if let Some(error) = query_pairs.get("error") {
@@ -34,10 +41,10 @@ async fn wait_for_oauth_callback(code_verifier: String, expected_state: String, 
             }
 
             // Get code and state
-            let code = query_pairs.get("code")
+            let code = query_pairs
+                .get("code")
                 .ok_or("Missing authorization code")?;
-            let state = query_pairs.get("state")
-                .ok_or("Missing state parameter")?;
+            let state = query_pairs.get("state").ok_or("Missing state parameter")?;
 
             // Validate state
             if state != &expected_state {
@@ -47,11 +54,13 @@ async fn wait_for_oauth_callback(code_verifier: String, expected_state: String, 
             println!("Got authorization code, exchanging for token...");
 
             // Exchange code for access token using PKCE
-            let token_response = exchange_code_for_token(code, &code_verifier, &client_id, &client_secret).await?;
-            
+            let token_response =
+                exchange_code_for_token(code, &code_verifier, &client_id, &client_secret).await?;
+
             // Use the access token with your backend
-            let backend_result = authenticate_with_backend(&token_response.access_token, &backend_url).await?;
-            
+            let backend_result =
+                authenticate_with_backend(&token_response.access_token, &backend_url).await?;
+
             return Ok(backend_result);
         }
     }
@@ -68,9 +77,14 @@ struct TokenResponse {
     expires_in: u64,
 }
 
-async fn exchange_code_for_token(code: &str, code_verifier: &str, client_id: &str, client_secret: &str) -> Result<TokenResponse, String> {
+async fn exchange_code_for_token(
+    code: &str,
+    code_verifier: &str,
+    client_id: &str,
+    client_secret: &str,
+) -> Result<TokenResponse, String> {
     let client = reqwest::Client::new();
-    
+
     let params = [
         ("client_id", client_id),
         ("client_secret", client_secret),
@@ -100,9 +114,12 @@ async fn exchange_code_for_token(code: &str, code_verifier: &str, client_id: &st
     Ok(token_data)
 }
 
-async fn authenticate_with_backend(access_token: &str, backend_url: &str) -> Result<serde_json::Value, String> {
+async fn authenticate_with_backend(
+    access_token: &str,
+    backend_url: &str,
+) -> Result<serde_json::Value, String> {
     let client = reqwest::Client::new();
-    
+
     let response = client
         .post(&format!("{}/api/auth/oauth", backend_url))
         .header("Content-Type", "application/json")
@@ -126,19 +143,49 @@ async fn authenticate_with_backend(access_token: &str, backend_url: &str) -> Res
     Ok(backend_data)
 }
 
+async fn update(app: tauri::AppHandle) -> tauri_plugin_updater::Result<()> {
+  if let Some(update) = app.updater()?.check().await? {
+    let mut downloaded = 0;
+
+    // alternatively we could also call update.download() and update.install() separately
+    update
+      .download_and_install(
+        |chunk_length, content_length| {
+          downloaded += chunk_length;
+          println!("downloaded {downloaded} from {content_length:?}");
+        },
+        || {
+          println!("download finished");
+        },
+      )
+      .await?;
+
+    println!("update installed");
+    app.restart();
+  }
+
+  Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            let _ = app.get_webview_window("main")
-            .expect("no main window")
-            .set_focus();
+            let _ = app
+                .get_webview_window("main")
+                .expect("no main window")
+                .set_focus();
         }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_prevent_default::init())
         .invoke_handler(tauri::generate_handler![wait_for_oauth_callback])
         .setup(|app| {
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                update(handle).await.unwrap();
+            });
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()
