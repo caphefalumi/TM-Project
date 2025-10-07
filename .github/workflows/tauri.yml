@@ -87,35 +87,6 @@ jobs:
           path: client/src-tauri/target/release/bundle/nsis/*.sig
           if-no-files-found: error
 
-      - name: Generate Tauri update JSON
-        shell: bash
-        run: |
-          VERSION=$(jq -r '.version' client/src-tauri/tauri.conf.json)
-          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          NOTES="Release of Teams Management v$VERSION"
-          WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig 2>/dev/null || echo "")
-          WIN_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagementSetup.exe"
-          LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig 2>/dev/null || echo "")
-          LINUX_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.AppImage"
-          MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig 2>/dev/null || echo "")
-          MAC_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.dmg"
-          if [[ -n "$WIN_SIG" ]]; then
-            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg win_sig "$WIN_SIG" --arg win_url "$WIN_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"windows-x86_64": {signature: $win_sig, url: $win_url}}}' > latest.json
-          elif [[ -n "$LINUX_SIG" ]]; then
-            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg linux_sig "$LINUX_SIG" --arg linux_url "$LINUX_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"linux-x86_64": {signature: $linux_sig, url: $linux_url}}}' > latest.json
-          elif [[ -n "$MAC_SIG" ]]; then
-            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg mac_sig "$MAC_SIG" --arg mac_url "$MAC_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"darwin-x86_64": {signature: $mac_sig, url: $mac_url}}}' > latest.json
-          else
-            echo "No .sig file found for this platform." && exit 1
-          fi
-
-      - name: Upload update JSON
-        uses: actions/upload-artifact@v4
-        with:
-          name: tauri-update-json
-          path: latest.json
-          if-no-files-found: error
-
   build_linux:
     if: |
       github.event_name != 'workflow_dispatch' ||
@@ -203,36 +174,6 @@ jobs:
           name: linux-rpm
           path: client/src-tauri/target/release/bundle/rpm/*.rpm
           if-no-files-found: ignore
-
-      # - name: Generate Tauri update JSON
-      #   shell: bash
-      #   run: |
-      #     VERSION=$(jq -r '.version' client/src-tauri/tauri.conf.json)
-      #     PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-      #     NOTES="Release of Teams Management v$VERSION"
-      #     WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig 2>/dev/null || echo "")
-      #     WIN_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagementSetup.exe"
-      #     LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig 2>/dev/null || echo "")
-      #     LINUX_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.AppImage"
-      #     MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig 2>/dev/null || echo "")
-      #     MAC_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.dmg"
-      #     if [[ -n "$WIN_SIG" ]]; then
-      #       jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg win_sig "$WIN_SIG" --arg win_url "$WIN_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"windows-x86_64": {signature: $win_sig, url: $win_url}}}' > latest.json
-      #     elif [[ -n "$LINUX_SIG" ]]; then
-      #       jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg linux_sig "$LINUX_SIG" --arg linux_url "$LINUX_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"linux-x86_64": {signature: $linux_sig, url: $linux_url}}}' > latest.json
-      #     elif [[ -n "$MAC_SIG" ]]; then
-      #       jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg mac_sig "$MAC_SIG" --arg mac_url "$MAC_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"darwin-x86_64": {signature: $mac_sig, url: $mac_url}}}' > latest.json
-      #     else
-      #       echo "No .sig file found for this platform." && exit 1
-      #     fi
-
-      # - name: Upload update JSON
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: tauri-update-json
-      #     path: latest.json
-      #     if-no-files-found: error
-
   build_macos:
     if: |
       github.event_name != 'workflow_dispatch' ||
@@ -290,44 +231,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-signature
-          path: client/src-tauri/target/release/bundle/dmg/*.sig
+          path: client/src-tauri/target/release/bundle/macos/*.sig
           if-no-files-found: error
 
       - name: Upload macOS APP bundle
         uses: actions/upload-artifact@v4
         with:
           name: macos-app
-          path: client/src-tauri/target/release/bundle/macos/*.app
+          path: client/src-tauri/target/release/bundle/macos/*.app.tar.gz
           if-no-files-found: ignore
-
-      # - name: Generate Tauri update JSON
-      #   shell: bash
-      #   run: |
-      #     VERSION=$(jq -r '.version' client/src-tauri/tauri.conf.json)
-      #     PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-      #     NOTES="Release of Teams Management v$VERSION"
-      #     WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig 2>/dev/null || echo "")
-      #     WIN_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagementSetup.exe"
-      #     LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig 2>/dev/null || echo "")
-      #     LINUX_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.AppImage"
-      #     MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig 2>/dev/null || echo "")
-      #     MAC_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.dmg"
-      #     if [[ -n "$WIN_SIG" ]]; then
-      #       jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg win_sig "$WIN_SIG" --arg win_url "$WIN_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"windows-x86_64": {signature: $win_sig, url: $win_url}}}' > latest.json
-      #     elif [[ -n "$LINUX_SIG" ]]; then
-      #       jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg linux_sig "$LINUX_SIG" --arg linux_url "$LINUX_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"linux-x86_64": {signature: $linux_sig, url: $linux_url}}}' > latest.json
-      #     elif [[ -n "$MAC_SIG" ]]; then
-      #       jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg mac_sig "$MAC_SIG" --arg mac_url "$MAC_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"darwin-x86_64": {signature: $mac_sig, url: $mac_url}}}' > latest.json
-      #     else
-      #       echo "No .sig file found for this platform." && exit 1
-      #     fi
-
-      # - name: Upload update JSON
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: tauri-update-json
-      #     path: latest.json
-      #     if-no-files-found: error
 
   create_release:
     if: github.event.inputs.create_release == 'true'
@@ -361,105 +273,160 @@ jobs:
       - name: Prepare release assets
         run: |
           mkdir -p release-assets
+          ASSETS_FOUND=false
+          
+          echo "Available artifacts:"
+          find artifacts -type f -name "*" | sort
+          echo ""
           
           # Windows files
           if [ -d "artifacts/windows-installer" ]; then
             echo "Processing Windows installer..."
-            find artifacts/windows-installer -name "*.exe" -exec cp {} release-assets/ \; 2>/dev/null || echo "No Windows exe found"
-          fi
-          if [ -d "artifacts/windows-signature" ]; then
-            echo "Processing Windows signature..."
-            find artifacts/windows-signature -name "*.sig" -exec sh -c 'cp "$1" "release-assets/$(basename "$1" .sig)-windows.sig"' _ {} \; 2>/dev/null || echo "No Windows sig found"
+            if find artifacts/windows-installer -name "*.exe" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "Windows installer added"
+              ASSETS_FOUND=true
+            else
+              echo "No Windows exe found"
+            fi
+          else
+            echo "Windows installer artifacts not found"
           fi
           
           # Linux files
           if [ -d "artifacts/linux-appimage" ]; then
             echo "Processing Linux AppImage..."
-            find artifacts/linux-appimage -name "*.AppImage" -exec cp {} release-assets/ \; 2>/dev/null || echo "No Linux AppImage found"
+            if find artifacts/linux-appimage -name "*.AppImage" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "Linux AppImage added"
+              ASSETS_FOUND=true
+            else
+              echo "No Linux AppImage found"
+            fi
+          else
+            echo "Linux AppImage artifacts not found"
           fi
-          if [ -d "artifacts/linux-signature" ]; then
-            echo "Processing Linux signature..."
-            find artifacts/linux-signature -name "*.sig" -exec sh -c 'cp "$1" "release-assets/$(basename "$1" .sig)-linux.sig"' _ {} \; 2>/dev/null || echo "No Linux sig found"
-          fi
+          
           if [ -d "artifacts/linux-deb" ]; then
             echo "Processing Linux DEB..."
-            find artifacts/linux-deb -name "*.deb" -exec cp {} release-assets/ \; 2>/dev/null || echo "No Linux deb found"
+            if find artifacts/linux-deb -name "*.deb" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "Linux DEB added"
+              ASSETS_FOUND=true
+            else
+              echo "No Linux deb found"
+            fi
           fi
+          
           if [ -d "artifacts/linux-rpm" ]; then
             echo "Processing Linux RPM..."
-            find artifacts/linux-rpm -name "*.rpm" -exec cp {} release-assets/ \; 2>/dev/null || echo "No Linux rpm found"
+            if find artifacts/linux-rpm -name "*.rpm" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "Linux RPM added"
+              ASSETS_FOUND=true
+            else
+              echo "No Linux rpm found"
+            fi
           fi
           
           # macOS files
           if [ -d "artifacts/macos-dmg" ]; then
             echo "Processing macOS DMG..."
-            find artifacts/macos-dmg -name "*.dmg" -exec cp {} release-assets/ \; 2>/dev/null || echo "No macOS dmg found"
+            if find artifacts/macos-dmg -name "*.dmg" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "macOS DMG added"
+              ASSETS_FOUND=true
+            else
+              echo "No macOS dmg found"
+            fi
+          else
+            echo "macOS DMG artifacts not found"
           fi
-          if [ -d "artifacts/macos-signature" ]; then
-            echo "Processing macOS signature..."
-            find artifacts/macos-signature -name "*.sig" -exec sh -c 'cp "$1" "release-assets/$(basename "$1" .sig)-macos.sig"' _ {} \; 2>/dev/null || echo "No macOS sig found"
-          fi
+
           if [ -d "artifacts/macos-app" ]; then
             echo "Processing macOS APP..."
-            find artifacts/macos-app -name "*.app" -exec tar -czf release-assets/TeamsManagement-macos.app.tar.gz -C artifacts/macos-app {} \; 2>/dev/null || echo "No macOS app found"
+            if find artifacts/macos-app -name "*.app.tar.gz" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "macOS APP bundle added"
+              ASSETS_FOUND=true
+            else
+              echo "No macOS app bundle found"
+            fi
           fi
           
-          # Update JSON if it exists
+          # Update JSON from Windows build (if available)
           if [ -d "artifacts/tauri-update-json" ]; then
             echo "Processing update JSON..."
-            find artifacts/tauri-update-json -name "*.json" -exec cp {} release-assets/ \; 2>/dev/null || echo "No update JSON found"
+            if find artifacts/tauri-update-json -name "*.json" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "Update JSON added"
+            else
+              echo "No update JSON found"
+            fi
           fi
           
+          echo ""
           echo "Release assets prepared:"
-          ls -la release-assets/ || echo "No release assets found"
+          ls -la release-assets/ 2>/dev/null || echo "No release assets directory created"
           
-          # Check if we have any assets
-          if [ -z "$(ls -A release-assets/)" ]; then
-            echo "ERROR: No release assets found!"
+          # Check if we have any installer assets (allow release even if only some platforms built)
+          if [ "$ASSETS_FOUND" = "false" ]; then
+            echo "ERROR: No installer assets found! At least one platform must be built successfully."
             exit 1
+          else
+            echo "Release assets ready - found at least one installer"
           fi
       
+      - name: Generate complete update JSON
+        run: |
+          VERSION="${{ steps.get_version.outputs.raw_version }}"
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          NOTES="## Teams Management v${VERSION}
+
+          # Get signatures from artifacts
+          WIN_SIG=$(find artifacts -name "*.sig" -path "*/windows-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
+          LINUX_SIG=$(find artifacts -name "*.sig" -path "*/linux-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
+          MACOS_SIG=$(find artifacts -name "*.sig" -path "*/macos-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
+          
+          # Get actual filenames from release assets
+          WIN_FILE=$(find release-assets -name "*.exe" -printf "%f\n" 2>/dev/null | head -1 || echo "teams-management_${VERSION}_x64_en-US.msi.zip")
+          LINUX_FILE=$(find release-assets -name "*.AppImage" -printf "%f\n" 2>/dev/null | head -1 || echo "teams-management_${VERSION}_amd64.AppImage")
+          MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 || echo "teams-management_${VERSION}_x64.dmg")
+          
+          # Generate complete update JSON
+          jq -n \
+            --arg version "$VERSION" \
+            --arg notes "$NOTES" \
+            --arg pub_date "$PUB_DATE" \
+            --arg win_sig "$WIN_SIG" \
+            --arg win_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${WIN_FILE}" \
+            --arg linux_sig "$LINUX_SIG" \
+            --arg linux_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${LINUX_FILE}" \
+            --arg macos_sig "$MACOS_SIG" \
+            --arg macos_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${MACOS_FILE}" \
+            '{
+              version: $version,
+              notes: $notes,
+              pub_date: $pub_date,
+              platforms: {
+                "linux-x86_64": {
+                  signature: $linux_sig,
+                  url: $linux_url
+                },
+                "windows-x86_64": {
+                  signature: $win_sig,
+                  url: $win_url
+                },
+                "macos-x86_64": {
+                  signature: $macos_sig,
+                  url: $macos_url
+                }
+              }
+            }' > release-assets/latest.json
+          
+          echo "Generated update JSON:"
+          cat release-assets/latest.json
+
       - name: Generate release notes
         id: generate_notes
         run: |
           VERSION="${{ steps.get_version.outputs.raw_version }}"
-          NOTES=$(cat << 'EOF'
-          ## Teams Management v$VERSION
-          
-          ### 🚀 What's New
-          - Global notification system with AWS-style overlapping notifications
-          - Automatic update checker with user confirmation dialogs
-          - Enhanced UI/UX with better visual feedback
-          - Improved mobile responsiveness
-          
-          ### 🐛 Bug Fixes
-          - Fixed notification z-index issues with dialogs
-          - Improved error handling across the application
-          - Performance optimizations for large teams
-          
-          ### 📦 Installation
-          
-          **Windows**: Download and run `*.exe` installer
-          **Linux**: Download `*.AppImage` and make it executable, or use `*.deb`/`*.rpm` packages
-          **macOS**: Download and mount `*.dmg`, then drag to Applications folder
-          
-          ### 🔐 Security
-          All releases are signed and verified. Signature files (`*.sig`) are included for verification.
-          
-          ---
-          
-          **Full Changelog**: https://github.com/caphefalumi/TM-Project/compare/v0.1.0...v$VERSION
+          cat > release_notes.md << EOF
+          ## Teams Management v${VERSION}
           EOF
-          )
-          
-          # Replace $VERSION in the notes
-          NOTES=$(echo "$NOTES" | sed "s/\$VERSION/$VERSION/g")
-          
-          # Save to file to handle multiline output
-          echo "$NOTES" > release_notes.md
-          
-          echo "Generated release notes:"
-          cat release_notes.md
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -467,7 +434,7 @@ jobs:
           tag_name: ${{ steps.get_version.outputs.version }}
           name: Teams Management ${{ steps.get_version.outputs.version }}
           body_path: release_notes.md
-          draft: false
+          draft: true
           prerelease: false
           files: release-assets/*
           generate_release_notes: false
