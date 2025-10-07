@@ -33,7 +33,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJBQzdCNTVFRTg5OTFERQpSV1Rla1ludVZYdXNBaFdVd2hlMEdoVUJEZDFGak14NHQ1NzhPblpDb01EWkhhcU4xaXRHeWpSYQo=",
       "endpoints": [
-        "https://github.com/user/repo/releases/latest/download/latest.json"
+        "https://gist.github.com/caphefalumi/bc9581882d84c80e16d9606edf575d71"
       ],
       "windows": {
         "installMode": "passive"
@@ -43,7 +43,7 @@
   "bundle": {
     "createUpdaterArtifacts": true,
     "active": true,
-    "targets": ["nsis", "dmg", "rpm", "deb", "appimage", "app"],
+    "targets": ["nsis", "dmg", "deb", "appimage", "app"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
