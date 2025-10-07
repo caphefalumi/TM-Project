@@ -283,21 +283,21 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-dmg
-          path: client/src-tauri/target/release/bundle/*/*.dmg
+          path: client/src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
       - name: Upload macOS signature
         uses: actions/upload-artifact@v4
         with:
           name: macos-signature
-          path: client/src-tauri/target/release/bundle/*/*.sig
+          path: client/src-tauri/target/release/bundle/macos/*.sig
           if-no-files-found: error
 
       - name: Upload macOS APP bundle
         uses: actions/upload-artifact@v4
         with:
           name: macos-app
-          path: client/src-tauri/target/release/bundle/macos/*.app
+          path: client/src-tauri/target/release/bundle/macos/*.app.tar.gz
           if-no-files-found: ignore
 
       # - name: Generate Tauri update JSON
