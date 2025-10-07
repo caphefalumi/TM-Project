@@ -81,32 +81,21 @@ jobs:
           VERSION=$(jq -r '.version' client/src-tauri/tauri.conf.json)
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           NOTES="Release of Teams Management v$VERSION"
-          WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig)
+          WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig 2>/dev/null || echo "")
           WIN_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagementSetup.exe"
-          LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig)
+          LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig 2>/dev/null || echo "")
           LINUX_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.AppImage"
-          MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig)
+          MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig 2>/dev/null || echo "")
           MAC_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.dmg"
-          jq -n \
-            --arg version "$VERSION" \
-            --arg notes "$NOTES" \
-            --arg pub_date "$PUB_DATE" \
-            --arg win_sig "$WIN_SIG" \
-            --arg win_url "$WIN_URL" \
-            --arg linux_sig "$LINUX_SIG" \
-            --arg linux_url "$LINUX_URL" \
-            --arg mac_sig "$MAC_SIG" \
-            --arg mac_url "$MAC_URL" \
-            '{
-              version: $version,
-              notes: $notes,
-              pub_date: $pub_date,
-              platforms: {
-                "windows-x86_64": { signature: $win_sig, url: $win_url },
-                "linux-x86_64": { signature: $linux_sig, url: $linux_url },
-                "darwin-x86_64": { signature: $mac_sig, url: $mac_url }
-              }
-            }' > latest.json
+          if [[ -n "$WIN_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg win_sig "$WIN_SIG" --arg win_url "$WIN_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"windows-x86_64": {signature: $win_sig, url: $win_url}}}' > latest.json
+          elif [[ -n "$LINUX_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg linux_sig "$LINUX_SIG" --arg linux_url "$LINUX_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"linux-x86_64": {signature: $linux_sig, url: $linux_url}}}' > latest.json
+          elif [[ -n "$MAC_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg mac_sig "$MAC_SIG" --arg mac_url "$MAC_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"darwin-x86_64": {signature: $mac_sig, url: $mac_url}}}' > latest.json
+          else
+            echo "No .sig file found for this platform." && exit 1
+          fi
 
       - name: Upload update JSON
         uses: actions/upload-artifact@v4
@@ -189,32 +178,21 @@ jobs:
           VERSION=$(jq -r '.version' client/src-tauri/tauri.conf.json)
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           NOTES="Release of Teams Management v$VERSION"
-          WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig)
+          WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig 2>/dev/null || echo "")
           WIN_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagementSetup.exe"
-          LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig)
+          LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig 2>/dev/null || echo "")
           LINUX_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.AppImage"
-          MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig)
+          MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig 2>/dev/null || echo "")
           MAC_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.dmg"
-          jq -n \
-            --arg version "$VERSION" \
-            --arg notes "$NOTES" \
-            --arg pub_date "$PUB_DATE" \
-            --arg win_sig "$WIN_SIG" \
-            --arg win_url "$WIN_URL" \
-            --arg linux_sig "$LINUX_SIG" \
-            --arg linux_url "$LINUX_URL" \
-            --arg mac_sig "$MAC_SIG" \
-            --arg mac_url "$MAC_URL" \
-            '{
-              version: $version,
-              notes: $notes,
-              pub_date: $pub_date,
-              platforms: {
-                "windows-x86_64": { signature: $win_sig, url: $win_url },
-                "linux-x86_64": { signature: $linux_sig, url: $linux_url },
-                "darwin-x86_64": { signature: $mac_sig, url: $mac_url }
-              }
-            }' > latest.json
+          if [[ -n "$WIN_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg win_sig "$WIN_SIG" --arg win_url "$WIN_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"windows-x86_64": {signature: $win_sig, url: $win_url}}}' > latest.json
+          elif [[ -n "$LINUX_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg linux_sig "$LINUX_SIG" --arg linux_url "$LINUX_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"linux-x86_64": {signature: $linux_sig, url: $linux_url}}}' > latest.json
+          elif [[ -n "$MAC_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg mac_sig "$MAC_SIG" --arg mac_url "$MAC_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"darwin-x86_64": {signature: $mac_sig, url: $mac_url}}}' > latest.json
+          else
+            echo "No .sig file found for this platform." && exit 1
+          fi
 
       - name: Upload update JSON
         uses: actions/upload-artifact@v4
@@ -282,32 +260,21 @@ jobs:
           VERSION=$(jq -r '.version' client/src-tauri/tauri.conf.json)
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           NOTES="Release of Teams Management v$VERSION"
-          WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig)
+          WIN_SIG=$(cat client/src-tauri/target/release/bundle/nsis/*.sig 2>/dev/null || echo "")
           WIN_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagementSetup.exe"
-          LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig)
+          LINUX_SIG=$(cat client/src-tauri/target/release/bundle/appimage/*.sig 2>/dev/null || echo "")
           LINUX_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.AppImage"
-          MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig)
+          MAC_SIG=$(cat client/src-tauri/target/release/bundle/dmg/*.sig 2>/dev/null || echo "")
           MAC_URL="https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/TeamsManagement.dmg"
-          jq -n \
-            --arg version "$VERSION" \
-            --arg notes "$NOTES" \
-            --arg pub_date "$PUB_DATE" \
-            --arg win_sig "$WIN_SIG" \
-            --arg win_url "$WIN_URL" \
-            --arg linux_sig "$LINUX_SIG" \
-            --arg linux_url "$LINUX_URL" \
-            --arg mac_sig "$MAC_SIG" \
-            --arg mac_url "$MAC_URL" \
-            '{
-              version: $version,
-              notes: $notes,
-              pub_date: $pub_date,
-              platforms: {
-                "windows-x86_64": { signature: $win_sig, url: $win_url },
-                "linux-x86_64": { signature: $linux_sig, url: $linux_url },
-                "darwin-x86_64": { signature: $mac_sig, url: $mac_url }
-              }
-            }' > latest.json
+          if [[ -n "$WIN_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg win_sig "$WIN_SIG" --arg win_url "$WIN_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"windows-x86_64": {signature: $win_sig, url: $win_url}}}' > latest.json
+          elif [[ -n "$LINUX_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg linux_sig "$LINUX_SIG" --arg linux_url "$LINUX_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"linux-x86_64": {signature: $linux_sig, url: $linux_url}}}' > latest.json
+          elif [[ -n "$MAC_SIG" ]]; then
+            jq -n --arg version "$VERSION" --arg notes "$NOTES" --arg pub_date "$PUB_DATE" --arg mac_sig "$MAC_SIG" --arg mac_url "$MAC_URL" '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {"darwin-x86_64": {signature: $mac_sig, url: $mac_url}}}' > latest.json
+          else
+            echo "No .sig file found for this platform." && exit 1
+          fi
 
       - name: Upload update JSON
         uses: actions/upload-artifact@v4
