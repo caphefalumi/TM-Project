@@ -374,7 +374,7 @@ jobs:
         run: |
           VERSION="${{ steps.get_version.outputs.raw_version }}"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          NOTES="## Teams Management v${VERSION}
+          NOTES="## Teams Management v${VERSION}"
 
           # Get signatures from artifacts
           WIN_SIG=$(find artifacts -name "*.sig" -path "*/windows-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
