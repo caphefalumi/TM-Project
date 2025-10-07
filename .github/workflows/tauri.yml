@@ -333,6 +333,8 @@ jobs:
     if: github.event.inputs.create_release == 'true'
     needs: 
       - build_windows
+      - build_linux
+      - build_macos
     runs-on: ubuntu-latest
     name: Create GitHub Release
     
