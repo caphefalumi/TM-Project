@@ -1,14 +1,18 @@
 <script setup>
 import SideBar from './components/Sidebar.vue'
 import CacheDebugger from './components/CacheDebugger.vue'
+import GlobalNotifications from './components/GlobalNotifications.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
 import { useComponentCache } from './composables/useComponentCache.js'
+import { useNotificationStore } from './stores/notifications.js'
+import updateService from './services/updateService.js'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 const { includeComponents, initializeMainViews, getCacheStats, cleanExpiredCache, clearAllCaches, forceRemountKey } = useComponentCache()
 
 // Development mode check - Use custom DEV env variable if set, otherwise default to false
@@ -162,7 +166,17 @@ onMounted(() => {
   }
   // Initialize main views in component cache
   initializeMainViews()
-  
+
+  // Initialize notification store and update service
+  updateService.init(notificationStore)
+
+  // Check for updates on startup (only in Tauri environment)
+  if (window.isTauri) {
+    setTimeout(() => {
+      updateService.checkForUpdatesOnStartup()
+    }, 2000) // Wait 2 seconds after app loads
+  }
+
   // Set up periodic cache cleanup every 5 minutes
   setInterval(() => {
     const cleaned = cleanExpiredCache()
@@ -170,7 +184,7 @@ onMounted(() => {
       console.log(`[Cache] Cleaned ${cleaned} expired cache entries`)
     }
   }, 5 * 60 * 1000) // 5 minutes
-  
+
   // Listen for token revocation events from API client
   window.addEventListener('token-revoked', handleTokenRevoked)
 })
@@ -178,7 +192,7 @@ onMounted(() => {
 onUnmounted(() => {
   // Clean up interval when component is destroyed
   stopTokenRefresh()
-  
+
   // Clean up event listener
   window.removeEventListener('token-revoked', handleTokenRevoked)
 })
@@ -192,13 +206,16 @@ onUnmounted(() => {
     <v-main>
       <router-view v-slot="{ Component, route }">
         <keep-alive :include="includeComponents">
-          <component 
+          <component
             :is="Component"
             :key="`${route.path}-${forceRemountKey}`"
           />
         </keep-alive>
       </router-view>
     </v-main>
+
+    <!-- Global Notifications -->
+    <GlobalNotifications />
 
     <!-- Sign Out Notification Dialog -->
     <v-dialog v-model="showSignOutDialog" max-width="500" persistent>
@@ -218,7 +235,7 @@ onUnmounted(() => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    
+
     <!-- Cache debugger for development -->
     <CacheDebugger v-if="isDev" />
   </v-app>

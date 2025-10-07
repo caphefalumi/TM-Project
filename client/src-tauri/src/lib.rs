@@ -1,6 +1,5 @@
 use serde_json::json;
 use tauri::{command, Manager};
-use tauri_plugin_updater::UpdaterExt;
 use tiny_http::{Response, Server};
 
 #[command]
@@ -143,30 +142,6 @@ async fn authenticate_with_backend(
     Ok(backend_data)
 }
 
-async fn update(app: tauri::AppHandle) -> tauri_plugin_updater::Result<()> {
-  if let Some(update) = app.updater()?.check().await? {
-    let mut downloaded = 0;
-
-    // alternatively we could also call update.download() and update.install() separately
-    update
-      .download_and_install(
-        |chunk_length, content_length| {
-          downloaded += chunk_length;
-          println!("downloaded {downloaded} from {content_length:?}");
-        },
-        || {
-          println!("download finished");
-        },
-      )
-      .await?;
-
-    println!("update installed");
-    app.restart();
-  }
-
-  Ok(())
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -180,12 +155,9 @@ pub fn run() {
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_prevent_default::init())
+        .plugin(tauri_plugin_process::init())
         .invoke_handler(tauri::generate_handler![wait_for_oauth_callback])
         .setup(|app| {
-            let handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                update(handle).await.unwrap();
-            });
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

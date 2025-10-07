@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGlobalNotifications } from '../composables/useGlobalNotifications.js'
 import '../styles/buttonStyling.css'
 
-const router = useRouter()
+const { showSuccess, showError } = useGlobalNotifications()
 
 const user = ref({
   userId: '',
@@ -125,16 +126,13 @@ const clearTeamData = () => {
 
 const createTeam = async () => {
   if (newTeam.value.title.trim() === '') {
-    error.value = true
-    message.value = 'Project title is required'
+    showError('Project title is required', { title: 'Validation Error' })
     return
   } else if (newTeam.value.category.trim() === '') {
-    error.value = true
-    message.value = 'Category is required'
+    showError('Category is required', { title: 'Validation Error' })
     return
   } else if (newTeam.value.description.trim().length < 10) {
-    error.value = true
-    message.value = 'Description requires at least 10 characters'
+    showError('Description requires at least 10 characters', { title: 'Validation Error' })
     return
   }
 
@@ -158,9 +156,12 @@ const createTeam = async () => {
       throw new Error('Network response was not ok')
     }
     const data = await response.json()
-    success.value = true
-    error.value = false
-    message.value = 'Project created successfully!'
+
+    // Use global notification instead of local state
+    showSuccess(`Team "${data.title}" created successfully!`, {
+      title: 'Team Created'
+    })
+
     console.log('Project created:', data)
     const newTeamToPushToProps = {
       title: data.title,
@@ -171,6 +172,11 @@ const createTeam = async () => {
   } catch (error) {
     loading.value = false // Reset loading state on error
     console.log('Failed to create project:', error)
+
+    // Use global notification for errors
+    showError('Failed to create team. Please try again.', {
+      title: 'Team Creation Failed'
+    })
   }
 }
 </script>
