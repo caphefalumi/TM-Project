@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 import NotificationCenter from './NotificationCenter.vue'
+import updateService from '../services/updateService.js'
+import { useGlobalNotifications } from '../composables/useGlobalNotifications.js'
 
 // Import Admin.Vue if username is 'admin'
 
@@ -83,6 +85,8 @@ watch(
   { deep: true },
 )
 
+const { showSuccess, showError, showWarning, showInfo } = useGlobalNotifications()
+
 const logout = async () => {
   try {
     drawer.value = false
@@ -98,6 +102,35 @@ const logout = async () => {
   }
 }
 
+// Function to manually check for updates
+const checkForUpdates = () => {
+  if (window.isTauri) {
+    updateService.checkForUpdates()
+  } else {
+    // For testing purposes in web mode
+    showInfo('Update check is only available in the desktop app', {
+      title: 'Desktop App Required'
+    })
+  }
+}
+
+// Test function to show different notification types
+const testNotifications = () => {
+  showSuccess('This is a success notification!', { title: 'Success' })
+
+  setTimeout(() => {
+    showError('This is an error notification!', { title: 'Error' })
+  }, 1000)
+
+  setTimeout(() => {
+    showWarning('This is a warning notification!', { title: 'Warning' })
+  }, 2000)
+
+  setTimeout(() => {
+    showInfo('This is an info notification!', { title: 'Information' })
+  }, 3000)
+}
+
 // Defines the navigation items for the sidebar.
 // Each item has a title, a Material Design Icon, and a route path.
 const items = ref([
@@ -110,6 +143,9 @@ const items = ref([
 // Add admin menu item only if user is admin
 const adminItems = ref([])
 
+// System items for app-related functions
+const systemItems = ref([])
+
 // Check if user is admin and update navigation items
 const updateNavigationItems = () => {
   if (user.value.username === 'admin') {
@@ -117,6 +153,16 @@ const updateNavigationItems = () => {
   } else {
     adminItems.value = []
   }
+
+  // Add system items
+  systemItems.value = []
+
+  if (window.isTauri) {
+    systemItems.value.push({ title: 'Check for Updates', icon: 'mdi-download', action: checkForUpdates })
+  }
+
+  // Add test notifications item for development
+  systemItems.value.push({ title: 'Test Notifications', icon: 'mdi-bell-ring', action: testNotifications })
 }
 
 // Watch for user changes to update navigation
@@ -193,7 +239,21 @@ watch(() => user.value.username, updateNavigationItems, { immediate: true })
             :title="item.title"
             class="text-h5"
             link
+          ></v-list-item>
+        </template>
 
+        <!-- System section with divider -->
+        <template v-if="systemItems.length > 0">
+          <v-divider class="my-2"></v-divider>
+          <v-list-subheader>System</v-list-subheader>
+          <v-list-item
+            v-for="item in systemItems"
+            :key="item.title"
+            :prepend-icon="item.icon"
+            :title="item.title"
+            class="text-h5"
+            link
+            @click="item.action"
           ></v-list-item>
         </template>
       </v-list>
