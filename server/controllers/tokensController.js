@@ -2,7 +2,8 @@ import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import { generateAccessToken, generateRefreshToken } from '../services/tokenService.js'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
-import 'dotenv/config'
+import dotenv from 'dotenv'
+dotenv.config({ quiet: true })
 
 const addRefreshToken = async (req, res) => {
   const { user } = req.body

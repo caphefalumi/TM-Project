@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-dotenv.config({ silent: true })
+dotenv.config({ quiet: true })
 import jwt from 'jsonwebtoken'
 
 export function generateAccessToken(user) {
