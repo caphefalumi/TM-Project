@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
-
-dotenv.config({ silent: true })
+dotenv.config({ quiet: true })
 
 export const authenticateAccessToken = (req, res, next) => {
   const token = req.cookies.accessToken

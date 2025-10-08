@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-dotenv.config({ silent: true })
+dotenv.config({ quiet: true })
 import express from 'express'
 import routes from './routes/router.js'
 import connectDB from './config/db.js'

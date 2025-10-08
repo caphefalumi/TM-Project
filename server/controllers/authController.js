@@ -7,7 +7,8 @@ import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import Tasks from '../models/Tasks.js'
 const { addTeamPro } = TeamsController
 
-import 'dotenv/config'
+import dotenv from 'dotenv'
+dotenv.config({ quiet: true })
 
 const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
 
