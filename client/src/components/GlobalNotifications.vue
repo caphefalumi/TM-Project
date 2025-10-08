@@ -1,13 +1,18 @@
 <template>
   <div class="global-notifications">
-    <!-- Notification Stack (AWS-style overlapping notifications) -->
+    <div v-if="notifications.length > 1" class="notification-dropdown-toggle" @click="toggleDropdown">
+      <v-btn icon size="small">
+        <v-icon>{{ dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+      </v-btn>
+      <span>{{ dropdownExpanded ? 'Hide' : 'Show' }} all notifications ({{ notifications.length }})</span>
+    </div>
     <transition-group
       name="notification"
       tag="div"
       class="notification-stack"
     >
       <div
-        v-for="(notification, index) in notifications"
+        v-for="(notification, index) in visibleNotifications"
         :key="notification.id"
         :class="[
           'notification-item',
@@ -16,8 +21,8 @@
         ]"
         :style="{
           zIndex: 9999 + notifications.length - index,
-          transform: `translateY(${index * 8}px)`,
-          opacity: Math.max(0.4, 1 - index * 0.1)
+          transform: dropdownExpanded ? `translateY(${index * 90}px)` : `translateY(${index * 8}px)`,
+          opacity: 1
         }"
       >
         <!-- Close button -->
@@ -77,13 +82,20 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useNotificationStore } from '../stores/notifications.js'
 
 const notificationStore = useNotificationStore()
 
 // Computed
 const notifications = computed(() => notificationStore.notifications)
+const dropdownExpanded = ref(false)
+const toggleDropdown = () => {
+  dropdownExpanded.value = !dropdownExpanded.value
+}
+const visibleNotifications = computed(() => {
+  return dropdownExpanded.value ? notifications.value : [notifications.value[0]].filter(Boolean)
+})
 
 // Methods
 const removeNotification = (id) => {
@@ -128,7 +140,8 @@ const handleAction = (action, notification) => {
 .global-notifications {
   position: fixed;
   top: 24px;
-  right: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 9999;
   pointer-events: none;
 }
@@ -155,6 +168,7 @@ const handleAction = (action, notification) => {
   pointer-events: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: 4px;
+  opacity: 1 !important;
 }
 
 .notification-item:hover {
@@ -162,7 +176,6 @@ const handleAction = (action, notification) => {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Notification types */
 .notification-success {
   border-left: 4px solid #4caf50;
   background: linear-gradient(135deg, #ffffff 0%, #f8fdf8 100%);
@@ -204,7 +217,8 @@ const handleAction = (action, notification) => {
 }
 
 .notification-close:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #e0e7ef;
+  box-shadow: 0 0 0 2px #b3c2d6;
 }
 
 .notification-icon {
@@ -345,6 +359,17 @@ const handleAction = (action, notification) => {
   .notification-close:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+}
+
+.notification-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
 }
 
 /* Force maximum z-index for all notifications */

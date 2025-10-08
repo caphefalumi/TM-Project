@@ -118,17 +118,11 @@ const checkForUpdates = () => {
 const testNotifications = () => {
   showSuccess('This is a success notification!', { title: 'Success' })
 
-  setTimeout(() => {
-    showError('This is an error notification!', { title: 'Error' })
-  }, 1000)
+  showError('This is an error notification!', { title: 'Error' })
 
-  setTimeout(() => {
-    showWarning('This is a warning notification!', { title: 'Warning' })
-  }, 2000)
+  showWarning('This is a warning notification!', { title: 'Warning' })
 
-  setTimeout(() => {
-    showInfo('This is an info notification!', { title: 'Information' })
-  }, 3000)
+  showInfo('This is an info notification!', { title: 'Information' })
 }
 
 // Defines the navigation items for the sidebar.
