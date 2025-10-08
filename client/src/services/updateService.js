@@ -40,7 +40,7 @@ class UpdateService {
     } catch (error) {
       this.notificationStore.showError(
         'Failed to check for updates. Please try again later.',
-        { title: 'Update Check Failed' }
+        { title: error }
       )
     }
   }

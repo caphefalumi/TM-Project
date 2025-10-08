@@ -34,7 +34,7 @@ onMounted(async () => {
     if (oauthData) {
       const data = JSON.parse(oauthData)
       sessionStorage.removeItem('oauth_login_data')
-      
+
       if (data.action === 'login') {
         userId.value = data.userId
         username.value = data.username
@@ -225,15 +225,14 @@ const generateCodeChallenge = async (codeVerifier) => {
 
 const loginWithGoogleInTauri = async () => {
   if (isLoading.value) return
-  
+
   isLoading.value = true
   error.value = ''
   success.value = ''
 
   try {
     const CLIENT_ID = import.meta.env.VITE_DESKTOP_CLIENT_ID
-    const BACKEND_URL = import.meta.env.VITE_API_PORT
-    
+
     if (!CLIENT_ID) {
       throw new Error('Desktop OAuth client ID not configured')
     }
@@ -242,7 +241,7 @@ const loginWithGoogleInTauri = async () => {
     const codeVerifier = generateCodeVerifier()
     const codeChallenge = await generateCodeChallenge(codeVerifier)
     const state = crypto.randomUUID()
-    
+
     // Build OAuth URL for authorization code flow with PKCE
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
     authUrl.searchParams.set('client_id', CLIENT_ID)
@@ -256,24 +255,24 @@ const loginWithGoogleInTauri = async () => {
 
     console.log('[OAuth] Starting OAuth flow...')
     success.value = 'Opening browser for authentication...'
-    
+
     // Open browser
     await open(authUrl.toString())
-    
+
     // Import Tauri invoke function
     const { invoke } = await import('@tauri-apps/api/core')
-    
+
     // Wait for OAuth callback using Tauri command
     const result = await invoke('wait_for_oauth_callback', {
       codeVerifier: codeVerifier,
       expectedState: state,
-      backendUrl: BACKEND_URL,
+      backendUrl: import.meta.env.VITE_API_PORT,
       clientId: CLIENT_ID,
       clientSecret: import.meta.env.VITE_DESKTOP_CLIENT_SECRET
     })
-    
+
     console.log('[OAuth] Received result:', result)
-    
+
     if (result.success === 'login') {
       userId.value = result.userId
       username.value = result.username
@@ -288,7 +287,7 @@ const loginWithGoogleInTauri = async () => {
     } else {
       error.value = result.error || 'OAuth authentication failed'
     }
-    
+
   } catch (err) {
     console.log('[OAuth] Error:', err)
     error.value = err
