@@ -16,7 +16,8 @@ app.use(
       'http://localhost:5173',
       'http://localhost:5174',
       'https://tm-project-weld.vercel.app',
-  		"http://tauri.localhost",
+  		'http://tauri.localhost',
+      'https://tauri.localhost'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
