@@ -65,7 +65,7 @@ jobs:
       - name: Build Tauri app (Windows)
         working-directory: client
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_API_PORT: ${{ secrets.VITE_API_PORT }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
@@ -139,7 +139,7 @@ jobs:
       - name: Build Tauri app (Linux)
         working-directory: client
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_API_PORT: ${{ secrets.VITE_API_PORT }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
@@ -212,7 +212,7 @@ jobs:
       - name: Build Tauri app (macOS)
         working-directory: client
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_API_PORT: ${{ secrets.VITE_API_PORT }}
           VITE_CLIENT_ID: ${{ secrets.VITE_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_DESKTOP_CLIENT_ID }}
           VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
