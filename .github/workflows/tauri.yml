@@ -411,11 +411,11 @@ jobs:
           APP_SIG=$(find artifacts -name "*.sig" -path "*/macos-app*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
 
           # Get actual filenames from release assets
-          WIN_FILE=$(find release-assets -name "*.exe" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x64-setup.exe")
-          LINUX_FILE=$(find release-assets -name "*.rpm" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x86_64.rpm")
-          DEB_FILE=$(find release-assets -name "*.deb" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_amd64.deb")
-          MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x64.dmg")
-          APP_FILE=$(find release-assets -name "*.app.tar.gz" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_arm64.app.tar.gz")
+          WIN_FILE=$(find release-assets -name "*.exe" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_x64-setup.exe")
+          LINUX_FILE=$(find release-assets -name "*.rpm" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_x86_64.rpm")
+          DEB_FILE=$(find release-assets -name "*.deb" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_amd64.deb")
+          MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_x64.dmg")
+          APP_FILE=$(find release-assets -name "*.app.tar.gz" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_arm64.app.tar.gz")
 
           # Generate complete update JSON
           jq -n \
