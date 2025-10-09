@@ -1,6 +1,6 @@
 [package]
 name = "teams-management"
-version = "1.0.2"
+version = "1.0.3"
 description = "A modern web application for collaborative team and task management"
 authors = ["Toan", "Khanh", "Hieu"]
 license = "MIT"
