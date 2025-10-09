@@ -464,14 +464,15 @@ jobs:
           cat client/public/latest.json
 
       - name: Commit and push latest.json to main branch
+        env:
+          GH_PAT: ${{ secrets.ACTIONS_BOT_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git
           git add client/public/latest.json
           git commit -m "chore: update latest.json for release v${{ steps.get_version.outputs.raw_version }}"
           git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate release notes
         id: generate_notes
