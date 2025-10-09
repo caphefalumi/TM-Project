@@ -459,9 +459,19 @@ jobs:
                 }
               }
             }' > release-assets/latest.json
-          
+          cp release-assets/latest.json client/src/public/latest.json
           echo "Generated update JSON:"
-          cat release-assets/latest.json
+          cat client/src/public/latest.json
+
+      - name: Commit and push latest.json to main branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add client/src/public/latest.json
+          git commit -m "chore: update latest.json for release v${{ steps.get_version.outputs.raw_version }}"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate release notes
         id: generate_notes
