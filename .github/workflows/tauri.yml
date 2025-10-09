@@ -82,7 +82,7 @@ jobs:
 
       - name: Remove Windows bundle files
         run: |
-          rm -rf client/src-tauri/target/release/bundle/nsis/*.exe
+          Remove-Item -Recurse -Force client/src-tauri/target/release/bundle/nsis/*.exe
 
       - name: Upload Windows signature
         uses: actions/upload-artifact@v4
@@ -93,7 +93,7 @@ jobs:
 
       - name: Remove Windows signature files
         run: |
-          rm -rf client/src-tauri/target/release/bundle/nsis/*.sig
+          Remove-Item -Recurse -Force client/src-tauri/target/release/bundle/nsis/*.sig
 
   build_linux:
     if: |
