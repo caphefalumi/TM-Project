@@ -451,11 +451,11 @@ jobs:
                 },
                 "darwin-x86_64": {
                   signature: $macos_sig,
-                  url: $macos_url
+                  url: $app_url
                 },
                 "darwin-aarch64": {
-                  signature: $app_sig,
-                  url: $app_url
+                  signature: $macos_sig,
+                  url: $macos_url
                 }
               }
             }' > release-assets/latest.json
