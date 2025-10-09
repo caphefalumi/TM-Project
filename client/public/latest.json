@@ -17,11 +17,11 @@
     },
     "darwin-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQWwya1J4dWVVZmNBUjU1cHBhYk1wejJBR1NyWXprVGFPRWdjTTZoVHR0UW1NdisxQ1lQQnl3L3BSR3NDMmwrZmJmOUhEOUhlelcwMFNYZnFQTEQwclFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5OTkyMzg4CWZpbGU6VGVhbXMgTWFuYWdlbWVudC5hcHAudGFyLmd6CmJ4S1IvdFZmUXRST2FDMVFtcFBSNWJPQk0wK3QrYkpYaDV0RWcrZGNNNStpcFVvZlludHlSTzZNUElkc09Hc1BwcGx4Rm52WjdZcDJ4dzMzdXNPRkNRPT0K",
-      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.0.4/Teams.Management_1.0.4_aarch64.dmg"
+      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.0.4/Teams.Management.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "",
-      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.0.4/Teams.Management.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQWwya1J4dWVVZmNBUjU1cHBhYk1wejJBR1NyWXprVGFPRWdjTTZoVHR0UW1NdisxQ1lQQnl3L3BSR3NDMmwrZmJmOUhEOUhlelcwMFNYZnFQTEQwclFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5OTkyMzg4CWZpbGU6VGVhbXMgTWFuYWdlbWVudC5hcHAudGFyLmd6CmJ4S1IvdFZmUXRST2FDMVFtcFBSNWJPQk0wK3QrYkpYaDV0RWcrZGNNNStpcFVvZlludHlSTzZNUElkc09Hc1BwcGx4Rm52WjdZcDJ4dzMzdXNPRkNRPT0K",
+      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.0.4/Teams.Management_1.0.4_aarch64.dmg"
     }
   }
 }

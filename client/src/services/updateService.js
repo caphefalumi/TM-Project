@@ -18,7 +18,6 @@ class UpdateService {
   async checkForUpdates() {
     if (!this.notificationStore) {
       console.error('UpdateService: Notification store not initialized')
-      return
     }
 
     try {
