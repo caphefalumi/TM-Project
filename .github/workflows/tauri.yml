@@ -459,9 +459,9 @@ jobs:
                 }
               }
             }' > release-assets/latest.json
-          cp release-assets/latest.json client/src/public/latest.json
+          cp release-assets/latest.json client/public/latest.json
           echo "Generated update JSON:"
-          cat client/src/public/latest.json
+          cat client/public/latest.json
 
       - name: Commit and push latest.json to main branch
         run: |
