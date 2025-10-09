@@ -1,6 +1,5 @@
 import { check } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
-import { useNotificationStore } from '../stores/notifications.js'
 
 class UpdateService {
   constructor() {
@@ -83,18 +82,20 @@ class UpdateService {
           case 'Started':
             contentLength = event.data.contentLength
             console.log(`Started downloading ${event.data.contentLength} bytes`)
+            // Show initial progress notification
+            if (!this.progressNotificationId) {
+              this.progressNotificationId = this.notificationStore.showUpdateProgress(0)
+            }
             break
 
           case 'Progress':
             downloaded += event.data.chunkLength
             const progress = contentLength > 0 ? (downloaded / contentLength) * 100 : 0
             console.log(`Downloaded ${downloaded} from ${contentLength} (${Math.round(progress)}%)`)
-
             // Update progress notification
             if (this.progressNotificationId) {
-              this.notificationStore.removeNotification(this.progressNotificationId)
+              this.notificationStore.updateNotificationProgress(this.progressNotificationId, progress)
             }
-            this.progressNotificationId = this.notificationStore.showUpdateProgress(progress)
             break
 
           case 'Finished':
@@ -143,7 +144,7 @@ class UpdateService {
       }
 
       this.notificationStore.showError(
-        `Failed to download or install update: ${error.message || 'Unknown error'}`,
+        `Failed to download or install update: ${error}`,
         {
           title: 'Update Failed',
           duration: 10000 // Show error longer
