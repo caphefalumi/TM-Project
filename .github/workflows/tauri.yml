@@ -80,12 +80,20 @@ jobs:
           path: client/src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
 
+      - name: Remove Windows bundle files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/nsis/*.exe
+
       - name: Upload Windows signature
         uses: actions/upload-artifact@v4
         with:
           name: windows-signature
           path: client/src-tauri/target/release/bundle/nsis/*.sig
           if-no-files-found: error
+
+      - name: Remove Windows signature files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/nsis/*.sig
 
   build_linux:
     if: |
@@ -154,6 +162,10 @@ jobs:
           path: client/src-tauri/target/release/bundle/rpm/*.rpm
           if-no-files-found: error
 
+      - name: Remove Linux RPM files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/rpm/*.rpm
+
       - name: Upload Linux RPM signature
         uses: actions/upload-artifact@v4
         with:
@@ -161,18 +173,31 @@ jobs:
           path: client/src-tauri/target/release/bundle/rpm/*.sig
           if-no-files-found: error
 
+      - name: Remove Linux RPM signature files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/rpm/*.sig
+
       - name: Upload Linux DEB package
         uses: actions/upload-artifact@v4
         with:
           name: linux-deb
           path: client/src-tauri/target/release/bundle/deb/*.deb
           if-no-files-found: ignore
+
+      - name: Remove Linux DEB files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/deb/*.deb
+
       - name: Upload Linux DEB signature
         uses: actions/upload-artifact@v4
         with:
           name: linux-deb-signature
           path: client/src-tauri/target/release/bundle/deb/*.sig
           if-no-files-found: error
+
+      - name: Remove Linux DEB signature files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/deb/*.sig
 
   build_macos:
     if: |
@@ -227,6 +252,10 @@ jobs:
           path: client/src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
+      - name: Remove macOS DMG files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/dmg/*.dmg
+
       - name: Upload macOS signature
         uses: actions/upload-artifact@v4
         with:
@@ -234,12 +263,20 @@ jobs:
           path: client/src-tauri/target/release/bundle/macos/*.sig
           if-no-files-found: error
 
+      - name: Remove macOS signature files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/macos/*.sig
+
       - name: Upload macOS APP bundle
         uses: actions/upload-artifact@v4
         with:
           name: macos-app
           path: client/src-tauri/target/release/bundle/macos/*.app.tar.gz
           if-no-files-found: ignore
+
+      - name: Remove macOS APP bundle files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/macos/*.app.tar.gz
 
   create_release:
     if: github.event.inputs.create_release == 'true'
@@ -379,18 +416,6 @@ jobs:
           DEB_FILE=$(find release-assets -name "*.deb" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_amd64.deb")
           MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x64.dmg")
           APP_FILE=$(find release-assets -name "*.app.tar.gz" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_arm64.app.tar.gz")
-
-          WIN_SIG=$WIN_SIG
-          LINUX_SIG=$LINUX_SIG
-          DEB_SIG=$DEB_SIG
-          MACOS_SIG=$MACOS_SIG
-          APP_SIG=$APP_SIG
-
-          WIN_FILE=$WIN_FILE
-          LINUX_FILE=$LINUX_FILE
-          DEB_FILE=$DEB_FILE
-          MACOS_FILE=$MACOS_FILE
-          APP_FILE=$APP_FILE
 
           # Generate complete update JSON
           jq -n \
