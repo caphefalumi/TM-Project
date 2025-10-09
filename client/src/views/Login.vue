@@ -161,7 +161,7 @@ const loginUsingLocal = async () => {
       sendToHomePage()
     }
   } catch (err) {
-    error.value = 'Network error'
+    error.value = err
   } finally {
     isLoading.value = false
   }

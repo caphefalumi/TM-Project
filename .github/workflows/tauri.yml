@@ -293,16 +293,16 @@ jobs:
           fi
           
           # Linux files
-          if [ -d "artifacts/linux-appimage" ]; then
-            echo "Processing Linux AppImage..."
-            if find artifacts/linux-appimage -name "*.AppImage" -exec cp {} release-assets/ \; 2>/dev/null; then
-              echo "Linux AppImage added"
+          if [ -d "artifacts/linux-rpm" ]; then
+            echo "Processing Linux RPM..."
+            if find artifacts/linux-rpm -name "*.rpm" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "Linux RPM added"
               ASSETS_FOUND=true
             else
-              echo "No Linux AppImage found"
+              echo "No Linux RPM found"
             fi
           else
-            echo "Linux AppImage artifacts not found"
+            echo "Linux RPM artifacts not found"
           fi
           
           if [ -d "artifacts/linux-deb" ]; then
@@ -375,7 +375,7 @@ jobs:
 
           # Get actual filenames from release assets
           WIN_FILE=$(find release-assets -name "*.exe" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x64-setup.exe")
-          LINUX_FILE=$(find release-assets -name "*.AppImage" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x86_64.AppImage")
+          LINUX_FILE=$(find release-assets -name "*.rpm" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x86_64.rpm")
           DEB_FILE=$(find release-assets -name "*.deb" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_amd64.deb")
           MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_x64.dmg")
           APP_FILE=$(find release-assets -name "*.app.tar.gz" -printf "%f\n" 2>/dev/null | head -1 || echo "your_app_arm64.app.tar.gz")
@@ -416,7 +416,7 @@ jobs:
                   signature: $win_sig,
                   url: $win_url
                 },
-                "linux-x86_64": {
+                "linux-rpm-x86_64": {
                   signature: $linux_sig,
                   url: $linux_url
                 },
