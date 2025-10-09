@@ -147,18 +147,18 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PASSWORD }}
         run: bunx --bun tauri build
 
-      - name: Upload Linux AppImage
+      - name: Upload Linux RPM
         uses: actions/upload-artifact@v4
         with:
-          name: linux-appimage
-          path: client/src-tauri/target/release/bundle/appimage/*.AppImage
+          name: linux-rpm
+          path: client/src-tauri/target/release/bundle/rpm/*.rpm
           if-no-files-found: error
 
-      - name: Upload Linux AppImage signature
+      - name: Upload Linux RPM signature
         uses: actions/upload-artifact@v4
         with:
           name: linux-signature
-          path: client/src-tauri/target/release/bundle/appimage/*.sig
+          path: client/src-tauri/target/release/bundle/rpm/*.sig
           if-no-files-found: error
 
       - name: Upload Linux DEB package
