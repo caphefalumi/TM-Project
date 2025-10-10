@@ -71,6 +71,7 @@ jobs:
           VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PASSWORD }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
         run: bunx --bun tauri build
 
       - name: Upload Windows installer
@@ -153,6 +154,7 @@ jobs:
           VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PASSWORD }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
         run: bunx --bun tauri build
 
       - name: Upload Linux RPM
@@ -243,6 +245,7 @@ jobs:
           VITE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_DESKTOP_CLIENT_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PASSWORD }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
         run: bunx --bun tauri build
 
       - name: Upload macOS DMG

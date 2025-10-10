@@ -156,7 +156,9 @@ const updateNavigationItems = () => {
   }
 
   // Add test notifications item for development
-  systemItems.value.push({ title: 'Test Notifications', icon: 'mdi-bell-ring', action: testNotifications })
+  if (import.meta.env.NODE_ENV !== 'PROD') {
+    systemItems.value.push({ title: 'Test Notifications', icon: 'mdi-bell-ring', action: testNotifications })
+  }
 }
 
 // Watch for user changes to update navigation
