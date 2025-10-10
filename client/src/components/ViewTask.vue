@@ -77,7 +77,7 @@ const fetchTaskDetails = async () => {
     }
 
     // Then, try to get the submission details
-    const submissionResponse = await fetch(`${PORT}/api/tasks/submission/${props.task._id}`, {
+    const submissionResponse = await fetch(`${PORT}/api/tasks/submission/${props.teamId}/${props.task._id}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -137,6 +137,11 @@ const formatUrl = (url) => {
 
   // Add https:// as default protocol
   return `https://${url}`
+}
+
+const getImageUrl = (fileId) => {
+  const PORT = import.meta.env.VITE_API_PORT || 'http://localhost:3000'
+  return `${PORT}/api/images/${fileId}`
 }
 
 onMounted(() => {
@@ -255,11 +260,21 @@ watch(
                     <div
                       v-if="field.type === 'Image' && field.value && field.value !== '(No image)'"
                     >
+                      <!-- Check if it's a GridFS file ID or base64 -->
                       <v-img
+                        v-if="field.value.startsWith('data:image')"
                         :src="field.value"
                         max-width="1000"
                         max-height="600"
                         class="rounded"
+                      ></v-img>
+                      <v-img
+                        v-else
+                        :src="getImageUrl(field.value)"
+                        max-width="1000"
+                        max-height="600"
+                        class="rounded"
+                        :loading="true"
                       ></v-img>
                     </div>
                     <div v-else-if="field.type === 'Date'" class="text-black">

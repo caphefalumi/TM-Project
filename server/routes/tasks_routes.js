@@ -9,7 +9,7 @@ const router = express.Router()
 router.post('/create', authenticateAccessToken, requirePermission('MANAGE_TASKS'), addTaskToUsers)
 router.post('/submit', authenticateAccessToken, requirePermission('SUBMIT_TASKS'), submitATask)
 router.get(
-  '/submission/:taskId',
+  '/submission/:teamId/:taskId',
   authenticateAccessToken,
   requirePermission('VIEW_TASKS'),
   getTaskSubmission,

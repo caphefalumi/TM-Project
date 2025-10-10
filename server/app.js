@@ -45,8 +45,8 @@ app.use((req, _res, next) => {
   next()
 })
 // Increase payload size limit for image uploads
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ limit: '10mb', extended: true }))
+app.use(express.json({ limit: '25mb' }))
+app.use(express.urlencoded({ limit: '25mb', extended: true }))
 app.use(cookieParser())
 app.use(routes)
 
