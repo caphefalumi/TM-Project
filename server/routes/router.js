@@ -10,6 +10,7 @@ import announcementRoutes from './announcements_routes.js'
 import notificationRoutes from './notifications_routes.js'
 import adminRoutes from './admin_routes.js'
 import refreshTokenRoutes from './refreshToken_routes.js'
+import imageRoutes from './image_routes.js'
 import { rateLimit } from 'express-rate-limit'
 const router = express.Router()
 
@@ -32,4 +33,5 @@ router.use('/api/notifications', notificationRoutes) // /api/notifications/*
 router.use('/api/admin', adminRoutes) // /api/admin/*
 router.use('/api/sessions', refreshTokenRoutes) // /api/sessions/*
 router.use('/api/ratings', ratingRoutes) // /api/ratings/*
+router.use('/api/images', imageRoutes) // /api/images/*
 export default router

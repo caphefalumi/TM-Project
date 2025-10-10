@@ -140,8 +140,38 @@ const resetForm = () => {
   loading.value = false
 }
 
+// Upload image to GridFS
+const uploadImageToServer = async (imageData, filename) => {
+  const PORT = import.meta.env.VITE_API_PORT
+
+  try {
+    const response = await fetch(`${PORT}/api/images/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        imageData,
+        filename
+      })
+    })
+
+    if (response.ok) {
+      const result = await response.json()
+      return result.fileId
+    } else {
+      const errorResult = await response.json()
+      throw new Error(errorResult.error || 'Failed to upload image')
+    }
+  } catch (err) {
+    console.log('Error uploading image:', err)
+    throw err
+  }
+}
+
 // File handling for image uploads
-const handleFileUpload = (fieldName, event) => {
+const handleFileUpload = async (fieldName, event) => {
   const file = event.target.files?.[0]
 
   // Field definition to check if it's required
@@ -149,7 +179,7 @@ const handleFileUpload = (fieldName, event) => {
   const isRequired = fieldDef?.config?.required || false
 
   if (file) {
-    // Check file size (limit to 5MB)
+    // Check file size (limit to 20MB)
     const maxSizeInBytes = 20 * 1024 * 1024 // 20MB
     if (file.size > maxSizeInBytes) {
       error.value = true
@@ -168,55 +198,84 @@ const handleFileUpload = (fieldName, event) => {
     error.value = false
     message.value = ''
 
-    // Convert file to base64 for storage
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      let result = e.target.result
+    // Set loading state for this field
+    loading.value = true
 
-      // For large images, we might want to compress them
-      if (file.size > 1024 * 1024) {
-        // If larger than 1MB
-        // Create an image element to compress
-        const img = new Image()
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
+    try {
+      // Convert file to base64 for upload
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        let result = e.target.result
 
-          // Calculate new dimensions (max 1024px width/height)
-          const maxDimension = 1024
-          let { width, height } = img
+        // For large images, compress them
+        if (file.size > 1024 * 1024) {
+          // If larger than 1MB
+          // Create an image element to compress
+          const img = new Image()
+          img.onload = async () => {
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
 
-          if (width > height) {
-            if (width > maxDimension) {
-              height = (height * maxDimension) / width
-              width = maxDimension
+            // Calculate new dimensions (max 1024px width/height)
+            const maxDimension = 1024
+            let { width, height } = img
+
+            if (width > height) {
+              if (width > maxDimension) {
+                height = (height * maxDimension) / width
+                width = maxDimension
+              }
+            } else {
+              if (height > maxDimension) {
+                width = (width * maxDimension) / height
+                height = maxDimension
+              }
             }
-          } else {
-            if (height > maxDimension) {
-              width = (width * maxDimension) / height
-              height = maxDimension
+
+            canvas.width = width
+            canvas.height = height
+
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height)
+            const compressedData = canvas.toDataURL('image/jpeg', 0.8) // 80% quality
+
+            try {
+              // Upload compressed image to GridFS
+              const fileId = await uploadImageToServer(compressedData, `${fieldName}_${Date.now()}.jpg`)
+
+              // Store the GridFS file ID instead of base64 data
+              formValues.value[fieldName] = fileId
+              updateSubmissionData()
+            } catch (uploadError) {
+              error.value = true
+              message.value = `Failed to upload image: ${uploadError.message}`
+            } finally {
+              loading.value = false
             }
           }
+          img.src = result
+        } else {
+          try {
+            // Small image, upload as-is
+            const fileId = await uploadImageToServer(result, `${fieldName}_${Date.now()}.${file.type.split('/')[1]}`)
 
-          canvas.width = width
-          canvas.height = height
-
-          // Draw and compress
-          ctx.drawImage(img, 0, 0, width, height)
-          const compressedData = canvas.toDataURL('image/jpeg', 0.8) // 80% quality
-
-          // Update form values with compressed image
-          formValues.value[fieldName] = compressedData
-          updateSubmissionData()
+            // Store the GridFS file ID instead of base64 data
+            formValues.value[fieldName] = fileId
+            updateSubmissionData()
+          } catch (uploadError) {
+            error.value = true
+            message.value = `Failed to upload image: ${uploadError.message}`
+          } finally {
+            loading.value = false
+          }
         }
-        img.src = result
-      } else {
-        // Small image, use as-is
-        formValues.value[fieldName] = result
-        updateSubmissionData()
       }
+      reader.readAsDataURL(file)
+    } catch (err) {
+      error.value = true
+      message.value = 'Error processing image file'
+      loading.value = false
     }
-    reader.readAsDataURL(file)
   } else {
     // No file selected or file was removed
     formValues.value[fieldName] = isRequired ? null : '(No image)'
@@ -350,6 +409,12 @@ const getPriorityColor = (priority) => {
     Optional: 'grey-darken-3',
   }
   return colors[priority] || 'grey-darken-3'
+}
+
+// Get image URL for GridFS file ID
+const getImageUrl = (fileId) => {
+  const PORT = import.meta.env.VITE_API_PORT || 'http://localhost:3000'
+  return `${PORT}/api/images/${fileId}`
 }
 
 // Validate if form is ready to submit
@@ -530,12 +595,21 @@ watch(
                 ></v-file-input>
                 <!-- Display current image if available -->
                 <div
-                  v-if="formValues[field.label] && formValues[field.label].startsWith('data:image')"
+                  v-if="formValues[field.label] && formValues[field.label] !== '(No image)' && formValues[field.label] !== null"
                   class="mt-2"
                 >
                   <p class="text-caption">Current image:</p>
+                  <!-- Base64 image -->
                   <v-img
+                    v-if="formValues[field.label].startsWith('data:image')"
                     :src="formValues[field.label]"
+                    alt="Uploaded image"
+                    style="max-height: 100px; max-width: 100%"
+                  />
+                  <!-- GridFS file ID -->
+                  <v-img
+                    v-else
+                    :src="getImageUrl(formValues[field.label])"
                     alt="Uploaded image"
                     style="max-height: 100px; max-width: 100%"
                   />
