@@ -1,11 +1,21 @@
 <template>
   <div class="global-notifications">
+    <!-- Notification Summary Bar -->
+    <div v-if="notifications.length > 1 "class="notification-summary-bar" @click="toggleDropdown">
+      <span class="summary-item" v-for="type in summaryTypes" :key="type">
+        <v-icon :color="getIconColor(type)" size="20">{{ getIcon(type) }}</v-icon>
+        <span class="summary-count">{{ getTypeCount(type) }}</span>
+      </span>
+      <span class="summary-label">Notifications</span>
+      <v-icon size="20">{{ dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+    </div>
+    <!-- Dropdown toggle for legacy style
     <div v-if="notifications.length > 1" class="notification-dropdown-toggle" @click="toggleDropdown">
       <v-btn icon size="small">
         <v-icon>{{ dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </v-btn>
       <span>{{ dropdownExpanded ? 'Hide' : 'Show' }} all notifications ({{ notifications.length }})</span>
-    </div>
+    </div> -->
     <transition-group
       name="notification"
       tag="div"
@@ -134,6 +144,9 @@ const handleAction = (action, notification) => {
     removeNotification(notification.id)
   }
 }
+
+const summaryTypes = ['success', 'error', 'warning', 'info', 'update']
+const getTypeCount = (type) => notifications.value.filter(n => n.type === type).length
 </script>
 
 <style scoped>
@@ -380,5 +393,42 @@ const handleAction = (action, notification) => {
 
 .notification-item {
   z-index: 2147483647 !important;
+}
+
+.notification-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #2196f3;
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  min-width: 320px;
+  max-width: 90vw;
+  cursor: pointer;
+  user-select: none;
+}
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  font-size: 15px;
+}
+.summary-count {
+  margin-left: 2px;
+  font-size: 15px;
+  color: #fff;
+}
+.summary-label {
+  margin-left: 12px;
+  font-weight: 600;
+  font-size: 16px;
 }
 </style>
