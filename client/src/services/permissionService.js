@@ -1,4 +1,4 @@
-import { fetchJSON } from './apiClient.js'
+import { fetchJSON } from '../scripts/apiClient.js'
 
 export const AVAILABLE_PERMISSIONS = [
   // Basic permissions

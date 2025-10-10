@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { permissionService } from '../scripts/permissionService.js'
+import { permissionService } from '../services/permissionService.js'
 
 const user = ref({
   userId: '',
@@ -885,7 +885,7 @@ const getFieldPreviewValue = (field) => {
   .task-creation-side {
     max-height: 400px;
   }
-  
+
   .task-preview-side {
     max-height: 400px;
   }

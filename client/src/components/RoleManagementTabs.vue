@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import {
   permissionService,
   AVAILABLE_PERMISSIONS,
-} from '../scripts/permissionService.js'
+} from '../services/permissionService.js'
 
 const props = defineProps({
   teamId: {
@@ -494,9 +494,9 @@ onMounted(async () => {
           <v-col cols="12">
             <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-4">
               <h3 class="text-h6">Custom Roles ({{ customRoles.length }})</h3>
-              <v-btn 
-                @click="openCreateRoleDialog" 
-                color="primary" 
+              <v-btn
+                @click="openCreateRoleDialog"
+                color="primary"
                 variant="elevated"
                 size="large"
                 class="flex-grow-1 flex-md-grow-0 mt-4"

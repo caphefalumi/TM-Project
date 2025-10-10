@@ -471,7 +471,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import {
   permissionService,
-} from '../scripts/permissionService.js'
+} from '../services/permissionService.js'
 
 const props = defineProps({
   dialog: {
