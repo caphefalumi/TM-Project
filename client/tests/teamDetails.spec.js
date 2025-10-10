@@ -51,7 +51,7 @@ vi.mock('../src/composables/useComponentCache.js', () => ({
 }))
 
 import AuthStore from '../src/scripts/authStore.js'
-import { permissionService } from '../src/scripts/permissionService.js'
+import { permissionService } from '../src/services/permissionService.js'
 import { useComponentCache } from '../src/composables/useComponentCache.js'
 
 describe('TeamDetails View', () => {

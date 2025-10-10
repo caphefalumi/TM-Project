@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import sessionService from '../scripts/sessionService.js'
+import sessionService from '../services/sessionService.js'
 
 export default {
   name: 'SessionManager',

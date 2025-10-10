@@ -3,7 +3,7 @@ import { ref, onMounted, watch, computed, onActivated, onDeactivated, getCurrent
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import { fetchJSON } from '../scripts/apiClient.js'
-import { permissionService } from '../scripts/permissionService.js'
+import { permissionService } from '../services/permissionService.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
 // Set component name for Vue keep-alive
@@ -25,16 +25,16 @@ import WorkflowView from '../components/WorkflowView.vue'
 import NotFound from './NotFound.vue'
 
 const { getUserByAccessToken } = AuthStore
-const { 
-  addTeamToCache, 
-  updateTeamAccess, 
-  removeTeamFromCache, 
+const {
+  addTeamToCache,
+  updateTeamAccess,
+  removeTeamFromCache,
   getTeamComponentKey,
   needsRefresh,
   markAsRefreshed,
   isTeamCacheValid,
   cleanExpiredCache,
-  getCacheStats 
+  getCacheStats
 } = useComponentCache()
 
 const route = useRoute()
@@ -166,7 +166,7 @@ const setCachedTeamData = (id, data) => {
 // Update cache with current team data
 const updateCacheWithCurrentData = () => {
   if (!teamId.value) return
-  
+
   setCachedTeamData(teamId.value, {
     user: { ...user.value },
     team: { ...team.value },
@@ -186,7 +186,7 @@ const loadFromInternalCache = (id) => {
     teamDataCache.value.delete(id)
     return false
   }
-  
+
   const cached = getCachedTeamData(id)
   if (cached) {
     // Restore all the reactive data from cache
@@ -199,7 +199,7 @@ const loadFromInternalCache = (id) => {
     taskGroups.value = cached.taskGroups || []
     userPermissions.value = cached.userPermissions || {}
     activeTab.value = cached.activeTab || route.query.tab || 'tasks'
-    
+
     // Set loading states to false
     isLoadingTasks.value = false
     isLoadingAnnouncements.value = false
@@ -207,12 +207,12 @@ const loadFromInternalCache = (id) => {
     isLoadingTeamDetails.value = false
     isLoadingSubTeams.value = false
     refreshingTaskGroups.value = false
-    
+
     // Restore permission service state
     if (cached.userPermissions) {
       permissionService.setUserActions(cached.userPermissions)
     }
-    
+
     updateTeamAccess(id)
     return true
   }
@@ -222,10 +222,10 @@ const loadFromInternalCache = (id) => {
 // Setup dynamic component caching
 const setupComponentCaching = () => {
   if (!teamId.value) return
-  
+
   // Add this team to the external cache tracking
   addTeamToCache(teamId.value)
-  
+
   // Check if we have internal cached data for this team
   const hasCachedData = getCachedTeamData(teamId.value)
   if (hasCachedData) {
@@ -281,15 +281,15 @@ const initializeTeamData = async (forceRefresh = false) => {
       userLoaded.value = true
       return
     }
-    
+
     // Cache the loaded data once after all fetches complete
     updateCacheWithCurrentData()
-    
+
     // Mark as successfully loaded from API
     isFromCache.value = false
     updateTeamAccess(teamId.value)
     userLoaded.value = true
-    
+
 
   } else {
     teamNotFound.value = true
@@ -304,17 +304,17 @@ watch(
     if (newTeamId && newTeamId !== oldTeamId) {
 
       teamId.value = newTeamId
-      
+
       // Setup caching for the new team
       setupComponentCaching()
-      
+
       // Check if this team has valid cached data
       // Reset loading state immediately for route changes
       userLoaded.value = false
-      
+
       const hasCachedData = getCachedTeamData(newTeamId)
       const externalCacheValid = isTeamCacheValid(newTeamId)
-      
+
       if (hasCachedData && externalCacheValid) {
         // Load from cache immediately
         if (loadFromInternalCache(newTeamId)) {
@@ -330,7 +330,7 @@ watch(
         // Reset permission service state for new team
         permissionService.setUserActions({})
         userPermissions.value = {}
-        
+
         // Initialize data for new team
         await initializeTeamData()
       }
@@ -382,10 +382,10 @@ watch(
 
 onMounted(async () => {
 
-  
+
   // Setup component caching for initial team
   setupComponentCaching()
-  
+
   // Set default tab parameter if not present
   if (!route.query.tab) {
     router.replace({
@@ -393,13 +393,13 @@ onMounted(async () => {
       query: { ...route.query, tab: 'tasks' },
     })
   }
-  
+
   // Check if we have valid cached data and load it immediately
   const hasCachedData = getCachedTeamData(teamId.value)
   const externalCacheValid = isTeamCacheValid(teamId.value)
-  
 
-  
+
+
   if (hasCachedData && externalCacheValid) {
 
     if (loadFromInternalCache(teamId.value)) {
@@ -419,20 +419,20 @@ onMounted(async () => {
 // Keep-alive lifecycle hooks for cache management
 onActivated(async () => {
 
-  
+
   // Check if external cache is valid first
   const externalCacheValid = isTeamCacheValid(teamId.value)
   const hasCachedData = getCachedTeamData(teamId.value)
-  
+
   if (!externalCacheValid && hasCachedData) {
     // External cache expired, remove internal cache too
 
     teamDataCache.value.delete(teamId.value)
   }
-  
+
   // Re-check cache data after cleanup
   const refreshedCachedData = getCachedTeamData(teamId.value)
-  
+
   if (refreshedCachedData && externalCacheValid && !userLoaded.value) {
 
     if (loadFromInternalCache(teamId.value)) {
@@ -446,19 +446,19 @@ onActivated(async () => {
 
     await initializeTeamData()
   }
-  
+
   // Update access time when component is activated
   if (teamId.value && externalCacheValid) {
     updateTeamAccess(teamId.value)
   }
-  
+
   // Log cache statistics for debugging
 
 })
 
 onDeactivated(() => {
 
-  
+
   // Component is being cached, no cleanup needed
   // The data remains intact for next activation
 })
@@ -509,7 +509,7 @@ const fetchSubTeams = async () => {
       console.warn('Unexpected sub-teams response format:', data)
       subTeams.value = []
     }
-    
+
     // Update cache after fetching sub-teams
     updateCacheWithCurrentData()
 
@@ -648,11 +648,11 @@ const handleRolesUpdated = async () => {
 // Force refresh team data and invalidate cache
 const forceRefreshTeamData = async () => {
 
-  
+
   // Remove from cache
   teamDataCache.value.delete(teamId.value)
   removeTeamFromCache(teamId.value)
-  
+
   // Re-add to cache and initialize fresh data
   setupComponentCaching()
   userLoaded.value = false
@@ -1014,9 +1014,9 @@ const isDev = computed(() => {
           </v-btn>
         </v-col>
         <v-col cols="auto" v-if="isDev">
-          <v-btn 
-            icon 
-            @click="refreshTeamData" 
+          <v-btn
+            icon
+            @click="refreshTeamData"
             variant="text"
             :loading="isLoadingTeamDetails"
             color="primary"
@@ -1033,10 +1033,10 @@ const isDev = computed(() => {
             <div class="d-flex align-center mb-2">
               <h1 class="text-h4 font-weight-bold">{{ team.title }}</h1>
               <!-- Cache indicator for development -->
-              <v-chip 
-                v-if="isFromCache && isDev" 
-                color="success" 
-                size="x-small" 
+              <v-chip
+                v-if="isFromCache && isDev"
+                color="success"
+                size="x-small"
                 class="ml-2"
                 variant="outlined"
               >
@@ -2415,7 +2415,7 @@ const isDev = computed(() => {
     flex: 0 0 auto;
     min-width: auto;
   }
-  
+
   /* Remove margin on mobile, only apply on desktop */
   .announcement-action-btn:not(:first-child) {
     margin-left: 0;

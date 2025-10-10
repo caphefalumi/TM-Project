@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import ViewTask from './ViewTask.vue'
-import { permissionService } from '../scripts/permissionService.js'
+import { permissionService } from '../services/permissionService.js'
 
 const emit = defineEmits(['update:dialog', 'task-group-updated'])
 
