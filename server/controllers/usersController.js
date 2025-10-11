@@ -30,7 +30,7 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
 export const getAuthenticatedUser = async (req, res) => {
   try {
     const account = await Account.findById(req.user.userId).select(
-      '_id username email emailVerified pendingEmail lastUsernameChangeAt lastEmailChangeAt emailVerificationExpires createdAt',
+      '_id username email emailVerified lastUsernameChangeAt lastEmailChangeAt emailVerificationExpires createdAt',
     )
 
     if (!account) {
@@ -43,7 +43,6 @@ export const getAuthenticatedUser = async (req, res) => {
         username: account.username,
         email: account.email,
         emailVerified: account.emailVerified,
-        pendingEmail: account.pendingEmail,
         lastUsernameChangeAt: account.lastUsernameChangeAt,
         lastEmailChangeAt: account.lastEmailChangeAt,
         emailVerificationExpires: account.emailVerificationExpires,
@@ -557,7 +556,7 @@ export const updateUserProfile = async (req, res) => {
     const usernameChanged = username !== undefined && normalizedUsername !== account.username
     const emailChanged = email !== undefined && normalizedEmail !== account.email
     const reissueVerification =
-      !emailChanged && account.pendingEmail && account.pendingEmail === normalizedEmail
+      !emailChanged && account.email && account.email === normalizedEmail
 
     if (!usernameChanged && !emailChanged && !reissueVerification) {
       const usernameCooldownEndsAt =
@@ -573,14 +572,13 @@ export const updateUserProfile = async (req, res) => {
           userId: account._id.toString(),
           username: account.username,
           email: account.email,
-          pendingEmail: account.pendingEmail,
           emailVerified: account.emailVerified,
           lastUsernameChangeAt: account.lastUsernameChangeAt,
           lastEmailChangeAt: account.lastEmailChangeAt,
           emailVerificationExpires: account.emailVerificationExpires,
           createdAt: account.createdAt,
         },
-        requiresEmailVerification: Boolean(account.pendingEmail),
+        requiresEmailVerification: Boolean(account.email),
         usernameCooldownEndsAt: usernameCooldownEndsAt
           ? usernameCooldownEndsAt.toISOString()
           : null,
@@ -644,7 +642,7 @@ export const updateUserProfile = async (req, res) => {
           })
         }
 
-        account.pendingEmail = normalizedEmail
+        account.email = normalizedEmail
         account.emailVerified = false
       }
 
@@ -657,7 +655,7 @@ export const updateUserProfile = async (req, res) => {
     await account.save()
 
     if (verificationToken) {
-      const verificationTarget = account.pendingEmail
+      const verificationTarget = account.email
       const verificationUrl = `${CLIENT_URL}/verify-email?token=${verificationToken}`
       const mailOptions = {
         from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
@@ -686,7 +684,7 @@ export const updateUserProfile = async (req, res) => {
         account.emailVerificationExpires = undefined
 
         if (emailChanged) {
-          account.pendingEmail = null
+          account.email = null
           account.emailVerified = true
         }
 
@@ -742,7 +740,7 @@ export const updateUserProfile = async (req, res) => {
       new Date(account.lastEmailChangeAt.getTime() + EMAIL_LOCK_DURATION)
 
     const responseMessage = verificationToken
-      ? `We've sent a verification link to ${account.pendingEmail}. Please verify within 24 hours to complete the update.`
+      ? `We've sent a verification link to ${account.email}. Please verify within 24 hours to complete the update.`
       : 'Profile updated successfully.'
 
     return res.status(200).json({
@@ -751,14 +749,13 @@ export const updateUserProfile = async (req, res) => {
         userId: account._id.toString(),
         username: account.username,
         email: account.email,
-        pendingEmail: account.pendingEmail,
         emailVerified: account.emailVerified,
         lastUsernameChangeAt: account.lastUsernameChangeAt,
         lastEmailChangeAt: account.lastEmailChangeAt,
         emailVerificationExpires: account.emailVerificationExpires,
         createdAt: account.createdAt,
       },
-      requiresEmailVerification: Boolean(account.pendingEmail),
+      requiresEmailVerification: Boolean(account.email),
       usernameCooldownEndsAt: usernameCooldownEndsAt ? usernameCooldownEndsAt.toISOString() : null,
       emailCooldownEndsAt: emailCooldownEndsAt ? emailCooldownEndsAt.toISOString() : null,
       emailVerificationExpiresAt: account.emailVerificationExpires,
@@ -776,23 +773,22 @@ export const verifyEmailChange = async (req, res) => {
     if (!token) {
       return res.status(400).json({ error: 'Verification token is required' })
     }
-
+    console.log('Verifying email change with token:', token)
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
-
+    console.log('Hashed token:', hashedToken)
     const account = await Account.findOne({
       emailVerificationToken: hashedToken,
-      emailVerificationExpires: { $gt: Date.now() },
     })
-
-    if (!account || !account.pendingEmail) {
+    console.log('Account:', account)
+    console.log('Account found for verification:', account.emailVerificationToken)
+    if (!account || !account.email) {
       return res
         .status(400)
         .json({ error: 'Invalid or expired verification token. Please request a new change.' })
     }
 
-    const newEmail = account.pendingEmail
+    const newEmail = account.email
     account.email = newEmail
-    account.pendingEmail = null
     account.emailVerificationToken = undefined
     account.emailVerificationExpires = undefined
     account.lastEmailChangeAt = new Date()
@@ -817,7 +813,7 @@ export const verifyEmailChange = async (req, res) => {
     const newRefreshToken = generateRefreshToken(newUserData)
 
     await RefreshToken.findOneAndUpdate(
-      { userId: requestingUserId },
+      { userId: account._id.toString() },
       {
         token: newRefreshToken,
         updatedAt: new Date(),
@@ -867,7 +863,6 @@ export const verifyEmailChange = async (req, res) => {
         userId: account._id.toString(),
         username: account.username,
         email: account.email,
-        pendingEmail: account.pendingEmail,
         emailVerified: account.emailVerified,
         lastUsernameChangeAt: account.lastUsernameChangeAt,
         lastEmailChangeAt: account.lastEmailChangeAt,

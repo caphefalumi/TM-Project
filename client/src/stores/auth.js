@@ -15,7 +15,7 @@ const normalizeUser = (userData) => {
     userId: userData.userId ? userData.userId.toString() : '',
     username: userData.username || '',
     email: userData.email || '',
-    pendingEmail: userData.pendingEmail || null,
+    email: userData.email || null,
     emailVerified: userData.emailVerified !== false,
     lastUsernameChangeAt: userData.lastUsernameChangeAt || null,
     lastEmailChangeAt: userData.lastEmailChangeAt || null,

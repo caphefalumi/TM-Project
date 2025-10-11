@@ -323,11 +323,12 @@ const verifyToken = async (req, res) => {
 
     // Hash the provided token to compare with stored hash
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
-
+    console.log("HashedToken: ", hashedToken)
     const account = await Account.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     })
+    console.log("Token Account: ", account.passwordResetToken)
 
     if (!account) {
       return res.status(401).json({ error: 'Invalid or expired password reset token' })

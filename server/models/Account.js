@@ -38,11 +38,6 @@ const accountSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  pendingEmail: {
-    type: String,
-    lowercase: true,
-    default: null,
-  },
   emailVerificationToken: {
     type: String,
   },

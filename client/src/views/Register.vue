@@ -1,16 +1,42 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const username = ref('')
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 const error = ref('')
 const success = ref('')
 const loading = ref(false)
 const showVerifyDialog = ref(false)
 const router = useRouter()
+
+// Validation computed properties
+const isUsernameValid = computed(() => {
+  return username.value.length >= 3
+})
+
+const isEmailValid = computed(() => {
+  return /.+@.+\..+/.test(email.value)
+})
+
+const isPasswordValid = computed(() => {
+  return password.value.length >= 6
+})
+
+const isConfirmPasswordValid = computed(() => {
+  return confirmPassword.value === password.value && confirmPassword.value.length > 0
+})
+
+const isFormValid = computed(() => {
+  return isUsernameValid.value && 
+         isEmailValid.value && 
+         isPasswordValid.value && 
+         isConfirmPasswordValid.value
+})
 
 async function register() {
   error.value = ''
@@ -91,9 +117,30 @@ async function register() {
                   (v) => v.length >= 6 || 'Password must be at least 6 characters',
                 ]"
               />
-              <v-btn :loading="loading" type="submit" color="primary" block class="mb-2"
-                >Register</v-btn
+              <v-text-field
+                v-model="confirmPassword"
+                :type="showConfirmPassword ? 'text' : 'password'"
+                label="Confirm Password"
+                prepend-inner-icon="mdi-lock-check"
+                :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append-inner="showConfirmPassword = !showConfirmPassword"
+                required
+                class="mb-4"
+                :rules="[
+                  (v) => !!v || 'Confirm password is required',
+                  (v) => v === password || 'Passwords do not match',
+                ]"
+              />
+              <v-btn 
+                :loading="loading" 
+                :disabled="!isFormValid || loading"
+                type="submit" 
+                color="primary" 
+                block 
+                class="mb-2"
               >
+                Register
+              </v-btn>
             </v-form>
             <v-alert v-if="error" type="error" class="mt-2">{{ error }}</v-alert>
             <v-alert v-if="success" type="success" class="mt-2">{{ success }}</v-alert>
