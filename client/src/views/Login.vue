@@ -185,6 +185,9 @@ const loginUsingOAuth = async (response) => {
     })
     const data = await res.json()
     if (data.success === 'register') {
+      oauthToken.value = response.access_token
+      userEmail.value = data.email
+      username.value = data.username || ''
       usingOAuthRegister.value = true
       success.value = 'Authorization completed! Please enter username.'
     } else if (data.success === 'login') {
@@ -280,9 +283,11 @@ const loginWithGoogleInTauri = async () => {
       success.value = 'OAuth login successful!'
       await sendToHomePage()
     } else if (result.success === 'register') {
-      usingOAuthRegister.value = true
+      // Store OAuth token for registration
+      oauthToken.value = result.token || ''
       userEmail.value = result.email
-      username.value = result.username
+      username.value = result.username || ''
+      usingOAuthRegister.value = true
       success.value = 'Authorization completed! Please enter username.'
     } else {
       error.value = result.error || 'OAuth authentication failed'
@@ -295,6 +300,9 @@ const loginWithGoogleInTauri = async () => {
     isLoading.value = false
   }
 }
+
+// Store OAuth token for registration
+const oauthToken = ref('')
 
 const registerWithOAuth = async () => {
   // Register with OAuth Button logic
@@ -310,8 +318,8 @@ const registerWithOAuth = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username: username.value, // Use as entered
-        email: userEmail.value,
+        username: username.value,
+        token: oauthToken.value,
       }),
     })
 

@@ -139,24 +139,34 @@ async function createSampleTeamAndTasks(account) {
 }
 
 const oAuthenticationRegister = async (req, res) => {
-  let { username, email } = req.body
+  let { username, token } = req.body
   const provider = 'google'
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
   }
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required' })
-  }
-  email = email.toLowerCase()
+	if (!token) {
+		return res.status(400).json({ message: "No access token provided" })
+	}
+  const response = await fetch(
+    "https://www.googleapis.com/oauth2/v2/userinfo",
+    {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  )
+  const googleUser = await response.json()
+
+  const { email } = googleUser
+  console.log("REGISTER EMAIL: ", email)
   const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
   if (existingUser) {
     if (existingUser.username === username) {
-      return res.status(400).json({ error: 'Username already exists.' })
+      return res.status(402).json({ error: 'Username already exists.' })
     } else if (existingUser.email === email) {
       // double check: If the email is created
       // and the user is able to move on to the second phase: input username only
       // --> Could be duplicated if we dont check email
-      return res.status(400).json({ error: 'Email already exists.' })
+      return res.status(403).json({ error: 'Email already exists.' })
     }
   }
   try {
@@ -172,7 +182,7 @@ const oAuthenticationRegister = async (req, res) => {
         email: account.email
       })
   } catch (err) {
-    res.status(400).json({ error: err })
+    res.status(405).json({ error: err })
   }
 }
 
