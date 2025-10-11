@@ -23,8 +23,6 @@ on:
         required: false
         default: false
         type: boolean
-  release:
-    types: [published]
 
 jobs:
   build_windows:
@@ -476,6 +474,13 @@ jobs:
           git add client/public/latest.json
           git commit -m "chore: update latest.json for release v${{ steps.get_version.outputs.raw_version }}"
           git push origin main
+      - name: Publish latest.json to vercel
+        working-directory: ./client
+        env:   
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
+        run: npx vercel --prod --token=$VERCEL_TOKEN --yes
 
       - name: Generate release notes
         id: generate_notes
