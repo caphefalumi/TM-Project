@@ -1,90 +1,78 @@
 <template>
   <div class="global-notifications">
+
     <!-- Notification Summary Bar -->
-    <div v-if="notifications.length > 1 "class="notification-summary-bar" @click="toggleDropdown">
-      <span class="summary-item" v-for="type in summaryTypes" :key="type">
-        <v-icon :color="getIconColor(type)" size="20">{{ getIcon(type) }}</v-icon>
-        <span class="summary-count">{{ getTypeCount(type) }}</span>
-      </span>
-      <span class="summary-label">Notifications</span>
-      <v-icon size="20">{{ dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-    </div>
-    <!-- Dropdown toggle for legacy style
-    <div v-if="notifications.length > 1" class="notification-dropdown-toggle" @click="toggleDropdown">
-      <v-btn icon size="small">
-        <v-icon>{{ dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-      </v-btn>
-      <span>{{ dropdownExpanded ? 'Hide' : 'Show' }} all notifications ({{ notifications.length }})</span>
-    </div> -->
-    <transition-group
-      name="notification"
-      tag="div"
-      class="notification-stack"
-    >
+    <transition name="fade">
       <div
-        v-for="(notification, index) in visibleNotifications"
-        :key="notification.id"
-        :class="[
-          'notification-item',
-          `notification-${notification.type}`,
-          { 'notification-with-actions': notification.actions?.length > 0 }
-        ]"
-        :style="{
-          zIndex: 9999 + notifications.length - index,
-          transform: dropdownExpanded ? `translateY(${index * 90}px)` : `translateY(${index * 8}px)`,
-          opacity: 1
-        }"
+        v-if="notifications.length > 0"
+        class="notification-summary-bar"
+        @click="toggleDropdown"
       >
-        <!-- Close button -->
+        <span v-for="type in summaryTypes" :key="type" class="summary-item">
+          <v-icon :color="getIconColor(type)" size="18">{{ getIcon(type) }}</v-icon>
+          <span class="summary-count">{{ getTypeCount(type) }}</span>
+        </span>
+        <span class="summary-divider"></span>
+        <span class="summary-label">Notifications</span>
+        <v-icon size="18" color="white">{{ dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+      </div>
+    </transition>
+
+    <!-- Notification Stack -->
+    <transition-group name="notification-list" tag="div" class="notification-stack">
+      <div
+        v-for="(notification, index) in visibleStackNotifications"
+        :key="notification.id"
+        :class="['notification-card', `notification-${notification.type}`]"
+        :style="getNotificationStyle(index)"
+      >
+        <!-- Close Button -->
         <button
           v-if="!notification.persistent || notification.actions?.length === 0"
-          class="notification-close"
+          class="notification-close-btn"
           @click="removeNotification(notification.id)"
-          aria-label="Close notification"
         >
-          <v-icon size="18">mdi-close</v-icon>
+          <v-icon size="16">mdi-close</v-icon>
         </button>
 
-        <!-- Notification icon -->
+        <!-- Icon -->
         <div class="notification-icon">
-          <v-icon :color="getIconColor(notification.type)">
+          <v-icon :color="getIconColor(notification.type)" size="24">
             {{ getIcon(notification.type) }}
           </v-icon>
         </div>
 
-        <!-- Notification content -->
-        <div class="notification-content">
-          <div class="notification-title" v-if="notification.title">
+        <!-- Content -->
+        <div class="notification-body">
+          <div v-if="notification.title" class="notification-title">
             {{ notification.title }}
           </div>
           <div class="notification-message">
             {{ notification.message }}
           </div>
 
-          <!-- Progress bar for updates -->
+          <!-- Progress Bar -->
           <div v-if="notification.showProgress" class="notification-progress">
-            <v-progress-linear
-              :model-value="notification.progress || 0"
-              color="primary"
-              height="4"
-              rounded
-            ></v-progress-linear>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :style="{ width: `${notification.progress}%` }"
+              ></div>
+            </div>
+            <span class="progress-text">{{ Math.round(notification.progress) }}%</span>
           </div>
-        </div>
 
-        <!-- Action buttons -->
-        <div v-if="notification.actions?.length > 0" class="notification-actions">
-          <v-btn
-            v-for="action in notification.actions"
-            :key="action.label"
-            :color="action.color || 'primary'"
-            :variant="action.variant || 'elevated'"
-            size="small"
-            class="mr-2"
-            @click="handleAction(action, notification)"
-          >
-            {{ action.label }}
-          </v-btn>
+          <!-- Action Buttons -->
+          <div v-if="notification.actions?.length > 0" class="notification-actions">
+            <button
+              v-for="action in notification.actions"
+              :key="action.label"
+              :class="['action-btn', action.color === 'primary' ? 'action-btn-primary' : 'action-btn-secondary']"
+              @click="handleAction(action, notification)"
+            >
+              {{ action.label }}
+            </button>
+          </div>
         </div>
       </div>
     </transition-group>
@@ -96,18 +84,25 @@ import { computed, ref } from 'vue'
 import { useNotificationStore } from '../stores/notifications.js'
 
 const notificationStore = useNotificationStore()
+const dropdownExpanded = ref(false)
 
 // Computed
 const notifications = computed(() => notificationStore.notifications)
-const dropdownExpanded = ref(false)
+
+const visibleStackNotifications = computed(() => {
+  if (dropdownExpanded.value) {
+    return notifications.value
+  }
+  return notifications.value.slice(0, 3)
+})
+
+const summaryTypes = ['success', 'error', 'warning', 'info', 'update']
+
+// Methods
 const toggleDropdown = () => {
   dropdownExpanded.value = !dropdownExpanded.value
 }
-const visibleNotifications = computed(() => {
-  return dropdownExpanded.value ? notifications.value : [notifications.value[0]].filter(Boolean)
-})
 
-// Methods
 const removeNotification = (id) => {
   notificationStore.removeNotification(id)
 }
@@ -125,310 +120,333 @@ const getIcon = (type) => {
 
 const getIconColor = (type) => {
   const colors = {
-    success: 'success',
-    error: 'error',
-    warning: 'warning',
-    info: 'info',
-    update: 'primary'
+    success: '#037F0C',
+    error: '#D13212',
+    warning: '#FF9900',
+    info: '#0073BB',
+    update: '#7D3AC1'
   }
-  return colors[type] || 'grey'
+  return colors[type] || '#545B64'
+}
+
+const getTypeCount = (type) => {
+  return notifications.value.filter(n => n.type === type).length
+}
+
+const getNotificationStyle = (index) => {
+  const summaryBarHeight = 52 // Height of summary bar
+  if (dropdownExpanded.value) {
+    // When expanded, stack notifications vertically with proper spacing
+    return {
+      transform: 'translateY(0) scale(1)',
+      zIndex: 9000 - index,
+      top: `${summaryBarHeight + (index * 80)}px` // 100px spacing between each notification
+    }
+  } else {
+    // When collapsed, show stacked effect (cards slightly behind each other)
+    return {
+      transform: `translateY(${index * 8}px) scale(${1 - index * 0.02})`,
+      zIndex: 9000 - index,
+      top: `${summaryBarHeight}px`
+    }
+  }
 }
 
 const handleAction = (action, notification) => {
   if (action.handler && typeof action.handler === 'function') {
     action.handler(notification)
   }
-
-  // Remove notification after action unless it's persistent
   if (!notification.persistent) {
     removeNotification(notification.id)
   }
 }
-
-const summaryTypes = ['success', 'error', 'warning', 'info', 'update']
-const getTypeCount = (type) => notifications.value.filter(n => n.type === type).length
 </script>
 
 <style scoped>
-.global-notifications {
+/* Notification Summary Bar */
+.notification-summary-bar {
   position: fixed;
-  top: 24px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
-  pointer-events: none;
+  background: linear-gradient(135deg, #232F3E 0%, #2C3E50 100%);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  z-index: 9998;
+  transition: all 0.3s ease;
 }
 
+.notification-summary-bar:hover {
+  background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-count {
+  color: white;
+  min-width: 16px;
+}
+
+.summary-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.summary-label {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+/* Notification Stack */
 .notification-stack {
-  position: relative;
-  width: 400px;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 480px;
   max-width: 90vw;
+  pointer-events: none;
+  z-index: 9997;
 }
 
-.notification-item {
+.notification-card {
   position: absolute;
-  right: 0;
   width: 100%;
-  min-height: 80px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   padding: 16px 20px;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
   pointer-events: auto;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-bottom: 4px;
-  opacity: 1 !important;
-}
-
-.notification-item:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-left: 4px solid;
 }
 
 .notification-success {
-  border-left: 4px solid #4caf50;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fdf8 100%);
+  border-left-color: #037F0C;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
 }
 
 .notification-error {
-  border-left: 4px solid #f44336;
-  background: linear-gradient(135deg, #ffffff 0%, #fef8f8 100%);
+  border-left-color: #D13212;
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
 }
 
 .notification-warning {
-  border-left: 4px solid #ff9800;
-  background: linear-gradient(135deg, #ffffff 0%, #fffdf8 100%);
+  border-left-color: #FF9900;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
 }
 
 .notification-info {
-  border-left: 4px solid #2196f3;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fcff 100%);
+  border-left-color: #0073BB;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
 }
 
 .notification-update {
-  border-left: 4px solid #9c27b0;
-  background: linear-gradient(135deg, #ffffff 0%, #fdf8ff 100%);
+  border-left-color: #7D3AC1;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
 }
 
-.notification-close {
+.notification-close-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 12px;
+  right: 12px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 50%;
-  transition: background-color 0.2s;
+  border-radius: 4px;
+  color: #545B64;
   display: flex;
   align-items: center;
-  justify-content: center;
+  transition: all 0.2s;
 }
 
-.notification-close:hover {
-  background-color: #e0e7ef;
-  box-shadow: 0 0 0 2px #b3c2d6;
+.notification-close-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #16191F;
 }
 
 .notification-icon {
   flex-shrink: 0;
-  margin-top: 2px;
+  padding-top: 2px;
 }
 
-.notification-content {
+.notification-body {
   flex: 1;
   min-width: 0;
 }
 
 .notification-title {
+  font-size: 15px;
   font-weight: 600;
-  font-size: 16px;
-  line-height: 1.3;
+  color: #16191F;
   margin-bottom: 4px;
-  color: #1a1a1a;
+  line-height: 1.4;
 }
 
 .notification-message {
   font-size: 14px;
-  line-height: 1.4;
-  color: #666;
+  color: #545B64;
+  line-height: 1.5;
   word-wrap: break-word;
 }
 
+/* Progress Bar */
 .notification-progress {
   margin-top: 12px;
-}
-
-.notification-actions {
   display: flex;
   align-items: center;
-  margin-top: 12px;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
-.notification-with-actions {
-  flex-direction: column;
-  align-items: stretch;
-  padding-bottom: 20px;
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #E9EBED;
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.notification-with-actions .notification-content {
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0073BB 0%, #00A1E4 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #545B64;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Action Buttons */
+.notification-actions {
   display: flex;
-  flex-direction: column;
-  width: 100%;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
 }
 
-.notification-with-actions .notification-icon {
-  margin-right: 12px;
-  align-self: flex-start;
+.action-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
 }
 
-/* Transition animations */
-.notification-enter-active,
-.notification-leave-active {
+.action-btn-primary {
+  background: #0073BB;
+  color: white;
+}
+
+.action-btn-primary:hover {
+  background: #005A94;
+  box-shadow: 0 2px 8px rgba(0, 115, 187, 0.3);
+}
+
+.action-btn-secondary {
+  background: white;
+  color: #545B64;
+  border: 1px solid #D5DBDB;
+}
+
+.action-btn-secondary:hover {
+  background: #F2F3F3;
+  border-color: #AAB7B8;
+}
+
+/* Animations */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-down-enter-from {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.slide-down-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.notification-list-enter-active,
+.notification-list-leave-active {
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.notification-enter-from {
+.notification-list-enter-from {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+.notification-list-leave-to {
   opacity: 0;
   transform: translateX(100%) scale(0.9);
 }
 
-.notification-leave-to {
-  opacity: 0;
-  transform: translateX(100%) scale(0.9);
-}
-
-.notification-move {
+.notification-list-move {
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Responsive design */
-@media (max-width: 480px) {
-  .global-notifications {
-    top: 16px;
-    right: 16px;
-    left: 16px;
-  }
-
+/* Responsive */
+@media (max-width: 640px) {
   .notification-stack {
-    width: 100%;
+    width: calc(100% - 32px);
   }
 
-  .notification-item {
+  .notification-summary-bar {
+    padding: 8px 16px;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .notification-card {
     padding: 14px 16px;
   }
 
-  .notification-title {
-    font-size: 15px;
-  }
-
-  .notification-message {
+  .summary-item {
     font-size: 13px;
   }
-}
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .notification-item {
-    background: #2d2d2d;
-    border-color: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+  .summary-label {
+    font-size: 13px;
   }
-
-  .notification-title {
-    color: #ffffff;
-  }
-
-  .notification-message {
-    color: #b0b0b0;
-  }
-
-  .notification-success {
-    background: linear-gradient(135deg, #2d2d2d 0%, #2d3a2d 100%);
-  }
-
-  .notification-error {
-    background: linear-gradient(135deg, #2d2d2d 0%, #3a2d2d 100%);
-  }
-
-  .notification-warning {
-    background: linear-gradient(135deg, #2d2d2d 0%, #3a372d 100%);
-  }
-
-  .notification-info {
-    background: linear-gradient(135deg, #2d2d2d 0%, #2d333a 100%);
-  }
-
-  .notification-update {
-    background: linear-gradient(135deg, #2d2d2d 0%, #332d3a 100%);
-  }
-
-  .notification-close:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-.notification-dropdown-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 8px;
-  pointer-events: auto;
-  cursor: pointer;
-  user-select: none;
-}
-
-/* Force maximum z-index for all notifications */
-.global-notifications,
-.global-notifications * {
-  z-index: 2147483647 !important; /* Maximum z-index value */
-}
-
-.notification-item {
-  z-index: 2147483647 !important;
-}
-
-.notification-summary-bar {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  background: #2196f3;
-  color: #fff;
-  padding: 8px 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2147483647;
-  min-width: 320px;
-  max-width: 90vw;
-  cursor: pointer;
-  user-select: none;
-}
-.summary-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 500;
-  font-size: 15px;
-}
-.summary-count {
-  margin-left: 2px;
-  font-size: 15px;
-  color: #fff;
-}
-.summary-label {
-  margin-left: 12px;
-  font-weight: 600;
-  font-size: 16px;
 }
 </style>

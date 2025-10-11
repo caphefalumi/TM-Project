@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useNotificationStore = defineStore('notifications', () => {
@@ -23,7 +23,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       type: notification.type || NOTIFICATION_TYPES.INFO,
       title: notification.title || '',
       message: notification.message || '',
-      duration: notification.duration || 5000, // 5 seconds default
+      // duration: notification.duration || 5000,
       persistent: notification.persistent || false, // Don't auto-hide
       actions: notification.actions || [], // Array of action buttons
       data: notification.data || null, // Additional data for the notification
@@ -33,12 +33,12 @@ export const useNotificationStore = defineStore('notifications', () => {
 
     notifications.value.unshift(newNotification)
 
-    // Auto-remove after duration if not persistent
-    if (!newNotification.persistent && newNotification.duration > 0) {
-      setTimeout(() => {
-        removeNotification(id)
-      }, newNotification.duration)
-    }
+    // // Auto-remove after duration if not persistent
+    // if (!newNotification.persistent && newNotification.duration > 0) {
+    //   setTimeout(() => {
+    //     removeNotification(id)
+    //   }, newNotification.duration)
+    // }
 
     return id
   }
@@ -71,7 +71,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       type: NOTIFICATION_TYPES.ERROR,
       title: options.title || 'Error',
       message,
-      duration: options.duration || 8000, // Errors stay longer
+      // duration: options.duration || 8000, // Errors stay longer
       ...options
     })
   }
