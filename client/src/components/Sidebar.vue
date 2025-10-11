@@ -155,10 +155,10 @@ const updateNavigationItems = () => {
     systemItems.value.push({ title: 'Check for Updates', icon: 'mdi-download', action: checkForUpdates })
   }
 
-  // Add test notifications item for development
-  if (import.meta.env.NODE_ENV !== 'PROD') {
-    systemItems.value.push({ title: 'Test Notifications', icon: 'mdi-bell-ring', action: testNotifications })
-  }
+  // // Add test notifications item for development
+  // if (import.meta.env.NODE_ENV !== 'PROD') {
+  //   systemItems.value.push({ title: 'Test Notifications', icon: 'mdi-bell-ring', action: testNotifications })
+  // }
 }
 
 // Watch for user changes to update navigation
