@@ -30,7 +30,7 @@
             <div class="profile-info">
               <div class="profile-title">
                 <h3>{{ user.username }}</h3>
-                <span v-if="user.pendingEmail" class="status-chip warning">
+                <span v-if="user.email" class="status-chip warning">
                   <v-icon size="16">mdi-clock-outline</v-icon>
                   Verification pending
                 </span>
@@ -59,17 +59,17 @@
                 <label>Email Address</label>
                 <div class="info-value">
                   {{ user.email }}
-                  <span v-if="!user.pendingEmail" class="status-chip success subtle">Verified</span>
+                  <span v-if="!user.email" class="status-chip success subtle">Verified</span>
                   <span v-else class="status-chip warning subtle">Current</span>
                   <button class="edit-inline-btn" @click="openEditEmail" title="Edit Email">
                     <v-icon size="16">mdi-pencil</v-icon>
                   </button>
                 </div>
               </div>
-              <div class="info-item" v-if="user.pendingEmail">
+              <div class="info-item" v-if="user.email">
                 <label>Pending Email</label>
                 <div class="info-value pending">
-                  {{ user.pendingEmail }}
+                  {{ user.email }}
                   <span class="status-chip warning subtle">Verification required</span>
                 </div>
               </div>
@@ -78,10 +78,10 @@
                 <div class="info-value">{{ memberSince }}</div>
               </div>
             </div>
-            <div v-if="user.pendingEmail" class="pending-email-banner">
+            <div v-if="user.email" class="pending-email-banner">
               <v-icon size="18">mdi-email-clock</v-icon>
               <span>
-                We've sent a confirmation email to <strong>{{ user.pendingEmail }}</strong
+                We've sent a confirmation email to <strong>{{ user.email }}</strong
                 >.
                 <span v-if="emailVerificationDeadlineText">
                   Please verify by {{ emailVerificationDeadlineText }}.
@@ -293,10 +293,10 @@
                     We'll send a verification message to confirm this change before it's applied.
                   </p>
                 </div>
-                <div v-if="user.pendingEmail" class="pending-note">
+                <div v-if="user.email" class="pending-note">
                   <v-icon size="18">mdi-email-clock-outline</v-icon>
                   <span>
-                    A verification email is waiting at <strong>{{ user.pendingEmail }}</strong
+                    A verification email is waiting at <strong>{{ user.email }}</strong
                     >.
                     <span v-if="emailVerificationDeadlineText"
                       >Please verify by {{ emailVerificationDeadlineText }}.</span
@@ -434,7 +434,7 @@ export default {
           userId: '',
           username: '',
           email: '',
-          pendingEmail: null,
+          email: null,
           emailVerified: true,
           lastUsernameChangeAt: null,
           lastEmailChangeAt: null,
@@ -459,9 +459,9 @@ export default {
       const newUsername = this.editUsernameForm.username?.trim() || ''
       return newUsername && newUsername !== currentUsername
     },
-    pendingEmailMatchesInput() {
-      if (!this.user.pendingEmail) return false
-      return this.editEmailForm.email?.trim().toLowerCase() === this.user.pendingEmail.toLowerCase()
+    emailMatchesInput() {
+      if (!this.user.email) return false
+      return this.editEmailForm.email?.trim().toLowerCase() === this.user.email.toLowerCase()
     },
     requiresEmailAcknowledgement() {
       const currentEmail = this.user.email?.toLowerCase() || ''
@@ -469,7 +469,7 @@ export default {
       if (!newEmail || newEmail === currentEmail) {
         return false
       }
-      if (this.pendingEmailMatchesInput) {
+      if (this.emailMatchesInput) {
         return false
       }
       return true
@@ -482,7 +482,7 @@ export default {
 
       const usernameChanged = newUsername && newUsername !== currentUsername
       const emailChanged = newEmail && newEmail !== currentEmail
-      const reissueVerification = this.pendingEmailMatchesInput
+      const reissueVerification = this.emailMatchesInput
 
       // Only require the field that is being changed
       if (!usernameChanged && !emailChanged && !reissueVerification) {
@@ -519,7 +519,7 @@ export default {
       const newEmail = this.editEmailForm.email?.trim().toLowerCase() || ''
       const currentEmail = this.user.email?.toLowerCase() || ''
       if (!newEmail || newEmail === currentEmail) return false
-      if (this.pendingEmailMatchesInput) return false
+      if (this.emailMatchesInput) return false
       if (this.requiresEmailAcknowledgement && !this.acknowledgements.email) return false
       return true
     },
@@ -607,7 +607,7 @@ export default {
 
     openEditProfile() {
       this.editForm.username = this.user.username
-      this.editForm.email = this.user.pendingEmail || this.user.email
+      this.editForm.email = this.user.email || this.user.email
       this.resetAcknowledgements()
       this.showEditProfilePopup = true
     },
@@ -731,7 +731,7 @@ export default {
     },
 
     openEditEmail() {
-      this.editEmailForm.email = this.user.pendingEmail || this.user.email
+      this.editEmailForm.email = this.user.email || this.user.email
       this.acknowledgements.email = false
       this.showEditEmailPopup = true
     },

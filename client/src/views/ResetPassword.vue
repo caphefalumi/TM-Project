@@ -130,7 +130,7 @@ onMounted(async () => {
     const PORT = import.meta.env.VITE_API_PORT
     const response = await fetch(`${PORT}/api/auth/verify-reset-token`, {
       method: 'POST',
-      headers: {
+      headers: {  
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ token: token.value }),
