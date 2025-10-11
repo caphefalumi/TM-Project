@@ -6,6 +6,7 @@
   "scripts": {
     "setup": "bun install && concurrently \"cd client && bun install\" \"cd server && bun install\"",
     "dev": "cd client && bun run dev",
+    "dev:tauri": "cd client && bun run tauri dev",
     "server": "cd server && bun run server",
     "bundle": "concurrently \"cd client && bun run build\" \"cd server && bun run bundle\"",
     "preview": "cd client && bun run preview",
