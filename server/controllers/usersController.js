@@ -841,7 +841,7 @@ export const verifyEmailChange = async (req, res) => {
     ).toISOString()
 
     try {
-      await sendEmail({
+      await Mailer.sendMail({
         from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
         to: newEmail,
         subject: 'Email address updated',

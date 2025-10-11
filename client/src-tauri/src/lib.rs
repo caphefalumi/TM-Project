@@ -1,9 +1,10 @@
 use serde_json::json;
-use tauri::{command, Manager};
+use tauri::{command, AppHandle, Manager};
 use tiny_http::{Response, Server};
 
 #[command]
 async fn wait_for_oauth_callback(
+    app: AppHandle,
     code_verifier: String,
     expected_state: String,
     backend_url: String,
@@ -19,9 +20,51 @@ async fn wait_for_oauth_callback(
         let url = request.url().to_string();
         println!("Received request: {}", url);
 
-        // Send simple response to browser
-        let response =
-            Response::from_string("Authentication successful! You may now close this window.");
+        // Send HTML response with auto-close script
+        let html_response = r#"
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Authentication Successful</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 2rem;
+                        background: rgba(255, 255, 255, 0.1);
+                        border-radius: 10px;
+                        backdrop-filter: blur(10px);
+                    }
+                    h1 { margin: 0 0 1rem 0; }
+                    p { margin: 0; opacity: 0.9; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>✓ Authentication Successful!</h1>
+                    <p>This window will close automatically...</p>
+                </div>
+                <script>
+                    setTimeout(() => {
+                        window.close();
+                    }, 1500);
+                </script>
+            </body>
+            </html>
+        "#;
+        
+        let response = Response::from_string(html_response)
+            .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]).unwrap());
+        
         if let Err(e) = request.respond(response) {
             eprintln!("Failed to respond to request: {}", e);
         }
@@ -59,6 +102,13 @@ async fn wait_for_oauth_callback(
             // Use the access token with your backend
             let backend_result =
                 authenticate_with_backend(&token_response.access_token, &backend_url).await?;
+
+            // Focus the app window after successful OAuth
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_focus();
+                let _ = window.show();
+                let _ = window.unminimize();
+            }
 
             return Ok(backend_result);
         }
