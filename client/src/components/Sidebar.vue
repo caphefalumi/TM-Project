@@ -13,6 +13,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const { clearAllCaches } = useComponentCache()
+const { showSuccess, showError, showWarning, showInfo } = useGlobalNotifications()
 
 const appTitle = 'Teams Management'
 
@@ -85,7 +86,6 @@ watch(
   { deep: true },
 )
 
-const { showSuccess, showError, showWarning, showInfo } = useGlobalNotifications()
 
 const logout = async () => {
   try {

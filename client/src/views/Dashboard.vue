@@ -262,7 +262,7 @@ const toggleSortOrder = () => {
     <!-- Header Section -->
     <v-row class="align-center mb-6">
       <v-col cols="12" md="6">
-        <h1 class="text-h4 font-weight-bold">Him, {{ user.username }}!</h1>
+        <h1 class="text-h4 font-weight-bold">Hi, {{ user.username }}!</h1>
         <p class="text-h6 text-grey">Here's your task overview and calendar</p>
       </v-col>
       <v-col cols="12" md="6">
