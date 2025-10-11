@@ -1,27 +1,27 @@
 {
-  "version": "1.1.0",
-  "notes": "Teams Management v1.1.0",
-  "pub_date": "2025-10-11T06:20:00Z",
+  "version": "1.1.1",
+  "notes": "Teams Management v1.1.1",
+  "pub_date": "2025-10-11T08:20:32Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQW8xallXNFlzUXdyRys4SVZyNnJOd2RJcjUrb1h0VjlkaHFUUVVOR010Q0Y2SHdwZCtjUDRTTVFQdW13MS9RZzdvb1dtVy9IT3FxSVB1UDNJTjE4MGc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTYzNTU0CWZpbGU6VGVhbXMgTWFuYWdlbWVudF8xLjEuMF94NjQtc2V0dXAuZXhlCnVOSWdHZ1NKaXNCV2tBVUhjQ3FINWV0bWhaQ1kvOXlWRUVjSi9URC8rMnVBdlM5ZGc1czg0NkVJdXpFQmhzRGdGOGRoVWxKTWJsbjkvSkpTby9TQUN3PT0K",
-      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.0/Teams.Management_1.1.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQWc0ZTV4WXhZNzJnbzVpdFVNN0tkc0ZzYlliQ3F5UU9KdE12eVl4MkdteXAyeGtPemk2YXcva3ZjZS9xQWFtWmRQU1ZTOFNVbjJRUnpJSWNmbkRvc0FRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTcwODA2CWZpbGU6VGVhbXMgTWFuYWdlbWVudF8xLjEuMV94NjQtc2V0dXAuZXhlCnltVVJkRlpQQUd1Y3RaRXJEdUJXSFdHV3loZ0RIWGZ6ai9SajBNZmZjQVRKSXhyOWN4eml6SitGalhvQWJwRjU0eEtBeCtNTW5sVXFIQ2R2RFVEckJ3PT0K",
+      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.1/Teams.Management_1.1.1_x64-setup.exe"
     },
     "linux-rpm-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQW1iRXVPVWNXemRSTXRpOVp1aTFsWVA4NGpxZmF3MWNSWEFDWWx2aDlaSXN1WkpMc1FSOUxWcHlpT1FuK0VpbEdEbW5PckRVemtmandDbmNsN2tCd1E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTYzNTg0CWZpbGU6VGVhbXMgTWFuYWdlbWVudF8xLjEuMF9hbWQ2NC5kZWIKRDFyZERUTEhLZm9QUHZkejZLbEFoeU50Y2djMC83SjZpc1BUdVpLVUhOdVdOaitUb0NqMjE3UmN5MDFrYVlIL2NrMnp6THVhcjlwaExhRDJSK1V5RFE9PQo=dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQWdielpzQ2x2R3dXTmNZMEsrQzdWQmo5ZU9vb2RMSm54bTBOdldBUzlEV1Bhem9KaVlwcUFUYXg0VGZhbHBJWktRNTIzaFhzbXV1RlhLdzR1VzMzdlEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTYzNTg0CWZpbGU6VGVhbXMgTWFuYWdlbWVudC0xLjEuMC0xLng4Nl82NC5ycG0KSm5jdTlGRmhqanhaRkZUWGZMNGVoU2VsK2k3WFdwYjN4d2Z0ZVB1Zi9lU3RjTVlpbzdYaGs5WlhDdThCZ1Uzd0Y4VWJ4VHMydmlwb25QQXFmaDdCQXc9PQo=",
-      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.0/Teams.Management-1.1.0-1.x86_64.rpm"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQW1jUGJqQkZnNUhLQXpuM01vVVl1MzdVZlhYak9tZkcxRjlnaTA0RzlyNUtFcUpHdndua1JGZFJMdm84YUlyaXZLSFVlc2NYNDZHN0R0TGtycGRvMWdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTcwNzI4CWZpbGU6VGVhbXMgTWFuYWdlbWVudF8xLjEuMV9hbWQ2NC5kZWIKQklwVC8zMkdzSDlJeHZGcXNHT1dDOXd4Y3pxQ1BFa1BNKys3VEtYM0owSEl2NWp0YUd1UkgzOW1ENDlEWWYwR2Jwb3Y1VGt4RXlLdHpnN0swSGVNQUE9PQo=dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQXFOQkh6MWNQVXQ2WkQwT2RQR2J4WXlpczdCWVpyVFFMZ2lsbzg3Sy9Wak5GL2U3SnZFYXR4bjh2TVJ4SUIrYy9wN01lWlJVME1ZeVQ5d3ZiUlVTcVFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTcwNzI4CWZpbGU6VGVhbXMgTWFuYWdlbWVudC0xLjEuMS0xLng4Nl82NC5ycG0Ka1pEcGpjek0wYXBVWjdDRFVwZ1hXR2szR1FaQkJyeG9jREpLZ2hzK3hxRUVRalYyYlJHSDBLSHZiMHloZU9SQUZDSGcrbkNnNzM2YlNFNFNGc3J3Qmc9PQo=",
+      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.1/Teams.Management-1.1.1-1.x86_64.rpm"
     },
     "linux-deb-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQW1iRXVPVWNXemRSTXRpOVp1aTFsWVA4NGpxZmF3MWNSWEFDWWx2aDlaSXN1WkpMc1FSOUxWcHlpT1FuK0VpbEdEbW5PckRVemtmandDbmNsN2tCd1E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTYzNTg0CWZpbGU6VGVhbXMgTWFuYWdlbWVudF8xLjEuMF9hbWQ2NC5kZWIKRDFyZERUTEhLZm9QUHZkejZLbEFoeU50Y2djMC83SjZpc1BUdVpLVUhOdVdOaitUb0NqMjE3UmN5MDFrYVlIL2NrMnp6THVhcjlwaExhRDJSK1V5RFE9PQo=",
-      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.0/Teams.Management_1.1.0_amd64.deb"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQW1jUGJqQkZnNUhLQXpuM01vVVl1MzdVZlhYak9tZkcxRjlnaTA0RzlyNUtFcUpHdndua1JGZFJMdm84YUlyaXZLSFVlc2NYNDZHN0R0TGtycGRvMWdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTcwNzI4CWZpbGU6VGVhbXMgTWFuYWdlbWVudF8xLjEuMV9hbWQ2NC5kZWIKQklwVC8zMkdzSDlJeHZGcXNHT1dDOXd4Y3pxQ1BFa1BNKys3VEtYM0owSEl2NWp0YUd1UkgzOW1ENDlEWWYwR2Jwb3Y1VGt4RXlLdHpnN0swSGVNQUE9PQo=",
+      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.1/Teams.Management_1.1.1_amd64.deb"
     },
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQW4yZ0hXSythcTArckhzdUhwT2R5c3lPUmVINnZpUkszVjQ1YndQenFuYTB4WDVpanM3Y2F5ZlVyMWVlMW5NdmNGa0FLWXFGMklEbEcvRnNhYk5PWGdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTYzNDYzCWZpbGU6VGVhbXMgTWFuYWdlbWVudC5hcHAudGFyLmd6ClUwVkNpNnBISTlIYmp1N0YyVk1GSTlBQ2lLelR5OXdjOTlFSWFlbWEzTDZpQmNKTVVJTE03TFlFRjFMclRXbG1LZVJlWXpnZTFyNHBJZkJhZEJ1bUN3PT0K",
-      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.0/Teams.Management.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQXEzMS9iV1g2UlVWWDVka0Iza0dody9xbXNpMjFxNWwrdEJ5RWxlQmw1dkhleGd5SURDK0kydGhaa3JoZFZtcUFxWHlZbnJoTTI0ZUJxWGxSL3FvWlFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTcwNTc5CWZpbGU6VGVhbXMgTWFuYWdlbWVudC5hcHAudGFyLmd6Cjh6anlUajNpMWt2eGZSMlcwa20xSGs3dlJ3bU5WTk9DU1dwT25HOGVHNUVSOWxyejNtd2dkcStKRjdDVFBWeEx6Y29WRktRMHBwQjczVEJDL095OEJRPT0K",
+      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.1/Teams.Management.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQW4yZ0hXSythcTArckhzdUhwT2R5c3lPUmVINnZpUkszVjQ1YndQenFuYTB4WDVpanM3Y2F5ZlVyMWVlMW5NdmNGa0FLWXFGMklEbEcvRnNhYk5PWGdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTYzNDYzCWZpbGU6VGVhbXMgTWFuYWdlbWVudC5hcHAudGFyLmd6ClUwVkNpNnBISTlIYmp1N0YyVk1GSTlBQ2lLelR5OXdjOTlFSWFlbWEzTDZpQmNKTVVJTE03TFlFRjFMclRXbG1LZVJlWXpnZTFyNHBJZkJhZEJ1bUN3PT0K",
-      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.0/Teams.Management_1.1.0_aarch64.dmg"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZWtZbnVWWHVzQXEzMS9iV1g2UlVWWDVka0Iza0dody9xbXNpMjFxNWwrdEJ5RWxlQmw1dkhleGd5SURDK0kydGhaa3JoZFZtcUFxWHlZbnJoTTI0ZUJxWGxSL3FvWlFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMTcwNTc5CWZpbGU6VGVhbXMgTWFuYWdlbWVudC5hcHAudGFyLmd6Cjh6anlUajNpMWt2eGZSMlcwa20xSGs3dlJ3bU5WTk9DU1dwT25HOGVHNUVSOWxyejNtd2dkcStKRjdDVFBWeEx6Y29WRktRMHBwQjczVEJDL095OEJRPT0K",
+      "url": "https://github.com/caphefalumi/TM-Project/releases/download/v1.1.1/Teams.Management_1.1.1_aarch64.dmg"
     }
   }
 }
