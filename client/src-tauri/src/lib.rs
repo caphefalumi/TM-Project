@@ -15,61 +15,14 @@ async fn wait_for_oauth_callback(
         Server::http("127.0.0.1:1409").map_err(|e| format!("Failed to start server: {}", e))?;
     println!("Listening for OAuth callback on port 1409...");
 
+    let mut oauth_result: Option<serde_json::Value> = None;
+
     // Wait for Google redirect
     for request in server.incoming_requests() {
         let url = request.url().to_string();
         println!("Received request: {}", url);
 
-        // Send HTML response with auto-close script
-        let html_response = r#"
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Authentication Successful</title>
-                <style>
-                    body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                    }
-                    .container {
-                        text-align: center;
-                        padding: 2rem;
-                        background: rgba(255, 255, 255, 0.1);
-                        border-radius: 10px;
-                        backdrop-filter: blur(10px);
-                    }
-                    h1 { margin: 0 0 1rem 0; }
-                    p { margin: 0; opacity: 0.9; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>✓ Authentication Successful!</h1>
-                    <p>This window will close automatically...</p>
-                </div>
-                <script>
-                    setTimeout(() => {
-                        window.close();
-                    }, 1500);
-                </script>
-            </body>
-            </html>
-        "#;
-        
-        let response = Response::from_string(html_response)
-            .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]).unwrap());
-        
-        if let Err(e) = request.respond(response) {
-            eprintln!("Failed to respond to request: {}", e);
-        }
-
-        // Parse URL parameters
+        // Parse URL parameters for OAuth callback
         if url.contains("/oauth/callback") {
             let parsed_url = url::Url::parse(&format!("http://localhost:1409{}", url))
                 .map_err(|e| format!("Failed to parse URL: {}", e))?;
@@ -79,6 +32,48 @@ async fn wait_for_oauth_callback(
 
             // Check for OAuth error
             if let Some(error) = query_pairs.get("error") {
+                let error_html = format!(
+                    r#"
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Authentication Failed</title>
+                        <style>
+                            body {{
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                height: 100vh;
+                                margin: 0;
+                                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                                color: white;
+                            }}
+                            .container {{
+                                text-align: center;
+                                padding: 2rem;
+                                background: rgba(255, 255, 255, 0.1);
+                                border-radius: 10px;
+                                backdrop-filter: blur(10px);
+                            }}
+                            h1 {{ margin: 0 0 1rem 0; }}
+                            p {{ margin: 0; opacity: 0.9; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>✗ Authentication Failed</h1>
+                            <p>Error: {}</p>
+                            <p>You can close this window.</p>
+                        </div>
+                    </body>
+                    </html>
+                    "#,
+                    error
+                );
+                let response = Response::from_string(error_html)
+                    .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]).unwrap());
+                let _ = request.respond(response);
                 return Err(format!("OAuth error: {}", error));
             }
 
@@ -90,10 +85,96 @@ async fn wait_for_oauth_callback(
 
             // Validate state
             if state != &expected_state {
+                let error_html = r#"
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Authentication Failed</title>
+                        <style>
+                            body {
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                height: 100vh;
+                                margin: 0;
+                                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                                color: white;
+                            }
+                            .container {
+                                text-align: center;
+                                padding: 2rem;
+                                background: rgba(255, 255, 255, 0.1);
+                                border-radius: 10px;
+                                backdrop-filter: blur(10px);
+                            }
+                            h1 { margin: 0 0 1rem 0; }
+                            p { margin: 0; opacity: 0.9; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>✗ Authentication Failed</h1>
+                            <p>Invalid state parameter</p>
+                            <p>You can close this window.</p>
+                        </div>
+                    </body>
+                    </html>
+                "#;
+                let response = Response::from_string(error_html)
+                    .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]).unwrap());
+                let _ = request.respond(response);
                 return Err("Invalid state parameter".to_string());
             }
 
             println!("Got authorization code, exchanging for token...");
+
+            // Send initial success response with redirect
+            let html_response = r#"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Authentication Successful</title>
+                    <style>
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                        }
+                        .container {
+                            text-align: center;
+                            padding: 2rem;
+                            background: rgba(255, 255, 255, 0.1);
+                            border-radius: 10px;
+                            backdrop-filter: blur(10px);
+                        }
+                        h1 { margin: 0 0 1rem 0; }
+                        p { margin: 0; opacity: 0.9; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>✓ Authentication Successful!</h1>
+                        <p>Processing...</p>
+                    </div>
+                    <script>
+                        window.location.replace('http://localhost:1409');
+                    </script>
+                </body>
+                </html>
+            "#;
+
+            let response = Response::from_string(html_response)
+                .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]).unwrap());
+
+            if let Err(e) = request.respond(response) {
+                eprintln!("Failed to respond to request: {}", e);
+            }
 
             // Exchange code for access token using PKCE
             let token_response =
@@ -103,6 +184,9 @@ async fn wait_for_oauth_callback(
             let backend_result =
                 authenticate_with_backend(&token_response.access_token, &backend_url).await?;
 
+            // Store the result to return later
+            oauth_result = Some(backend_result);
+
             // Focus the app window after successful OAuth
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_focus();
@@ -110,7 +194,60 @@ async fn wait_for_oauth_callback(
                 let _ = window.unminimize();
             }
 
-            return Ok(backend_result);
+            // Continue to handle the redirect
+            continue;
+        } else if url == "/" || url == "/?" {
+            // This handles the redirect from the script
+            let success_html = r#"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Success</title>
+                    <style>
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                        }
+                        .container {
+                            text-align: center;
+                            padding: 2rem;
+                            background: rgba(255, 255, 255, 0.1);
+                            border-radius: 10px;
+                            backdrop-filter: blur(10px);
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>✓ All Done!</h1>
+                        <p id="message">You can close this window now.</p>
+                    </div>
+                </body>
+                </html>
+            "#;
+
+            let response = Response::from_string(success_html)
+                .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]).unwrap());
+
+            if let Err(e) = request.respond(response) {
+                eprintln!("Failed to respond to request: {}", e);
+            }
+
+            // Give the browser time to render the page
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+            // Now return the result
+            if let Some(result) = oauth_result {
+                return Ok(result);
+            } else {
+                return Err("OAuth process completed but no result stored".to_string());
+            }
         }
     }
 

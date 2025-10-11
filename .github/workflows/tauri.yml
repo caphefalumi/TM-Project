@@ -41,14 +41,24 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Rust build
+      - name: Cache Rust dependencies
         uses: actions/cache@v4
         with:
           path: |
-            client/src-tauri/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: rust-build-windows-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+          key: cargo-deps-windows-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            cargo-deps-windows-
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: client/src-tauri/target
+          key: cargo-build-windows-${{ hashFiles('client/src-tauri/src/**/*.rs') }}-${{ hashFiles('client/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cargo-build-windows-${{ hashFiles('client/src-tauri/src/**/*.rs') }}-
+            cargo-build-windows-
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -110,14 +120,24 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Rust build
+      - name: Cache Rust dependencies
         uses: actions/cache@v4
         with:
           path: |
-            client/src-tauri/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: rust-build-linux-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+          key: cargo-deps-linux-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            cargo-deps-linux-
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: client/src-tauri/target
+          key: cargo-build-linux-${{ hashFiles('client/src-tauri/src/**/*.rs') }}-${{ hashFiles('client/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cargo-build-linux-${{ hashFiles('client/src-tauri/src/**/*.rs') }}-
+            cargo-build-linux-
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -199,6 +219,28 @@ jobs:
         run: |
           rm -rf client/src-tauri/target/release/bundle/deb/*.sig
 
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-appimage
+          path: client/src-tauri/target/release/bundle/appimage/*.AppImage
+          if-no-files-found: ignore
+
+      - name: Remove Linux AppImage files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/appimage/*.AppImage
+
+      - name: Upload Linux AppImage signature
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-appimage-signature
+          path: client/src-tauri/target/release/bundle/appimage/*.sig
+          if-no-files-found: error
+
+      - name: Remove Linux AppImage signature files
+        run: |
+          rm -rf client/src-tauri/target/release/bundle/appimage/*.sig
+
   build_macos:
     if: |
       github.event_name != 'workflow_dispatch' ||
@@ -215,14 +257,24 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Rust build
+      - name: Cache Rust dependencies
         uses: actions/cache@v4
         with:
           path: |
-            client/src-tauri/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: rust-build-macos-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+          key: cargo-deps-macos-${{ hashFiles('client/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            cargo-deps-macos-
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: client/src-tauri/target
+          key: cargo-build-macos-${{ hashFiles('client/src-tauri/src/**/*.rs') }}-${{ hashFiles('client/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cargo-build-macos-${{ hashFiles('client/src-tauri/src/**/*.rs') }}-
+            cargo-build-macos-
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -353,6 +405,16 @@ jobs:
             fi
           fi
           
+          if [ -d "artifacts/linux-appimage" ]; then
+            echo "Processing Linux AppImage..."
+            if find artifacts/linux-appimage -name "*.AppImage" -exec cp {} release-assets/ \; 2>/dev/null; then
+              echo "Linux AppImage added"
+              ASSETS_FOUND=true
+            else
+              echo "No Linux AppImage found"
+            fi
+          fi
+          
           # macOS files
           if [ -d "artifacts/macos-dmg" ]; then
             echo "Processing macOS DMG..."
@@ -408,6 +470,7 @@ jobs:
           WIN_SIG=$(find artifacts -name "*.sig" -path "*/windows-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
           LINUX_SIG=$(find artifacts -name "*.sig" -path "*/linux-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
           DEB_SIG=$(find artifacts -name "*.sig" -path "*/linux-deb*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
+          APPIMAGE_SIG=$(find artifacts -name "*.sig" -path "*/linux-appimage*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
           MACOS_SIG=$(find artifacts -name "*.sig" -path "*/macos-*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
           APP_SIG=$(find artifacts -name "*.sig" -path "*/macos-app*" -exec cat {} \; 2>/dev/null | head -1 || echo "")
 
@@ -415,6 +478,7 @@ jobs:
           WIN_FILE=$(find release-assets -name "*.exe" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_x64-setup.exe")
           LINUX_FILE=$(find release-assets -name "*.rpm" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_x86_64.rpm")
           DEB_FILE=$(find release-assets -name "*.deb" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_amd64.deb")
+          APPIMAGE_FILE=$(find release-assets -name "*.AppImage" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_x86_64.AppImage")
           MACOS_FILE=$(find release-assets -name "*.dmg" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_x64.dmg")
           APP_FILE=$(find release-assets -name "*.app.tar.gz" -printf "%f\n" 2>/dev/null | head -1 | sed 's/ /./g' || echo "your_app_arm64.app.tar.gz")
 
@@ -429,6 +493,8 @@ jobs:
             --arg linux_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${LINUX_FILE}" \
             --arg deb_sig "$DEB_SIG" \
             --arg deb_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${DEB_FILE}" \
+            --arg appimage_sig "$APPIMAGE_SIG" \
+            --arg appimage_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${APPIMAGE_FILE}" \
             --arg macos_sig "$MACOS_SIG" \
             --arg macos_url "https://github.com/caphefalumi/TM-Project/releases/download/v${VERSION}/${MACOS_FILE}" \
             --arg app_sig "$APP_SIG" \
@@ -449,6 +515,10 @@ jobs:
                 "linux-deb-x86_64": {
                   signature: $deb_sig,
                   url: $deb_url
+                },
+                "linux-appimage-x86_64": {
+                  signature: $appimage_sig,
+                  url: $appimage_url
                 },
                 "darwin-x86_64": {
                   signature: $macos_sig,
