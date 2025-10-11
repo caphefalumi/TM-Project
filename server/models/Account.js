@@ -15,7 +15,7 @@ const accountSchema = new mongoose.Schema({
         // Simple email regex for validation
         return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v)
       },
-      message: (props) => `${props  .value} is not a valid email!`,
+      message: (props) => `${props.value} is not a valid email!`,
     },
   },
   emailVerified: {

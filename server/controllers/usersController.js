@@ -824,7 +824,7 @@ export const verifyEmailChange = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     })
 
@@ -832,7 +832,7 @@ export const verifyEmailChange = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      maxAge: Number(process.env.ACCESS_TOKEN_TIME), // Convert string to number
+      maxAge: Number(process.env.ACCESS_TOKEN_TIME),
       path: '/',
     })
 
