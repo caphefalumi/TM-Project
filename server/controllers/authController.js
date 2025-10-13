@@ -301,7 +301,7 @@ const forgotPassword = async (req, res) => {
     account.passwordResetExpires = Date.now() + 900000 // 15 minutes
     await account.save()
     try {
-      await Mailer.sendResetPassword(account, resetToken)
+      await Mailer.sendResetPasswordEmail(account, resetToken)
       res.json({ message: 'If an account with that email exists, a password reset link has been sent' })
     } catch (err) {
       console.log('Failed to send password reset email:', err)
@@ -358,7 +358,7 @@ const resetPassword = async (req, res) => {
     account.passwordResetExpires = undefined
     await account.save()
     try {
-      await Mailer.sendResetConfirmation(account)
+      await Mailer.sendPasswordResetConfirmationEmail(account)
       res.json({ message: 'Password reset successful' })
     } catch (err) {
       console.log('Failed to send password reset confirmation email:', err)

@@ -841,18 +841,7 @@ export const verifyEmailChange = async (req, res) => {
     ).toISOString()
 
     try {
-      await Mailer.sendMail({
-        from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
-        to: newEmail,
-        subject: 'Email address updated',
-        html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2 style="color: #4A90E2; margin-bottom: 12px;">Email updated successfully</h2>
-            <p>Your account email has been verified and updated to <strong>${newEmail}</strong>.</p>
-            <p>If you did not authorize this change, please reset your password immediately.</p>
-          </div>
-        `,
-      })
+      await Mailer.sendEmailUpdateConfirmation(account)
     } catch (error) {
       console.log('Failed to send confirmation email after verification:', error)
     }
