@@ -58,50 +58,65 @@ const showSidebar = computed(() => {
 let tokenRefreshInterval = null
 
 const refreshAccessToken = async () => {
-  try {
-    const PORT = import.meta.env.VITE_API_PORT
-    console.log('Auto-refreshing access token...')
-
-    const response = await fetch(`${PORT}/api/sessions/refresh`, {
-      method: 'POST',
-      credentials: 'include', // Important: sends refresh token cookie
-    })
-
-    if (response.ok) {
-      authStore.setLoggedIn(true)
-
-      if (!authStore.user) {
-        await authStore.fetchUser()
-      }
-      console.log('Access token auto-refreshed successfully')
-      return true
-    } else if (response.status === 401) {
-      // Check if it's a token revocation error
-      try {
-        const errorData = await response.json()
-        if (errorData.error === 'TOKEN_REVOKED' || errorData.error === 'TOKEN_INVALID') {
-          console.warn('Token was revoked during auto-refresh')
-          console.warn(errorData.error)
-          // Show sign out popup directly
-          showSignOutPopup(errorData.message || 'You have been signed out.')
-          return false
+  const MAX_RETRIES = 3
+  const RETRY_DELAY_MS = 2000
+  let attempt = 0
+  while (attempt < MAX_RETRIES) {
+    try {
+      const PORT = import.meta.env.VITE_API_PORT
+      console.log('Auto-refreshing access token... (attempt', attempt + 1, ')')
+      const response = await fetch(`${PORT}/api/sessions/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        authStore.setLoggedIn(true)
+        if (!authStore.user) {
+          await authStore.fetchUser()
         }
-      } catch (parseError) {
-        console.log('Error parsing response:', parseError)
+        console.log('Access token auto-refreshed successfully')
+        return true
+      } else if (response.status === 401) {
+        try {
+          const errorData = await response.json()
+          if (errorData.error === 'TOKEN_REVOKED' || errorData.error === 'TOKEN_INVALID') {
+            console.warn('Token was revoked during auto-refresh')
+            showSignOutPopup(errorData.message || 'You have been signed out.')
+            return false
+          }
+        } catch (parseError) {
+          console.log('Error parsing response:', parseError)
+        }
+        authStore.clearAuth()
+        console.warn('Auto token refresh failed:', response.status, response.statusText)
+        // Only retry if not last attempt
+        if (attempt < MAX_RETRIES - 1) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+          attempt++
+          continue
+        }
+        return false
+      } else {
+        console.warn('Auto token refresh failed:', response.status, response.statusText)
+        if (attempt < MAX_RETRIES - 1) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+          attempt++
+          continue
+        }
+        return false
       }
-
+    } catch (error) {
+      console.log('Error during auto token refresh:', error)
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+        attempt++
+        continue
+      }
       authStore.clearAuth()
-      console.warn('Auto token refresh failed:', response.status, response.statusText)
-      return false
-    } else {
-      console.warn('Auto token refresh failed:', response.status, response.statusText)
       return false
     }
-  } catch (error) {
-    console.log('Error during auto token refresh:', error)
-    authStore.clearAuth()
-    return false
   }
+  return false
 }
 
 const startTokenRefresh = () => {
@@ -123,10 +138,10 @@ const startTokenRefresh = () => {
         }
       }
     },
-    18 * 60 * 1000,
-  ) // 18 minutes in milliseconds
+    12 * 60 * 1000,
+  ) // 12 minutes in milliseconds
 
-  console.log('Auto token refresh started - will refresh every 9 minutes when authenticated')
+  console.log('Auto token refresh started - will refresh every 12 minutes when authenticated')
 }
 
 const stopTokenRefresh = () => {
