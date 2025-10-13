@@ -412,7 +412,7 @@ const googleOAuthCallback = async (req, res) => {
   try {
     const CLIENT_ID = process.env.DESKTOP_CLIENT_ID
     const CLIENT_SECRET = process.env.DESKTOP_CLIENT_SECRET
-    const REDIRECT_URI = 'com.teams-management.dev://oauth/callback'
+    const REDIRECT_URI = 'com.teams-management.vn://oauth/callback'
 
     // Exchange authorization code for access token
     const tokenParams = new URLSearchParams({

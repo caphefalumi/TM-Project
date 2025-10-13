@@ -538,7 +538,7 @@ describe('Login View', () => {
       expect(open).toHaveBeenCalled()
       const openCall = open.mock.calls[0][0]
       expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
-      expect(openCall).toContain('redirect_uri=com.teams-management.dev%3A%2F%2Foauth%2Fcallback')
+      expect(openCall).toContain('redirect_uri=com.teams-management.vn%3A%2F%2Foauth%2Fcallback')
       expect(openCall).toContain('client_id=test-client-id')
       expect(openCall).toContain('code_challenge_method=S256')
     })
@@ -552,8 +552,8 @@ describe('Login View', () => {
       expect(open).toHaveBeenCalled()
       const openCall = open.mock.calls[0][0]
       expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
-      expect(openCall).toContain('com.teams-management.dev')
-      
+      expect(openCall).toContain('com.teams-management.vn')
+
       // Should show success message about opening browser
       const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Opening browser for authentication')
@@ -571,8 +571,8 @@ describe('Login View', () => {
       expect(open).toHaveBeenCalled()
       const openCall = open.mock.calls[0][0]
       expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
-      expect(openCall).toContain('com.teams-management.dev')
-      
+      expect(openCall).toContain('com.teams-management.vn')
+
       // Should show success message about opening browser
       const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Opening browser for authentication')
@@ -587,8 +587,8 @@ describe('Login View', () => {
       expect(open).toHaveBeenCalled()
       const openCall = open.mock.calls[0][0]
       expect(openCall).toContain('accounts.google.com/o/oauth2/v2/auth')
-      expect(openCall).toContain('redirect_uri=com.teams-management.dev%3A%2F%2Foauth%2Fcallback')
-      
+      expect(openCall).toContain('redirect_uri=com.teams-management.vn%3A%2F%2Foauth%2Fcallback')
+
       // Should not be loading anymore since OAuth is handled by deeplink
       expect(wrapper.vm.isLoading).toBe(false)
     })
