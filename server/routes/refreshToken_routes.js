@@ -1,5 +1,4 @@
 import express from 'express'
-import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 import { authenticateAccessToken } from '../middleware/authMiddleware.js'
 import {
   addRefreshToken,

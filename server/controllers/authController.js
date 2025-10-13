@@ -194,6 +194,9 @@ const localRegister = async (req, res) => {
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'All fields are required.' })
   }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters.' })
+  }
 
   // 2. Check for unique username and email
   const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
