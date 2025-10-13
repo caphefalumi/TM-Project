@@ -11,6 +11,8 @@ import Dashboard from '../views/Dashboard.vue'
 import FeedbackView from '../views/FeedbackView.vue'
 import AboutView from '../views/AboutView.vue'
 import NotFound from '../views/NotFound.vue'
+import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
+import TermsOfServiceView from '../views/TermsOfServiceView.vue'
 
 // Lazy-loaded components for less frequently accessed routes
 const ForgotPassword = () => import('../views/ForgotPassword.vue')
@@ -87,6 +89,16 @@ const router = createRouter({
       path: '/feedback',
       component: FeedbackView,
       meta: { requiresAuth: true, title: 'Feedback' },
+    },
+    {
+      path: '/privacy-policy',
+      component: PrivacyPolicyView,
+      meta: { requiresAuth: false, title: 'Privacy Policy' },
+    },
+    {
+      path: '/terms-of-service',
+      component: TermsOfServiceView,
+      meta: { requiresAuth: false, title: 'Terms of Service' },
     },
     {
       path: "/NotFound",
