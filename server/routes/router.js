@@ -1,4 +1,5 @@
 import express from 'express'
+import path from 'path'
 
 // Import sub-route files
 import authRoutes from './auth_routes.js'

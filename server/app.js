@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser'
 import ExpressMongoSanitize from 'express-mongo-sanitize'
 import { initTokenCleanup } from './scripts/tokenCleanup.js'
 import requestIp from 'request-ip'
+import path from 'path'
 const app = express()
 app.use(requestIp.mw())
 app.use(
@@ -49,7 +50,13 @@ app.use((req, _res, next) => {
 app.use(express.json({ limit: '25mb' }))
 app.use(express.urlencoded({ limit: '25mb', extended: true }))
 app.use(cookieParser())
+app.use(express.static('public'))
 app.use(routes)
+
+// 404 handler for unmatched routes
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', 'notfound.html'))
+})
 
 const PORT = process.env.PORT || 3000
 
@@ -60,6 +67,8 @@ const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`)
 })
+
+
 
 // Export for Vercel
 export default app
