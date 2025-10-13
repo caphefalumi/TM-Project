@@ -25,7 +25,7 @@ class Mailer {
     }
   }
 
-  static async sendResetPassword(user, token) {
+  static async sendResetPasswordEmail(user, token) {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`
     const mailOptions = {
       from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
@@ -77,7 +77,7 @@ class Mailer {
     return await Mailer.sendMail(mailOptions)
   }
 
-  static async sendResetConfirmation(user) {
+  static async sendPasswordResetConfirmationEmail(user) {
     const mailOptions = {
       from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
       to: user.email,
@@ -91,6 +91,28 @@ class Mailer {
             If you did not initiate this request, please contact us immediately for security reasons.
           </p>
           <p>Best regards,<br>Your Team Management System</p>
+        </div>
+      `,
+    }
+    return await Mailer.sendMail(mailOptions)
+  }
+
+  static async sendNewEmailVerificationEmail(user, verificationUrl) {
+    const mailOptions = {
+      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: 'Confirm your new email address',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #4A90E2; margin-bottom: 12px;">Verify your new email</h2>
+          <p>We received a request to update the email on your account.</p>
+          <p>Please confirm this change by clicking the button below within the next 24 hours:</p>
+          <p style="text-align: center; margin: 24px 0;">
+            <a href="${verificationUrl}" style="background-color: #4A90E2; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify new email address</a>
+          </p>
+          <p style="font-size: 14px; color: #666;">
+            If you did not request this change, you can safely ignore this email and your address will remain the same.
+          </p>
         </div>
       `,
     }
