@@ -718,7 +718,7 @@ export const updateUserProfile = async (req, res) => {
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'None',
+        sameSite: 'Lax',
         maxAge: Number(process.env.REFRESH_TOKEN_TIME), // Convert string to number
         path: '/',
       })
@@ -726,8 +726,8 @@ export const updateUserProfile = async (req, res) => {
       res.cookie('accessToken', newAccessToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'None',
-        maxAge: Number(process.env.ACCESS_TOKEN_TIME) * 60 * 1000, // in minutes
+        sameSite: 'Lax',
+        maxAge: Number(process.env.ACCESS_TOKEN_TIME), // in minutes
         path: '/',
       })
     }
@@ -823,15 +823,15 @@ export const verifyEmailChange = async (req, res) => {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'Lax',
+      maxAge: Number(process.env.REFRESH_TOKEN_TIME),
       path: '/',
     })
 
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'None',
+      sameSite: 'Lax',
       maxAge: Number(process.env.ACCESS_TOKEN_TIME),
       path: '/',
     })
