@@ -89,8 +89,12 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'Feedback' },
     },
     {
+      path: "/NotFound",
+      component: NotFound,
+      meta: { requiresAuth: false, title: '404 Not Found' },
+    },
+    {
       path: "/:pathMatch(.*)*",
-      name: "CatchAll",
       component: NotFound,
       meta: { requiresAuth: false, title: '404 Not Found' },
     },
