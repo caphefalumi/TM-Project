@@ -23,14 +23,14 @@ const limiter = rateLimit({
 })
 
 // Instead of defining all endpoints here, delegate them:
-router.use('/api/auth', authRoutes) // /api/auth/*
-router.use('/api/users', userRoutes) // /api/users/*
-router.use('/api/teams', teamRoutes) // /api/teams/*
-router.use('/api/tasks', taskRoutes) // /api/tasks/*
-router.use('/api/announcements', announcementRoutes) // /api/announcements/*
-router.use('/api/notifications', notificationRoutes) // /api/notifications/*
-router.use('/api/admin', adminRoutes) // /api/admin/*
-router.use('/api/sessions', refreshTokenRoutes) // /api/sessions/*
-router.use('/api/ratings', ratingRoutes) // /api/ratings/*
-router.use('/api/images', imageRoutes) // /api/images/*
+router.use('/auth', authRoutes) // /auth/*
+router.use('/users', userRoutes) // /users/*
+router.use('/teams', teamRoutes) // /teams/*
+router.use('/tasks', taskRoutes) // /tasks/*
+router.use('/announcements', announcementRoutes) // /announcements/*
+router.use('/notifications', notificationRoutes) // /notifications/*
+router.use('/admin', adminRoutes) // /admin/*
+router.use('/sessions', refreshTokenRoutes) // /sessions/*
+router.use('/ratings', ratingRoutes) // /ratings/*
+router.use('/images', imageRoutes) // /images/*
 export default router
