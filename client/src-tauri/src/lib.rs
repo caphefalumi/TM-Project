@@ -134,7 +134,7 @@ async fn wait_for_oauth_callback(
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Authentication Successful</title>
+                    <title>Sign in</title>
                     <style>
                         body {
                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -159,8 +159,7 @@ async fn wait_for_oauth_callback(
                 </head>
                 <body>
                     <div class="container">
-                        <h1>✓ Authentication Successful!</h1>
-                        <p>Processing...</p>
+                        <p>Authenticating...</p>
                     </div>
                     <script>
                         window.location.replace('http://localhost:1409');

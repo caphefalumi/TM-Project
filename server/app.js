@@ -51,7 +51,7 @@ app.use(express.json({ limit: '25mb' }))
 app.use(express.urlencoded({ limit: '25mb', extended: true }))
 app.use(cookieParser())
 app.use(express.static('public'))
-app.use(routes)
+app.use('/api', routes)
 
 // 404 handler for unmatched routes
 app.use((req, res) => {
