@@ -55,7 +55,7 @@ app.use(routes)
 
 // 404 handler for unmatched routes
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', 'notfound.html'))
+  res.status(404).sendFile(path.join(process.cwd(), 'public', 'notfound.html'))
 })
 
 const PORT = process.env.PORT || 3000
