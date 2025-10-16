@@ -8,7 +8,7 @@ import { useComponentCache } from '../composables/useComponentCache.js'
 
 // Define component name for keep-alive
 defineOptions({
-  name: 'TeamsView'
+  name: 'TeamsView',
 })
 
 const { getUserByAccessToken } = AuthStore
@@ -281,11 +281,7 @@ const getProgressColor = (percentage) => {
     />
 
     <!-- Search Bar with Filters -->
-    <v-row
-
-      v-if="!isLoadingTeams && userTeams.length > 0"
-      class="mb-4 align-center"
-    >
+    <v-row v-if="!isLoadingTeams && userTeams.length > 0" class="mb-4 align-center">
       <!-- Search Field -->
       <v-col cols="12" md="8" lg="6">
         <v-text-field
@@ -388,7 +384,6 @@ const getProgressColor = (percentage) => {
                 :style="{ 'transition-delay': `${index * 75}ms` }"
               >
                 <v-card
-
                   class="team-card rounded-lg elevation-1 flex-fill"
                   flat
                   :data-team-id="team.teamId"
@@ -479,7 +474,6 @@ const getProgressColor = (percentage) => {
     </v-row>
     <v-btn
       v-if="userLoaded"
-
       class="fixed-float-btn"
       color="primary"
       fab

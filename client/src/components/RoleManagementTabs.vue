@@ -1,9 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import {
-  permissionService,
-  AVAILABLE_PERMISSIONS,
-} from '../services/permissionService.js'
+import { permissionService, AVAILABLE_PERMISSIONS } from '../services/permissionService.js'
 
 const props = defineProps({
   teamId: {
@@ -135,9 +132,7 @@ const filteredMembers = computed(() => {
   if (!searchQuery.value) {
     return members
   }
-  return members.filter((member) =>
-    member.username.includes(searchQuery.value),
-  )
+  return members.filter((member) => member.username.includes(searchQuery.value))
 })
 
 const permissionsByCategory = computed(() => {
@@ -492,7 +487,9 @@ onMounted(async () => {
       <v-window-item value="manage-roles">
         <v-row class="mt-4">
           <v-col cols="12">
-            <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-4">
+            <div
+              class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-4"
+            >
               <h3 class="text-h6">Custom Roles ({{ customRoles.length }})</h3>
               <v-btn
                 @click="openCreateRoleDialog"
@@ -654,7 +651,9 @@ onMounted(async () => {
                     size="small"
                     variant="tonal"
                   >
-                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.baseRole) }}</v-icon>
+                    <v-icon start size="small">{{
+                      permissionService.getRoleIcon(member.baseRole)
+                    }}</v-icon>
                     {{ member.roleLabel || member.baseRole }}
                   </v-chip>
                 </v-card-subtitle>
@@ -1134,7 +1133,9 @@ onMounted(async () => {
                   class="text-center pa-4 cursor-pointer"
                   variant="outlined"
                   :color="
-                    !selectedMember.customRole && selectedMember.roleType === 'member' ? 'primary' : ''
+                    !selectedMember.customRole && selectedMember.roleType === 'member'
+                      ? 'primary'
+                      : ''
                   "
                   @click="confirmRoleChange(selectedMember, 'member')"
                 >

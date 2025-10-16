@@ -340,7 +340,6 @@ const getFieldPreviewValue = (field) => {
 
 <template>
   <v-dialog
-
     :model-value="props.dialog"
     @update:model-value="closeDialog"
     max-width="1400px"

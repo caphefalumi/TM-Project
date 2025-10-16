@@ -21,7 +21,7 @@ const refreshAccessToken = async () => {
           const { clearAllCaches } = useComponentCache()
           clearAllCaches()
           console.log('[Auth] Cleared all caches due to invalid/revoked token in authStore')
-          
+
           return {
             success: false,
             tokenRevoked: true,

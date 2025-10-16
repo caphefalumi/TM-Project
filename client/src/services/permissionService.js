@@ -122,34 +122,59 @@ class PermissionService {
   }
 
   // Direct action checks - Backend is the source of truth
-  canViewTeam() { return this.userActions.canViewTeam || false }
-  canViewTasks() { return this.userActions.canViewTasks || false }
-  canViewAnnouncements() { return this.userActions.canViewAnnouncements || false }
-  canViewMembers() { return this.userActions.canViewMembers || false }
+  canViewTeam() {
+    return this.userActions.canViewTeam || false
+  }
+  canViewTasks() {
+    return this.userActions.canViewTasks || false
+  }
+  canViewAnnouncements() {
+    return this.userActions.canViewAnnouncements || false
+  }
+  canViewMembers() {
+    return this.userActions.canViewMembers || false
+  }
 
-  canSubmitTasks() { return this.userActions.canSubmitTasks || false }
+  canSubmitTasks() {
+    return this.userActions.canSubmitTasks || false
+  }
 
-  canManageTasks() { return this.userActions.canManageTasks || false }
-  canDeleteTasks() { return this.userActions.canDeleteTasks || false }
+  canManageTasks() {
+    return this.userActions.canManageTasks || false
+  }
+  canDeleteTasks() {
+    return this.userActions.canDeleteTasks || false
+  }
 
-  canManageAnnouncements() { return this.userActions.canManageAnnouncements || false }
-  canDeleteAnnouncements() { return this.userActions.canDeleteAnnouncements || false }
+  canManageAnnouncements() {
+    return this.userActions.canManageAnnouncements || false
+  }
+  canDeleteAnnouncements() {
+    return this.userActions.canDeleteAnnouncements || false
+  }
 
-  canAddMembers() { return this.userActions.canAddMembers || false }
-  canRemoveMembers() { return this.userActions.canRemoveMembers || false }
+  canAddMembers() {
+    return this.userActions.canAddMembers || false
+  }
+  canRemoveMembers() {
+    return this.userActions.canRemoveMembers || false
+  }
 
-  canDeleteTeams() { return this.userActions.canDeleteTeams || false }
-  canCreateSubTeams() { return this.userActions.canCreateSubTeams || false }
-  canManageCustomRoles() { return this.userActions.canManageCustomRoles || false }
+  canDeleteTeams() {
+    return this.userActions.canDeleteTeams || false
+  }
+  canCreateSubTeams() {
+    return this.userActions.canCreateSubTeams || false
+  }
+  canManageCustomRoles() {
+    return this.userActions.canManageCustomRoles || false
+  }
 
   /**
    * Check if user has any permission to access Task Group (manage, delete)
    */
   canViewTaskGroup() {
-    return (
-      this.canManageTasks() ||
-      this.canDeleteTasks()
-    )
+    return this.canManageTasks() || this.canDeleteTasks()
   }
 
   /**
@@ -219,12 +244,15 @@ class PermissionService {
   async fetchUserActions(teamId, userId) {
     try {
       const PORT = import.meta.env.VITE_API_PORT
-      const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      const { ok, status, data } = await fetchJSON(
+        `${PORT}/api/teams/${teamId}/members/${userId}/permissions`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
-      })
+      )
 
       if (ok) {
         this.setUserActions(data)
@@ -249,13 +277,16 @@ class PermissionService {
   async updateUserPermissions(teamId, userId, customPermissions) {
     try {
       const PORT = import.meta.env.VITE_API_PORT
-      const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId}/members/${userId}/permissions`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+      const { ok, status, data } = await fetchJSON(
+        `${PORT}/api/teams/${teamId}/members/${userId}/permissions`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ customPermissions }),
         },
-        body: JSON.stringify({ customPermissions }),
-      })
+      )
 
       if (ok) {
         console.log('User permissions updated successfully')

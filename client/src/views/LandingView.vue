@@ -95,7 +95,6 @@ const features = [
               </div>
               <div class="cta-section">
                 <v-btn
-
                   @click="navigateToLogin"
                   color="primary"
                   size="x-large"
@@ -164,52 +163,6 @@ const features = [
       </v-container>
     </section>
 
-    <!-- How It Works Section -->
-    <section class="how-it-works-section">
-      <v-container>
-        <v-row justify="center" class="mb-12">
-          <v-col cols="12" class="text-center">
-            <h2 class="section-title" :class="{ 'animate-in': isVisible }">How It Works</h2>
-            <p class="section-subtitle" :class="{ 'animate-in': isVisible }">
-              Get started in three simple steps
-            </p>
-          </v-col>
-        </v-row>
-
-        <v-row justify="center">
-          <v-col
-            v-for="(step, index) in [
-              { number: '01', title: 'Sign Up', description: 'Create your account in seconds' },
-              {
-                number: '02',
-                title: 'Create Teams',
-                description: 'Set up your teams and invite members',
-              },
-              {
-                number: '03',
-                title: 'Start Managing',
-                description: 'Begin collaborating and tracking progress',
-              },
-            ]"
-            :key="step.number"
-            cols="12"
-            md="4"
-            class="step-col"
-          >
-            <div
-              class="step-card"
-              :class="{ 'animate-in': isVisible }"
-              :style="{ 'animation-delay': `${1.2 + index * 0.2}s` }"
-            >
-              <div class="step-number">{{ step.number }}</div>
-              <h3 class="step-title">{{ step.title }}</h3>
-              <p class="step-description">{{ step.description }}</p>
-            </div>
-          </v-col>
-        </v-row>
-      </v-container>
-    </section>
-
     <!-- Final CTA Section -->
     <section class="final-cta-section">
       <v-container>
@@ -251,7 +204,10 @@ const features = [
               <h4 class="contact-title">Contact Us</h4>
               <div class="contact-item">
                 <span>
-                  <a href="mailto:khanhkelvin08122006@gmail.com" style="color: inherit; text-decoration: underline">
+                  <a
+                    href="mailto:khanhkelvin08122006@gmail.com"
+                    style="color: inherit; text-decoration: underline"
+                  >
                     <v-icon class="mr-2">mdi-email</v-icon>
                     <span>khanhkelvin08122006@gmail.com</span>
                   </a>
@@ -259,7 +215,12 @@ const features = [
               </div>
               <div class="contact-item">
                 <span>
-                  <a href="https://github.com/caphefalumi/TM-Project" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline">
+                  <a
+                    href="https://github.com/caphefalumi/TM-Project"
+                    target="_blank"
+                    rel="noopener"
+                    style="color: inherit; text-decoration: underline"
+                  >
                     <v-icon class="mr-2">mdi-github</v-icon>
                     <span>TM-Project</span>
                   </a>
@@ -287,6 +248,14 @@ const features = [
 /* Landing Page Styles */
 .landing-page {
   overflow-x: hidden;
+  margin-left: 0;
+  padding-top: 0;
+}
+
+@media (max-width: 900px) {
+  .landing-page {
+    padding-top: 0;
+  }
 }
 
 /* Hero Section */

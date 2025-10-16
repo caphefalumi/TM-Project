@@ -17,13 +17,13 @@ app.use(
       'http://localhost:5173',
       'http://localhost:5174',
       'https://tm-project-weld.vercel.app',
-  		'http://tauri.localhost',
+      'http://tauri.localhost',
       'https://tauri.localhost',
-      'https://tm-project.id.vn'
+      'https://tm-project.id.vn',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  })
+  }),
 )
 connectDB()
 
@@ -67,8 +67,6 @@ const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`)
 })
-
-
 
 // Export for Vercel
 export default app

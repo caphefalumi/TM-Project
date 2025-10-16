@@ -67,7 +67,7 @@ const router = createRouter({
       component: TeamDetails,
       meta: { requiresAuth: true, title: 'Team Details' },
     },
-    { path: '/about', component: AboutView, meta: { requiresAuth: true, title: 'About' } },
+    { path: '/about', component: AboutView, meta: { title: 'About' } },
     { path: '/home', component: Dashboard, meta: { requiresAuth: true, title: 'Dashboard' } },
     {
       path: '/account/personal',
@@ -88,7 +88,7 @@ const router = createRouter({
     {
       path: '/feedback',
       component: FeedbackView,
-      meta: { requiresAuth: true, title: 'Feedback' },
+      meta: { title: 'Feedback' },
     },
     {
       path: '/privacy-policy',
@@ -101,12 +101,12 @@ const router = createRouter({
       meta: { requiresAuth: false, title: 'Terms of Service' },
     },
     {
-      path: "/NotFound",
+      path: '/NotFound',
       component: NotFound,
       meta: { requiresAuth: false, title: '404 Not Found' },
     },
     {
-      path: "/:pathMatch(.*)*",
+      path: '/:pathMatch(.*)*',
       component: NotFound,
       meta: { requiresAuth: false, title: '404 Not Found' },
     },
@@ -145,7 +145,7 @@ router.beforeEach(async (to, from, next) => {
 
   try {
     console.log(`Checking authentication for route: ${to.path}`)
-    const user = await authStore.ensureUser();
+    const user = await authStore.ensureUser()
     console.log('User fetched from authStore:', user)
 
     if (user) {

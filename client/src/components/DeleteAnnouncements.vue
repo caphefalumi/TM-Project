@@ -11,13 +11,16 @@ const deleteAnnouncement = async () => {
   loading.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/announcements/${props.announcementId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${PORT}/api/teams/${props.teamId}/announcements/${props.announcementId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important: sends refresh token cookie
       },
-      credentials: 'include', // Important: sends refresh token cookie
-    })
+    )
 
     const result = await response.json()
 

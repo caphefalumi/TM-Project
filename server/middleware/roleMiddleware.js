@@ -42,7 +42,11 @@ export const getUserCustomPermissions = async (userId, teamId) => {
     let rolePermissions = getRoleDefaultPermissions(baseRole)
 
     // If user has a custom role assigned, add custom role permissions to base role permissions
-    if (userTeamRole.roleType === ROLES.CUSTOM && userTeamRole.roleId && userTeamRole.roleId.permissions) {
+    if (
+      userTeamRole.roleType === ROLES.CUSTOM &&
+      userTeamRole.roleId &&
+      userTeamRole.roleId.permissions
+    ) {
       // Start with base role permissions (Member gets basic permissions)
       const customRolePermissions = { ...rolePermissions }
 

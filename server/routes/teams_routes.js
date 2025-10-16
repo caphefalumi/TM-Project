@@ -30,12 +30,8 @@ const {
   getTeamThatUserIsMember,
   getAllSubTeams,
 } = TeamsController
-const {
-  getAnnouncementsOfTeam,
-  addAnnouncement,
-  updateAnnouncement,
-  deleteAnnouncement,
-} = AnnouncementsController
+const { getAnnouncementsOfTeam, addAnnouncement, updateAnnouncement, deleteAnnouncement } =
+  AnnouncementsController
 const {
   getTasksOfAUserInATeam,
   getAllTaskGroups,
@@ -61,11 +57,21 @@ router.delete(
 )
 router.get('/', authenticateAccessToken, getTeamThatUserIsMember)
 router.get('/admin', authenticateAccessToken, getTeamNameThatUserIsAdmin)
-router.get('/:teamId/sub-teams', authenticateAccessToken, requirePermission('VIEW_TEAM'), getAllSubTeams)
+router.get(
+  '/:teamId/sub-teams',
+  authenticateAccessToken,
+  requirePermission('VIEW_TEAM'),
+  getAllSubTeams,
+)
 
 router.get('/:teamId', authenticateAccessToken, requirePermission('VIEW_TEAM'), getTeamDetails)
 router.delete('/:teamId', authenticateAccessToken, requireAdmin, deleteATeam)
-router.get('/:teamId/users', authenticateAccessToken, requirePermission('VIEW_MEMBERS'), getUsersOfTeam)
+router.get(
+  '/:teamId/users',
+  authenticateAccessToken,
+  requirePermission('VIEW_MEMBERS'),
+  getUsersOfTeam,
+)
 
 router.get(
   '/:teamId/:userId/tasks',
@@ -138,7 +144,12 @@ router.put(
 )
 
 router.post('/:teamId/roles', authenticateAccessToken, requireAdmin, createRole)
-router.get('/:teamId/roles', authenticateAccessToken, requirePermission('VIEW_TEAM'), getRolesByTeam)
+router.get(
+  '/:teamId/roles',
+  authenticateAccessToken,
+  requirePermission('VIEW_TEAM'),
+  getRolesByTeam,
+)
 router.put('/:teamId/roles/:roleId', authenticateAccessToken, requireAdmin, updateRole)
 router.delete('/:teamId/roles/:roleId', authenticateAccessToken, requireAdmin, deleteRole)
 

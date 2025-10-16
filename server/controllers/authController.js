@@ -17,16 +17,13 @@ const EMAIL_VERIFICATION_EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
 
 const oAuthentication = async (req, res) => {
   const googleAccessToken = req.body.token
-	if (!googleAccessToken) {
-		return res.status(400).json({ message: "No access token provided" })
-	}
-  const response = await fetch(
-    "https://www.googleapis.com/oauth2/v2/userinfo",
-    {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${googleAccessToken}` },
-    }
-  )
+  if (!googleAccessToken) {
+    return res.status(400).json({ message: 'No access token provided' })
+  }
+  const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${googleAccessToken}` },
+  })
   const googleUser = await response.json()
 
   const { email } = googleUser
@@ -44,7 +41,7 @@ const oAuthentication = async (req, res) => {
       success: 'login',
       username: existingUser.username,
       userId: existingUser._id.toString(),
-      email: existingUser.email
+      email: existingUser.email,
     })
   }
 }
@@ -144,20 +141,17 @@ const oAuthenticationRegister = async (req, res) => {
   if (!username) {
     return res.status(400).json({ error: 'Username is required' })
   }
-	if (!token) {
-		return res.status(400).json({ message: "No access token provided" })
-	}
-  const response = await fetch(
-    "https://www.googleapis.com/oauth2/v2/userinfo",
-    {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  )
+  if (!token) {
+    return res.status(400).json({ message: 'No access token provided' })
+  }
+  const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+  })
   const googleUser = await response.json()
 
   const { email } = googleUser
-  console.log("REGISTER EMAIL: ", email)
+  console.log('REGISTER EMAIL: ', email)
   const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
   if (existingUser) {
     if (existingUser.username === username) {
@@ -173,14 +167,12 @@ const oAuthenticationRegister = async (req, res) => {
     const account = new Account({ username, email, provider, emailVerified: true })
     await account.save()
     await createSampleTeamAndTasks(account)
-    res
-      .status(201)
-      .json({
-        success: 'Account created successfully. Sample team and tasks created.',
-        userId: account._id.toString(),
-        username: account.username,
-        email: account.email
-      })
+    res.status(201).json({
+      success: 'Account created successfully. Sample team and tasks created.',
+      userId: account._id.toString(),
+      username: account.username,
+      email: account.email,
+    })
   } catch (err) {
     res.status(405).json({ error: err })
   }
@@ -230,7 +222,9 @@ const localRegister = async (req, res) => {
     await Mailer.sendVerificationEmail(email, verificationToken)
 
     console.log('Created account and sample team/tasks for user:', username)
-    res.status(201).json({ success: 'Account created. Please verify your email to activate your account.' })
+    res
+      .status(201)
+      .json({ success: 'Account created. Please verify your email to activate your account.' })
   } catch (err) {
     res.status(400).json({ error: err.message })
   }
@@ -265,7 +259,9 @@ const localLogin = async (req, res) => {
     await RefreshTokenManager.revokeAllUserTokens(account._id, 'suspicious_activity')
   }
   if (account.emailVerified === false) {
-    return res.status(403).json({ error: 'Email not verified. Please verify your email before logging in.' })
+    return res
+      .status(403)
+      .json({ error: 'Email not verified. Please verify your email before logging in.' })
   }
   // Create user object for token generation
   const user = {
@@ -305,10 +301,14 @@ const forgotPassword = async (req, res) => {
     await account.save()
     try {
       await Mailer.sendResetPasswordEmail(account, resetToken)
-      res.json({ message: 'If an account with that email exists, a password reset link has been sent' })
+      res.json({
+        message: 'If an account with that email exists, a password reset link has been sent',
+      })
     } catch (err) {
       console.log('Failed to send password reset email:', err)
-      res.status(500).json({ error: 'Failed to send password reset email. Please try again later.' })
+      res
+        .status(500)
+        .json({ error: 'Failed to send password reset email. Please try again later.' })
     }
   } catch (error) {
     console.log('Forgot password error:', error)
@@ -326,12 +326,12 @@ const verifyToken = async (req, res) => {
 
     // Hash the provided token to compare with stored hash
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
-    console.log("HashedToken: ", hashedToken)
+    console.log('HashedToken: ', hashedToken)
     const account = await Account.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     })
-    console.log("Token Account: ", account.passwordResetToken)
+    console.log('Token Account: ', account.passwordResetToken)
 
     if (!account) {
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
@@ -351,7 +351,10 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Token and password are required' })
     }
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
-    const account = await Account.findOne({ passwordResetToken: hashedToken, passwordResetExpires: { $gt: Date.now() } })
+    const account = await Account.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    })
     if (!account) {
       return res.status(401).json({ error: 'Invalid or expired password reset token' })
     }
@@ -397,7 +400,9 @@ const resendEmailVerification = async (req, res) => {
     return res.status(200).json({ success: 'Verification email sent. Please check your inbox.' })
   } catch (err) {
     console.log('Failed to send verification email:', err)
-    return res.status(500).json({ error: 'Failed to send verification email. Please try again later.' })
+    return res
+      .status(500)
+      .json({ error: 'Failed to send verification email. Please try again later.' })
   }
 }
 
@@ -445,7 +450,7 @@ const googleOAuthCallback = async (req, res) => {
     // Fetch user info from Google
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
-        'Authorization': `Bearer ${tokens.access_token}`,
+        Authorization: `Bearer ${tokens.access_token}`,
       },
     })
     const userData = await userInfoResponse.json()
@@ -463,23 +468,21 @@ const googleOAuthCallback = async (req, res) => {
         success: 'login',
         userId: existingUser._id.toString(),
         username: existingUser.username,
-        email: existingUser.email
+        email: existingUser.email,
       })
     } else {
       // New user - return registration needed
       return res.status(200).json({
         success: 'register',
         email: userData.email.toLowerCase(),
-        username: userData.given_name || userData.name || ''
+        username: userData.given_name || userData.name || '',
       })
     }
-
   } catch (err) {
     console.log('[OAuth PKCE] Callback error:', err)
     return res.status(500).json({ error: err.message || 'Failed to process OAuth callback' })
   }
 }
-
 
 export default {
   oAuthentication,

@@ -74,6 +74,6 @@ export function useGlobalNotifications() {
     showInfo,
     showNotification,
     removeNotification,
-    clearAllNotifications
+    clearAllNotifications,
   }
 }

@@ -1,20 +1,17 @@
 <template>
   <div class="global-notifications">
-
     <!-- Notification Summary Bar -->
     <transition name="fade">
-      <div
-        v-if="notifications.length > 0"
-        class="notification-summary-bar"
-        @click="toggleDropdown"
-      >
+      <div v-if="notifications.length > 0" class="notification-summary-bar" @click="toggleDropdown">
         <span v-for="type in summaryTypes" :key="type" class="summary-item">
           <v-icon :color="getIconColor(type)" size="18">{{ getIcon(type) }}</v-icon>
           <span class="summary-count">{{ getTypeCount(type) }}</span>
         </span>
         <span class="summary-divider"></span>
         <span class="summary-label">Notifications</span>
-        <v-icon size="18" color="white">{{ dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+        <v-icon size="18" color="white">{{
+          dropdownExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'
+        }}</v-icon>
       </div>
     </transition>
 
@@ -54,10 +51,7 @@
           <!-- Progress Bar -->
           <div v-if="notification.showProgress" class="notification-progress">
             <div class="progress-bar">
-              <div
-                class="progress-fill"
-                :style="{ width: `${notification.progress}%` }"
-              ></div>
+              <div class="progress-fill" :style="{ width: `${notification.progress}%` }"></div>
             </div>
             <span class="progress-text">{{ Math.round(notification.progress) }}%</span>
           </div>
@@ -67,7 +61,10 @@
             <button
               v-for="action in notification.actions"
               :key="action.label"
-              :class="['action-btn', action.color === 'primary' ? 'action-btn-primary' : 'action-btn-secondary']"
+              :class="[
+                'action-btn',
+                action.color === 'primary' ? 'action-btn-primary' : 'action-btn-secondary',
+              ]"
               @click="handleAction(action, notification)"
             >
               {{ action.label }}
@@ -113,7 +110,7 @@ const getIcon = (type) => {
     error: 'mdi-alert-circle',
     warning: 'mdi-alert',
     info: 'mdi-information',
-    update: 'mdi-download'
+    update: 'mdi-download',
   }
   return icons[type] || 'mdi-information'
 }
@@ -124,13 +121,13 @@ const getIconColor = (type) => {
     error: '#D13212',
     warning: '#FF9900',
     info: '#0073BB',
-    update: '#7D3AC1'
+    update: '#7D3AC1',
   }
   return colors[type] || '#545B64'
 }
 
 const getTypeCount = (type) => {
-  return notifications.value.filter(n => n.type === type).length
+  return notifications.value.filter((n) => n.type === type).length
 }
 
 const getNotificationStyle = (index) => {
@@ -140,14 +137,14 @@ const getNotificationStyle = (index) => {
     return {
       transform: 'translateY(0) scale(1)',
       zIndex: 9000 - index,
-      top: `${summaryBarHeight + (index * 80)}px` // 100px spacing between each notification
+      top: `${summaryBarHeight + index * 80}px`, // 100px spacing between each notification
     }
   } else {
     // When collapsed, show stacked effect (cards slightly behind each other)
     return {
       transform: `translateY(${index * 8}px) scale(${1 - index * 0.02})`,
       zIndex: 9000 - index,
-      top: `${summaryBarHeight}px`
+      top: `${summaryBarHeight}px`,
     }
   }
 }
@@ -169,7 +166,7 @@ const handleAction = (action, notification) => {
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #232F3E 0%, #2C3E50 100%);
+  background: linear-gradient(135deg, #232f3e 0%, #2c3e50 100%);
   color: white;
   padding: 10px 24px;
   border-radius: 0 0 12px 12px;
@@ -183,7 +180,7 @@ const handleAction = (action, notification) => {
 }
 
 .notification-summary-bar:hover {
-  background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -239,27 +236,27 @@ const handleAction = (action, notification) => {
 }
 
 .notification-success {
-  border-left-color: #037F0C;
+  border-left-color: #037f0c;
   background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
 }
 
 .notification-error {
-  border-left-color: #D13212;
+  border-left-color: #d13212;
   background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
 }
 
 .notification-warning {
-  border-left-color: #FF9900;
+  border-left-color: #ff9900;
   background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
 }
 
 .notification-info {
-  border-left-color: #0073BB;
+  border-left-color: #0073bb;
   background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
 }
 
 .notification-update {
-  border-left-color: #7D3AC1;
+  border-left-color: #7d3ac1;
   background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
 }
 
@@ -272,7 +269,7 @@ const handleAction = (action, notification) => {
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  color: #545B64;
+  color: #545b64;
   display: flex;
   align-items: center;
   transition: all 0.2s;
@@ -280,7 +277,7 @@ const handleAction = (action, notification) => {
 
 .notification-close-btn:hover {
   background: rgba(0, 0, 0, 0.05);
-  color: #16191F;
+  color: #16191f;
 }
 
 .notification-icon {
@@ -296,14 +293,14 @@ const handleAction = (action, notification) => {
 .notification-title {
   font-size: 15px;
   font-weight: 600;
-  color: #16191F;
+  color: #16191f;
   margin-bottom: 4px;
   line-height: 1.4;
 }
 
 .notification-message {
   font-size: 14px;
-  color: #545B64;
+  color: #545b64;
   line-height: 1.5;
   word-wrap: break-word;
 }
@@ -319,14 +316,14 @@ const handleAction = (action, notification) => {
 .progress-bar {
   flex: 1;
   height: 6px;
-  background: #E9EBED;
+  background: #e9ebed;
   border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #0073BB 0%, #00A1E4 100%);
+  background: linear-gradient(90deg, #0073bb 0%, #00a1e4 100%);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -334,7 +331,7 @@ const handleAction = (action, notification) => {
 .progress-text {
   font-size: 13px;
   font-weight: 500;
-  color: #545B64;
+  color: #545b64;
   min-width: 40px;
   text-align: right;
 }
@@ -359,24 +356,24 @@ const handleAction = (action, notification) => {
 }
 
 .action-btn-primary {
-  background: #0073BB;
+  background: #0073bb;
   color: white;
 }
 
 .action-btn-primary:hover {
-  background: #005A94;
+  background: #005a94;
   box-shadow: 0 2px 8px rgba(0, 115, 187, 0.3);
 }
 
 .action-btn-secondary {
   background: white;
-  color: #545B64;
-  border: 1px solid #D5DBDB;
+  color: #545b64;
+  border: 1px solid #d5dbdb;
 }
 
 .action-btn-secondary:hover {
-  background: #F2F3F3;
-  border-color: #AAB7B8;
+  background: #f2f3f3;
+  border-color: #aab7b8;
 }
 
 /* Animations */

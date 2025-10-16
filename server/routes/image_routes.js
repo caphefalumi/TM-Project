@@ -5,7 +5,7 @@ import {
   getImageFromGridFS,
   getImageMetadata,
   processBase64Image,
-  createMulterGridFSStorage
+  createMulterGridFSStorage,
 } from '../services/gridfsService.js'
 import { authenticateAccessToken } from '../middleware/authMiddleware.js'
 
@@ -15,7 +15,7 @@ const router = express.Router()
 const upload = multer({
   storage: createMulterGridFSStorage(),
   limits: {
-    fileSize: 20 * 1024 * 1024 // 20MB limit
+    fileSize: 20 * 1024 * 1024, // 20MB limit
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -23,7 +23,7 @@ const upload = multer({
     } else {
       cb(new Error('Only image files are allowed'))
     }
-  }
+  },
 })
 
 // Upload image endpoint (base64)
@@ -49,12 +49,13 @@ router.post('/upload', authenticateAccessToken, async (req, res) => {
     const maxSize = 20 * 1024 * 1024 // 20MB
     if (size > maxSize) {
       return res.status(400).json({
-        error: `File too large. Maximum size is ${maxSize / (1024 * 1024)}MB`
+        error: `File too large. Maximum size is ${maxSize / (1024 * 1024)}MB`,
       })
     }
 
     // Generate filename if not provided
-    const finalFilename = filename || `image_${Date.now()}_${Math.random().toString(36).substring(7)}`
+    const finalFilename =
+      filename || `image_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
     // Upload to GridFS
     const fileInfo = await uploadImageToGridFS(buffer, finalFilename, mimetype)
@@ -64,9 +65,8 @@ router.post('/upload', authenticateAccessToken, async (req, res) => {
       fileId: fileInfo.fileId,
       filename: fileInfo.filename,
       size: fileInfo.size,
-      contentType: fileInfo.contentType
+      contentType: fileInfo.contentType,
     })
-
   } catch (error) {
     console.log('Error uploading image:', error.message)
 
@@ -97,9 +97,8 @@ router.post('/upload-file', upload.single('image'), (req, res) => {
       fileId: req.file.id,
       filename: req.file.filename,
       size: req.file.size,
-      contentType: req.file.contentType
+      contentType: req.file.contentType,
     })
-
   } catch (error) {
     console.log('Error uploading file:', error)
     res.status(500).json({ error: 'Failed to upload image' })
@@ -125,11 +124,10 @@ router.get('/:fileId', async (req, res) => {
     res.set({
       'Content-Type': metadata.contentType,
       'Content-Length': metadata.length,
-      'Cache-Control': 'public, max-age=86400' // Cache for 1 day
+      'Cache-Control': 'public, max-age=86400', // Cache for 1 day
     })
 
     res.send(imageBuffer)
-
   } catch (error) {
     console.log('Error retrieving image:', error.message)
 
@@ -161,9 +159,8 @@ router.get('/:fileId/base64', async (req, res) => {
       base64: base64String,
       filename: metadata.filename,
       contentType: metadata.contentType,
-      size: metadata.length
+      size: metadata.length,
     })
-
   } catch (error) {
     console.log('Error retrieving image as base64:', error.message)
 

@@ -10,7 +10,7 @@ const getTasksOfAUser = async (req, res) => {
 
   try {
     const userId = req.user.userId
-    if (!userId ) {
+    if (!userId) {
       return res.status(400).json({ message: 'User ID is required' })
     }
     // Fetch tasks for the user across all teams

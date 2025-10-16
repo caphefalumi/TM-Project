@@ -7,7 +7,7 @@ import { useComponentCache } from '../composables/useComponentCache.js'
 
 // Define component name for keep-alive
 defineOptions({
-  name: 'Dashboard'
+  name: 'Dashboard',
 })
 
 const { getUserByAccessToken } = AuthStore
@@ -353,10 +353,7 @@ const toggleSortOrder = () => {
 
                 <!-- Filter and Sort Controls -->
                 <v-col cols="12" md="6">
-                  <div
-
-                    class="d-flex align-center gap-2 justify-end justify-md-end"
-                  >
+                  <div class="d-flex align-center gap-2 justify-end justify-md-end">
                     <!-- Filter Section -->
                     <v-menu :close-on-content-click="false">
                       <template v-slot:activator="{ props }">

@@ -21,16 +21,43 @@ export function createTestPinia() {
 export function createTestRouter(routes = []) {
   return createRouter({
     history: createMemoryHistory(),
-    routes: routes.length > 0 ? routes : [
-      { path: '/', name: 'Landing', component: { template: '<div>Landing</div>' } },
-      { path: '/login', name: 'Login', component: { template: '<div>Login</div>' } },
-      { path: '/register', name: 'Register', component: { template: '<div>Register</div>' } },
-      { path: '/home', name: 'Dashboard', component: { template: '<div>Dashboard</div>' }, meta: { requiresAuth: true } },
-      { path: '/teams', name: 'Teams', component: { template: '<div>Teams</div>' }, meta: { requiresAuth: true } },
-      { path: '/teams/:teamId', name: 'TeamDetails', component: { template: '<div>TeamDetails</div>' }, meta: { requiresAuth: true } },
-      { path: '/admin', name: 'Admin', component: { template: '<div>Admin</div>' }, meta: { requiresAuth: true, requiresAdmin: true } },
-      { path: '/:pathMatch(.*)*', name: 'NotFound', component: { template: '<div>404</div>' } },
-    ],
+    routes:
+      routes.length > 0
+        ? routes
+        : [
+            { path: '/', name: 'Landing', component: { template: '<div>Landing</div>' } },
+            { path: '/login', name: 'Login', component: { template: '<div>Login</div>' } },
+            { path: '/register', name: 'Register', component: { template: '<div>Register</div>' } },
+            {
+              path: '/home',
+              name: 'Dashboard',
+              component: { template: '<div>Dashboard</div>' },
+              meta: { requiresAuth: true },
+            },
+            {
+              path: '/teams',
+              name: 'Teams',
+              component: { template: '<div>Teams</div>' },
+              meta: { requiresAuth: true },
+            },
+            {
+              path: '/teams/:teamId',
+              name: 'TeamDetails',
+              component: { template: '<div>TeamDetails</div>' },
+              meta: { requiresAuth: true },
+            },
+            {
+              path: '/admin',
+              name: 'Admin',
+              component: { template: '<div>Admin</div>' },
+              meta: { requiresAuth: true, requiresAdmin: true },
+            },
+            {
+              path: '/:pathMatch(.*)*',
+              name: 'NotFound',
+              component: { template: '<div>404</div>' },
+            },
+          ],
   })
 }
 
@@ -238,7 +265,8 @@ export function mockFileReader() {
     readAsDataURL: vi.fn(function () {
       this.onload?.({
         target: {
-          result: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          result:
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
         },
       })
     }),

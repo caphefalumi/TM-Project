@@ -32,14 +32,13 @@ class UpdateService {
       } else {
         console.log('No updates available')
         this.notificationStore.showInfo('You are running the latest version', {
-          title: 'No Updates Available'
+          title: 'No Updates Available',
         })
       }
     } catch (error) {
-      this.notificationStore.showError(
-        'Failed to check for updates. Please try again later.',
-        { title: error }
-      )
+      this.notificationStore.showError('Failed to check for updates. Please try again later.', {
+        title: error,
+      })
     }
   }
 
@@ -50,7 +49,7 @@ class UpdateService {
     this.updateNotificationId = this.notificationStore.showUpdateConfirmation(
       update,
       () => this.downloadAndInstallUpdate(update),
-      () => this.declineUpdate()
+      () => this.declineUpdate(),
     )
   }
 
@@ -93,7 +92,10 @@ class UpdateService {
             console.log(`Downloaded ${downloaded} from ${contentLength} (${Math.round(progress)}%)`)
             // Update progress notification
             if (this.progressNotificationId) {
-              this.notificationStore.updateNotificationProgress(this.progressNotificationId, progress)
+              this.notificationStore.updateNotificationProgress(
+                this.progressNotificationId,
+                progress,
+              )
             }
             break
 
@@ -111,8 +113,8 @@ class UpdateService {
               'Update installed successfully. The application will restart now.',
               {
                 title: 'Update Complete',
-                duration: 3000
-              }
+                duration: 3000,
+              },
             )
             break
         }
@@ -128,11 +130,10 @@ class UpdateService {
           console.error('Error relaunching application:', error)
           this.notificationStore.showError(
             'Update installed but failed to restart automatically. Please restart the application manually.',
-            { title: 'Restart Required' }
+            { title: 'Restart Required' },
           )
         }
       }, 2000)
-
     } catch (error) {
       console.error('Error during update:', error)
 
@@ -142,13 +143,10 @@ class UpdateService {
         this.progressNotificationId = null
       }
 
-      this.notificationStore.showError(
-        `Failed to download or install update: ${error}`,
-        {
-          title: 'Update Failed',
-          duration: 10000 // Show error longer
-        }
-      )
+      this.notificationStore.showError(`Failed to download or install update: ${error}`, {
+        title: 'Update Failed',
+        duration: 10000, // Show error longer
+      })
     } finally {
       this.updateInProgress = false
     }
@@ -188,16 +186,16 @@ class UpdateService {
               {
                 label: 'Install Now',
                 color: 'primary',
-                handler: () => this.downloadAndInstallUpdate(update)
+                handler: () => this.downloadAndInstallUpdate(update),
               },
               {
                 label: 'View Details',
                 color: 'grey',
                 variant: 'outlined',
-                handler: () => this.showUpdateConfirmation(update)
-              }
-            ]
-          }
+                handler: () => this.showUpdateConfirmation(update),
+              },
+            ],
+          },
         )
       } else {
         console.log('No updates available on startup')

@@ -16,12 +16,7 @@ const {
 
 router.get('/teams', authenticateAccessToken, checkAdminAccess, getAllTeamsForAdmin)
 router.get('/users', authenticateAccessToken, checkAdminAccess, getAllUsersForAdmin)
-router.get(
-  '/announcements',
-  authenticateAccessToken,
-  checkAdminAccess,
-  getAllAnnouncementsForAdmin,
-)
+router.get('/announcements', authenticateAccessToken, checkAdminAccess, getAllAnnouncementsForAdmin)
 
 router.post('/notify', authenticateAccessToken, checkAdminAccess, sendNotificationToUser)
 router.delete('/teams/:teamId', authenticateAccessToken, checkAdminAccess, deleteTeamAsAdmin)

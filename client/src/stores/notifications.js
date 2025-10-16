@@ -12,7 +12,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     ERROR: 'error',
     WARNING: 'warning',
     INFO: 'info',
-    UPDATE: 'update'
+    UPDATE: 'update',
   }
 
   // Add notification
@@ -28,7 +28,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       actions: notification.actions || [], // Array of action buttons
       data: notification.data || null, // Additional data for the notification
       timestamp: Date.now(),
-      ...notification
+      ...notification,
     }
 
     notifications.value.unshift(newNotification)
@@ -45,7 +45,7 @@ export const useNotificationStore = defineStore('notifications', () => {
 
   // Remove notification
   const removeNotification = (id) => {
-    const index = notifications.value.findIndex(n => n.id === id)
+    const index = notifications.value.findIndex((n) => n.id === id)
     if (index > -1) {
       notifications.value.splice(index, 1)
     }
@@ -62,7 +62,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       type: NOTIFICATION_TYPES.SUCCESS,
       title: options.title || 'Success',
       message,
-      ...options
+      ...options,
     })
   }
 
@@ -72,7 +72,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       title: options.title || 'Error',
       message,
       // duration: options.duration || 8000, // Errors stay longer
-      ...options
+      ...options,
     })
   }
 
@@ -81,7 +81,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       type: NOTIFICATION_TYPES.WARNING,
       title: options.title || 'Warning',
       message,
-      ...options
+      ...options,
     })
   }
 
@@ -90,7 +90,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       type: NOTIFICATION_TYPES.INFO,
       title: options.title || 'Info',
       message,
-      ...options
+      ...options,
     })
   }
 
@@ -105,16 +105,16 @@ export const useNotificationStore = defineStore('notifications', () => {
         {
           label: 'Install Now',
           color: 'primary',
-          handler: onConfirm
+          handler: onConfirm,
         },
         {
           label: 'Later',
           color: 'grey',
           variant: 'outlined',
-          handler: onDecline
-        }
+          handler: onDecline,
+        },
       ],
-      data: updateInfo
+      data: updateInfo,
     })
   }
 
@@ -126,7 +126,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       message: `Downloading update... ${Math.round(progress)}%`,
       persistent: true,
       progress: progress,
-      showProgress: true
+      showProgress: true,
     })
   }
 
@@ -146,6 +146,6 @@ export const useNotificationStore = defineStore('notifications', () => {
     showWarning,
     showInfo,
     showUpdateConfirmation,
-    showUpdateProgress
+    showUpdateProgress,
   }
 })

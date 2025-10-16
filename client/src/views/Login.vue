@@ -15,7 +15,6 @@ const isTauri = computed(() => {
   return window.isTauri
 })
 
-
 onMounted(async () => {
   try {
     if (authStore.isLoggedIn && authStore.user) {
@@ -271,7 +270,7 @@ const loginWithGoogleInTauri = async () => {
       expectedState: state,
       backendUrl: import.meta.env.VITE_API_PORT,
       clientId: CLIENT_ID,
-      clientSecret: import.meta.env.VITE_DESKTOP_CLIENT_SECRET
+      clientSecret: import.meta.env.VITE_DESKTOP_CLIENT_SECRET,
     })
 
     console.log('[OAuth] Received result:', result)
@@ -292,7 +291,6 @@ const loginWithGoogleInTauri = async () => {
     } else {
       error.value = result.error || 'OAuth authentication failed'
     }
-
   } catch (err) {
     console.log('[OAuth] Error:', err)
     error.value = err
@@ -427,15 +425,9 @@ const resendVerificationEmail = async () => {
                 auto-login
                 popup-type="TOKEN"
               >
-                <v-icon-login
-                  provider="google"
-                />
+                <v-icon-login provider="google" />
               </GoogleLogin>
-              <v-icon-login
-                v-else
-                provider="google"
-                @click="loginWithGoogleInTauri"
-              />
+              <v-icon-login v-else provider="google" @click="loginWithGoogleInTauri" />
             </v-form>
             <v-form v-else @submit.prevent="registerWithOAuth">
               <v-text-field
@@ -462,12 +454,7 @@ const resendVerificationEmail = async () => {
 
             <!-- Resend Verification Email Link -->
             <div v-if="showResendVerification" class="text-center mt-3 mb-2">
-              <v-btn
-                variant="text"
-                color="primary"
-                size="small"
-                @click="resendVerificationEmail"
-              >
+              <v-btn variant="text" color="primary" size="small" @click="resendVerificationEmail">
                 Resend Verification Email
               </v-btn>
             </div>

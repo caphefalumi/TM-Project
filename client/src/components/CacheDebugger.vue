@@ -12,22 +12,23 @@
       <div class="text-caption mb-2">
         <strong>Active Components:</strong> {{ stats.totalCachedComponents }}
       </div>
-      <div class="text-caption mb-2">
-        <strong>Cached Teams:</strong> {{ stats.cachedTeams }}
-      </div>
-      <div class="text-caption mb-2">
-        <strong>Current Route:</strong> {{ currentRoute }}
-      </div>
+      <div class="text-caption mb-2"><strong>Cached Teams:</strong> {{ stats.cachedTeams }}</div>
+      <div class="text-caption mb-2"><strong>Current Route:</strong> {{ currentRoute }}</div>
       <div v-if="Object.keys(stats.teamCacheDetails).length > 0" class="text-caption">
         <div><strong>Team Cache Details:</strong></div>
-        <div v-for="(details, teamId) in stats.teamCacheDetails" :key="teamId" class="ml-2 d-flex align-center">
+        <div
+          v-for="(details, teamId) in stats.teamCacheDetails"
+          :key="teamId"
+          class="ml-2 d-flex align-center"
+        >
           <div class="flex-grow-1">
-            • {{ teamId }}: {{ details.componentKey }} ({{ details.lastAccessed }}, expires {{ details.expiresIn }})
+            • {{ teamId }}: {{ details.componentKey }} ({{ details.lastAccessed }}, expires
+            {{ details.expiresIn }})
           </div>
-          <v-btn 
-            size="x-small" 
-            variant="text" 
-            icon="mdi-refresh" 
+          <v-btn
+            size="x-small"
+            variant="text"
+            icon="mdi-refresh"
             @click="forceRefreshTeam(teamId)"
             :title="`Force refresh team ${teamId}`"
           />
@@ -41,7 +42,7 @@
       </div>
     </v-card-text>
   </v-card>
-  
+
   <!-- Floating action button to show debugger -->
   <v-btn
     v-if="!showDebugger && isDev"
@@ -81,7 +82,7 @@ const isDev = computed(() => {
 const forceRefreshTeam = (teamId) => {
   console.log('Force refreshing team from cache debugger:', teamId)
   removeTeamFromCache(teamId)
-  
+
   // If we're currently on this team, trigger a page reload
   if (route.params.teamId === teamId) {
     window.location.reload()
@@ -112,7 +113,7 @@ const forceRefreshTeam = (teamId) => {
     left: 10px;
     width: auto;
   }
-  
+
   .cache-debug-fab {
     right: 10px !important;
     bottom: 70px !important;

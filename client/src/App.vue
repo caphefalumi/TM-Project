@@ -14,7 +14,14 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
-const { includeComponents, initializeMainViews, getCacheStats, cleanExpiredCache, clearAllCaches, forceRemountKey } = useComponentCache()
+const {
+  includeComponents,
+  initializeMainViews,
+  getCacheStats,
+  cleanExpiredCache,
+  clearAllCaches,
+  forceRemountKey,
+} = useComponentCache()
 
 // Development mode check - Use custom DEV env variable if set, otherwise default to false
 const isDev = computed(() => {
@@ -54,6 +61,13 @@ const showSidebar = computed(() => {
   // Check if any of the matched routes require authentication
   return route.matched.some((record) => record.meta.requiresAuth)
 })
+
+// Landing page links for non-authenticated users
+const landingLinks = [
+  { title: 'Login', icon: 'mdi-login', to: '/login' },
+  { title: 'Sign Up', icon: 'mdi-account-plus', to: '/register' },
+  { title: 'Docs', icon: 'mdi-book-open-variant', to: '/docs' },
+]
 
 // Auto token refresh functionality
 let tokenRefreshInterval = null
@@ -194,12 +208,15 @@ onMounted(() => {
   }
 
   // Set up periodic cache cleanup every 5 minutes
-  setInterval(() => {
-    const cleaned = cleanExpiredCache()
-    if (cleaned > 0) {
-      console.log(`[Cache] Cleaned ${cleaned} expired cache entries`)
-    }
-  }, 5 * 60 * 1000) // 5 minutes
+  setInterval(
+    () => {
+      const cleaned = cleanExpiredCache()
+      if (cleaned > 0) {
+        console.log(`[Cache] Cleaned ${cleaned} expired cache entries`)
+      }
+    },
+    5 * 60 * 1000,
+  ) // 5 minutes
 
   // Listen for token revocation events from API client
   window.addEventListener('token-revoked', handleTokenRevoked)
@@ -216,16 +233,13 @@ onUnmounted(() => {
 
 <template>
   <v-app>
-    <!-- Only show SideBar on authenticated routes -->
-    <SideBar v-if="showSidebar"></SideBar>
+    <!-- Always show SideBar with dynamic content based on auth status -->
+    <SideBar :landingLinks="landingLinks" />
     <!-- Main content area -->
     <v-main>
       <router-view v-slot="{ Component, route }">
         <keep-alive :include="includeComponents">
-          <component
-            :is="Component"
-            :key="`${route.path}-${forceRemountKey}`"
-          />
+          <component :is="Component" :key="`${route.path}-${forceRemountKey}`" />
         </keep-alive>
       </router-view>
     </v-main>
