@@ -10,12 +10,7 @@
         </p>
       </v-col>
       <v-col cols="12" md="4" class="text-right">
-        <v-btn
-          @click="handleRefresh"
-          color="primary"
-          size="large"
-          variant="outlined"
-        >
+        <v-btn @click="handleRefresh" color="primary" size="large" variant="outlined">
           <v-icon start>mdi-refresh</v-icon>
           Refresh
         </v-btn>
@@ -29,66 +24,81 @@
           <div class="mt-4">
             <div class="text-h6 mb-2">Feature Rating</div>
             <div class="rating-container">
-              <v-rating 
-                v-model="feedback.featureRating" 
-                length="5" 
-                background-color="grey lighten-1" 
-                active-color="yellow darken-3" 
+              <v-rating
+                v-model="feedback.featureRating"
+                length="5"
+                background-color="grey lighten-1"
+                active-color="yellow darken-3"
                 hover
                 size="large"
                 class="full-width-rating"
                 @update:model-value="updateFeatureRatingMessage"
-                required>
+                required
+              >
               </v-rating>
             </div>
-            <div class="text-body-2 text-grey mt-1 text-center" style="min-height: 20px;">
+            <div class="text-body-2 text-grey mt-1 text-center" style="min-height: 20px">
               {{ featureRatingMessage }}
             </div>
           </div>
           <div class="mt-4">
             <div class="text-h6 mb-2">Performance Rating</div>
             <div class="rating-container">
-              <v-rating 
-                v-model="feedback.perfRating" 
-                length="5" 
-                background-color="grey lighten-1" 
-                active-color="yellow darken-3" 
+              <v-rating
+                v-model="feedback.perfRating"
+                length="5"
+                background-color="grey lighten-1"
+                active-color="yellow darken-3"
                 hover
                 size="large"
                 class="full-width-rating"
                 @update:model-value="updatePerfRatingMessage"
-                required>
+                required
+              >
               </v-rating>
             </div>
-            <div class="text-body-2 text-grey mt-1 text-center" style="min-height: 20px;">
+            <div class="text-body-2 text-grey mt-1 text-center" style="min-height: 20px">
               {{ perfRatingMessage }}
             </div>
           </div>
           <div class="mt-4">
             <div class="text-h6 mb-2">User Interface Rating</div>
             <div class="rating-container">
-              <v-rating 
-                v-model="feedback.uiRating" 
-                length="5" 
-                background-color="grey lighten-1" 
-                active-color="yellow darken-3" 
+              <v-rating
+                v-model="feedback.uiRating"
+                length="5"
+                background-color="grey lighten-1"
+                active-color="yellow darken-3"
                 hover
                 size="large"
                 class="full-width-rating"
                 @update:model-value="updateUiRatingMessage"
-                required>
+                required
+              >
               </v-rating>
             </div>
-            <div class="text-body-2 text-grey mt-1 text-center" style="min-height: 20px;">
+            <div class="text-body-2 text-grey mt-1 text-center" style="min-height: 20px">
               {{ uiRatingMessage }}
             </div>
           </div>
           <div class="mt-4">
-          <v-textarea label="Message" v-model="feedback.message" placeholder="Enter your feedback here..." variant="outlined" required></v-textarea>
-          <v-select label="General Experience" :items="generalExperience" v-model="feedback.experience" variant="outlined" required></v-select>
-          </div> 
+            <v-textarea
+              label="Message"
+              v-model="feedback.message"
+              placeholder="Enter your feedback here..."
+              variant="outlined"
+              required
+            ></v-textarea>
+            <v-select
+              label="General Experience"
+              :items="generalExperience"
+              v-model="feedback.experience"
+              variant="outlined"
+              required
+            ></v-select>
+          </div>
         </v-form>
-        
+
         <!-- Alert Messages -->
         <v-alert
           v-if="showAlert"
@@ -103,11 +113,11 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn 
-          color="primary" 
-          :disabled="!valid || loading" 
+        <v-btn
+          color="primary"
+          :disabled="!valid || loading"
           :loading="loading"
-          @click="submitFeedback" 
+          @click="submitFeedback"
           variant="outlined"
         >
           Submit Feedback
@@ -125,7 +135,7 @@ import AuthStore from '../scripts/authStore.js'
 
 // Define component name for keep-alive
 defineOptions({
-  name: 'FeedbackView'
+  name: 'FeedbackView',
 })
 
 const { getUserByAccessToken } = AuthStore
@@ -148,16 +158,16 @@ const feedback = ref({
   experience: '',
   featureRating: 1,
   perfRating: 1,
-  uiRating: 1
+  uiRating: 1,
 })
 
 // Rating messages for hover/display
 const ratingMessages = {
   1: 'Very bad',
-  2: 'Bad', 
+  2: 'Bad',
   3: 'Average',
   4: 'Good',
-  5: 'Excellent'
+  5: 'Excellent',
 }
 
 // Reactive rating message states
@@ -223,7 +233,7 @@ const submitFeedback = async () => {
     const feedbackData = {
       ...feedback.value,
       userId: user.value.userId,
-      issue: feedback.value.experience // Map experience to issue field for backend compatibility
+      issue: feedback.value.experience, // Map experience to issue field for backend compatibility
     }
 
     const res = await fetch(`${PORT}/api/ratings`, {
@@ -232,14 +242,14 @@ const submitFeedback = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(feedbackData)
+      body: JSON.stringify(feedbackData),
     })
-    
-    if (!res.ok) { 
+
+    if (!res.ok) {
       const errorData = await res.json()
       throw new Error(errorData.error || 'Failed to submit feedback')
     }
-    
+
     const result = await res.json()
     resetForm()
     showAlertMessage('success', result.success || 'Feedback submitted successfully!')
@@ -260,7 +270,7 @@ onMounted(async () => {
     console.log('No user token found, redirecting to login')
     router.push('/login')
   }
-  
+
   // Initialize rating messages
   featureRatingMessage.value = ratingMessages[feedback.value.featureRating]
   perfRatingMessage.value = ratingMessages[feedback.value.perfRating]
@@ -282,7 +292,7 @@ onActivated(async () => {
   } else {
     console.log('FeedbackView: Using cached form data (no refresh needed)')
   }
-  
+
   // Ensure user is still authenticated when component is reactivated
   if (!user.value.userId) {
     const userToken = await getUserByAccessToken()
@@ -301,11 +311,11 @@ onActivated(async () => {
   font-size: 2rem;
 }
 
-.f-bold{
+.f-bold {
   font-weight: bold;
 }
 
-.f-light{
+.f-light {
   font-weight: lighter;
 }
 

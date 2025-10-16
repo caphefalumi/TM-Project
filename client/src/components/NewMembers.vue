@@ -299,8 +299,7 @@ const addUsers = async () => {
   const selectedRoleObj = listOfRoles.value.find((r) => r.value === newMemberData.value.role)
 
   const roleType = selectedRoleObj?.roleType || ROLE_TYPES.MEMBER
-  const roleId =
-    roleType === ROLE_TYPES.CUSTOM ? selectedRoleObj?.roleId ?? null : null
+  const roleId = roleType === ROLE_TYPES.CUSTOM ? (selectedRoleObj?.roleId ?? null) : null
 
   console.log('Selected role info:', {
     selectedValue: newMemberData.value.role,
@@ -487,11 +486,7 @@ const addUsers = async () => {
       <!-- Actions -->
       <v-card-actions class="pa-6 bg-grey-lighten-5">
         <v-spacer></v-spacer>
-        <v-btn
-          @click="emit('update:dialog', false)"
-          variant="outlined"
-          :disabled="loading"
-        >
+        <v-btn @click="emit('update:dialog', false)" variant="outlined" :disabled="loading">
           Cancel
         </v-btn>
         <v-btn

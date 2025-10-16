@@ -594,7 +594,9 @@ describe('NewTasks Component', () => {
       // Act & Assert
       expect(wrapper.vm.getFieldPreviewValue({ type: 'Short text' })).toBe('Sample text')
       expect(wrapper.vm.getFieldPreviewValue({ type: 'Number', config: { min: 5 } })).toBe(5)
-      expect(wrapper.vm.getFieldPreviewValue({ type: 'Select', config: { options: ['A', 'B'] } })).toBe('A')
+      expect(
+        wrapper.vm.getFieldPreviewValue({ type: 'Select', config: { options: ['A', 'B'] } }),
+      ).toBe('A')
       expect(wrapper.vm.getFieldPreviewValue({ type: 'URLs' })).toBe('https://example.com')
       expect(wrapper.vm.getFieldPreviewValue({ type: 'Image' })).toBe('[Image placeholder]')
     })
@@ -637,7 +639,7 @@ describe('NewTasks Component', () => {
           method: 'POST',
           credentials: 'include',
           body: expect.stringContaining('New Task'),
-        })
+        }),
       )
     })
 

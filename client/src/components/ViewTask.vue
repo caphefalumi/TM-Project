@@ -77,13 +77,16 @@ const fetchTaskDetails = async () => {
     }
 
     // Then, try to get the submission details
-    const submissionResponse = await fetch(`${PORT}/api/tasks/submission/${props.teamId}/${props.task._id}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
+    const submissionResponse = await fetch(
+      `${PORT}/api/tasks/submission/${props.teamId}/${props.task._id}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    })
+    )
 
     if (submissionResponse.ok) {
       const submissionResult = await submissionResponse.json()

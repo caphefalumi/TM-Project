@@ -9,7 +9,7 @@ let gfsBucket
 const initGridFS = () => {
   const conn = mongoose.connection
   gfsBucket = new GridFSBucket(conn.db, {
-    bucketName: 'uploads'
+    bucketName: 'uploads',
   })
   console.log('GridFS Bucket initialized')
 }
@@ -25,10 +25,10 @@ const createMulterGridFSStorage = () => {
         metadata: {
           uploadDate: new Date(),
           type: 'task_submission_image',
-          originalName: file.originalname
-        }
+          originalName: file.originalname,
+        },
       }
-    }
+    },
   })
 }
 
@@ -43,8 +43,8 @@ const uploadImageToGridFS = (imageBuffer, filename, mimetype) => {
       contentType: mimetype,
       metadata: {
         uploadDate: new Date(),
-        type: 'task_submission_image'
-      }
+        type: 'task_submission_image',
+      },
     })
 
     uploadStream.on('finish', (file) => {
@@ -52,7 +52,7 @@ const uploadImageToGridFS = (imageBuffer, filename, mimetype) => {
         fileId: uploadStream.id,
         filename: uploadStream.filename,
         contentType: mimetype,
-        size: imageBuffer.length
+        size: imageBuffer.length,
       })
     })
 
@@ -168,7 +168,7 @@ const processBase64Image = (base64String) => {
     return {
       buffer,
       mimetype,
-      size: buffer.length
+      size: buffer.length,
     }
   } catch (error) {
     throw new Error('Invalid base64 data: ' + error.message)
@@ -182,5 +182,5 @@ export {
   getImageFromGridFS,
   getImageMetadata,
   deleteImageFromGridFS,
-  processBase64Image
+  processBase64Image,
 }

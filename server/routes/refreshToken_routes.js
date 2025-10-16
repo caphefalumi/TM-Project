@@ -9,7 +9,7 @@ import {
   getActiveTokens,
   getSecurityStatus,
   deleteTokenById,
-  deleteOtherTokens
+  deleteOtherTokens,
 } from '../controllers/refreshTokenController.js'
 
 const router = express.Router()

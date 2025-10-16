@@ -4,7 +4,7 @@ import { useComponentCache } from '../composables/useComponentCache.js'
 
 // Define component name for keep-alive
 defineOptions({
-  name: 'AboutView'
+  name: 'AboutView',
 })
 
 const { needsRefresh, markAsRefreshed } = useComponentCache()
@@ -37,7 +37,6 @@ onActivated(() => {
 
 <template>
   <v-container fluid class="about-container">
-
     <!-- Hero Section -->
     <v-row justify="center" class="hero-section">
       <v-col cols="12" class="text-center">

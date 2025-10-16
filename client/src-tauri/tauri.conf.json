@@ -21,7 +21,7 @@
       }
     ],
     "security": {
-      "csp": null 
+      "csp": null
     }
   },
   "plugins": {
@@ -32,9 +32,7 @@
     },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJBQzdCNTVFRTg5OTFERQpSV1Rla1ludVZYdXNBaFdVd2hlMEdoVUJEZDFGak14NHQ1NzhPblpDb01EWkhhcU4xaXRHeWpSYQo=",
-      "endpoints": [
-        "https://tm-project-weld.vercel.app/latest.json"
-      ],
+      "endpoints": ["https://tm-project-weld.vercel.app/latest.json"],
       "windows": {
         "installMode": "passive"
       }

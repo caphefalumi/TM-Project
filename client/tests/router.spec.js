@@ -7,12 +7,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from '../src/stores/auth.js'
-import {
-  createTestPinia,
-  createMockUser,
-  createMockAdmin,
-  flushPromises,
-} from './helpers.js'
+import { createTestPinia, createMockUser, createMockAdmin, flushPromises } from './helpers.js'
 
 // Mock AuthStore module
 vi.mock('../src/scripts/authStore.js', () => ({
@@ -92,7 +87,9 @@ describe('Router Guards', () => {
     const defaultTitle = 'Teams Management'
 
     router.afterEach((to) => {
-      const nearestWithTitle = [...to.matched].reverse().find((routeRecord) => routeRecord.meta?.title)
+      const nearestWithTitle = [...to.matched]
+        .reverse()
+        .find((routeRecord) => routeRecord.meta?.title)
       const pageTitle = nearestWithTitle?.meta?.title
 
       if (pageTitle && pageTitle !== defaultTitle) {
@@ -105,7 +102,9 @@ describe('Router Guards', () => {
     router.beforeEach(async (to, from, next) => {
       const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
       const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
-      const redirectIfAuthenticated = to.matched.some((record) => record.meta.redirectIfAuthenticated)
+      const redirectIfAuthenticated = to.matched.some(
+        (record) => record.meta.redirectIfAuthenticated,
+      )
 
       // Skip auth check if only query params changed (same route, e.g., tab changes)
       if (to.path === from.path && to.name === from.name) {

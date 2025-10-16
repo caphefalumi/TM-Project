@@ -77,12 +77,8 @@ describe('TeamDetails View', () => {
     createMockTeamMember({ userId: '456', username: 'member1', roleType: 'member' }),
     createMockTeamMember({ userId: '789', username: 'member2', roleType: 'member' }),
   ]
-  const mockSubTeams = [
-    createMockTeam({ teamId: 'subteam-1', title: 'Sub Team 1' }),
-  ]
-  const mockTaskGroups = [
-    { taskGroupId: 'group-1', title: 'Group 1', tasks: ['task-1', 'task-2'] },
-  ]
+  const mockSubTeams = [createMockTeam({ teamId: 'subteam-1', title: 'Sub Team 1' })]
+  const mockTaskGroups = [{ taskGroupId: 'group-1', title: 'Group 1', tasks: ['task-1', 'task-2'] }]
   const mockPermissions = createMockPermissions({
     canViewTeam: true,
     canViewTasks: true,
@@ -190,19 +186,19 @@ describe('TeamDetails View', () => {
           'v-chip': false,
           'v-pagination': false,
           'v-skeleton-loader': false,
-          'NewTasks': true,
-          'NewAnnouncements': true,
-          'TaskSubmission': true,
-          'DeleteMembers': true,
-          'UpdateAnnouncements': true,
-          'DeleteAnnouncements': true,
-          'AnnouncementView': true,
-          'UpdateTaskGroups': true,
-          'RoleManagement': true,
-          'RoleManagementTabs': true,
-          'NewMembers': true,
-          'WorkflowView': true,
-          'NotFound': true,
+          NewTasks: true,
+          NewAnnouncements: true,
+          TaskSubmission: true,
+          DeleteMembers: true,
+          UpdateAnnouncements: true,
+          DeleteAnnouncements: true,
+          AnnouncementView: true,
+          UpdateTaskGroups: true,
+          RoleManagement: true,
+          RoleManagementTabs: true,
+          NewMembers: true,
+          WorkflowView: true,
+          NotFound: true,
         },
       },
     })
@@ -222,19 +218,19 @@ describe('TeamDetails View', () => {
       expect(AuthStore.getUserByAccessToken).toHaveBeenCalled()
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/teams/team-1/tasks',
-        expect.any(Object)
+        expect.any(Object),
       )
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/teams/team-1/announcements',
-        expect.any(Object)
+        expect.any(Object),
       )
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/teams/team-1/members',
-        expect.any(Object)
+        expect.any(Object),
       )
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/teams/team-1',
-        expect.any(Object)
+        expect.any(Object),
       )
     })
 
@@ -392,7 +388,7 @@ describe('TeamDetails View', () => {
       // Assert
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/teams/team-1/subteams',
-        expect.any(Object)
+        expect.any(Object),
       )
     })
   })
@@ -424,7 +420,9 @@ describe('TeamDetails View', () => {
 
     it('should show announcement management when user has permission', async () => {
       // Arrange
-      permissionService.hasPermission.mockImplementation((perm) => perm === 'canManageAnnouncements')
+      permissionService.hasPermission.mockImplementation(
+        (perm) => perm === 'canManageAnnouncements',
+      )
       setupStandardFetchMocks()
 
       // Act
@@ -436,8 +434,8 @@ describe('TeamDetails View', () => {
 
     it('should show member management when user has permission', async () => {
       // Arrange
-      permissionService.hasPermission.mockImplementation((perm) =>
-        perm === 'canAddMembers' || perm === 'canRemoveMembers'
+      permissionService.hasPermission.mockImplementation(
+        (perm) => perm === 'canAddMembers' || perm === 'canRemoveMembers',
       )
       setupStandardFetchMocks()
 
@@ -513,8 +511,18 @@ describe('TeamDetails View', () => {
       // Arrange
       const tasksWithSubmissions = [
         createMockTask({ taskId: 'task-1', title: 'Task 1', hasSubmission: false }),
-        createMockTask({ taskId: 'task-2', title: 'Task 2', hasSubmission: true, submissionStatus: 'pending' }),
-        createMockTask({ taskId: 'task-3', title: 'Task 3', hasSubmission: true, submissionStatus: 'approved' }),
+        createMockTask({
+          taskId: 'task-2',
+          title: 'Task 2',
+          hasSubmission: true,
+          submissionStatus: 'pending',
+        }),
+        createMockTask({
+          taskId: 'task-3',
+          title: 'Task 3',
+          hasSubmission: true,
+          submissionStatus: 'approved',
+        }),
       ]
 
       fetchMock.mockImplementation((url) => {
@@ -691,7 +699,7 @@ describe('TeamDetails View', () => {
       // Assert
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/teams/team-1/task-groups',
-        expect.any(Object)
+        expect.any(Object),
       )
     })
   })

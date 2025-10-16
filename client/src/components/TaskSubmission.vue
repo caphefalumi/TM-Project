@@ -153,8 +153,8 @@ const uploadImageToServer = async (imageData, filename) => {
       },
       body: JSON.stringify({
         imageData,
-        filename
-      })
+        filename,
+      }),
     })
 
     if (response.ok) {
@@ -241,7 +241,10 @@ const handleFileUpload = async (fieldName, event) => {
 
             try {
               // Upload compressed image to GridFS
-              const fileId = await uploadImageToServer(compressedData, `${fieldName}_${Date.now()}.jpg`)
+              const fileId = await uploadImageToServer(
+                compressedData,
+                `${fieldName}_${Date.now()}.jpg`,
+              )
 
               // Store the GridFS file ID instead of base64 data
               formValues.value[fieldName] = fileId
@@ -257,7 +260,10 @@ const handleFileUpload = async (fieldName, event) => {
         } else {
           try {
             // Small image, upload as-is
-            const fileId = await uploadImageToServer(result, `${fieldName}_${Date.now()}.${file.type.split('/')[1]}`)
+            const fileId = await uploadImageToServer(
+              result,
+              `${fieldName}_${Date.now()}.${file.type.split('/')[1]}`,
+            )
 
             // Store the GridFS file ID instead of base64 data
             formValues.value[fieldName] = fileId
@@ -595,7 +601,11 @@ watch(
                 ></v-file-input>
                 <!-- Display current image if available -->
                 <div
-                  v-if="formValues[field.label] && formValues[field.label] !== '(No image)' && formValues[field.label] !== null"
+                  v-if="
+                    formValues[field.label] &&
+                    formValues[field.label] !== '(No image)' &&
+                    formValues[field.label] !== null
+                  "
                   class="mt-2"
                 >
                   <p class="text-caption">Current image:</p>

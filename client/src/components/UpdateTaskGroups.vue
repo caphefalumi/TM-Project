@@ -328,7 +328,24 @@ onMounted(() => {
             v-if="noPermissionNotification"
             class="aws-style-notification"
             @click="closeNoPermissionNotification"
-            style="position: fixed; top: 32px; right: 32px; z-index: 9999; min-width: 320px; max-width: 400px; background: #232f3e; color: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 18px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 1rem;"
+            style="
+              position: fixed;
+              top: 32px;
+              right: 32px;
+              z-index: 9999;
+              min-width: 320px;
+              max-width: 400px;
+              background: #232f3e;
+              color: #fff;
+              border-radius: 8px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+              padding: 18px 24px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              font-size: 1rem;
+            "
           >
             <v-icon color="warning" size="28">mdi-alert-circle</v-icon>
             <span>You dont have permission to perform this action</span>
@@ -583,10 +600,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 .aws-style-notification:hover {

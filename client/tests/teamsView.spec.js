@@ -42,13 +42,48 @@ describe('TeamsView', () => {
   let cacheComposable
 
   const mockTeams = [
-    createMockTeam({ teamId: '1', title: 'Development Team', category: 'Development', completionPercentage: 75 }),
-    createMockTeam({ teamId: '2', title: 'Design Team', category: 'Design', completionPercentage: 50 }),
-    createMockTeam({ teamId: '3', title: 'Marketing Team', category: 'Marketing', completionPercentage: 90 }),
-    createMockTeam({ teamId: '4', title: 'Sales Team', category: 'Sales', completionPercentage: 30 }),
-    createMockTeam({ teamId: '5', title: 'Support Team', category: 'Support', completionPercentage: 60 }),
-    createMockTeam({ teamId: '6', title: 'Operations Team', category: 'Operations', completionPercentage: 40 }),
-    createMockTeam({ teamId: '7', title: 'Dev Team 2', category: 'Development', completionPercentage: 85 }),
+    createMockTeam({
+      teamId: '1',
+      title: 'Development Team',
+      category: 'Development',
+      completionPercentage: 75,
+    }),
+    createMockTeam({
+      teamId: '2',
+      title: 'Design Team',
+      category: 'Design',
+      completionPercentage: 50,
+    }),
+    createMockTeam({
+      teamId: '3',
+      title: 'Marketing Team',
+      category: 'Marketing',
+      completionPercentage: 90,
+    }),
+    createMockTeam({
+      teamId: '4',
+      title: 'Sales Team',
+      category: 'Sales',
+      completionPercentage: 30,
+    }),
+    createMockTeam({
+      teamId: '5',
+      title: 'Support Team',
+      category: 'Support',
+      completionPercentage: 60,
+    }),
+    createMockTeam({
+      teamId: '6',
+      title: 'Operations Team',
+      category: 'Operations',
+      completionPercentage: 40,
+    }),
+    createMockTeam({
+      teamId: '7',
+      title: 'Dev Team 2',
+      category: 'Development',
+      completionPercentage: 85,
+    }),
   ]
 
   const mockAdminTeams = [
@@ -72,7 +107,11 @@ describe('TeamsView', () => {
       history: createMemoryHistory(),
       routes: [
         { path: '/teams', name: 'Teams', component: TeamsView },
-        { path: '/teams/:teamId', name: 'TeamDetails', component: { template: '<div>Team Details</div>' } },
+        {
+          path: '/teams/:teamId',
+          name: 'TeamDetails',
+          component: { template: '<div>Team Details</div>' },
+        },
       ],
     })
 
@@ -109,7 +148,7 @@ describe('TeamsView', () => {
           'v-progress-linear': false,
           'v-pagination': false,
           'v-skeleton-loader': false,
-          'NewTeams': true,
+          NewTeams: true,
         },
         ...options,
       },
@@ -155,14 +194,14 @@ describe('TeamsView', () => {
         expect.objectContaining({
           method: 'GET',
           credentials: 'include',
-        })
+        }),
       )
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/teams',
         expect.objectContaining({
           method: 'GET',
           credentials: 'include',
-        })
+        }),
       )
       expect(wrapper.vm.userLoaded).toBe(true)
       expect(wrapper.vm.isLoadingTeams).toBe(false)
@@ -261,7 +300,9 @@ describe('TeamsView', () => {
 
       // Assert
       expect(wrapper.vm.filteredTeams).toHaveLength(2) // "Development Team" and "Dev Team 2"
-      expect(wrapper.vm.filteredTeams.every(t => t.title.toLowerCase().includes('dev'))).toBe(true)
+      expect(wrapper.vm.filteredTeams.every((t) => t.title.toLowerCase().includes('dev'))).toBe(
+        true,
+      )
     })
 
     it('should be case-insensitive when searching', async () => {
@@ -336,7 +377,7 @@ describe('TeamsView', () => {
 
       // Assert
       expect(wrapper.vm.filteredTeams).toHaveLength(2)
-      expect(wrapper.vm.filteredTeams.every(t => t.category === 'Development')).toBe(true)
+      expect(wrapper.vm.filteredTeams.every((t) => t.category === 'Development')).toBe(true)
     })
 
     it('should show category counts in filter dropdown', async () => {
@@ -348,7 +389,7 @@ describe('TeamsView', () => {
       const categoryItems = wrapper.vm.categoryItemsWithCounts
 
       // Assert
-      const devCategory = categoryItems.find(c => c.value === 'Development')
+      const devCategory = categoryItems.find((c) => c.value === 'Development')
       expect(devCategory.title).toContain('(2)') // 2 development teams
     })
 
@@ -361,7 +402,7 @@ describe('TeamsView', () => {
       const categoryItems = wrapper.vm.categoryItemsWithCounts
 
       // Assert
-      expect(categoryItems.every(item => !item.disabled)).toBe(true)
+      expect(categoryItems.every((item) => !item.disabled)).toBe(true)
     })
 
     it('should clear category filter', async () => {
@@ -445,7 +486,7 @@ describe('TeamsView', () => {
       expect(wrapper.vm.isTransitioning).toBe(true)
 
       // Wait for transition to complete
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise((resolve) => setTimeout(resolve, 200))
       expect(wrapper.vm.isTransitioning).toBe(false)
     })
 

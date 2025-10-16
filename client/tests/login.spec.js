@@ -221,14 +221,12 @@ describe('Login View', () => {
     it('should have back button and navigation links', async () => {
       await mountLogin()
 
-      const backButton = wrapper.findAll('button').find(btn =>
-        btn.html().includes('mdi-arrow-left')
-      )
+      const backButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.html().includes('mdi-arrow-left'))
       expect(backButton).toBeDefined()
 
-      const signUpButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('Sign up')
-      )
+      const signUpButton = wrapper.findAll('button').find((btn) => btn.text().includes('Sign up'))
       expect(signUpButton).toBeDefined()
     })
   })
@@ -277,7 +275,7 @@ describe('Login View', () => {
     it('should display error message when API returns error', async () => {
       await mountLogin()
       fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({ error: 'Invalid credentials' }, false, 401)
+        mockFetchResponse({ error: 'Invalid credentials' }, false, 401),
       )
 
       const usernameInput = wrapper.find('input[data-label="Username"]')
@@ -297,7 +295,7 @@ describe('Login View', () => {
             username: 'wronguser',
             password: 'wrongpass',
           }),
-        })
+        }),
       )
       const errorAlert = wrapper.find('.v-alert[data-type="error"]')
       expect(errorAlert.text()).toContain('Invalid credentials')
@@ -333,14 +331,14 @@ describe('Login View', () => {
 
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/auth/local/login',
-        expect.any(Object)
+        expect.any(Object),
       )
       expect(fetchMock).toHaveBeenCalledWith(
         'http://localhost:3000/api/sessions/me',
         expect.objectContaining({
           method: 'POST',
           credentials: 'include',
-        })
+        }),
       )
       expect(router.currentRoute.value.path).toBe('/home')
     })
@@ -367,11 +365,7 @@ describe('Login View', () => {
     it('should show resend verification button when email not verified', async () => {
       await mountLogin()
       fetchMock.mockResolvedValueOnce(
-        mockFetchResponse(
-          { error: 'Email not verified. Please check your inbox.' },
-          false,
-          403
-        )
+        mockFetchResponse({ error: 'Email not verified. Please check your inbox.' }, false, 403),
       )
 
       const usernameInput = wrapper.find('input[data-label="Username"]')
@@ -383,9 +377,9 @@ describe('Login View', () => {
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      const resendButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('Resend Verification Email')
-      )
+      const resendButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('Resend Verification Email'))
       expect(resendButton).toBeDefined()
     })
 
@@ -393,11 +387,7 @@ describe('Login View', () => {
       await mountLogin()
 
       fetchMock.mockResolvedValueOnce(
-        mockFetchResponse(
-          { error: 'Email not verified. Please check your inbox.' },
-          false,
-          403
-        )
+        mockFetchResponse({ error: 'Email not verified. Please check your inbox.' }, false, 403),
       )
 
       const usernameInput = wrapper.find('input[data-label="Username"]')
@@ -409,13 +399,11 @@ describe('Login View', () => {
       await form.trigger('submit.prevent')
       await flushPromises()
 
-      fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({ success: 'Verification email sent' })
-      )
+      fetchMock.mockResolvedValueOnce(mockFetchResponse({ success: 'Verification email sent' }))
 
-      const resendButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('Resend Verification Email')
-      )
+      const resendButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('Resend Verification Email'))
       await resendButton.trigger('click')
       await flushPromises()
 
@@ -424,7 +412,7 @@ describe('Login View', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({ email: 'testuser' }),
-        })
+        }),
       )
       const successAlert = wrapper.find('.v-alert[data-type="success"]')
       expect(successAlert.text()).toContain('Verification email sent')
@@ -446,7 +434,7 @@ describe('Login View', () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           success: 'register',
-        })
+        }),
       )
 
       const oauthResponse = { access_token: 'mock-oauth-token' }
@@ -459,7 +447,7 @@ describe('Login View', () => {
           method: 'POST',
           credentials: 'include',
           body: JSON.stringify({ token: 'mock-oauth-token' }),
-        })
+        }),
       )
       expect(wrapper.vm.usingOAuthRegister).toBe(true)
       const successAlert = wrapper.find('.v-alert[data-type="success"]')
@@ -497,7 +485,7 @@ describe('Login View', () => {
     it('should show error when OAuth fails', async () => {
       await mountLogin()
       fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({ error: 'OAuth authentication failed' }, false, 401)
+        mockFetchResponse({ error: 'OAuth authentication failed' }, false, 401),
       )
 
       const oauthResponse = { access_token: 'invalid-token' }
@@ -599,7 +587,7 @@ describe('Login View', () => {
         action: 'login',
         userId: 'test-user-id',
         username: 'testuser',
-        email: 'test@example.com'
+        email: 'test@example.com',
       }
       sessionStorage.setItem('oauth_login_data', JSON.stringify(oauthData))
 
@@ -656,7 +644,7 @@ describe('Login View', () => {
             username: 'newusername',
             email: 'newuser@example.com',
           }),
-        })
+        }),
       )
       expect(router.currentRoute.value.path).toBe('/home')
     })
@@ -668,7 +656,7 @@ describe('Login View', () => {
       await flushPromises()
 
       fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({ error: 'Username already exists' }, false, 409)
+        mockFetchResponse({ error: 'Username already exists' }, false, 409),
       )
 
       const usernameInput = wrapper.find('input[data-label="Username"]')
@@ -686,9 +674,7 @@ describe('Login View', () => {
     it('should navigate to register page when clicking Sign up', async () => {
       await mountLogin()
 
-      const signUpButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('Sign up')
-      )
+      const signUpButton = wrapper.findAll('button').find((btn) => btn.text().includes('Sign up'))
       await signUpButton.trigger('click')
       await flushPromises()
 
@@ -698,9 +684,9 @@ describe('Login View', () => {
     it('should navigate to forgot password page', async () => {
       await mountLogin()
 
-      const forgotPasswordButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('Forgot Password')
-      )
+      const forgotPasswordButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('Forgot Password'))
       await forgotPasswordButton.trigger('click')
       await flushPromises()
 
@@ -710,9 +696,9 @@ describe('Login View', () => {
     it('should navigate back to landing page', async () => {
       await mountLogin()
 
-      const backButton = wrapper.findAll('button').find(btn =>
-        btn.html().includes('mdi-arrow-left')
-      )
+      const backButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.html().includes('mdi-arrow-left'))
       await backButton.trigger('click')
       await flushPromises()
 
@@ -724,8 +710,8 @@ describe('Login View', () => {
     it('should toggle password visibility', async () => {
       await mountLogin()
       const passwordFields = wrapper.findAll('.v-text-field')
-      const passwordWrapper = passwordFields.find(field =>
-        field.find('input').attributes('data-label') === 'Password'
+      const passwordWrapper = passwordFields.find(
+        (field) => field.find('input').attributes('data-label') === 'Password',
       )
       expect(passwordWrapper).toBeDefined()
       const passwordInput = passwordWrapper.find('input')

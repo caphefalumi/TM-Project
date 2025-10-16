@@ -248,7 +248,7 @@ describe('TaskSubmission Component', () => {
       await nextTick()
 
       // Assert
-      const fieldData = wrapper.vm.submissionForm.submissionData.find(f => f.label === 'Field 1')
+      const fieldData = wrapper.vm.submissionForm.submissionData.find((f) => f.label === 'Field 1')
       expect(fieldData.value).toBe('Updated value')
     })
   })
@@ -489,7 +489,7 @@ describe('TaskSubmission Component', () => {
           method: 'POST',
           credentials: 'include',
           body: expect.stringContaining('Test submission'),
-        })
+        }),
       )
     })
 
@@ -579,7 +579,7 @@ describe('TaskSubmission Component', () => {
       task.design.fields[0].config.required = true
       await mountTaskSubmission({ task })
       fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({ message: 'Submission failed' }, false, 400)
+        mockFetchResponse({ message: 'Submission failed' }, false, 400),
       )
 
       wrapper.vm.formValues['Field 1'] = 'Valid data'

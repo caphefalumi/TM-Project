@@ -595,10 +595,7 @@ export default {
       const viewportHeight = container ? container.clientHeight : window.innerHeight
       const buffer = this.renderBuffer
       const start = Math.max(0, Math.floor(scrollTop / this.rowHeight) - buffer)
-      const end = Math.min(
-        total,
-        Math.ceil((scrollTop + viewportHeight) / this.rowHeight) + buffer,
-      )
+      const end = Math.min(total, Math.ceil((scrollTop + viewportHeight) / this.rowHeight) + buffer)
 
       if (start !== this.visibleRange.start || end !== this.visibleRange.end) {
         this.visibleRange = { start, end }

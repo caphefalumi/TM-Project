@@ -18,7 +18,6 @@ import { useComponentCache } from '../composables/useComponentCache.js'
 
 const API_PORT = import.meta.env.VITE_API_PORT
 
-
 const refreshAccessToken = async () => {
   try {
     console.log('[API Client] Attempting to refresh access token...')
@@ -86,9 +85,11 @@ export const fetchWithTokenRefresh = async (url, options = {}, retryCount = 0) =
       } else if (refreshResult.tokenRevoked) {
         console.log('[API Client] Token was revoked, user needs to login again')
 
-        window.dispatchEvent(new CustomEvent('token-revoked', {
-          detail: { message: refreshResult.message }
-        }))
+        window.dispatchEvent(
+          new CustomEvent('token-revoked', {
+            detail: { message: refreshResult.message },
+          }),
+        )
 
         return response
       } else {

@@ -7,12 +7,7 @@
     :disabled="disabled"
     @click="$emit('click')"
   >
-    <v-icon
-      v-if="!loading"
-      left
-      class="me-2 google-icon"
-      color="#EA4335"
-    ></v-icon>
+    <v-icon v-if="!loading" left class="me-2 google-icon" color="#EA4335"></v-icon>
     <span>{{ loading ? 'Logging in...' : `Login with ${providerName}` }}</span>
   </v-btn>
 </template>

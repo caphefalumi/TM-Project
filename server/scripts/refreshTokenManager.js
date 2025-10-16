@@ -201,7 +201,6 @@ class RefreshTokenManager {
     }
   }
 
-
   // TODO: Implement this method to handle unauthorized access detection
   static async isUnauthorizedAccess(refreshTokens) {
     // const result = await RefreshToken.findOne({ token: refreshTokens, revoked: true })

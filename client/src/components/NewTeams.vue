@@ -159,7 +159,7 @@ const createTeam = async () => {
 
     // Use global notification instead of local state
     showSuccess(`Team "${data.title}" created successfully!`, {
-      title: 'Team Created'
+      title: 'Team Created',
     })
 
     console.log('Project created:', data)
@@ -175,7 +175,7 @@ const createTeam = async () => {
 
     // Use global notification for errors
     showError('Failed to create team. Please try again.', {
-      title: 'Team Creation Failed'
+      title: 'Team Creation Failed',
     })
   }
 }
@@ -214,7 +214,6 @@ const createTeam = async () => {
         </v-expand-transition>
         <v-expand-transition v-if="props.teamsThatUserIsAdmin.length > 0">
           <v-select
-
             v-model="newTeam.parentTeamId"
             :items="props.teamsThatUserIsAdmin"
             item-title="title"

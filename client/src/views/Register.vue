@@ -32,10 +32,12 @@ const isConfirmPasswordValid = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return isUsernameValid.value && 
-         isEmailValid.value && 
-         isPasswordValid.value && 
-         isConfirmPasswordValid.value
+  return (
+    isUsernameValid.value &&
+    isEmailValid.value &&
+    isPasswordValid.value &&
+    isConfirmPasswordValid.value
+  )
 })
 
 async function register() {
@@ -131,12 +133,12 @@ async function register() {
                   (v) => v === password || 'Passwords do not match',
                 ]"
               />
-              <v-btn 
-                :loading="loading" 
+              <v-btn
+                :loading="loading"
                 :disabled="!isFormValid || loading"
-                type="submit" 
-                color="primary" 
-                block 
+                type="submit"
+                color="primary"
+                block
                 class="mb-2"
               >
                 Register
@@ -148,7 +150,7 @@ async function register() {
               <v-card>
                 <v-card-title class="text-h6">Verify Your Email</v-card-title>
                 <v-card-text>
-                  Registration successful!<br>
+                  Registration successful!<br />
                   Please check your email and click the verification link to activate your account.
                 </v-card-text>
                 <v-card-actions>

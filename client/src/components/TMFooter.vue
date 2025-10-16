@@ -1,6 +1,6 @@
 <template>
   <v-footer class="tm-footer" padless>
-    <v-container class="d-flex justify-space-between align-center" style="min-height:36px;">
+    <v-container class="d-flex justify-space-between align-center" style="min-height: 36px">
       <div class="footer-left">
         <span class="font-weight-bold tm-footer-title">TM-Project</span>
         <span class="mx-2">|</span>

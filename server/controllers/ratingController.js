@@ -6,20 +6,20 @@ export const createOrUpdateRating = async (req, res) => {
   // Validate required fields based on Rating schema
   if (!userId || !message || !issue || !featureRating || !perfRating) {
     return res.status(400).json({
-      error: 'Missing required fields. Required: userId, message, issue, featureRating, perfRating'
+      error: 'Missing required fields. Required: userId, message, issue, featureRating, perfRating',
     })
   }
 
   // Validate rating ranges
   if (featureRating < 1 || featureRating > 5 || perfRating < 1 || perfRating > 5) {
     return res.status(400).json({
-      error: 'Rating values must be between 1 and 5'
+      error: 'Rating values must be between 1 and 5',
     })
   }
 
   if (uiRating && (uiRating < 1 || uiRating > 5)) {
     return res.status(400).json({
-      error: 'UI Rating value must be between 1 and 5'
+      error: 'UI Rating value must be between 1 and 5',
     })
   }
 
@@ -27,7 +27,7 @@ export const createOrUpdateRating = async (req, res) => {
   const validIssueTypes = ['Very bad', 'Bad', 'Average', 'Good', 'Excellent']
   if (!validIssueTypes.includes(issue)) {
     return res.status(400).json({
-      error: `Invalid issue type. Must be one of: ${validIssueTypes.join(', ')}`
+      error: `Invalid issue type. Must be one of: ${validIssueTypes.join(', ')}`,
     })
   }
 
@@ -54,7 +54,7 @@ export const createOrUpdateRating = async (req, res) => {
       issue,
       featureRating,
       perfRating,
-      uiRating: uiRating || undefined
+      uiRating: uiRating || undefined,
     })
 
     await newRating.save()
@@ -67,9 +67,7 @@ export const createOrUpdateRating = async (req, res) => {
 
 export const getAllRatings = async (req, res) => {
   try {
-    const ratings = await Rating.find()
-      .populate('userId', 'username email')
-      .sort({ createdAt: -1 })
+    const ratings = await Rating.find().populate('userId', 'username email').sort({ createdAt: -1 })
 
     if (!ratings || ratings.length === 0) {
       return res.status(404).json({ error: 'No feedback found' })
@@ -77,9 +75,12 @@ export const getAllRatings = async (req, res) => {
 
     // Calculate statistics
     const totalRatings = ratings.length
-    const averageFeatureRating = ratings.reduce((sum, rating) => sum + rating.featureRating, 0) / totalRatings
-    const averagePerfRating = ratings.reduce((sum, rating) => sum + rating.perfRating, 0) / totalRatings
-    const averageUiRating = ratings.reduce((sum, rating) => sum + (rating.uiRating || 0), 0) / totalRatings
+    const averageFeatureRating =
+      ratings.reduce((sum, rating) => sum + rating.featureRating, 0) / totalRatings
+    const averagePerfRating =
+      ratings.reduce((sum, rating) => sum + rating.perfRating, 0) / totalRatings
+    const averageUiRating =
+      ratings.reduce((sum, rating) => sum + (rating.uiRating || 0), 0) / totalRatings
 
     // Group by issue type
     const issueTypeDistribution = ratings.reduce((acc, rating) => {
@@ -94,8 +95,8 @@ export const getAllRatings = async (req, res) => {
         averageFeatureRating: Number(averageFeatureRating.toFixed(2)),
         averagePerfRating: Number(averagePerfRating.toFixed(2)),
         averageUiRating: Number(averageUiRating.toFixed(2)),
-        issueTypeDistribution
-      }
+        issueTypeDistribution,
+      },
     })
   } catch (error) {
     console.log('Error fetching ratings:', error)
@@ -107,8 +108,7 @@ export const getUserRating = async (req, res) => {
   const { userId } = req.params
 
   try {
-    const rating = await Rating.findOne({ userId })
-      .populate('userId', 'username email')
+    const rating = await Rating.findOne({ userId }).populate('userId', 'username email')
 
     if (!rating) {
       return res.status(404).json({ error: 'No feedback found for this user' })

@@ -1,14 +1,21 @@
 <script setup>
-import { ref, onMounted, watch, computed, onActivated, onDeactivated, getCurrentInstance } from 'vue'
+import {
+  ref,
+  onMounted,
+  watch,
+  computed,
+  onActivated,
+  onDeactivated,
+  getCurrentInstance,
+} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AuthStore from '../scripts/authStore.js'
 import { fetchJSON } from '../scripts/apiClient.js'
 import { permissionService } from '../services/permissionService.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
-// Set component name for Vue keep-alive
 defineOptions({
-  name: 'TeamDetails'
+  name: 'TeamDetails',
 })
 import NewTasks from '../components/NewTasks.vue'
 import NewAnnouncements from '../components/NewAnnouncements.vue'
@@ -25,23 +32,12 @@ import WorkflowView from '../components/WorkflowView.vue'
 import NotFound from './NotFound.vue'
 
 const { getUserByAccessToken } = AuthStore
-const {
-  addTeamToCache,
-  updateTeamAccess,
-  removeTeamFromCache,
-  getTeamComponentKey,
-  needsRefresh,
-  markAsRefreshed,
-  isTeamCacheValid,
-  cleanExpiredCache,
-  getCacheStats
-} = useComponentCache()
+const { addTeamToCache, updateTeamAccess, removeTeamFromCache, isTeamCacheValid, onTeamTabChange } =
+  useComponentCache()
 
 const route = useRoute()
 const router = useRouter()
-const currentInstance = getCurrentInstance()
 
-// Using structured Permission object for cleaner permission checks
 const userPermissions = ref({})
 
 const user = ref({
@@ -158,7 +154,7 @@ const getCachedTeamData = (id) => {
 const setCachedTeamData = (id, data) => {
   teamDataCache.value.set(id, {
     ...data,
-    lastAccessed: Date.now()
+    lastAccessed: Date.now(),
   })
   updateTeamAccess(id)
 }
@@ -176,7 +172,7 @@ const updateCacheWithCurrentData = () => {
     subTeams: [...subTeams.value],
     taskGroups: [...taskGroups.value],
     userPermissions: { ...userPermissions.value },
-    activeTab: activeTab.value
+    activeTab: activeTab.value,
   })
 }
 
@@ -199,6 +195,14 @@ const loadFromInternalCache = (id) => {
     taskGroups.value = cached.taskGroups || []
     userPermissions.value = cached.userPermissions || {}
     activeTab.value = cached.activeTab || route.query.tab || 'tasks'
+
+    // Sync URL query with cached tab
+    if (route.query.tab !== activeTab.value) {
+      router.replace({
+        path: route.path,
+        query: { ...route.query, tab: activeTab.value },
+      })
+    }
 
     // Set loading states to false
     isLoadingTasks.value = false
@@ -289,8 +293,6 @@ const initializeTeamData = async (forceRefresh = false) => {
     isFromCache.value = false
     updateTeamAccess(teamId.value)
     userLoaded.value = true
-
-
   } else {
     teamNotFound.value = true
     userLoaded.value = true
@@ -302,7 +304,6 @@ watch(
   () => route.params.teamId,
   async (newTeamId, oldTeamId) => {
     if (newTeamId && newTeamId !== oldTeamId) {
-
       teamId.value = newTeamId
 
       // Setup caching for the new team
@@ -349,7 +350,12 @@ watch(
         query: { ...route.query, tab: newTab },
       })
     }
-
+    // Update cache access when switching tabs
+    if (teamId.value) {
+      onTeamTabChange(teamId.value)
+      // Update cache with current tab
+      updateCacheWithCurrentData()
+    }
     // Fetch sub-teams when delete-team tab is activated
     if (newTab === 'delete-team') {
       console.log('Delete team tab activated, fetching sub-teams...')
@@ -381,8 +387,6 @@ watch(
 )
 
 onMounted(async () => {
-
-
   // Setup component caching for initial team
   setupComponentCaching()
 
@@ -398,28 +402,20 @@ onMounted(async () => {
   const hasCachedData = getCachedTeamData(teamId.value)
   const externalCacheValid = isTeamCacheValid(teamId.value)
 
-
-
   if (hasCachedData && externalCacheValid) {
-
     if (loadFromInternalCache(teamId.value)) {
       userLoaded.value = true
     } else {
-
       await initializeTeamData()
     }
   } else if (!userLoaded.value) {
-
     await initializeTeamData()
   } else {
-
   }
 })
 
 // Keep-alive lifecycle hooks for cache management
 onActivated(async () => {
-
-
   // Check if external cache is valid first
   const externalCacheValid = isTeamCacheValid(teamId.value)
   const hasCachedData = getCachedTeamData(teamId.value)
@@ -434,11 +430,9 @@ onActivated(async () => {
   const refreshedCachedData = getCachedTeamData(teamId.value)
 
   if (refreshedCachedData && externalCacheValid && !userLoaded.value) {
-
     if (loadFromInternalCache(teamId.value)) {
       userLoaded.value = true
     } else {
-
       await initializeTeamData()
     }
   } else if (!userLoaded.value) {
@@ -453,18 +447,14 @@ onActivated(async () => {
   }
 
   // Log cache statistics for debugging
-
 })
 
 onDeactivated(() => {
-
-
   // Component is being cached, no cleanup needed
   // The data remains intact for next activation
 })
 
 const setUserToUserToken = (userToken) => {
-
   user.value.userId = userToken.userId
   user.value.username = userToken.username
   user.value.email = userToken.email
@@ -491,7 +481,7 @@ const fetchSubTeams = async () => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
     })
 
     if (!ok) {
@@ -512,7 +502,6 @@ const fetchSubTeams = async () => {
 
     // Update cache after fetching sub-teams
     updateCacheWithCurrentData()
-
   } catch (error) {
     console.log('Failed to fetch sub-teams:', error)
     subTeams.value = []
@@ -524,9 +513,7 @@ const fetchSubTeams = async () => {
 const updateRoleFlags = () => {
   // Role flags are now handled by the permission service
   // Keep for backward compatibility if needed elsewhere
-  const userRole =
-    userPermissions.value.roleLabel || userPermissions.value.baseRole || 'Member'
-
+  const userRole = userPermissions.value.roleLabel || userPermissions.value.baseRole || 'Member'
 }
 
 const fetchTeamTasks = async () => {
@@ -590,12 +577,15 @@ const fetchAnnouncements = async () => {
   try {
     isLoadingAnnouncements.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/announcements`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const { ok, status, data } = await fetchJSON(
+      `${PORT}/api/teams/${teamId.value}/announcements`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    })
+    )
 
     if (!ok) {
       console.log('Failed to fetch announcements:', data?.message || `Status ${status}`)
@@ -647,8 +637,6 @@ const handleRolesUpdated = async () => {
 
 // Force refresh team data and invalidate cache
 const forceRefreshTeamData = async () => {
-
-
   // Remove from cache
   teamDataCache.value.delete(teamId.value)
   removeTeamFromCache(teamId.value)
@@ -704,13 +692,16 @@ const toggleLikeAnnouncement = async (announcementId) => {
 
   const PORT = import.meta.env.VITE_API_PORT
   try {
-    const { ok, status, data } = await fetchJSON(`${PORT}/api/announcements/${announcementId}/like`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const { ok, status, data } = await fetchJSON(
+      `${PORT}/api/announcements/${announcementId}/like`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.value.userId }),
       },
-      body: JSON.stringify({ userId: user.value.userId }),
-    })
+    )
 
     if (!ok) {
       throw new Error(data?.message || `Failed to like announcement (Status ${status})`)
@@ -935,7 +926,6 @@ const confirmDeleteTeam = async () => {
 
 // Utility method for manual cache management (useful for debugging)
 const refreshTeamData = async () => {
-
   await initializeTeamData(true)
 }
 
@@ -1189,8 +1179,7 @@ const isDev = computed(() => {
           <!-- Action buttons row based on active tab -->
           <v-row class="mt-4">
             <!-- Tasks tab actions -->
-            <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && canManageTasks">
-            </v-col>
+            <v-col cols="12" md="6" lg="4" v-if="activeTab === 'tasks' && canManageTasks"> </v-col>
 
             <!-- Announcements tab actions -->
             <v-col
@@ -1432,7 +1421,9 @@ const isDev = computed(() => {
         <v-window-item value="workflow">
           <v-row>
             <v-col cols="12">
-              <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3">
+              <div
+                class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3"
+              >
                 <h2 class="text-h5">Team's Workflow</h2>
                 <v-btn
                   color="primary"
@@ -1583,7 +1574,9 @@ const isDev = computed(() => {
           <div v-else>
             <v-row>
               <v-col cols="12">
-                <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3">
+                <div
+                  class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3"
+                >
                   <h2 class="text-h5">Manage Team - Task Groups</h2>
                   <v-btn
                     color="primary"
@@ -1657,7 +1650,9 @@ const isDev = computed(() => {
             <!-- Task Groups List -->
             <v-row v-if="taskGroups.length > 0">
               <v-col cols="12">
-                <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3">
+                <div
+                  class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3"
+                >
                   <h3 class="text-h6">Task Groups</h3>
                   <v-btn
                     v-tooltip:bottom="'Add new tasks to the team'"
@@ -1977,7 +1972,9 @@ const isDev = computed(() => {
                         size="small"
                         variant="tonal"
                       >
-                        <v-icon start size="small">{{ permissionService.getRoleIcon(member.baseRole) }}</v-icon>
+                        <v-icon start size="small">{{
+                          permissionService.getRoleIcon(member.baseRole)
+                        }}</v-icon>
                         {{ member.roleLabel || member.baseRole }}
                       </v-chip>
                     </v-card-subtitle>
@@ -2064,7 +2061,9 @@ const isDev = computed(() => {
               <v-col cols="12">
                 <v-card variant="outlined" class="mb-4">
                   <v-card-title>
-                    <div class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 w-100">
+                    <div
+                      class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 w-100"
+                    >
                       <div class="d-flex align-center">
                         <v-icon class="mr-2" color="error">mdi-family-tree</v-icon>
                         Teams to be Deleted

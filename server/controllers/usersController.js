@@ -239,7 +239,7 @@ export const getUsersOfTeam = async (req, res) => {
             }
           : null,
         customPermissions: user.customPermissions
-          ? user.customPermissions.toObject?.() ?? user.customPermissions
+          ? (user.customPermissions.toObject?.() ?? user.customPermissions)
           : {},
       }
     })
@@ -555,8 +555,7 @@ export const updateUserProfile = async (req, res) => {
 
     const usernameChanged = username !== undefined && normalizedUsername !== account.username
     const emailChanged = email !== undefined && normalizedEmail !== account.email
-    const reissueVerification =
-      !emailChanged && account.email && account.email === normalizedEmail
+    const reissueVerification = !emailChanged && account.email && account.email === normalizedEmail
 
     if (!usernameChanged && !emailChanged && !reissueVerification) {
       const usernameCooldownEndsAt =

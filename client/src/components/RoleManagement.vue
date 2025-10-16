@@ -108,7 +108,9 @@
                     size="small"
                     variant="tonal"
                   >
-                    <v-icon start size="small">{{ permissionService.getRoleIcon(member.baseRole) }}</v-icon>
+                    <v-icon start size="small">{{
+                      permissionService.getRoleIcon(member.baseRole)
+                    }}</v-icon>
                     {{ member.roleLabel || member.baseRole }}
                   </v-chip>
                   <v-chip
@@ -175,9 +177,9 @@
           <v-icon class="mr-2" color="purple">mdi-cog</v-icon>
           Custom Permissions for {{ selectedMember.username }}
         </v-card-title>
-                <v-card-subtitle>
-                  Role: {{ selectedMember.roleLabel || selectedMember.baseRole }} | Override default permissions by checking/unchecking
-          boxes
+        <v-card-subtitle>
+          Role: {{ selectedMember.roleLabel || selectedMember.baseRole }} | Override default
+          permissions by checking/unchecking boxes
         </v-card-subtitle>
 
         <v-card-text>
@@ -430,7 +432,8 @@
             Are you sure you want to make
             <strong>{{ pendingRoleChange.member.username }}</strong>
             a team
-            <strong>{{ formatRoleLabel(pendingRoleChange.newRoleType) }}</strong>?
+            <strong>{{ formatRoleLabel(pendingRoleChange.newRoleType) }}</strong
+            >?
           </p>
 
           <v-alert type="info" variant="tonal" class="mb-3">
@@ -469,9 +472,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import {
-  permissionService,
-} from '../services/permissionService.js'
+import { permissionService } from '../services/permissionService.js'
 
 const props = defineProps({
   dialog: {
@@ -544,9 +545,7 @@ const availableRoles = ref([
 // Computed properties
 const filteredMembers = computed(() => {
   if (!searchQuery.value) return props.teamMembers
-  return props.teamMembers.filter((member) =>
-    member.username.includes(searchQuery.value),
-  )
+  return props.teamMembers.filter((member) => member.username.includes(searchQuery.value))
 })
 
 // Methods

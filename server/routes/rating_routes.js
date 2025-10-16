@@ -4,7 +4,7 @@ import { requireAdmin } from '../middleware/roleMiddleware.js'
 import {
   createOrUpdateRating,
   getAllRatings,
-  getUserRating
+  getUserRating,
 } from '../controllers/ratingController.js'
 
 const app = express.Router()

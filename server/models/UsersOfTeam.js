@@ -31,6 +31,5 @@ const UsersOfTeamSchema = new mongoose.Schema({
 
 UsersOfTeamSchema.index({ userId: 1, teamId: 1 }, { unique: true })
 
-
 const UsersOfTeam = mongoose.model('UsersOfTeam', UsersOfTeamSchema)
 export default UsersOfTeam
