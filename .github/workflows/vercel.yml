@@ -23,7 +23,7 @@ jobs:
           path: |
             ~/.npm
             **/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          key: linux-npm-vercel
           restore-keys: |
             ${{ runner.os }}-npm-
             
