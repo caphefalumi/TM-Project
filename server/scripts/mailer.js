@@ -32,7 +32,6 @@ class Mailer {
   static async sendResetPasswordEmail(email, token) {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`
     const mailOptions = {
-      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Password Reset Request',
       html: `
@@ -64,7 +63,6 @@ class Mailer {
   static async sendVerificationEmail(email, token) {
     const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`
     const mailOptions = {
-      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Verify your email address',
       html: `
@@ -83,7 +81,6 @@ class Mailer {
 
   static async sendPasswordResetConfirmationEmail(email) {
     const mailOptions = {
-      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Password Reset Confirmation',
       html: `
@@ -103,7 +100,6 @@ class Mailer {
 
   static async sendNewEmailVerificationEmail(email, verificationUrl) {
     const mailOptions = {
-      from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Confirm your new email address',
       html: `
