@@ -9,7 +9,7 @@ import {
   getCurrentInstance,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 import { fetchJSON } from '../scripts/apiClient.js'
 import { permissionService } from '../services/permissionService.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
@@ -31,7 +31,7 @@ import NewMembers from '../components/NewMembers.vue'
 import WorkflowView from '../components/WorkflowView.vue'
 import NotFound from './NotFound.vue'
 
-const { getUserByAccessToken } = AuthStore
+const authStore = useAuthStore()
 const { addTeamToCache, updateTeamAccess, removeTeamFromCache, isTeamCacheValid, onTeamTabChange } =
   useComponentCache()
 
@@ -251,7 +251,7 @@ const initializeTeamData = async (forceRefresh = false) => {
   isLoadingTeamDetails.value = true
   teamNotFound.value = false
 
-  const userFromToken = await getUserByAccessToken()
+  const userFromToken = await authStore.getUserByAccessToken()
   if (userFromToken) {
     setUserToUserToken(userFromToken)
     await fetchTeamTasks()

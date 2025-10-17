@@ -9,7 +9,7 @@ const isVisible = ref(false)
 
 onMounted(async () => {
   try {
-    if (await authStore.isLoggedIn && await authStore.user) {
+    if (authStore.isLoggedIn && authStore.user) {
       router.push('/home')
       return
     }

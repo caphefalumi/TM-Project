@@ -131,14 +131,14 @@
 import { ref, onActivated, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useComponentCache } from '../composables/useComponentCache.js'
-import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 
 // Define component name for keep-alive
 defineOptions({
   name: 'FeedbackView',
 })
 
-const { getUserByAccessToken } = AuthStore
+const authStore = useAuthStore()
 const { needsRefresh, markAsRefreshed } = useComponentCache()
 const router = useRouter()
 
@@ -263,7 +263,7 @@ const submitFeedback = async () => {
 
 // Initialize user data
 onMounted(async () => {
-  const userToken = await getUserByAccessToken()
+  const userToken = await authStore.getUserByAccessToken()
   if (userToken) {
     setUserToUserToken(userToken)
   } else {
@@ -295,7 +295,7 @@ onActivated(async () => {
 
   // Ensure user is still authenticated when component is reactivated
   if (!user.value.userId) {
-    const userToken = await getUserByAccessToken()
+    const userToken = await authStore.getUserByAccessToken()
     if (userToken) {
       setUserToUserToken(userToken)
     } else {
