@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
-import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 import { fetchJSON } from '../scripts/apiClient.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
@@ -10,7 +10,7 @@ defineOptions({
   name: 'Dashboard',
 })
 
-const { getUserByAccessToken } = AuthStore
+const authStore = useAuthStore()
 const { needsRefresh, markAsRefreshed } = useComponentCache()
 
 const router = useRouter()
@@ -42,7 +42,7 @@ const sortOptions = [
 ]
 
 onMounted(async () => {
-  const userToken = await getUserByAccessToken()
+  const userToken = await authStore.getUserByAccessToken()
   if (userToken) {
     setUserToUserToken(userToken)
     await fetchTasks()

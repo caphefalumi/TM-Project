@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
-import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 import { fetchJSON } from '../scripts/apiClient.js'
 import NewTeams from '../components/NewTeams.vue'
 import { useComponentCache } from '../composables/useComponentCache.js'
@@ -11,7 +11,7 @@ defineOptions({
   name: 'TeamsView',
 })
 
-const { getUserByAccessToken } = AuthStore
+const authStore = useAuthStore()
 const { needsRefresh, markAsRefreshed } = useComponentCache()
 
 // --- Router Instance ---
@@ -32,7 +32,7 @@ const user = ref({
 const initializeTeamsData = async () => {
   userLoaded.value = false
   isLoadingTeams.value = true
-  const userFromToken = await getUserByAccessToken()
+  const userFromToken = await authStore.getUserByAccessToken()
   if (userFromToken) {
     setUserToUserToken(userFromToken)
     await getTeamThatUserIsAdmin()

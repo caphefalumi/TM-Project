@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import AuthStore from '../scripts/authStore.js'
+import { useAuthStore } from '../stores/auth.js'
 import UpdateAnnouncements from '../components/UpdateAnnouncements.vue'
 
-const { getUserByAccessToken } = AuthStore
+const authStore = useAuthStore()
 const router = useRouter()
 
 const user = ref({
@@ -68,7 +68,7 @@ const announcementsPageCount = computed(() =>
 
 onMounted(async () => {
   // Get user data from auth store
-  const userData = await getUserByAccessToken()
+  const userData = await authStore.getUserByAccessToken()
   if (!userData || userData.username !== 'admin') {
     router.push('/home')
     return
