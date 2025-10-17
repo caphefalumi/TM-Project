@@ -25,7 +25,7 @@ onMounted(async () => {
   // Trigger animations after component is mounted
   setTimeout(() => {
     isVisible.value = true
-  }, 100)
+  }, 30)
 })
 
 const navigateToLogin = () => {

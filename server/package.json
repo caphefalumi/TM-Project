@@ -20,6 +20,7 @@
     "express-rate-limit": "^8.1.0",
     "geoip-lite": "^1.4.10",
     "jsonwebtoken": "^9.0.2",
+    "mailersend": "^2.6.0",
     "mongoose": "^8.18.0",
     "multer": "^2.0.2",
     "multer-gridfs-storage": "^5.0.2",

@@ -1,27 +1,31 @@
-import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
+import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend'
 dotenv.config({ quiet: true })
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    type: 'OAuth2',
-    user: process.env.EMAIL_USER,
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-  },
+const mailerSend = new MailerSend({
+  apiKey: process.env.MAILERSEND_API_KEY,
 })
 
 class Mailer {
   static async sendMail(mailOptions) {
     try {
-      await transporter.sendMail(mailOptions)
-      console.log('Email sent successfully!')
-      return true
+      const sentFrom = new Sender(
+        "admin@tm-project.id.vn",
+        "Teams Management"
+      )
+      const recipients = [new Recipient(mailOptions.to, '')]
+      const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipients)
+        .setSubject(mailOptions.subject)
+        .setHtml(mailOptions.html)
+        .setText(mailOptions.html.replace(/<[^>]+>/g, ''))
+      await mailerSend.email.send(emailParams)
+      console.log('Email sent successfully via MailerSend API!')
+      return true;
     } catch (err) {
-      console.log('Error sending email:', err)
-      return false
+      console.log('Error sending email via MailerSend API:', err)
+      return false;
     }
   }
 
@@ -119,5 +123,4 @@ class Mailer {
     return await Mailer.sendMail(mailOptions)
   }
 }
-
 export default Mailer
