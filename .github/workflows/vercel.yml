@@ -23,9 +23,9 @@ jobs:
           path: |
             ~/.npm
             **/node_modules
-          key: linux-npm-vercel
+          key: ${{ runner.os }}-npm-vercel
           restore-keys: |
-            ${{ runner.os }}-npm-
+            ${{ runner.os }}-npm-vercel
             
       - name: Deploy client to Vercel
         working-directory: ./client
