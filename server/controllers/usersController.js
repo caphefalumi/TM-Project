@@ -657,7 +657,6 @@ export const updateUserProfile = async (req, res) => {
       const verificationTarget = account.email
       const verificationUrl = `${CLIENT_URL}/verify-email?token=${verificationToken}`
       const mailOptions = {
-        from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
         to: verificationTarget,
         subject: 'Confirm your new email address',
         html: `
