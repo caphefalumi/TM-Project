@@ -29,11 +29,11 @@ class Mailer {
     }
   }
 
-  static async sendResetPasswordEmail(user, token) {
+  static async sendResetPasswordEmail(email, token) {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`
     const mailOptions = {
       from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
-      to: user.email,
+      to: email,
       subject: 'Password Reset Request',
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -81,10 +81,10 @@ class Mailer {
     return await Mailer.sendMail(mailOptions)
   }
 
-  static async sendPasswordResetConfirmationEmail(user) {
+  static async sendPasswordResetConfirmationEmail(email) {
     const mailOptions = {
       from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
-      to: user.email,
+      to: email,
       subject: 'Password Reset Confirmation',
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -101,10 +101,10 @@ class Mailer {
     return await Mailer.sendMail(mailOptions)
   }
 
-  static async sendNewEmailVerificationEmail(user, verificationUrl) {
+  static async sendNewEmailVerificationEmail(email, verificationUrl) {
     const mailOptions = {
       from: `PM-PROJECT <${process.env.EMAIL_USER}>`,
-      to: user.email,
+      to: email,
       subject: 'Confirm your new email address',
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
