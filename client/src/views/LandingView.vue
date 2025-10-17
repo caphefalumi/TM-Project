@@ -9,7 +9,7 @@ const isVisible = ref(false)
 
 onMounted(async () => {
   try {
-    if (authStore.isLoggedIn && authStore.user) {
+    if (await authStore.isLoggedIn && await authStore.user) {
       router.push('/home')
       return
     }
@@ -22,10 +22,7 @@ onMounted(async () => {
   } catch (error) {
     console.log('Error checking authentication status:', error)
   }
-  // Trigger animations after component is mounted
-  setTimeout(() => {
-    isVisible.value = true
-  }, 30)
+  isVisible.value = true
 })
 
 const navigateToLogin = () => {
