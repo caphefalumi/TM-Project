@@ -568,7 +568,9 @@ jobs:
           body_path: release_notes.md
           draft: true
           prerelease: false
-          files: release-assets/*
+          files: |
+            release-assets/*
+            !release-assets/latest.json
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_BOT_TOKEN }}
