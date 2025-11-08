@@ -69,7 +69,7 @@ const updateAnnouncement = async () => {
   }
   loading.value = true
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/announcements/${props.announcement._id}`,
       {

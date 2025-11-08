@@ -112,7 +112,7 @@ function closeNoPermissionNotification() {
 const fetchTaskGroupDetails = async () => {
   loading.value = true
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
@@ -174,7 +174,7 @@ const updateTaskGroup = async () => {
   error.value = false
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
@@ -235,7 +235,7 @@ const deleteTaskGroup = async () => {
 
   saving.value = true
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {

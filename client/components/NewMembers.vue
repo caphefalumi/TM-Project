@@ -90,7 +90,7 @@ const emit = defineEmits(['update:dialog', 'members-added'])
 
 const fetchUsers = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/users/all`, {
       method: 'GET',
       credentials: 'include',
@@ -118,7 +118,7 @@ const fetchRoles = async () => {
   if (!props.teamId) return
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
       method: 'GET',
       credentials: 'include',
@@ -167,7 +167,7 @@ const fetchRoles = async () => {
 
 const sendMembersToServer = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams/${props.teamId}/users`, {
       method: 'POST',
       credentials: 'include',

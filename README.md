@@ -4,9 +4,9 @@
 
 ### Prerequisites
 
-- Bun (v1.0+ recommended)
+- Node.js (v18+ recommended) or Bun (v1.0+ recommended)
 - MongoDB (local or Atlas)
-- Vite (for frontend dev)
+- Nuxt 3 (for frontend)
 
 ### Installation
 
@@ -20,20 +20,33 @@
 2. Install dependencies for both client and server:
 
    ```pwsh
-   bun install
+   npm install
    cd client
-   bun install
+   npm install
    cd ../server
-   bun install
+   npm install
    ```
 
 3. Set up environment variables:
    - Copy `.env.example` to `.env` in the `server` folder and fill in your credentials (see sample in attachments).
+   - Copy `.env.example` to `.env` in the `client` folder for client-side environment variables.
 
 4. Start the website:
 
    ```pwsh
-   bun run app
+   npm run app
+   ```
+
+   Or run client and server separately:
+   
+   ```pwsh
+   # Terminal 1 - Start the client (Nuxt dev server)
+   cd client
+   npm run dev
+   
+   # Terminal 2 - Start the server
+   cd server
+   npm run server
    ```
 
 5. Visit `http://localhost:5173` in your browser.
@@ -51,7 +64,20 @@
 - Local: Register with email and password
 - Google: Use your Google account
 
-## 3. Credits
+## 3. Technology Stack
+
+**Frontend:**
+- Nuxt 3 (SPA mode)
+- Vue 3
+- Vuetify 3
+- Pinia (state management)
+- vue3-google-login (OAuth)
+
+**Backend:**
+- Node.js/Bun
+- MongoDB
+
+## 4. Credits
 
 **Contributors:**
 

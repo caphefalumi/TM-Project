@@ -105,7 +105,7 @@ const handleForgotPassword = async () => {
   success.value = false
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/auth/forgot-password`, {
       method: 'POST',
       headers: {

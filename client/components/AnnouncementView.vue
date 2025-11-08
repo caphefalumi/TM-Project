@@ -76,7 +76,7 @@ const submitComment = async () => {
   error.value = false
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const commentData = {
       userId: props.userProps.userId,
       username: props.userProps.username,

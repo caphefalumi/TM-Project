@@ -227,7 +227,7 @@ const submitFeedback = async () => {
 
   loading.value = true
   showAlert.value = false // Hide any previous alerts
-  const PORT = import.meta.env.VITE_API_PORT
+  const PORT = useRuntimeConfig().public.apiPort
   try {
     // Include userId in the feedback submission
     const feedbackData = {

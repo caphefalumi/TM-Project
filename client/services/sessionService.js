@@ -14,7 +14,7 @@ class SessionService {
    * Get active sessions (refresh tokens)
    */
   async getActiveSessions() {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     try {
       const response = await fetch(`${PORT}/api/sessions/active`, {
         method: 'GET',
@@ -41,7 +41,7 @@ class SessionService {
    * Check for security issues
    */
   async checkSecurity() {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     try {
       const response = await fetch(`${PORT}/api/sessions/security`, {
         method: 'GET',
@@ -77,7 +77,7 @@ class SessionService {
    * Revoke a specific session
    */
   async revokeSession(sessionId) {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     try {
       const response = await fetch(`${PORT}/api/sessions/${sessionId}`, {
         method: 'DELETE',
@@ -101,7 +101,7 @@ class SessionService {
    * Revoke all other sessions except current
    */
   async revokeAllOtherSessions() {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     try {
       const response = await fetch(`${PORT}/api/sessions/others/all`, {
         method: 'DELETE',

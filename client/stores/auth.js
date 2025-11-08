@@ -8,7 +8,7 @@ const tabId =
     ? crypto.randomUUID()
     : `tab-${Math.random().toString(36).slice(2)}`
 
-const PORT = import.meta.env.VITE_API_PORT
+const PORT = useRuntimeConfig().public.apiPort
 
 const normalizeUser = (userData) => {
   if (!userData) return null

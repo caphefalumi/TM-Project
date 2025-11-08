@@ -93,7 +93,7 @@ const loadAllData = async () => {
 
 const loadTeams = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/admin/teams`, {
       method: 'GET',
       credentials: 'include',
@@ -111,7 +111,7 @@ const loadTeams = async () => {
 
 const loadUsers = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/admin/users`, {
       method: 'GET',
       credentials: 'include',
@@ -132,7 +132,7 @@ const loadUsers = async () => {
 
 const loadAnnouncements = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/admin/announcements`, {
       method: 'GET',
       credentials: 'include',
@@ -171,7 +171,7 @@ const deleteTeam = async (team) => {
 
   deleting.value = true
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/admin/teams/${team._id}`, {
       method: 'DELETE',
       credentials: 'include',
@@ -202,7 +202,7 @@ const sendNotification = async () => {
   if (!notificationMessage.value.trim()) return
   console.log('Sending notification to user:', selectedUser.value)
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/admin/notify`, {
       method: 'POST',
       headers: {
@@ -240,7 +240,7 @@ const deleteUser = async (userToDelete) => {
   console.log('Deleting user:', userToDelete)
   deleting.value = true
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/admin/users/${userToDelete._id}`, // Never change this endpoint
       {
@@ -277,7 +277,7 @@ const deleteAnnouncement = async (announcement) => {
 
   deleting.value = true
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/admin/announcements/${announcement._id}`, {
       method: 'DELETE',
       credentials: 'include',

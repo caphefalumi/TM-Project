@@ -624,7 +624,7 @@ export default {
 
       this.isSaving = true
       try {
-        const PORT = import.meta.env.VITE_API_PORT
+        const PORT = useRuntimeConfig().public.apiPort
         const payload = {
           username: this.editForm.username.trim(),
           email: this.editForm.email.trim(),
@@ -701,7 +701,7 @@ export default {
       if (!this.canSaveUsername) return
       this.isSavingUsername = true
       try {
-        const PORT = import.meta.env.VITE_API_PORT
+        const PORT = useRuntimeConfig().public.apiPort
         const payload = { username: this.editUsernameForm.username.trim() }
         const response = await fetch(`${PORT}/api/users/profile`, {
           method: 'PUT',
@@ -746,7 +746,7 @@ export default {
       if (!this.canSaveEmail) return
       this.isSavingEmail = true
       try {
-        const PORT = import.meta.env.VITE_API_PORT
+        const PORT = useRuntimeConfig().public.apiPort
         const payload = { email: this.editEmailForm.email.trim() }
         const response = await fetch(`${PORT}/api/users/profile`, {
           method: 'PUT',
@@ -795,7 +795,7 @@ export default {
 
       this.isDeleting = true
       try {
-        const PORT = import.meta.env.VITE_API_PORT
+        const PORT = useRuntimeConfig().public.apiPort
         const response = await fetch(`${PORT}/api/users/account`, {
           method: 'DELETE',
           headers: {
@@ -836,7 +836,7 @@ export default {
       this.showPasswordResetConfirm = false
       this.isResettingPassword = true
       try {
-        const PORT = import.meta.env.VITE_API_PORT
+        const PORT = useRuntimeConfig().public.apiPort
         const response = await fetch(`${PORT}/api/auth/forgot-password`, {
           method: 'POST',
           headers: {

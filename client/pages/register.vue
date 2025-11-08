@@ -51,7 +51,7 @@ async function register() {
   loading.value = true
   try {
     // Send registration data to backend API (adjust URL as needed)
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const res = await fetch(`${PORT}/api/auth/local/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

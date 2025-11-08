@@ -16,7 +16,7 @@
 
 import { useComponentCache } from '../composables/useComponentCache.js'
 
-const API_PORT = import.meta.env.VITE_API_PORT
+const API_PORT = useRuntimeConfig().public.apiPort
 
 const refreshAccessToken = async () => {
   try {

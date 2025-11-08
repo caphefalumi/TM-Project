@@ -53,7 +53,7 @@ const fetchTaskDetails = async () => {
   error.value = false
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
 
     // First, get the task details from the task group
     const taskGroupResponse = await fetch(
@@ -143,7 +143,7 @@ const formatUrl = (url) => {
 }
 
 const getImageUrl = (fileId) => {
-  const PORT = import.meta.env.VITE_API_PORT || 'http://localhost:3000'
+  const PORT = useRuntimeConfig().public.apiPort || 'http://localhost:3000'
   return `${PORT}/api/images/${fileId}`
 }
 

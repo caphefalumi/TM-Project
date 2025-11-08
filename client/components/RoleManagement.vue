@@ -584,7 +584,7 @@ const executeRoleChange = async (member, newRoleType) => {
   loading.value = true
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/members/${member.userId}/assign-role`,
       {
@@ -665,7 +665,7 @@ const openPermissionsDialog = async (member) => {
 
   // Fetch member's current permissions
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/members/${member.userId}/permissions`,
       {

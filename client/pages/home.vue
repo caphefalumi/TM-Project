@@ -196,7 +196,7 @@ const taskStats = computed(() => {
 
 const fetchTasks = async () => {
   loading.value = true
-  const PORT = import.meta.env.VITE_API_PORT
+  const PORT = useRuntimeConfig().public.apiPort
   try {
     const { ok, status, data } = await fetchJSON(`${PORT}/api/tasks/`, {
       method: 'GET',

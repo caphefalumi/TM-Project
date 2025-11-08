@@ -70,7 +70,7 @@ const props = defineProps({
 // Computed property to add "None" option to parent team selection
 const fetchCategories = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams/categories`, {
       method: 'GET',
       headers: {
@@ -139,7 +139,7 @@ const createTeam = async () => {
   loading.value = true // Set loading state
   console.log('Creating project with data:', newTeam.value)
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams`, {
       method: 'POST',
       headers: {

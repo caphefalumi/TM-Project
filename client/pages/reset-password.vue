@@ -127,7 +127,7 @@ onMounted(async () => {
 
   // Verify the token with the server
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/auth/verify-reset-token`, {
       method: 'POST',
       headers: {
@@ -153,7 +153,7 @@ const handleResetPassword = async () => {
   success.value = false
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/auth/reset-password`, {
       method: 'POST',
       headers: {

@@ -87,7 +87,7 @@ const removeMembers = async () => {
   loading.value = true
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const membersToRemove = selectedMembers.value.map((member) => ({
       userId: member.userId,
     }))

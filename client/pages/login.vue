@@ -93,7 +93,7 @@ const goBack = () => {
 
 const createRefreshToken = async () => {
   // Create a refresh token for the user
-  const PORT = import.meta.env.VITE_API_PORT
+  const PORT = useRuntimeConfig().public.apiPort
   try {
     const user = {
       userId: userId.value,
@@ -132,7 +132,7 @@ const loginUsingLocal = async () => {
   isLoading.value = true
   error.value = ''
   success.value = ''
-  const PORT = import.meta.env.VITE_API_PORT
+  const PORT = useRuntimeConfig().public.apiPort
   try {
     const res = await fetch(`${PORT}/api/auth/local/login`, {
       method: 'POST',
@@ -176,7 +176,7 @@ const loginUsingOAuth = async (response) => {
   success.value = ''
   try {
     // Use the access_token from the OAuth response
-    const res = await fetch(`${import.meta.env.VITE_API_PORT}/api/auth/oauth`, {
+    const res = await fetch(`${useRuntimeConfig().public.apiPort}/api/auth/oauth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -235,7 +235,7 @@ const loginWithGoogleInTauri = async () => {
   success.value = ''
 
   try {
-    const CLIENT_ID = import.meta.env.VITE_DESKTOP_CLIENT_ID
+    const CLIENT_ID = useRuntimeConfig().public.clientId
 
     if (!CLIENT_ID) {
       throw new Error('Desktop OAuth client ID not configured')
@@ -270,9 +270,9 @@ const loginWithGoogleInTauri = async () => {
     const result = await invoke('wait_for_oauth_callback', {
       codeVerifier: codeVerifier,
       expectedState: state,
-      backendUrl: import.meta.env.VITE_API_PORT,
+      backendUrl: useRuntimeConfig().public.apiPort,
       clientId: CLIENT_ID,
-      clientSecret: import.meta.env.VITE_DESKTOP_CLIENT_SECRET,
+      clientSecret: useRuntimeConfig().public.clientSecret,
     })
 
     console.log('[OAuth] Received result:', result)
@@ -309,7 +309,7 @@ const registerWithOAuth = async () => {
   isLoading.value = true
   error.value = ''
   success.value = ''
-  const PORT = import.meta.env.VITE_API_PORT
+  const PORT = useRuntimeConfig().public.apiPort
 
   try {
     const res = await fetch(`${PORT}/api/auth/google/register`, {
@@ -350,7 +350,7 @@ const resendVerificationEmail = async () => {
   error.value = ''
   success.value = ''
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const res = await fetch(`${PORT}/api/auth/resend-verification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

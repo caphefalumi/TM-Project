@@ -169,7 +169,7 @@ const setUserToUserToken = (userToken) => {
 
 const getTeamThatUserIsAdmin = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/admin`, {
       method: 'GET',
       headers: {
@@ -190,7 +190,7 @@ const getTeamThatUserIsAdmin = async () => {
 
 const fetchUserTeams = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(`${PORT}/api/teams`, {
       method: 'GET',
       headers: {

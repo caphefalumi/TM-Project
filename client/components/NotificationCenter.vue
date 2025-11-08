@@ -236,7 +236,7 @@ const loadNotifications = async (page = 1) => {
   }
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/notifications/${props.userId}?page=${page}&limit=20`,
       {
@@ -278,7 +278,7 @@ const markAllAsRead = async () => {
   markingAsRead.value = true
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/notifications/${props.userId}/mark-read`, {
       method: 'POST',
       headers: {
@@ -377,7 +377,7 @@ const handleNotificationClick = async (notification) => {
 
 const markNotificationAsRead = async (notificationId) => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     await fetch(`${PORT}/api/notifications/${props.userId}/mark-read`, {
       method: 'POST',
       headers: {
@@ -392,7 +392,7 @@ const markNotificationAsRead = async (notificationId) => {
 
 const deleteNotification = async (notificationId) => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/notifications/${props.userId}`, {
       method: 'DELETE',
       headers: {
@@ -426,7 +426,7 @@ const openSettings = () => {
 
 const loadPreferences = async () => {
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/notifications/${props.userId}/preferences`, {
       method: 'GET',
       headers: {
@@ -447,7 +447,7 @@ const saveSettings = async () => {
   savingSettings.value = true
 
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
 
     // Preserve admin preferences when saving (always keep them enabled)
     const preferencesToSave = {

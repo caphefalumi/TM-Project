@@ -243,7 +243,7 @@ class PermissionService {
    */
   async fetchUserActions(teamId, userId) {
     try {
-      const PORT = import.meta.env.VITE_API_PORT
+      const PORT = useRuntimeConfig().public.apiPort
       const { ok, status, data } = await fetchJSON(
         `${PORT}/api/teams/${teamId}/members/${userId}/permissions`,
         {
@@ -276,7 +276,7 @@ class PermissionService {
    */
   async updateUserPermissions(teamId, userId, customPermissions) {
     try {
-      const PORT = import.meta.env.VITE_API_PORT
+      const PORT = useRuntimeConfig().public.apiPort
       const { ok, status, data } = await fetchJSON(
         `${PORT}/api/teams/${teamId}/members/${userId}/permissions`,
         {

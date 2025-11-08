@@ -28,6 +28,7 @@ export default defineNuxtConfig({
       clientId: process.env.VITE_CLIENT_ID || '',
       apiPort: process.env.VITE_API_PORT || '',
       dev: process.env.VITE_DEV || 'false',
+      clientSecret: process.env.VITE_DESKTOP_CLIENT_SECRET || '',
     }
   },
 

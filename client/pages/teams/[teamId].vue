@@ -475,7 +475,7 @@ const fetchUserPermissions = async () => {
 const fetchSubTeams = async () => {
   try {
     isLoadingSubTeams.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/sub-teams`, {
       method: 'GET',
       headers: {
@@ -518,7 +518,7 @@ const updateRoleFlags = () => {
 const fetchTeamTasks = async () => {
   try {
     isLoadingTasks.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(
       `${PORT}/api/teams/${teamId.value}/${user.value.userId}/tasks`,
       {
@@ -549,7 +549,7 @@ const fetchTeamTasks = async () => {
 const fetchTeamDetails = async () => {
   try {
     isLoadingTeamDetails.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}`, {
       method: 'GET',
       headers: {
@@ -575,7 +575,7 @@ const fetchTeamDetails = async () => {
 const fetchAnnouncements = async () => {
   try {
     isLoadingAnnouncements.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(
       `${PORT}/api/teams/${teamId.value}/announcements`,
       {
@@ -604,7 +604,7 @@ const fetchAnnouncements = async () => {
 const fetchTeamMembers = async () => {
   try {
     isLoadingMembers.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/users`, {
       method: 'GET',
       headers: {
@@ -689,7 +689,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
   console.log('Like announcement with ID:', announcementId)
   // Here you would typically send a request to the server to like the announcement
 
-  const PORT = import.meta.env.VITE_API_PORT
+  const PORT = useRuntimeConfig().public.apiPort
   try {
     const { ok, status, data } = await fetchJSON(
       `${PORT}/api/announcements/${announcementId}/like`,
@@ -729,7 +729,7 @@ const toggleLikeAnnouncement = async (announcementId) => {
 const getTaskGroups = async () => {
   try {
     refreshingTaskGroups.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const { ok, status, data } = await fetchJSON(`${PORT}/api/teams/${teamId.value}/task-groups`, {
       method: 'GET',
       headers: {
@@ -890,7 +890,7 @@ const confirmDeleteTeam = async () => {
   try {
     isDeletingTeam.value = true
 
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
       method: 'DELETE',
       credentials: 'include',
@@ -930,7 +930,7 @@ const refreshTeamData = async () => {
 
 // Development mode check
 const isDev = computed(() => {
-  const customDev = import.meta.env.VITE_DEV
+  const customDev = useRuntimeConfig().public.dev
   if (customDev !== undefined) {
     return customDev === 'true'
   }

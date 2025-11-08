@@ -142,7 +142,7 @@ const resetForm = () => {
 
 // Upload image to GridFS
 const uploadImageToServer = async (imageData, filename) => {
-  const PORT = import.meta.env.VITE_API_PORT
+  const PORT = useRuntimeConfig().public.apiPort
 
   try {
     const response = await fetch(`${PORT}/api/images/upload`, {
@@ -371,7 +371,7 @@ const submitTaskResponse = async () => {
     loading.value = true
     submissionData.submissionDate = new Date().toISOString()
 
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/tasks/submit`, {
       method: 'POST',
       credentials: 'include',
@@ -419,7 +419,7 @@ const getPriorityColor = (priority) => {
 
 // Get image URL for GridFS file ID
 const getImageUrl = (fileId) => {
-  const PORT = import.meta.env.VITE_API_PORT || 'http://localhost:3000'
+  const PORT = useRuntimeConfig().public.apiPort || 'http://localhost:3000'
   return `${PORT}/api/images/${fileId}`
 }
 

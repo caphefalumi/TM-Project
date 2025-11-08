@@ -72,7 +72,7 @@ const showDebugger = ref(false)
 const stats = computed(() => getCacheStats())
 const currentRoute = computed(() => `${route.name} (${route.path})`)
 const isDev = computed(() => {
-  const customDev = import.meta.env.VITE_DEV
+  const customDev = useRuntimeConfig().public.dev
   if (customDev !== undefined) {
     return customDev === 'true'
   }

@@ -75,7 +75,7 @@ const deleteTeams = async (teamId) => {
   try {
     // Logic to delete teams goes here
     // For example, you might call an API endpoint to delete the selected teams
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams/${teamId}`, {
       method: 'DELETE',
       headers: {

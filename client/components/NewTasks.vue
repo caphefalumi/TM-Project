@@ -240,7 +240,7 @@ const createTask = async () => {
   }
   console.log('Creating task:', submittedData)
   try {
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     // Ensure description exists even if empty
     if (taskForm.value.description === undefined) {
       taskForm.value.description = ''

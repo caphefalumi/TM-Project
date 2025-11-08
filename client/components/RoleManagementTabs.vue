@@ -155,7 +155,7 @@ const permissionsByCategory = computed(() => {
 const fetchCustomRoles = async () => {
   try {
     loading.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
       method: 'GET',
       credentials: 'include',
@@ -181,7 +181,7 @@ const fetchCustomRoles = async () => {
 const createCustomRole = async () => {
   try {
     loading.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
       method: 'POST',
       credentials: 'include',
@@ -218,7 +218,7 @@ const createCustomRole = async () => {
 const updateCustomRole = async () => {
   try {
     loading.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`,
       {
@@ -257,7 +257,7 @@ const updateCustomRole = async () => {
 const deleteCustomRole = async () => {
   try {
     loading.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
     const response = await fetch(
       `${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`,
       {
@@ -290,7 +290,7 @@ const deleteCustomRole = async () => {
 const assignRole = async (member, roleType, roleId = null) => {
   try {
     loading.value = true
-    const PORT = import.meta.env.VITE_API_PORT
+    const PORT = useRuntimeConfig().public.apiPort
 
     // Use unified endpoint for role assignment
     const endpoint = `${PORT}/api/teams/${props.teamId}/members/${member.userId}/assign-role`

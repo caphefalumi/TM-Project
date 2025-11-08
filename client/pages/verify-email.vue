@@ -82,7 +82,7 @@ export default {
       }
 
       try {
-        const PORT = import.meta.env.VITE_API_PORT
+        const PORT = useRuntimeConfig().public.apiPort
         const response = await fetch(`${PORT}/api/users/email/verify`, {
           method: 'POST',
           headers: {
