@@ -30,13 +30,17 @@
             <div class="profile-info">
               <div class="profile-title">
                 <h3>{{ user.username }}</h3>
-                <span v-if="user.email" class="status-chip warning">
+                <span v-if="user.email && !user.emailVerified" class="status-chip warning">
                   <v-icon size="16">mdi-clock-outline</v-icon>
                   Verification pending
                 </span>
-                <span v-else class="status-chip success">
+                <span v-else-if="user.email && user.emailVerified" class="status-chip success">
                   <v-icon size="16">mdi-check-circle</v-icon>
-                  All set
+                  Verified
+                </span>
+                <span v-else class="status-chip muted">
+                  <v-icon size="16">mdi-information-outline</v-icon>
+                  No email
                 </span>
               </div>
               <p class="user-id">User ID: {{ user.userId }}</p>
@@ -66,7 +70,7 @@
                   </button>
                 </div>
               </div>
-              <div class="info-item" v-if="user.email">
+              <div class="info-item" v-if="user.email && !user.emailVerified">
                 <label>Pending Email</label>
                 <div class="info-value pending">
                   {{ user.email }}
@@ -78,7 +82,7 @@
                 <div class="info-value">{{ memberSince }}</div>
               </div>
             </div>
-            <div v-if="user.email" class="pending-email-banner">
+            <div v-if="user.email && !user.emailVerified" class="pending-email-banner">
               <v-icon size="18">mdi-email-clock</v-icon>
               <span>
                 We've sent a confirmation email to <strong>{{ user.email }}</strong
@@ -293,7 +297,7 @@
                     We'll send a verification message to confirm this change before it's applied.
                   </p>
                 </div>
-                <div v-if="user.email" class="pending-note">
+                <div v-if="user.email && !user.emailVerified" class="pending-note">
                   <v-icon size="18">mdi-email-clock-outline</v-icon>
                   <span>
                     A verification email is waiting at <strong>{{ user.email }}</strong
@@ -435,7 +439,7 @@ export default {
           username: '',
           email: '',
           email: null,
-          emailVerified: true,
+          emailVerified: false,
           lastUsernameChangeAt: null,
           lastEmailChangeAt: null,
           emailVerificationExpires: null,
