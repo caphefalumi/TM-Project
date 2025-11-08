@@ -118,5 +118,22 @@ class Mailer {
     }
     return await Mailer.sendMail(mailOptions)
   }
+
+  static async sendEmailUpdateConfirmation(account) {
+    const mailOptions = {
+      to: account.email,
+      subject: 'Your email address has been updated',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #4A90E2;">Email Updated</h2>
+          <p>Hello ${account.username || ''},</p>
+          <p>Your account email has been successfully updated to <strong>${account.email}</strong>.</p>
+          <p>If you did not make this change, please contact support immediately or reset your password.</p>
+          <p>Best regards,<br/>Your Team Management System</p>
+        </div>
+      `,
+    }
+    return await Mailer.sendMail(mailOptions)
+  }
 }
 export default Mailer
