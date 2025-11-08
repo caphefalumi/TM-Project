@@ -549,6 +549,9 @@ export const updateUserProfile = async (req, res) => {
     if (!account) {
       return res.status(404).json({ error: 'User not found' })
     }
+    // Keep original values so we can revert if sending verification email fails
+    const previousEmail = account.email
+    const previousEmailVerified = account.emailVerified
 
     const normalizedUsername = username
     const normalizedEmail = email !== undefined ? email.toLowerCase() : account.email
@@ -675,15 +678,18 @@ export const updateUserProfile = async (req, res) => {
       }
 
       try {
-        await Mailer.sendEmail(mailOptions)
+        // use the Mailer helper to send the raw mailOptions
+        await Mailer.sendMail(mailOptions)
       } catch (error) {
         console.log('Failed to send email verification:', error)
+        // revert verification token and expiry
         account.emailVerificationToken = undefined
         account.emailVerificationExpires = undefined
 
+        // revert email fields back to previous values to avoid validation errors
         if (emailChanged) {
-          account.email = null
-          account.emailVerified = true
+          account.email = previousEmail
+          account.emailVerified = previousEmailVerified
         }
 
         await account.save()
