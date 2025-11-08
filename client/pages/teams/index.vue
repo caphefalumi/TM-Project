@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
-import { fetchJSON } from '../scripts/apiClient.js'
+import { fetchJSON } from '~/utils/apiClient.js'
 import NewTeams from '../components/NewTeams.vue'
 import { useComponentCache } from '../composables/useComponentCache.js'
 

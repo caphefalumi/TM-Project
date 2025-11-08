@@ -18,15 +18,15 @@
 onMounted(() => {
   // Pick a random message for loading screen
   const messages = [
-    'Getting your team ready to shine…',
-    'Setting the stage for teamwork magic…',
-    'Bringing your team together…',
-    'Initializing your team workspace…',
-    'Preparing your team dashboard…',
-    'Setting up your collaboration hub…',
-    'Kickstarting your team journey…',
-    'Empowering your team to succeed…',
-    'Fueling up your team's potential…'
+    'Getting your team ready to shine...',
+    'Setting the stage for teamwork magic...',
+    'Bringing your team together...',
+    'Initializing your team workspace...',
+    'Preparing your team dashboard...',
+    'Setting up your collaboration hub...',
+    'Kickstarting your team journey...',
+    'Empowering your team to succeed...',
+    'Fueling up your team\'s potential...'
   ]
   
   const messageEl = document.getElementById('loading-message')

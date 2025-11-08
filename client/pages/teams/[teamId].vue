@@ -10,7 +10,7 @@ import {
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
-import { fetchJSON } from '../scripts/apiClient.js'
+import { fetchJSON } from '~/utils/apiClient.js'
 import { permissionService } from '../services/permissionService.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
@@ -29,7 +29,6 @@ import RoleManagement from '../components/RoleManagement.vue'
 import RoleManagementTabs from '../components/RoleManagementTabs.vue'
 import NewMembers from '../components/NewMembers.vue'
 import WorkflowView from '../components/WorkflowView.vue'
-import NotFound from './NotFound.vue'
 
 const authStore = useAuthStore()
 const { addTeamToCache, updateTeamAccess, removeTeamFromCache, isTeamCacheValid, onTeamTabChange } =
@@ -991,7 +990,16 @@ const isDev = computed(() => {
 
     <!-- Team Not Found State (keep sidebar visible) -->
     <div v-else-if="teamNotFound">
-      <NotFound />
+      <v-container>
+        <v-row justify="center">
+          <v-col cols="12" md="6" class="text-center">
+            <v-icon size="100" color="grey">mdi-alert-circle-outline</v-icon>
+            <h1 class="text-h4 mt-4">Team Not Found</h1>
+            <p class="text-body-1 mt-2">The team you're looking for doesn't exist or you don't have access to it.</p>
+            <v-btn color="primary" class="mt-4" @click="router.push('/teams')">Go to Teams</v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
     </div>
 
     <!-- Actual content when loaded and team exists -->

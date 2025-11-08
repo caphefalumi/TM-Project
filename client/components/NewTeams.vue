@@ -2,7 +2,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalNotifications } from '../composables/useGlobalNotifications.js'
-import '../styles/buttonStyling.css'
+import '~/assets/styles/buttonStyling.css'
 
 const { showSuccess, showError } = useGlobalNotifications()
 

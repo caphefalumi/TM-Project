@@ -5,6 +5,10 @@ export default defineNuxtConfig({
   
   ssr: false, // SPA mode to maintain current behavior
   
+  devServer: {
+    port: 5173
+  },
+  
   modules: [
     '@pinia/nuxt',
     'vuetify-nuxt-module'
