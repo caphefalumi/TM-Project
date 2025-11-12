@@ -583,42 +583,55 @@ const toggleSortOrder = () => {
 }
 
 .task-title {
-  font-size: 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
 }
 
 .task-detail-card {
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .task-detail-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 112, 243, 0.3);
 }
 
 /* Data table customization */
 :deep(.v-data-table) {
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 :deep(.v-data-table .v-data-table__th) {
   font-weight: 600;
-  color: rgba(var(--v-theme-on-surface), 0.87);
-  padding: 12px 16px !important;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.7);
+  padding: 16px !important;
+  background-color: #F9FAFB;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 :deep(.v-data-table .v-data-table__td) {
-  padding: 12px 16px !important;
+  padding: 16px !important;
   vertical-align: middle;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 :deep(.v-data-table tbody tr) {
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :deep(.v-data-table tbody tr:hover) {
-  background-color: rgba(var(--v-theme-primary), 0.04) !important;
+  background-color: rgba(0, 112, 243, 0.04) !important;
+}
+
+:deep(.v-data-table tbody tr:last-child td) {
+  border-bottom: none;
 }
 
 :deep(.v-data-table table) {

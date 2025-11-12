@@ -258,7 +258,7 @@ const features = [
 /* Hero Section */
 .hero-section {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0070F3 0%, #7C3AED 100%);
   position: relative;
   display: flex;
   align-items: center;
@@ -321,8 +321,8 @@ const features = [
 }
 
 .highlight-text {
-  color: #ffeb3b;
-  text-shadow: 0 0 30px rgba(255, 235, 59, 0.5);
+  color: #FFD700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
 }
 
 .hero-subtitle {
@@ -432,7 +432,7 @@ const features = [
 /* Features Section */
 .features-section {
   padding: 6rem 0;
-  background: #f8fafc;
+  background: #FAFAFA;
 }
 
 .section-title {
@@ -494,7 +494,7 @@ const features = [
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(0, 112, 243, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -504,7 +504,7 @@ const features = [
 
 .feature-card:hover .feature-icon-wrapper {
   transform: scale(1.1);
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(0, 112, 243, 0.2);
 }
 
 .feature-icon {
@@ -556,7 +556,7 @@ const features = [
 .step-number {
   font-size: 3rem;
   font-weight: 800;
-  color: #667eea;
+  color: #0070F3;
   margin-bottom: 1rem;
   opacity: 0.8;
 }
@@ -576,7 +576,7 @@ const features = [
 /* Final CTA Section */
 .final-cta-section {
   padding: 6rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0070F3 0%, #7C3AED 100%);
   position: relative;
 }
 
@@ -611,7 +611,7 @@ const features = [
   font-weight: 600 !important;
   border-radius: 50px !important;
   background: white !important;
-  color: #667eea !important;
+  color: #0070F3 !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
 }
 
@@ -631,7 +631,7 @@ const features = [
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #667eea;
+  color: #0070F3;
 }
 
 .footer-description {
@@ -644,7 +644,7 @@ const features = [
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #667eea;
+  color: #0070F3;
 }
 
 .contact-item {

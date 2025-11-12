@@ -361,9 +361,15 @@ const navigateToLogin = () => {
 <style scoped>
 /* Scoped styles for this component */
 .v-list-item--active {
-  background-color: #5ee4ff;
-  color: black;
-  transition: 0.5s ease-in-out;
+  background: linear-gradient(90deg, rgba(0, 112, 243, 0.1) 0%, rgba(0, 112, 243, 0.05) 100%);
+  color: #0070F3 !important;
+  border-left: 3px solid #0070F3;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.v-list-item--active .v-icon {
+  color: #0070F3 !important;
 }
 
 .search-field {
@@ -418,14 +424,14 @@ const navigateToLogin = () => {
 }
 
 .logged-out-text {
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  background: linear-gradient(135deg, #0070F3 0%, #7C3AED 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .logged-out-icon {
-  color: #1976d2 !important;
+  color: #0070F3 !important;
 }
 
 /* Landing Navigation Links */
@@ -448,8 +454,8 @@ const navigateToLogin = () => {
 }
 
 .nav-link:hover {
-  background-color: rgba(25, 118, 210, 0.08) !important;
-  color: #1976d2 !important;
+  background-color: rgba(0, 112, 243, 0.08) !important;
+  color: #0070F3 !important;
 }
 
 /* Auth Buttons */
@@ -471,8 +477,8 @@ const navigateToLogin = () => {
 }
 
 .login-btn:hover {
-  background-color: rgba(25, 118, 210, 0.08) !important;
-  color: #1976d2 !important;
+  background-color: rgba(0, 112, 243, 0.08) !important;
+  color: #0070F3 !important;
 }
 
 .signup-btn {
@@ -493,7 +499,7 @@ const navigateToLogin = () => {
 
 /* Mobile Menu */
 .mobile-menu-btn {
-  color: #1976d2;
+  color: #0070F3;
 }
 
 /* Logged In Topbar (Original styles) */
