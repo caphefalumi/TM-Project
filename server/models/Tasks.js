@@ -192,6 +192,52 @@ const taskSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Jira-like features
+  status: {
+    type: String,
+    enum: ['To Do', 'In Progress', 'In Review', 'Done', 'Blocked'],
+    default: 'To Do',
+  },
+  assignee: {
+    type: String,
+    default: null,
+  },
+  reporter: {
+    type: String,
+    default: null,
+  },
+  estimatedHours: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  loggedHours: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  dependencies: {
+    blockedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tasks',
+      },
+    ],
+    blocking: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tasks',
+      },
+    ],
+  },
+  sprintId: {
+    type: String,
+    default: null,
+  },
+  updatedAt: {
+    type: Date,
+    default: () => Date.now(),
+  },
 })
 
 // Create models

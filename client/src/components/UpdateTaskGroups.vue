@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import ViewTask from './ViewTask.vue'
+import EnhancedTaskView from './EnhancedTaskView.vue'
 import { permissionService } from '../services/permissionService.js'
 
 const emit = defineEmits(['update:dialog', 'task-group-updated'])
@@ -297,6 +297,11 @@ const removeUser = (userId) => {
   editForm.value.assignedUsers = editForm.value.assignedUsers.filter((id) => id !== userId)
 }
 
+const handleTaskUpdated = () => {
+  // Refresh task group details to show updated task data
+  fetchTaskGroupDetails()
+}
+
 // Computed: permission for task group
 const canViewTaskGroup = computed(() => permissionService.canViewTaskGroup())
 const canEditTaskGroup = computed(() => permissionService.canManageTasks())
@@ -589,12 +594,12 @@ onMounted(() => {
       </v-card-text>
     </v-card>
 
-    <!-- ViewTask Dialog -->
-    <ViewTask
+    <!-- EnhancedTaskView Dialog -->
+    <EnhancedTaskView
       v-model:dialog="viewTaskDialog"
       :task="selectedTask"
-      :team-id="teamId"
-      :username="selectedUsername"
+      :user-id="userProps.userId"
+      @task-updated="handleTaskUpdated"
     />
   </v-dialog>
 </template>
