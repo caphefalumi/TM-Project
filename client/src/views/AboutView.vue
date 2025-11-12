@@ -257,7 +257,9 @@ onActivated(() => {
 }
 
 .highlight-text {
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  background: linear-gradient(45deg, #0070F3, #7C3AED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: none;
 }
@@ -288,11 +290,11 @@ onActivated(() => {
 }
 
 .floating-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 2px solid rgba(131, 131, 131, 0.8);
-  box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.15);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 112, 243, 0.1);
   position: relative;
   overflow: visible;
   opacity: 0;
@@ -310,9 +312,10 @@ onActivated(() => {
 }
 
 .floating-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
-  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 48px rgba(0, 112, 243, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 112, 243, 0.3);
 }
 
 .card-glow {
@@ -395,9 +398,9 @@ onActivated(() => {
 .creator-name {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #3b82f6;
+  color: #0070F3;
   margin-bottom: 0.3rem;
-  text-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+  text-shadow: 0 0 10px rgba(0, 112, 243, 0.2);
 }
 
 .creator-description {

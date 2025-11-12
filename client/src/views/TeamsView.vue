@@ -575,13 +575,14 @@ const getProgressColor = (percentage) => {
 
 /* Team cards specific styling */
 .team-card {
-  transition: all 0.3s ease;
-  border: 1px solid #e0e0e0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   height: auto;
   max-height: 350px;
   min-height: 250px;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 }
 
 .team-card .v-card-text,
@@ -591,8 +592,9 @@ const getProgressColor = (percentage) => {
 }
 
 .team-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 112, 243, 0.15) !important;
+  border-color: rgba(0, 112, 243, 0.3);
 }
 
 /* Progress Section Styles */
