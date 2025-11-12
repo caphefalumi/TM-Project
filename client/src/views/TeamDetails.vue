@@ -29,6 +29,7 @@ import RoleManagement from '../components/RoleManagement.vue'
 import RoleManagementTabs from '../components/RoleManagementTabs.vue'
 import NewMembers from '../components/NewMembers.vue'
 import WorkflowView from '../components/WorkflowView.vue'
+import SprintManagement from '../components/SprintManagement.vue'
 import NotFound from './NotFound.vue'
 
 const authStore = useAuthStore()
@@ -1425,17 +1426,24 @@ const isDev = computed(() => {
                 class="d-flex flex-column flex-md-row align-md-center justify-space-between gap-2 mb-3"
               >
                 <h2 class="text-h5">Team's Workflow</h2>
-                <v-btn
-                  color="primary"
-                  variant="outlined"
-                  size="large"
-                  class="flex-grow-1 flex-md-grow-0 mt-2"
-                  @click="getTaskGroups"
-                  :loading="refreshingTaskGroups"
-                >
-                  <v-icon start>mdi-refresh</v-icon>
-                  Refresh
-                </v-btn>
+                <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0">
+                  <SprintManagement
+                    :team-id="team.teamId"
+                    @sprint-created="getTaskGroups"
+                    @sprint-updated="getTaskGroups"
+                  />
+                  <v-btn
+                    color="primary"
+                    variant="outlined"
+                    size="large"
+                    class="flex-grow-1 flex-md-grow-0"
+                    @click="getTaskGroups"
+                    :loading="refreshingTaskGroups"
+                  >
+                    <v-icon start>mdi-refresh</v-icon>
+                    Refresh
+                  </v-btn>
+                </div>
               </div>
             </v-col>
           </v-row>
