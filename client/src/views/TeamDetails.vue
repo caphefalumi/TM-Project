@@ -1428,7 +1428,8 @@ const isDev = computed(() => {
                 <h2 class="text-h5">Team's Workflow</h2>
                 <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0">
                   <SprintManagement
-                    :team-id="team.teamId"
+                    v-if="canManageTasks"
+                    :team-id="teamId"
                     @sprint-created="getTaskGroups"
                     @sprint-updated="getTaskGroups"
                   />

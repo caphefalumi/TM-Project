@@ -143,7 +143,7 @@ export const hasPermission = async (userId, teamId, permission, globalUsername =
 export const requireAdmin = (req, res, next) => {
   const userId = req.user?.userId
   const username = req.user?.username
-  const teamId = req.params.teamId || req.body.teamId
+  let teamId = req.params.teamId || req.body?.teamId
 
   if (!userId) {
     return res.status(401).json({ message: 'Authentication required' })
@@ -154,7 +154,8 @@ export const requireAdmin = (req, res, next) => {
     return next()
   }
 
-  if (!teamId) {
+  // Validate teamId - check for undefined, null, or the string "undefined"
+  if (!teamId || teamId === 'undefined' || teamId === 'null') {
     return res.status(400).json({ message: 'Team ID is required' })
   }
 
@@ -175,7 +176,7 @@ export const requirePermission = (permission) => {
   return async (req, res, next) => {
     try {
       const userId = req.user?.userId
-      const teamId = req.params.teamId || req.body.teamId
+      let teamId = req.params.teamId || req.body?.teamId
       const globalUsername = req.user?.username
 
       if (!userId) {
@@ -187,7 +188,8 @@ export const requirePermission = (permission) => {
         return next()
       }
 
-      if (!teamId) {
+      // Validate teamId - check for undefined, null, or the string "undefined"
+      if (!teamId || teamId === 'undefined' || teamId === 'null') {
         return res.status(400).json({ message: 'Team ID is required' })
       }
 
@@ -221,6 +223,11 @@ export const requirePermission = (permission) => {
 
 export const getUserRoleInTeam = async (userId, teamId) => {
   try {
+    // Validate inputs to prevent casting errors
+    if (!userId || !teamId || teamId === 'undefined' || teamId === 'null') {
+      return null
+    }
+    
     const userTeamRole = await UsersOfTeam.findOne({ userId, teamId })
     return userTeamRole ? userTeamRole.roleType : null
   } catch (error) {

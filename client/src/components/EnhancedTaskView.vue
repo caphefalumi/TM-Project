@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="1200px" persistent scrollable>
+  <v-dialog :model-value="dialog" @update:model-value="$emit('update:dialog', $event)" max-width="1200px" persistent scrollable>
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between">
         <div class="d-flex align-center">
