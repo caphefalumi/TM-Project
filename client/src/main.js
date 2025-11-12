@@ -7,6 +7,7 @@ import 'vuetify/styles'
 import vuetify from './plugins/vuetify.js' // Import the configured instance
 
 import vue3GoogleLogin from 'vue3-google-login'
+import { initializeCsrf } from './services/csrfService.js'
 
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID
 
@@ -20,4 +21,8 @@ app.use(vue3GoogleLogin, {
 app.use(pinia)
 app.use(router)
 app.use(vuetify)
-app.mount('#app')
+
+// Initialize CSRF protection before mounting the app
+initializeCsrf().then(() => {
+  app.mount('#app')
+})

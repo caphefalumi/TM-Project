@@ -30,7 +30,8 @@ A comprehensive project management platform with Jira-like features for team col
    ```
 
 3. Set up environment variables:
-   - Copy `.env.example` to `.env` in the `server` folder and fill in your credentials (see sample in attachments).
+   - Copy `.env.example` to `.env` in the `server` folder and fill in your credentials.
+   - **Important:** Set a secure `CSRF_SECRET` in production for CSRF protection.
 
 4. Start the website:
 
@@ -136,7 +137,30 @@ A comprehensive project management platform with Jira-like features for team col
 - `POST /api/sprints/:sprintId/start` - Start a sprint
 - `POST /api/sprints/:sprintId/complete` - Complete a sprint
 
-## 4. Testing
+## 4. Security
+
+### CSRF Protection
+
+The application implements CSRF (Cross-Site Request Forgery) protection for all state-changing requests:
+
+- **Backend:** Uses `csrf-csrf` middleware with double-submit cookie pattern
+- **Frontend:** Automatically includes CSRF tokens in all POST, PUT, PATCH, and DELETE requests
+- **Configuration:** Set `CSRF_SECRET` in your `.env` file for production
+
+**How it works:**
+1. Client fetches CSRF token from `/api/csrf-token` on app initialization
+2. Token is automatically included in request headers for non-GET requests
+3. Server validates the token for all protected endpoints
+
+### Other Security Features
+
+- **MongoDB Injection Protection:** Express-mongo-sanitize middleware
+- **JWT Authentication:** Secure token-based authentication with refresh tokens
+- **Rate Limiting:** Configured for API endpoints
+- **Cookie Security:** httpOnly cookies with sameSite protection
+- **CORS:** Configured for trusted origins only
+
+## 5. Testing
 
 Run tests:
 
@@ -152,7 +176,7 @@ cd client
 bun run test:coverage
 ```
 
-## 5. Credits
+## 6. Credits
 
 **Contributors:**
 
@@ -160,6 +184,6 @@ bun run test:coverage
 - Đặng Duy Toàn ([dangduytoan13l@gmail.com](mailto:dangduytoan13l@gmail.com))
 - Phan Lê Minh Hiếu ([hphan5283@gmail.com](mailto:hphan5283@gmail.com))
 
-## 6. License
+## 7. License
 
 This project is licensed under the terms specified in the LICENSE file.
