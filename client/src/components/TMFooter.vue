@@ -26,25 +26,26 @@
 
 <style scoped>
 .tm-footer {
-  background: #fff;
-  color: #1565c0;
-  border-top: 1px solid #e3eafc;
+  background: #FFFFFF;
+  color: #0070F3;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   font-size: 14px;
   min-height: 36px;
-  box-shadow: 0 -1px 8px rgba(21, 101, 192, 0.04);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
 }
 .tm-footer-title {
-  color: #1565c0;
+  color: #0070F3;
+  font-weight: 600;
 }
 .footer-link {
-  color: #1976d2;
+  color: #71717A;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
   font-weight: 500;
 }
 .footer-link:hover {
-  color: #0d47a1;
-  text-decoration: underline;
+  color: #0070F3;
+  text-decoration: none;
 }
 .footer-left {
   display: flex;
@@ -57,7 +58,7 @@
 .footer-status {
   display: flex;
   align-items: center;
-  color: #1976d2;
+  color: #71717A;
   font-weight: 500;
 }
 </style>

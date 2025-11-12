@@ -323,7 +323,7 @@ const handleAction = (action, notification) => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #0073bb 0%, #00a1e4 100%);
+  background: linear-gradient(90deg, #0070F3 0%, #7C3AED 100%);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -356,13 +356,13 @@ const handleAction = (action, notification) => {
 }
 
 .action-btn-primary {
-  background: #0073bb;
+  background: #0070F3;
   color: white;
 }
 
 .action-btn-primary:hover {
-  background: #005a94;
-  box-shadow: 0 2px 8px rgba(0, 115, 187, 0.3);
+  background: #0061D5;
+  box-shadow: 0 2px 8px rgba(0, 112, 243, 0.3);
 }
 
 .action-btn-secondary {

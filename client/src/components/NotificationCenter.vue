@@ -545,24 +545,27 @@ onMounted(() => {
 .notifications-card {
   min-width: 350px;
   max-width: 400px;
+  border-radius: 12px !important;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .notifications-list {
-  background-color: #fafafa;
+  background-color: #FAFAFA;
 }
 
 .notification-item {
-  border-bottom: 1px solid #e0e0e0;
-  transition: background-color 0.2s;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .notification-item:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: rgba(0, 112, 243, 0.04);
 }
 
 .notification-unread {
-  background-color: rgba(25, 118, 210, 0.08);
-  border-left: 4px solid #1976d2;
+  background-color: rgba(0, 112, 243, 0.06);
+  border-left: 3px solid #0070F3;
 }
 
 .notification-unread::before {
@@ -573,7 +576,7 @@ onMounted(() => {
   transform: translateY(-50%);
   width: 8px;
   height: 8px;
-  background-color: #1976d2;
+  background-color: #0070F3;
   border-radius: 50%;
 }
 </style>
