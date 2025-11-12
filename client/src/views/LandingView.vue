@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import TMFooter from '../components/TMFooter.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -238,6 +239,9 @@ const features = [
         </v-row>
       </v-container>
     </footer>
+
+    <!-- TM Footer Component -->
+    <TMFooter />
   </div>
 </template>
 

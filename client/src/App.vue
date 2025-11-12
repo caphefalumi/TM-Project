@@ -2,7 +2,6 @@
 import SideBar from './components/Sidebar.vue'
 import CacheDebugger from './components/CacheDebugger.vue'
 import GlobalNotifications from './components/GlobalNotifications.vue'
-import TMFooter from './components/TMFooter.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
@@ -268,8 +267,5 @@ onUnmounted(() => {
 
     <!-- Cache debugger for development -->
     <CacheDebugger v-if="isDev" />
-
-    <!-- Footer Bar -->
-    <TMFooter />
   </v-app>
 </template>
