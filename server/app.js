@@ -9,6 +9,8 @@ import ExpressMongoSanitize from 'express-mongo-sanitize'
 import { initTokenCleanup } from './scripts/tokenCleanup.js'
 import requestIp from 'request-ip'
 import path from 'path'
+import { csrfProtection, getCsrfToken } from './middleware/csrfMiddleware.js'
+
 const app = express()
 app.use(requestIp.mw())
 app.use(
@@ -22,7 +24,7 @@ app.use(
       'https://tm-project.id.vn',
     ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   }),
 )
 connectDB()
@@ -51,6 +53,12 @@ app.use(express.json({ limit: '25mb' }))
 app.use(express.urlencoded({ limit: '25mb', extended: true }))
 app.use(cookieParser())
 app.use(express.static('public'))
+
+// CSRF token endpoint (must be before CSRF protection middleware)
+app.get('/api/csrf-token', getCsrfToken)
+
+// Apply CSRF protection to all API routes
+app.use('/api', csrfProtection)
 app.use('/api', routes)
 
 // 404 handler for unmatched routes

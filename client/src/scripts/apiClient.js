@@ -1,8 +1,9 @@
 /**
- * API Client with automatic token refresh on 401 errors
+ * API Client with automatic token refresh on 401 errors and CSRF protection
  *
  * This module provides a centralized fetch wrapper that automatically handles
- * expired access tokens by refreshing them and retrying the original request.
+ * expired access tokens by refreshing them and retrying the original request,
+ * and includes CSRF tokens for state-changing requests.
  *
  * Usage:
  *   import { fetchWithTokenRefresh, fetchJSON } from '../scripts/apiClient.js'
@@ -15,6 +16,7 @@
  */
 
 import { useComponentCache } from '../composables/useComponentCache.js'
+import { getCsrfToken, addCsrfHeader } from '../services/csrfService.js'
 
 const API_PORT = import.meta.env.VITE_API_PORT
 
@@ -63,6 +65,13 @@ export const fetchWithTokenRefresh = async (url, options = {}, retryCount = 0) =
   const fetchOptions = {
     ...options,
     credentials: options.credentials || 'include',
+  }
+
+  // Add CSRF token for non-GET requests
+  const method = fetchOptions.method?.toUpperCase() || 'GET'
+  if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    await getCsrfToken()
+    fetchOptions.headers = addCsrfHeader(fetchOptions.headers || {})
   }
 
   try {

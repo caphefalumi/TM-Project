@@ -2,6 +2,7 @@ import Teams from '../models/Teams.js'
 import UsersOfTeam from '../models/UsersOfTeam.js'
 import Tasks, { TaskSubmissions } from '../models/Tasks.js'
 import Account from '../models/Account.js'
+import TaskActivity from '../models/TaskActivity.js'
 
 const getTasksOfAUser = async (req, res) => {
   // Get all tasks of a user across all teams
@@ -620,6 +621,383 @@ const getTaskSubmission = async (req, res) => {
   }
 }
 
+// Update task status
+const updateTaskStatus = async (req, res) => {
+  try {
+    const { taskId } = req.params
+    const { status } = req.body
+    const userId = req.user.userId
+    const username = req.user.username
+
+    if (!status) {
+      return res.status(400).json({ message: 'Status is required' })
+    }
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    const oldStatus = task.status
+    task.status = status
+    task.updatedAt = Date.now()
+    await task.save()
+
+    // Log activity
+    const activity = new TaskActivity({
+      taskId,
+      userId,
+      username,
+      action: 'status_changed',
+      field: 'status',
+      oldValue: oldStatus,
+      newValue: status,
+      description: `Changed status from ${oldStatus} to ${status}`,
+    })
+    await activity.save()
+
+    return res.status(200).json({
+      message: 'Task status updated successfully',
+      task,
+    })
+  } catch (error) {
+    console.log('Error updating task status:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Update task assignee
+const updateTaskAssignee = async (req, res) => {
+  try {
+    const { taskId } = req.params
+    const { assignee } = req.body
+    const userId = req.user.userId
+    const username = req.user.username
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    const oldAssignee = task.assignee
+    task.assignee = assignee
+    task.updatedAt = Date.now()
+    await task.save()
+
+    // Log activity
+    const activity = new TaskActivity({
+      taskId,
+      userId,
+      username,
+      action: 'assignee_changed',
+      field: 'assignee',
+      oldValue: oldAssignee || 'None',
+      newValue: assignee || 'None',
+      description: `Changed assignee from ${oldAssignee || 'None'} to ${assignee || 'None'}`,
+    })
+    await activity.save()
+
+    return res.status(200).json({
+      message: 'Task assignee updated successfully',
+      task,
+    })
+  } catch (error) {
+    console.log('Error updating task assignee:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Log time on a task
+const logTime = async (req, res) => {
+  try {
+    const { taskId } = req.params
+    const { hours } = req.body
+    const userId = req.user.userId
+    const username = req.user.username
+
+    if (!hours || hours <= 0) {
+      return res.status(400).json({ message: 'Hours must be a positive number' })
+    }
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    task.loggedHours = (task.loggedHours || 0) + parseFloat(hours)
+    task.updatedAt = Date.now()
+    await task.save()
+
+    // Log activity
+    const activity = new TaskActivity({
+      taskId,
+      userId,
+      username,
+      action: 'time_logged',
+      description: `Logged ${hours} hours`,
+    })
+    await activity.save()
+
+    return res.status(200).json({
+      message: 'Time logged successfully',
+      task,
+    })
+  } catch (error) {
+    console.log('Error logging time:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Update task estimate
+const updateTaskEstimate = async (req, res) => {
+  try {
+    const { taskId } = req.params
+    const { estimatedHours } = req.body
+    const userId = req.user.userId
+    const username = req.user.username
+
+    if (estimatedHours === undefined || estimatedHours < 0) {
+      return res.status(400).json({ message: 'Estimated hours must be a non-negative number' })
+    }
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    const oldEstimate = task.estimatedHours
+    task.estimatedHours = parseFloat(estimatedHours)
+    task.updatedAt = Date.now()
+    await task.save()
+
+    // Log activity
+    const activity = new TaskActivity({
+      taskId,
+      userId,
+      username,
+      action: 'updated',
+      field: 'estimatedHours',
+      oldValue: oldEstimate?.toString() || '0',
+      newValue: estimatedHours.toString(),
+      description: `Updated estimate from ${oldEstimate || 0}h to ${estimatedHours}h`,
+    })
+    await activity.save()
+
+    return res.status(200).json({
+      message: 'Task estimate updated successfully',
+      task,
+    })
+  } catch (error) {
+    console.log('Error updating task estimate:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Add task dependency
+const addTaskDependency = async (req, res) => {
+  try {
+    const { taskId } = req.params
+    const { dependencyType, dependentTaskId } = req.body
+    const userId = req.user.userId
+    const username = req.user.username
+
+    if (!dependencyType || !dependentTaskId) {
+      return res.status(400).json({ message: 'Dependency type and task ID are required' })
+    }
+
+    if (dependencyType !== 'blockedBy' && dependencyType !== 'blocking') {
+      return res.status(400).json({ message: 'Invalid dependency type' })
+    }
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    const dependentTask = await Tasks.findById(dependentTaskId)
+    if (!dependentTask) {
+      return res.status(404).json({ message: 'Dependent task not found' })
+    }
+
+    // Prevent circular dependencies
+    if (taskId === dependentTaskId) {
+      return res.status(400).json({ message: 'Task cannot depend on itself' })
+    }
+
+    if (!task.dependencies) {
+      task.dependencies = { blockedBy: [], blocking: [] }
+    }
+
+    if (dependencyType === 'blockedBy') {
+      if (!task.dependencies.blockedBy.includes(dependentTaskId)) {
+        task.dependencies.blockedBy.push(dependentTaskId)
+        if (!dependentTask.dependencies) {
+          dependentTask.dependencies = { blockedBy: [], blocking: [] }
+        }
+        if (!dependentTask.dependencies.blocking.includes(taskId)) {
+          dependentTask.dependencies.blocking.push(taskId)
+        }
+        await dependentTask.save()
+      }
+    } else {
+      if (!task.dependencies.blocking.includes(dependentTaskId)) {
+        task.dependencies.blocking.push(dependentTaskId)
+        if (!dependentTask.dependencies) {
+          dependentTask.dependencies = { blockedBy: [], blocking: [] }
+        }
+        if (!dependentTask.dependencies.blockedBy.includes(taskId)) {
+          dependentTask.dependencies.blockedBy.push(taskId)
+        }
+        await dependentTask.save()
+      }
+    }
+
+    task.updatedAt = Date.now()
+    await task.save()
+
+    // Log activity
+    const activity = new TaskActivity({
+      taskId,
+      userId,
+      username,
+      action: 'dependency_added',
+      description: `Added ${dependencyType} dependency with task ${dependentTask.title}`,
+    })
+    await activity.save()
+
+    return res.status(200).json({
+      message: 'Task dependency added successfully',
+      task,
+    })
+  } catch (error) {
+    console.log('Error adding task dependency:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Remove task dependency
+const removeTaskDependency = async (req, res) => {
+  try {
+    const { taskId } = req.params
+    const { dependencyType, dependentTaskId } = req.body
+    const userId = req.user.userId
+    const username = req.user.username
+
+    if (!dependencyType || !dependentTaskId) {
+      return res.status(400).json({ message: 'Dependency type and task ID are required' })
+    }
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    const dependentTask = await Tasks.findById(dependentTaskId)
+    if (!dependentTask) {
+      return res.status(404).json({ message: 'Dependent task not found' })
+    }
+
+    if (task.dependencies && task.dependencies[dependencyType]) {
+      task.dependencies[dependencyType] = task.dependencies[dependencyType].filter(
+        (id) => id.toString() !== dependentTaskId,
+      )
+    }
+
+    // Update the reverse dependency
+    const reverseType = dependencyType === 'blockedBy' ? 'blocking' : 'blockedBy'
+    if (dependentTask.dependencies && dependentTask.dependencies[reverseType]) {
+      dependentTask.dependencies[reverseType] = dependentTask.dependencies[reverseType].filter(
+        (id) => id.toString() !== taskId,
+      )
+    }
+
+    task.updatedAt = Date.now()
+    await task.save()
+    await dependentTask.save()
+
+    // Log activity
+    const activity = new TaskActivity({
+      taskId,
+      userId,
+      username,
+      action: 'dependency_removed',
+      description: `Removed ${dependencyType} dependency with task ${dependentTask.title}`,
+    })
+    await activity.save()
+
+    return res.status(200).json({
+      message: 'Task dependency removed successfully',
+      task,
+    })
+  } catch (error) {
+    console.log('Error removing task dependency:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Assign task to sprint
+const assignTaskToSprint = async (req, res) => {
+  try {
+    const { taskId } = req.params
+    const { sprintId } = req.body
+    const userId = req.user.userId
+    const username = req.user.username
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    const oldSprint = task.sprintId
+    task.sprintId = sprintId
+    task.updatedAt = Date.now()
+    await task.save()
+
+    // Log activity
+    const activity = new TaskActivity({
+      taskId,
+      userId,
+      username,
+      action: 'sprint_changed',
+      field: 'sprintId',
+      oldValue: oldSprint || 'None',
+      newValue: sprintId || 'None',
+      description: `${sprintId ? 'Assigned to' : 'Removed from'} sprint`,
+    })
+    await activity.save()
+
+    return res.status(200).json({
+      message: 'Task sprint assignment updated successfully',
+      task,
+    })
+  } catch (error) {
+    console.log('Error assigning task to sprint:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Get task activity history
+const getTaskActivity = async (req, res) => {
+  try {
+    const { taskId } = req.params
+
+    const task = await Tasks.findById(taskId)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+
+    const activities = await TaskActivity.find({ taskId }).sort({ createdAt: -1 })
+
+    return res.status(200).json({
+      activities,
+      count: activities.length,
+    })
+  } catch (error) {
+    console.log('Error fetching task activity:', error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 export default {
   addTaskToUsers,
   getTasksOfAUserInATeam,
@@ -630,4 +1008,12 @@ export default {
   deleteTaskGroup,
   getAllTaskGroups,
   getTaskSubmission,
+  updateTaskStatus,
+  updateTaskAssignee,
+  logTime,
+  updateTaskEstimate,
+  addTaskDependency,
+  removeTaskDependency,
+  assignTaskToSprint,
+  getTaskActivity,
 }
