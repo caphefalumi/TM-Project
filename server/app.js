@@ -54,7 +54,6 @@ app.use(express.urlencoded({ limit: '25mb', extended: true }))
 app.use(cookieParser())
 app.use(express.static('public'))
 
-// CSRF token endpoint (must be before CSRF protection middleware)
 app.get('/api/csrf-token', getCsrfToken)
 
 // Apply CSRF protection to all API routes
