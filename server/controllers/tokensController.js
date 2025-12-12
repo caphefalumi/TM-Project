@@ -33,7 +33,7 @@ const addRefreshToken = async (req, res) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       maxAge: Number(process.env.REFRESH_TOKEN_TIME), // Convert string to number
       path: '/',
     })
@@ -41,7 +41,7 @@ const addRefreshToken = async (req, res) => {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       maxAge: Number(process.env.ACCESS_TOKEN_TIME), // Convert string to number
       path: '/',
     })
@@ -77,13 +77,13 @@ const renewAccessToken = async (req, res) => {
         path: '/',
         httpOnly: true,
         secure: true,
-        sameSite: 'Lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       })
       res.clearCookie('refreshToken', {
         path: '/',
         httpOnly: true,
         secure: true,
-        sameSite: 'Lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       })
       return res.status(403).json({
         error: 'TOKEN_REVOKED',
@@ -108,14 +108,14 @@ const renewAccessToken = async (req, res) => {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       maxAge: Number(process.env.ACCESS_TOKEN_TIME), // Convert string to number
       path: '/',
     })
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       maxAge: Number(process.env.REFRESH_TOKEN_TIME), // Convert string to number
     })
     await RefreshTokenManager.revokeTokenByString(currentRefreshToken, 'refresh_session')
@@ -138,13 +138,13 @@ const revokeRefreshToken = async (req, res) => {
     path: '/',
     httpOnly: true,
     secure: true,
-    sameSite: 'Lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
   })
   res.clearCookie('accessToken', {
     path: '/',
     httpOnly: true,
     secure: true,
-    sameSite: 'Lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
   })
 
   console.log('Revoking refresh tokens for user:', userId)

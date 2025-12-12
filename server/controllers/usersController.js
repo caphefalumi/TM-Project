@@ -722,7 +722,7 @@ export const updateUserProfile = async (req, res) => {
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'Lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
         maxAge: Number(process.env.REFRESH_TOKEN_TIME), // Convert string to number
         path: '/',
       })
@@ -730,7 +730,7 @@ export const updateUserProfile = async (req, res) => {
       res.cookie('accessToken', newAccessToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'Lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
         maxAge: Number(process.env.ACCESS_TOKEN_TIME), // in minutes
         path: '/',
       })
@@ -827,7 +827,7 @@ export const verifyEmailChange = async (req, res) => {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       maxAge: Number(process.env.REFRESH_TOKEN_TIME),
       path: '/',
     })
@@ -835,7 +835,7 @@ export const verifyEmailChange = async (req, res) => {
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       maxAge: Number(process.env.ACCESS_TOKEN_TIME),
       path: '/',
     })
