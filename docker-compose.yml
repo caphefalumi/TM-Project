@@ -1,13 +1,51 @@
 services:
   frontend:
+    image: tm-project/frontend
     build:
       context: .
       dockerfile: Dockerfile.frontend
     ports:
       - "5173:5173"
+    depends_on:
+      - backend
+    env_file:
+      - client/.env
+
   backend:
+    image: tm-project/backend
     build:
       context: .
       dockerfile: Dockerfile.backend
     ports:
       - "3000:3000"
+    environment:
+      - DB_CONNECTION_STRING=mongodb://host.docker.internal:27017/tm-project
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://lgtm:4318/v1/traces
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://lgtm:4318/v1/metrics
+      - OTEL_SERVICE_NAME=tm-backend
+    env_file:
+      - server/.env
+    depends_on:
+      - lgtm
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service,container_name"
+
+  lgtm:
+    image: grafana/otel-lgtm:0.8.1
+    ports:
+      - "3010:3000"      # Grafana
+      - "4317:4317"      # OTLP gRPC
+      - "4318:4318"      # OTLP HTTP
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - lgtm_data:/data
+
+volumes:
+  lgtm_data:
