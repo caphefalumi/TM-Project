@@ -18,7 +18,7 @@
 import { useComponentCache } from '../composables/useComponentCache.js'
 import { getCsrfToken, addCsrfHeader } from '../services/csrfService.js'
 
-const API_PORT = import.meta.env.VITE_API_PORT
+const API_PORT = import.meta.env.VITE_API_PORT || 'http://localhost:3000'
 
 const refreshAccessToken = async () => {
   try {
