@@ -401,11 +401,18 @@ const resendVerificationEmail = async () => {
                 :type="showPassword ? 'text' : 'password'"
                 label="Password"
                 prepend-inner-icon="mdi-lock"
-                :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append-inner="showPassword = !showPassword"
                 required
                 class="mb-4"
-              />
+              >
+                <template #append-inner>
+                  <v-icon
+                    :icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    @click="showPassword = !showPassword"
+                    tabindex="-1"
+                    role="button"
+                  />
+                </template>
+              </v-text-field>
               <v-btn
                 type="submit"
                 color="primary"
