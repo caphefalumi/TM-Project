@@ -3,6 +3,7 @@ dotenv.config({ quiet: true })
 import express from 'express'
 import routes from './routes/router.js'
 import connectDB from './config/db.js'
+import { initRedis } from './config/redis.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import ExpressMongoSanitize from 'express-mongo-sanitize'
@@ -27,7 +28,10 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   }),
 )
+
+// Initialize database and Redis
 connectDB()
+initRedis()
 
 app.use((req, _res, next) => {
   Object.defineProperty(req, 'query', {

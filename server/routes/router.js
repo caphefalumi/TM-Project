@@ -12,17 +12,18 @@ import refreshTokenRoutes from './refreshToken_routes.js'
 import imageRoutes from './image_routes.js'
 import commentsRoutes from './comments_routes.js'
 import sprintRoutes from './sprint_routes.js'
-import { rateLimit } from 'express-rate-limit'
+import createRateLimiter from '../middleware/rateLimiter.js'
 const router = express.Router()
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-  standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-  ipv6Subnet: 52, // Set to 60 or 64 to be less aggressive, or 52 or 48 to be more aggressive
-  // store: ... , // Redis, Memcached, etc. See below.
-})
+// Global rate limiter with Redis store (when available)
+const limiter = createRateLimiter(
+  {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per `window`
+    ipv6Subnet: 52,
+  },
+  'rl:global:',
+)
 
 // Instead of defining all endpoints here, delegate them:
 router.use('/auth', authRoutes) // /auth/*
