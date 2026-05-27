@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Print secret
         env:
-          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
         run: |
           echo "Trick to echo GitHub Actions Secret:  "
           echo "${{secrets.TAURI_PRIVATE_KEY}}" | xxd -ps
