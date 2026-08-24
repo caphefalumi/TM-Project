@@ -1,4 +1,4 @@
-import RefreshTokenManager from './refreshTokenManager.ts'
+import RefreshTokenManager from './refreshTokenManager.js'
 
 /**
  * Clean up expired and old revoked refresh tokens from the database

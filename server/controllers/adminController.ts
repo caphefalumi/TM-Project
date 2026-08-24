@@ -1,9 +1,9 @@
-import Account from '../models/Account.ts'
-import Teams from '../models/Teams.ts'
-import UsersOfTeam from '../models/UsersOfTeam.ts'
-import Tasks, { TaskSubmissions } from '../models/Tasks.ts'
-import Announcements from '../models/Announcements.ts'
-import { createNotification } from '../scripts/notificationsService.ts'
+import Account from '../models/Account.js'
+import Teams from '../models/Teams.js'
+import UsersOfTeam from '../models/UsersOfTeam.js'
+import Tasks, { TaskSubmissions } from '../models/Tasks.js'
+import Announcements from '../models/Announcements.js'
+import { createNotification } from '../scripts/notificationsService.js'
 
 // Recursive function to get parent team breadcrumbs
 const getParentsTeam = async (parentTeamId) => {

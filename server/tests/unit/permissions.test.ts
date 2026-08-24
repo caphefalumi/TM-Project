@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { PERMISSIONS, ROLE_PERMISSIONS, computeUserActions } from '../../config/permissions.ts'
+import { PERMISSIONS, ROLE_PERMISSIONS, computeUserActions } from '../../config/permissions.js'
 
 describe('permissions config', () => {
   it('exposes a stable permission catalog', () => {

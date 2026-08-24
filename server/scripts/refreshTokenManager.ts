@@ -1,4 +1,4 @@
-import RefreshToken from '../models/RefreshToken.ts'
+import RefreshToken from '../models/RefreshToken.js'
 import { UAParser } from 'ua-parser-js'
 import geoip from 'geoip-lite'
 

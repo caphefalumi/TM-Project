@@ -4,9 +4,9 @@ import {
   invalidateCache,
   teamCacheKey,
   userCacheKey,
-} from '../../middleware/cacheMiddleware.ts'
-import { cacheService } from '../../services/cacheService.ts'
-import { mockNext, mockReq, mockRes } from '../helpers.ts'
+} from '../../middleware/cacheMiddleware.js'
+import { cacheService } from '../../services/cacheService.js'
+import { mockNext, mockReq, mockRes } from '../helpers.js'
 
 describe('cache key helpers', () => {
   it('builds team-scoped cache keys', () => {

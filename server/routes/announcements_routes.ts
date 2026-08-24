@@ -1,5 +1,5 @@
 import express from 'express'
-import AnnouncementsController from '../controllers/announcementsController.ts'
+import AnnouncementsController from '../controllers/announcementsController.js'
 
 const router = express.Router()
 const { toggleLikeAnnouncement, addCommentToAnnouncement } = AnnouncementsController

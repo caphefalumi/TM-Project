@@ -1,6 +1,6 @@
-import Sprint from '../models/Sprint.ts'
-import Teams from '../models/Teams.ts'
-import Tasks from '../models/Tasks.ts'
+import Sprint from '../models/Sprint.js'
+import Teams from '../models/Teams.js'
+import Tasks from '../models/Tasks.js'
 
 // Create a new sprint
 const createSprint = async (req, res) => {

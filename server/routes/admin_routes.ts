@@ -1,7 +1,7 @@
 import express from 'express'
-import AdminController from '../controllers/adminController.ts'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
-import { checkAdminAccess } from '../middleware/adminMiddleware.ts'
+import AdminController from '../controllers/adminController.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import { checkAdminAccess } from '../middleware/adminMiddleware.js'
 
 const router = express.Router()
 const {

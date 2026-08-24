@@ -4,23 +4,23 @@
 // 2. Retrieving user's team data
 
 import crypto from 'crypto'
-import { createTeamMemberAddedNotification } from '../scripts/notificationsService.ts'
-import Account from '../models/Account.ts'
-import Tasks, { TaskSubmissions } from '../models/Tasks.ts'
-import Teams from '../models/Teams.ts'
-import UsersOfTeam from '../models/UsersOfTeam.ts'
-import Role from '../models/Role.ts'
-import { PERMISSIONS, computeUserActions } from '../config/permissions.ts'
+import { createTeamMemberAddedNotification } from '../scripts/notificationsService.js'
+import Account from '../models/Account.js'
+import Tasks, { TaskSubmissions } from '../models/Tasks.js'
+import Teams from '../models/Teams.js'
+import UsersOfTeam from '../models/UsersOfTeam.js'
+import Role from '../models/Role.js'
+import { PERMISSIONS, computeUserActions } from '../config/permissions.js'
 import {
   ROLES,
   getUserCustomPermissions,
   getRoleDefaultPermissions,
   getBaseRoleFromRoleType,
   getRoleLabel,
-} from '../middleware/roleMiddleware.ts'
-import { generateAccessToken, generateRefreshToken } from '../services/tokenService.ts'
-import RefreshToken from '../models/RefreshToken.ts'
-import Mailer from '../scripts/mailer.ts'
+} from '../middleware/roleMiddleware.js'
+import { generateAccessToken, generateRefreshToken } from '../services/tokenService.js'
+import RefreshToken from '../models/RefreshToken.js'
+import Mailer from '../scripts/mailer.js'
 
 const USERNAME_LOCK_DURATION = 14 * 24 * 60 * 60 * 1000
 const EMAIL_LOCK_DURATION = 90 * 24 * 60 * 60 * 1000

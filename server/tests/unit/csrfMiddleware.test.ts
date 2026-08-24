@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import Tokens from 'csrf'
-import { csrfProtection, getCsrfToken } from '../../middleware/csrfMiddleware.ts'
-import { mockNext, mockReq, mockRes } from '../helpers.ts'
+import { csrfProtection, getCsrfToken } from '../../middleware/csrfMiddleware.js'
+import { mockNext, mockReq, mockRes } from '../helpers.js'
 
 describe('csrfProtection', () => {
   it('skips safe methods', () => {

@@ -1,6 +1,6 @@
-import { Notifications, NotificationPreferences } from '../models/Notifications.ts'
-import Account from '../models/Account.ts'
-import Teams from '../models/Teams.ts'
+import { Notifications, NotificationPreferences } from '../models/Notifications.js'
+import Account from '../models/Account.js'
+import Teams from '../models/Teams.js'
 
 /**
  * Notification Service
