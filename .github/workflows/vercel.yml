@@ -4,35 +4,65 @@ on:
   push:
     branches:
       - main
+    paths:
+      - client/**
+      - server/**
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
 jobs:
-  deploy:
+  changes:
     runs-on: ubuntu-latest
-
+    outputs:
+      client: ${{ steps.filter.outputs.client }}
+      server: ${{ steps.filter.outputs.server }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            client:
+              - client/**
+            server:
+              - server/**
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
+  deploy-client:
+    needs: changes
+    if: needs.changes.outputs.client == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.npm
             **/node_modules
-          key: ${{ runner.os }}-npm-vercel
+          key: ${{ runner.os }}-npm-vercel-client
           restore-keys: |
-            ${{ runner.os }}-npm-vercel
-            
+            ${{ runner.os }}-npm-vercel-client
       - name: Deploy client to Vercel
         working-directory: ./client
         run: npx vercel --prod --token=$VERCEL_TOKEN --yes
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
 
+  deploy-server:
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            **/node_modules
+          key: ${{ runner.os }}-npm-vercel-server
+          restore-keys: |
+            ${{ runner.os }}-npm-vercel-server
       - name: Deploy server to Vercel
         working-directory: ./server
         run: npx vercel --prod --token=$VERCEL_TOKEN --yes
