@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth.ts'
 import TMFooter from '../components/TMFooter.vue'
 
 const router = useRouter()

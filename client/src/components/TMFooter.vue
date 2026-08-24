@@ -20,7 +20,7 @@
   </v-footer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // No script needed for static footer
 </script>
 

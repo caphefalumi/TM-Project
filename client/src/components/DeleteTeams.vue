@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

@@ -59,10 +59,10 @@
   </v-btn>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useComponentCache } from '../composables/useComponentCache.js'
+import { useComponentCache } from '../composables/useComponentCache.ts'
 
 const route = useRoute()
 const { getCacheStats, removeTeamFromCache, cleanExpiredCache } = useComponentCache()

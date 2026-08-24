@@ -390,9 +390,9 @@
   </div>
 </template>
 
-<script>
-import { useAuthStore } from '../stores/auth.js'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+<script lang="ts">
+import { useAuthStore } from '../stores/auth.ts'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 
 export default {
   name: 'AccountPersonalView',

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "bun --hot --no-clear-screen \"src/server/app.js\"",
+    "server": "bun --hot --no-clear-screen \"src/server/app.ts\"",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
@@ -16,7 +16,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
@@ -50,6 +52,9 @@
     "jsdom": "^25.0.1",
     "vite": "^7.1.9",
     "vite-plugin-vue-devtools": "^8.0.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "typescript": "^5.9.2",
+    "vue-tsc": "^2.2.12",
+    "@playwright/test": "^1.55.0"
   }
 }

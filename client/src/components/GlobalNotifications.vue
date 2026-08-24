@@ -76,9 +76,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useNotificationStore } from '../stores/notifications.js'
+import { useNotificationStore } from '../stores/notifications.ts'
 
 const notificationStore = useNotificationStore()
 const dropdownExpanded = ref(false)

@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
-import { fetchJSON } from '../scripts/apiClient.js'
-import { useComponentCache } from '../composables/useComponentCache.js'
+import { useAuthStore } from '../stores/auth.ts'
+import { fetchJSON } from '../scripts/apiClient.ts'
+import { useComponentCache } from '../composables/useComponentCache.ts'
 
 // Define component name for keep-alive
 defineOptions({

@@ -26,9 +26,9 @@
   </v-select>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 
 const props = defineProps({
   status: {

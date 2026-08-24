@@ -82,9 +82,9 @@
   </v-card>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 
 const props = defineProps({
   taskId: {
