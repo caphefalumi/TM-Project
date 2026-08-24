@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const success = ref(false)
 const error = ref(false)
@@ -11,7 +12,7 @@ const deleteAnnouncement = async () => {
   loading.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/announcements/${props.announcementId}`,
       {
         method: 'DELETE',

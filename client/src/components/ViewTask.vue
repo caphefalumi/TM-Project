@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const emit = defineEmits(['update:dialog'])
 
@@ -56,7 +57,7 @@ const fetchTaskDetails = async () => {
     const PORT = import.meta.env.VITE_API_PORT
 
     // First, get the task details from the task group
-    const taskGroupResponse = await fetch(
+    const taskGroupResponse = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.task.taskGroupId}`,
       {
         method: 'GET',
@@ -77,7 +78,7 @@ const fetchTaskDetails = async () => {
     }
 
     // Then, try to get the submission details
-    const submissionResponse = await fetch(
+    const submissionResponse = await fetchWithTokenRefresh(
       `${PORT}/api/tasks/submission/${props.teamId}/${props.task._id}`,
       {
         method: 'GET',

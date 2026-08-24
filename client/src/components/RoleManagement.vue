@@ -473,6 +473,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { permissionService } from '../services/permissionService.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const props = defineProps({
   dialog: {
@@ -585,7 +586,7 @@ const executeRoleChange = async (member, newRoleType) => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/members/${member.userId}/assign-role`,
       {
         method: 'PUT',
@@ -666,7 +667,7 @@ const openPermissionsDialog = async (member) => {
   // Fetch member's current permissions
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/members/${member.userId}/permissions`,
       {
         method: 'GET',
