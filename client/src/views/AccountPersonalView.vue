@@ -392,6 +392,7 @@
 
 <script>
 import { useAuthStore } from '../stores/auth.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 export default {
   name: 'AccountPersonalView',
@@ -633,7 +634,7 @@ export default {
           username: this.editForm.username.trim(),
           email: this.editForm.email.trim(),
         }
-        const response = await fetch(`${PORT}/api/users/profile`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/users/profile`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -707,7 +708,7 @@ export default {
       try {
         const PORT = import.meta.env.VITE_API_PORT
         const payload = { username: this.editUsernameForm.username.trim() }
-        const response = await fetch(`${PORT}/api/users/profile`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/users/profile`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -752,7 +753,7 @@ export default {
       try {
         const PORT = import.meta.env.VITE_API_PORT
         const payload = { email: this.editEmailForm.email.trim() }
-        const response = await fetch(`${PORT}/api/users/profile`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/users/profile`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -800,7 +801,7 @@ export default {
       this.isDeleting = true
       try {
         const PORT = import.meta.env.VITE_API_PORT
-        const response = await fetch(`${PORT}/api/users/account`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/users/account`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -841,7 +842,7 @@ export default {
       this.isResettingPassword = true
       try {
         const PORT = import.meta.env.VITE_API_PORT
-        const response = await fetch(`${PORT}/api/auth/forgot-password`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/auth/forgot-password`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

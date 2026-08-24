@@ -84,6 +84,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const props = defineProps({
   taskId: {
@@ -112,7 +113,7 @@ const formatDate = (dateString) => {
 const fetchComments = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/comments/tasks/${props.taskId}/comments`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/comments/tasks/${props.taskId}/comments`, {
       method: 'GET',
       credentials: 'include',
     })
@@ -132,7 +133,7 @@ const addComment = async () => {
   loading.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/comments/tasks/${props.taskId}/comments`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/comments/tasks/${props.taskId}/comments`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -172,7 +173,7 @@ const saveEdit = async (commentId) => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/comments/comments/${commentId}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/comments/comments/${commentId}`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -199,7 +200,7 @@ const deleteComment = async (commentId) => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/comments/comments/${commentId}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/comments/comments/${commentId}`, {
       method: 'DELETE',
       credentials: 'include',
     })

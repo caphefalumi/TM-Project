@@ -163,6 +163,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -237,7 +238,7 @@ const loadNotifications = async (page = 1) => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/notifications/${props.userId}?page=${page}&limit=20`,
       {
         method: 'GET',
@@ -279,7 +280,7 @@ const markAllAsRead = async () => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/notifications/${props.userId}/mark-read`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/notifications/${props.userId}/mark-read`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -378,7 +379,7 @@ const handleNotificationClick = async (notification) => {
 const markNotificationAsRead = async (notificationId) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    await fetch(`${PORT}/api/notifications/${props.userId}/mark-read`, {
+    await fetchWithTokenRefresh(`${PORT}/api/notifications/${props.userId}/mark-read`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -393,7 +394,7 @@ const markNotificationAsRead = async (notificationId) => {
 const deleteNotification = async (notificationId) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/notifications/${props.userId}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/notifications/${props.userId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -427,7 +428,7 @@ const openSettings = () => {
 const loadPreferences = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/notifications/${props.userId}/preferences`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/notifications/${props.userId}/preferences`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -455,7 +456,7 @@ const saveSettings = async () => {
       admin: { enabled: true }, // Admin notifications should always be enabled
     }
 
-    const response = await fetch(`${PORT}/api/notifications/${props.userId}/preferences`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/notifications/${props.userId}/preferences`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

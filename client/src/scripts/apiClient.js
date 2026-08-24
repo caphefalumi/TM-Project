@@ -16,7 +16,7 @@
  */
 
 import { useComponentCache } from '../composables/useComponentCache.js'
-import { getCsrfToken, addCsrfHeader } from '../services/csrfService.js'
+import { getCsrfToken, addCsrfHeader, fetchCsrfToken } from '../services/csrfService.js'
 
 const API_PORT = import.meta.env.VITE_API_PORT || 'http://localhost:3000'
 
@@ -77,8 +77,24 @@ export const fetchWithTokenRefresh = async (url, options = {}, retryCount = 0) =
   try {
     const response = await fetch(url, fetchOptions)
 
-    // If request succeeded or it's not a 401, return as-is
-    if (response.ok || response.status !== 401) {
+    // If request succeeded, return as-is
+    if (response.ok) {
+      return response
+    }
+
+    // Handle 403 CSRF errors — refresh token and retry once
+    if (response.status === 403 && retryCount === 0) {
+      try {
+        const cloned = response.clone()
+        const body = await cloned.json()
+        if (body?.error?.includes('CSRF')) {
+          await fetchCsrfToken()
+          return await fetchWithTokenRefresh(url, options, 1)
+        }
+      } catch {}
+    }
+
+    if (response.status !== 401) {
       return response
     }
 

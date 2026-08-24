@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -145,7 +146,7 @@ const uploadImageToServer = async (imageData, filename) => {
   const PORT = import.meta.env.VITE_API_PORT
 
   try {
-    const response = await fetch(`${PORT}/api/images/upload`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/images/upload`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -372,7 +373,7 @@ const submitTaskResponse = async () => {
     submissionData.submissionDate = new Date().toISOString()
 
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/tasks/submit`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/tasks/submit`, {
       method: 'POST',
       credentials: 'include',
       headers: {

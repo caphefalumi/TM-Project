@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const user = ref({
   userId: '',
@@ -91,7 +92,7 @@ const emit = defineEmits(['update:dialog', 'members-added'])
 const fetchUsers = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/users/all`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/users/all`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -119,7 +120,7 @@ const fetchRoles = async () => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/${props.teamId}/roles`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -168,7 +169,7 @@ const fetchRoles = async () => {
 const sendMembersToServer = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/users`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/${props.teamId}/users`, {
       method: 'POST',
       credentials: 'include',
       headers: {

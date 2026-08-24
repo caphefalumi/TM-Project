@@ -129,6 +129,7 @@
 
 <script setup>
 import { ref, onActivated, onMounted } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useRouter } from 'vue-router'
 import { useComponentCache } from '../composables/useComponentCache.js'
 import { useAuthStore } from '../stores/auth.js'
@@ -236,7 +237,7 @@ const submitFeedback = async () => {
       issue: feedback.value.experience, // Map experience to issue field for backend compatibility
     }
 
-    const res = await fetch(`${PORT}/api/ratings`, {
+    const res = await fetchWithTokenRefresh(`${PORT}/api/ratings`, {
       method: 'POST',
       credentials: 'include',
       headers: {
