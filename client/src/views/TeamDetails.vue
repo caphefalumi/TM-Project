@@ -10,7 +10,7 @@ import {
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
-import { fetchJSON } from '../scripts/apiClient.js'
+import { fetchJSON, fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { permissionService } from '../services/permissionService.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
@@ -893,7 +893,7 @@ const confirmDeleteTeam = async () => {
     isDeletingTeam.value = true
 
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${teamId.value}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/${teamId.value}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {

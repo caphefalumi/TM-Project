@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import EnhancedTaskView from './EnhancedTaskView.vue'
 import { permissionService } from '../services/permissionService.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const emit = defineEmits(['update:dialog', 'task-group-updated'])
 
@@ -113,7 +114,7 @@ const fetchTaskGroupDetails = async () => {
   loading.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'GET',
@@ -175,7 +176,7 @@ const updateTaskGroup = async () => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'PUT',
@@ -236,7 +237,7 @@ const deleteTaskGroup = async () => {
   saving.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/task-groups/${props.taskGroupId}`,
       {
         method: 'DELETE',
