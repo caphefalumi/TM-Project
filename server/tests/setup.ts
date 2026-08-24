@@ -1,0 +1,8 @@
+process.env.NODE_ENV = 'test'
+process.env.ACCESS_TOKEN_SECRET = 'test-access-secret'
+process.env.REFRESH_TOKEN_SECRET = 'test-refresh-secret'
+process.env.JWT_ACCESS_TOKEN_TIME = '15m'
+process.env.JWT_REFRESH_TOKEN_TIME = '7d'
+process.env.REDIS_CACHE_ENABLED = 'false'
+process.env.ACCESS_TOKEN_TIME = '900000'
+process.env.REFRESH_TOKEN_TIME = '604800000'

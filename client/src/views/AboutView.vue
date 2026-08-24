@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onActivated } from 'vue'
-import { useComponentCache } from '../composables/useComponentCache.js'
+import { useComponentCache } from '../composables/useComponentCache.ts'
 
 // Define component name for keep-alive
 defineOptions({

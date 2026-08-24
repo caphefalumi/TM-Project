@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
   ref,
   onMounted,
@@ -9,10 +9,10 @@ import {
   getCurrentInstance,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
-import { fetchJSON, fetchWithTokenRefresh } from '../scripts/apiClient.js'
-import { permissionService } from '../services/permissionService.js'
-import { useComponentCache } from '../composables/useComponentCache.js'
+import { useAuthStore } from '../stores/auth.ts'
+import { fetchJSON, fetchWithTokenRefresh } from '../scripts/apiClient.ts'
+import { permissionService } from '../services/permissionService.ts'
+import { useComponentCache } from '../composables/useComponentCache.ts'
 
 defineOptions({
   name: 'TeamDetails',

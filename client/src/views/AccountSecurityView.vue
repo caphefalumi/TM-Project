@@ -59,9 +59,9 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import SessionManager from '../components/SessionManager.vue'
-import sessionService from '../services/sessionService.js'
+import sessionService from '../services/sessionService.ts'
 
 export default {
   name: 'AccountSecurityView',

@@ -470,10 +470,10 @@
   </v-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { permissionService } from '../services/permissionService.js'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+import { permissionService } from '../services/permissionService.ts'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 
 const props = defineProps({
   dialog: {

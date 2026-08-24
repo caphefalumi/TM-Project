@@ -76,8 +76,8 @@
   </div>
 </template>
 
-<script>
-import sessionService from '../services/sessionService.js'
+<script lang="ts">
+import sessionService from '../services/sessionService.ts'
 
 export default {
   name: 'SessionManager',

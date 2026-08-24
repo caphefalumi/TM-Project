@@ -127,12 +127,12 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onActivated, onMounted } from 'vue'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 import { useRouter } from 'vue-router'
-import { useComponentCache } from '../composables/useComponentCache.js'
-import { useAuthStore } from '../stores/auth.js'
+import { useComponentCache } from '../composables/useComponentCache.ts'
+import { useAuthStore } from '../stores/auth.ts'
 
 // Define component name for keep-alive
 defineOptions({

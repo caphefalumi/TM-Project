@@ -1,14 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import SideBar from './components/Sidebar.vue'
-import { fetchWithTokenRefresh } from './scripts/apiClient.js'
+import { fetchWithTokenRefresh } from './scripts/apiClient.ts'
 import CacheDebugger from './components/CacheDebugger.vue'
 import GlobalNotifications from './components/GlobalNotifications.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from './stores/auth.js'
-import { useComponentCache } from './composables/useComponentCache.js'
-import { useNotificationStore } from './stores/notifications.js'
-import updateService from './services/updateService.js'
+import { useAuthStore } from './stores/auth.ts'
+import { useComponentCache } from './composables/useComponentCache.ts'
+import { useNotificationStore } from './stores/notifications.ts'
+import updateService from './services/updateService.ts'
 
 const route = useRoute()
 const router = useRouter()
