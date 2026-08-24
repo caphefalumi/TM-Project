@@ -33,3 +33,5 @@ coverage
 
 .vercel
 .secrets
+.vercel
+.env*
