@@ -310,7 +310,7 @@
   </v-container>
 </template>
 
-<script>
+<script lang="ts">
 import vuetify from '../plugins/vuetify'
 
 export default {

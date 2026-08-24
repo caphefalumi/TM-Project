@@ -11,6 +11,7 @@
     "bundle": "concurrently \"cd client && bun run build\" \"cd server && bun run bundle\"",
     "preview": "cd client && bun run preview",
     "format": "prettier --write \"client/**/*.{js,ts,vue,json,md}\" \"server/**/*.{js,ts,json}\"",
+    "test": "concurrently \"cd client && bun run test:run\" \"cd server && bun run test:run\"",
     "start:all": "concurrently \"bun run dev\" \"bun run server\"",
     "app": "concurrently \"bun run dev\" \"bun run server\""
   },

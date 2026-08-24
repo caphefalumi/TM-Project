@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
-import { permissionService, AVAILABLE_PERMISSIONS } from '../services/permissionService.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
+import { permissionService, AVAILABLE_PERMISSIONS } from '../services/permissionService.ts'
 
 const props = defineProps({
   teamId: {

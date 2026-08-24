@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 
 const success = ref(false)
 const error = ref(false)

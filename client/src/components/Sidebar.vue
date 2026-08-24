@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
-import { useComponentCache } from '../composables/useComponentCache.js'
+import { useAuthStore } from '../stores/auth.ts'
+import { useComponentCache } from '../composables/useComponentCache.ts'
 import NotificationCenter from './NotificationCenter.vue'
-import updateService from '../services/updateService.js'
-import { useGlobalNotifications } from '../composables/useGlobalNotifications.js'
+import updateService from '../services/updateService.ts'
+import { useGlobalNotifications } from '../composables/useGlobalNotifications.ts'
 
 // Import Admin.Vue if username is 'admin'
 

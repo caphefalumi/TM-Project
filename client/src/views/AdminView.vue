@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.ts'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth.ts'
 import UpdateAnnouncements from '../components/UpdateAnnouncements.vue'
 
 const authStore = useAuthStore()

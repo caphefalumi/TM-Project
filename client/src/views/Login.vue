@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
-import { useComponentCache } from '../composables/useComponentCache.js'
+import { useAuthStore } from '../stores/auth.ts'
+import { useComponentCache } from '../composables/useComponentCache.ts'
 import { open } from '@tauri-apps/plugin-shell'
 import vIconLogin from '../components/vIconLogin.vue'
 import { GoogleLogin } from 'vue3-google-login'
