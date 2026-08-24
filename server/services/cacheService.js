@@ -130,11 +130,12 @@ class CacheService {
     try {
       if (isRedisReady()) {
         const client = getRedisClient()
-        const keys = await client.keys(pattern)
-        if (keys.length > 0) {
-          return await client.del(keys)
+        let count = 0
+        for await (const key of client.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+          await client.del(key)
+          count++
         }
-        return 0
+        return count
       } else {
         return await memoryCache.delPattern(pattern)
       }

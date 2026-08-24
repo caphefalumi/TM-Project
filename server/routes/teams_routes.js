@@ -49,21 +49,21 @@ const {
 // Categories are static - cache for 24 hours
 router.get('/categories', cacheResponse(86400), getCategories)
 
-// Create team - invalidate user's team cache
-router.post('/', invalidateCache('cache:user:*:/'), addTeamPro)
+// Create team - invalidate user's team list caches
+router.post('/', invalidateCache('cache:user:*'), addTeamPro)
 
 router.post(
   '/:teamId/users/',
   authenticateAccessToken,
   requirePermission('ADD_MEMBERS'),
-  invalidateCache('cache:*:teamUsers:*', 'cache:user:*:/'),
+  invalidateCache('cache:team::teamId:*', 'cache:user:*'),
   addUsersToTeam,
 )
 router.delete(
   '/:teamId/users/',
   authenticateAccessToken,
   requirePermission('REMOVE_MEMBERS'),
-  invalidateCache('cache:*:teamUsers:*', 'cache:user:*:/'),
+  invalidateCache('cache:team::teamId:*', 'cache:user:*'),
   deleteUsersFromTeam,
 )
 
@@ -95,12 +95,12 @@ router.get(
   getTeamDetails,
 )
 
-// Delete team - invalidate all related caches
+// Delete team - invalidate team and user list caches
 router.delete(
   '/:teamId',
   authenticateAccessToken,
   requireAdmin,
-  invalidateCache('cache:*'),
+  invalidateCache('cache:team::teamId:*', 'cache:user:*'),
   deleteATeam,
 )
 
@@ -118,7 +118,7 @@ router.get(
   '/:teamId/:userId/tasks',
   authenticateAccessToken,
   requirePermission('VIEW_TEAM'),
-  cacheResponse(120),
+  cacheResponse(120, teamCacheKey),
   getTasksOfAUserInATeam,
 )
 
@@ -141,14 +141,14 @@ router.put(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
   requirePermission('MANAGE_TASKS'),
-  invalidateCache('cache:*:task-groups*'),
+  invalidateCache('cache:team::teamId:*'),
   updateTaskGroup,
 )
 router.delete(
   '/:teamId/task-groups/:taskGroupId',
   authenticateAccessToken,
   requirePermission('DELETE_TASKS'),
-  invalidateCache('cache:*:task-groups*'),
+  invalidateCache('cache:team::teamId:*'),
   deleteTaskGroup,
 )
 
@@ -164,21 +164,21 @@ router.post(
   '/:teamId/announcements',
   authenticateAccessToken,
   requirePermission('MANAGE_ANNOUNCEMENTS'),
-  invalidateCache('cache:*:announcements*'),
+  invalidateCache('cache:team::teamId:*'),
   addAnnouncement,
 )
 router.put(
   '/:teamId/announcements/:announcementId',
   authenticateAccessToken,
   requirePermission('MANAGE_ANNOUNCEMENTS'),
-  invalidateCache('cache:*:announcements*'),
+  invalidateCache('cache:team::teamId:*'),
   updateAnnouncement,
 )
 router.delete(
   '/:teamId/announcements/:announcementId',
   authenticateAccessToken,
   requirePermission('DELETE_ANNOUNCEMENTS'),
-  invalidateCache('cache:*:announcements*'),
+  invalidateCache('cache:team::teamId:*'),
   deleteAnnouncement,
 )
 
@@ -186,7 +186,7 @@ router.put(
   '/:teamId/members/:userId/role',
   authenticateAccessToken,
   requireAdmin,
-  invalidateCache('cache:*:users*', 'cache:*:permissions*'),
+  invalidateCache('cache:team::teamId:*'),
   changeUserRole,
 )
 router.get(
@@ -200,7 +200,7 @@ router.put(
   '/:teamId/members/:userId/permissions',
   authenticateAccessToken,
   requireAdmin,
-  invalidateCache('cache:*:permissions*'),
+  invalidateCache('cache:team::teamId:*'),
   updateUserPermissions,
 )
 
@@ -209,7 +209,7 @@ router.post(
   '/:teamId/roles',
   authenticateAccessToken,
   requireAdmin,
-  invalidateCache('cache:*:roles*'),
+  invalidateCache('cache:team::teamId:*'),
   createRole,
 )
 router.get(
@@ -223,14 +223,14 @@ router.put(
   '/:teamId/roles/:roleId',
   authenticateAccessToken,
   requireAdmin,
-  invalidateCache('cache:*:roles*'),
+  invalidateCache('cache:team::teamId:*'),
   updateRole,
 )
 router.delete(
   '/:teamId/roles/:roleId',
   authenticateAccessToken,
   requireAdmin,
-  invalidateCache('cache:*:roles*'),
+  invalidateCache('cache:team::teamId:*'),
   deleteRole,
 )
 
@@ -238,7 +238,7 @@ router.put(
   '/:teamId/members/:userId/assign-role',
   authenticateAccessToken,
   requireAdmin,
-  invalidateCache('cache:*:users*', 'cache:*:permissions*'),
+  invalidateCache('cache:team::teamId:*'),
   assignCustomRoleToUser,
 )
 

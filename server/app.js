@@ -31,7 +31,7 @@ app.use(
 
 // Initialize database and Redis
 connectDB()
-initRedis()
+const redisReady = initRedis()
 
 app.use((req, _res, next) => {
   Object.defineProperty(req, 'query', {
@@ -74,9 +74,11 @@ const PORT = process.env.PORT || 3000
 // Start token cleanup scheduler
 // initTokenCleanup()
 
-// For local development
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`)
+// Ensure Redis is connected before accepting requests
+redisReady.then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`)
+  })
 })
 
 // Export for Vercel
