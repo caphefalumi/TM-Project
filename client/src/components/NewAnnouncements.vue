@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -49,7 +50,7 @@ const createAnnouncement = async () => {
   }
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/announcements`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/${props.teamId}/announcements`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

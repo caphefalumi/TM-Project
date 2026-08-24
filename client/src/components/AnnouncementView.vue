@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const success = ref(false)
 const error = ref(false)
@@ -84,7 +85,7 @@ const submitComment = async () => {
       replyTo: newComment.value.replyTo || '',
     }
 
-    const response = await fetch(`${PORT}/api/announcements/${props.announcement._id}/comments`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/announcements/${props.announcement._id}/comments`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

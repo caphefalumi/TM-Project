@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import UpdateAnnouncements from '../components/UpdateAnnouncements.vue'
@@ -94,7 +95,7 @@ const loadAllData = async () => {
 const loadTeams = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/admin/teams`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/admin/teams`, {
       method: 'GET',
       credentials: 'include',
     })
@@ -112,7 +113,7 @@ const loadTeams = async () => {
 const loadUsers = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/admin/users`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/admin/users`, {
       method: 'GET',
       credentials: 'include',
     })
@@ -133,7 +134,7 @@ const loadUsers = async () => {
 const loadAnnouncements = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/admin/announcements`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/admin/announcements`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -172,7 +173,7 @@ const deleteTeam = async (team) => {
   deleting.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/admin/teams/${team._id}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/admin/teams/${team._id}`, {
       method: 'DELETE',
       credentials: 'include',
     })
@@ -203,7 +204,7 @@ const sendNotification = async () => {
   console.log('Sending notification to user:', selectedUser.value)
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/admin/notify`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/admin/notify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -241,7 +242,7 @@ const deleteUser = async (userToDelete) => {
   deleting.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/admin/users/${userToDelete._id}`, // Never change this endpoint
       {
         method: 'DELETE',
@@ -278,7 +279,7 @@ const deleteAnnouncement = async (announcement) => {
   deleting.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/admin/announcements/${announcement._id}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/admin/announcements/${announcement._id}`, {
       method: 'DELETE',
       credentials: 'include',
     })

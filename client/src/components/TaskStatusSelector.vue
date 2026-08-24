@@ -28,6 +28,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const props = defineProps({
   status: {
@@ -83,7 +84,7 @@ const updateStatus = async (newStatus) => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/tasks/${props.taskId}/status`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/tasks/${props.taskId}/status`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {

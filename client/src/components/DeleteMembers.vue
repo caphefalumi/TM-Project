@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useRouter } from 'vue-router'
 
 const DEFAULT_ROLE_COLORS = {
@@ -91,7 +92,7 @@ const removeMembers = async () => {
     const membersToRemove = selectedMembers.value.map((member) => ({
       userId: member.userId,
     }))
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/users/`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/${props.teamId}/users/`, {
       method: 'DELETE',
       credentials: 'include', // Include cookies for authentication
       headers: {

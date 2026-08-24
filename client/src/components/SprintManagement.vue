@@ -99,6 +99,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const props = defineProps({
   teamId: {
@@ -137,7 +138,7 @@ const getSprintColor = (status) => {
 const fetchSprints = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/sprints/team/${props.teamId}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/sprints/team/${props.teamId}`, {
       method: 'GET',
       credentials: 'include',
     })
@@ -160,7 +161,7 @@ const createSprint = async () => {
   creating.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/sprints`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/sprints`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -192,7 +193,7 @@ const createSprint = async () => {
 const startSprint = async (sprintId) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/sprints/${sprintId}/start`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/sprints/${sprintId}/start`, {
       method: 'POST',
       credentials: 'include',
     })
@@ -213,7 +214,7 @@ const startSprint = async (sprintId) => {
 const completeSprint = async (sprintId) => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/sprints/${sprintId}/complete`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/sprints/${sprintId}/complete`, {
       method: 'POST',
       credentials: 'include',
     })
@@ -236,7 +237,7 @@ const deleteSprint = async (sprintId) => {
 
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/sprints/${sprintId}`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/sprints/${sprintId}`, {
       method: 'DELETE',
       credentials: 'include',
     })

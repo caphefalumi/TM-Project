@@ -1,3 +1,4 @@
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 /**
  * Session Service - RefreshToken-based session management
  * Replaces the old session management with refresh token activity tracking
@@ -16,7 +17,7 @@ class SessionService {
   async getActiveSessions() {
     const PORT = import.meta.env.VITE_API_PORT
     try {
-      const response = await fetch(`${PORT}/api/sessions/active`, {
+      const response = await fetchWithTokenRefresh(`${PORT}/api/sessions/active`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -43,7 +44,7 @@ class SessionService {
   async checkSecurity() {
     const PORT = import.meta.env.VITE_API_PORT
     try {
-      const response = await fetch(`${PORT}/api/sessions/security`, {
+      const response = await fetchWithTokenRefresh(`${PORT}/api/sessions/security`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -79,7 +80,7 @@ class SessionService {
   async revokeSession(sessionId) {
     const PORT = import.meta.env.VITE_API_PORT
     try {
-      const response = await fetch(`${PORT}/api/sessions/${sessionId}`, {
+      const response = await fetchWithTokenRefresh(`${PORT}/api/sessions/${sessionId}`, {
         method: 'DELETE',
         credentials: 'include',
       })
@@ -103,7 +104,7 @@ class SessionService {
   async revokeAllOtherSessions() {
     const PORT = import.meta.env.VITE_API_PORT
     try {
-      const response = await fetch(`${PORT}/api/sessions/others/all`, {
+      const response = await fetchWithTokenRefresh(`${PORT}/api/sessions/others/all`, {
         method: 'DELETE',
         credentials: 'include',
       })
