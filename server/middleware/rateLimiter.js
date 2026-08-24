@@ -13,11 +13,23 @@ export const createRateLimiter = (options, prefix = 'rl:') => {
     standardHeaders: options.standardHeaders || 'draft-8',
     legacyHeaders: options.legacyHeaders !== undefined ? options.legacyHeaders : false,
     store: new RedisStore({
-      sendCommand: (...args) => {
-        if (!isRedisReady()) {
-          throw new Error('Redis not ready')
+      sendCommand: async (...args) => {
+        const client = getRedisClient()
+        if (!client) {
+          throw new Error('Redis client not available')
         }
-        return getRedisClient().sendCommand(args)
+        if (!isRedisReady()) {
+          // Wait briefly until Redis completes connection
+          await new Promise((resolve) => {
+            const check = setInterval(() => {
+              if (isRedisReady()) {
+                clearInterval(check)
+                resolve()
+              }
+            }, 50)
+          })
+        }
+        return client.sendCommand(args.flat())
       },
       prefix,
     }),

@@ -9,7 +9,7 @@ const REDIS_CONFIG = {
   socket: {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
-    tls: process.env.REDIS_TLS !== 'false', // Enable TLS by default for cloud Redis
+    tls: process.env.REDIS_TLS === 'true', // Only enable TLS if explicitly set to 'true'
     connectTimeout: 10000, // 10 seconds connection timeout
     // Reject unauthorized certificates in production, but allow self-signed for development
     rejectUnauthorized: process.env.NODE_ENV === 'production',
@@ -25,32 +25,20 @@ const REDIS_CONFIG = {
   },
 }
 
-export const initRedis = async () => {
-  // Skip Redis if disabled in env
-  if (process.env.REDIS_CACHE_ENABLED === 'false') {
-    console.log('Redis: Caching disabled via REDIS_CACHE_ENABLED=false')
-    return null
-  }
-
-  // Skip Redis if credentials are missing
-  if (!process.env.REDIS_HOST || !process.env.REDIS_PASSWORD) {
-    console.log('Redis: Credentials not found, running without Redis (using memory fallback)')
-    return null
-  }
-
-  try {
-    console.log(
-      `Redis: Attempting to connect to ${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-    )
+export const getRedisClient = () => {
+  if (
+    !redisClient &&
+    process.env.REDIS_CACHE_ENABLED !== 'false' &&
+    process.env.REDIS_HOST &&
+    process.env.REDIS_PASSWORD
+  ) {
     redisClient = createClient(REDIS_CONFIG)
 
-    // Error handler
     redisClient.on('error', (err) => {
       console.error('Redis Client Error:', err.message)
       isConnected = false
     })
 
-    // Connection handler
     redisClient.on('connect', () => {
       console.log('Redis: TCP connection established')
     })
@@ -69,15 +57,36 @@ export const initRedis = async () => {
       console.log('Redis: Connection closed')
       isConnected = false
     })
+  }
+  return redisClient
+}
 
-    // Connect to Redis with timeout
-    await Promise.race([
-      redisClient.connect(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 15000)),
-    ])
+export const initRedis = async () => {
+  // Skip Redis if disabled in env
+  if (process.env.REDIS_CACHE_ENABLED === 'false') {
+    console.log('Redis: Caching disabled via REDIS_CACHE_ENABLED=false')
+    return null
+  }
 
-    console.log('Redis: Successfully connected!')
-    return redisClient
+  // Skip Redis if credentials are missing
+  if (!process.env.REDIS_HOST || !process.env.REDIS_PASSWORD) {
+    console.log('Redis: Credentials not found, running without Redis (using memory fallback)')
+    return null
+  }
+
+  try {
+    const client = getRedisClient()
+    if (!client.isOpen) {
+      console.log(
+        `Redis: Attempting to connect to ${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+      )
+      await Promise.race([
+        client.connect(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 15000)),
+      ])
+      console.log('Redis: Successfully connected!')
+    }
+    return client
   } catch (error) {
     console.error('Redis: Failed to connect:', error.message)
     console.log('Redis: Continuing without Redis (using memory fallback)')
@@ -85,10 +94,6 @@ export const initRedis = async () => {
     isConnected = false
     return null
   }
-}
-
-export const getRedisClient = () => {
-  return redisClient
 }
 
 export const isRedisReady = () => {
