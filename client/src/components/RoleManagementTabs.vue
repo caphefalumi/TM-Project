@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { permissionService, AVAILABLE_PERMISSIONS } from '../services/permissionService.js'
 
 const props = defineProps({
@@ -156,7 +157,7 @@ const fetchCustomRoles = async () => {
   try {
     loading.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/${props.teamId}/roles`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -182,7 +183,7 @@ const createCustomRole = async () => {
   try {
     loading.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/${props.teamId}/roles`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/${props.teamId}/roles`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -219,7 +220,7 @@ const updateCustomRole = async () => {
   try {
     loading.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`,
       {
         method: 'PUT',
@@ -258,7 +259,7 @@ const deleteCustomRole = async () => {
   try {
     loading.value = true
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(
+    const response = await fetchWithTokenRefresh(
       `${PORT}/api/teams/${props.teamId}/roles/${selectedRole.value._id}`,
       {
         method: 'DELETE',
@@ -299,7 +300,7 @@ const assignRole = async (member, roleType, roleId = null) => {
       roleId: roleId || null,
     }
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTokenRefresh(endpoint, {
       method: 'PUT',
       credentials: 'include',
       headers: {

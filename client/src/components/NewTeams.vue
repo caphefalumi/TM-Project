@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useRouter } from 'vue-router'
 import { useGlobalNotifications } from '../composables/useGlobalNotifications.js'
 import '../styles/buttonStyling.css'
@@ -71,7 +72,7 @@ const props = defineProps({
 const fetchCategories = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams/categories`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams/categories`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ const createTeam = async () => {
   console.log('Creating project with data:', newTeam.value)
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/teams`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/teams`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

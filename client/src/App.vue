@@ -1,5 +1,6 @@
 <script setup>
 import SideBar from './components/Sidebar.vue'
+import { fetchWithTokenRefresh } from './scripts/apiClient.js'
 import CacheDebugger from './components/CacheDebugger.vue'
 import GlobalNotifications from './components/GlobalNotifications.vue'
 import { computed, onMounted, onUnmounted, watch, ref } from 'vue'
@@ -79,7 +80,7 @@ const refreshAccessToken = async () => {
     try {
       const PORT = import.meta.env.VITE_API_PORT
       console.log('Auto-refreshing access token... (attempt', attempt + 1, ')')
-      const response = await fetch(`${PORT}/api/sessions/refresh`, {
+      const response = await fetchWithTokenRefresh(`${PORT}/api/sessions/refresh`, {
         method: 'POST',
         credentials: 'include',
       })

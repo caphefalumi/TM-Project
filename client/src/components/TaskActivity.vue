@@ -28,6 +28,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const props = defineProps({
   taskId: {
@@ -98,7 +99,7 @@ const getActivityText = (activity) => {
 const fetchActivity = async () => {
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/tasks/${props.taskId}/activity`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/tasks/${props.taskId}/activity`, {
       method: 'GET',
       credentials: 'include',
     })

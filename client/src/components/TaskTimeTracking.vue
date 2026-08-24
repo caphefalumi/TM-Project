@@ -86,6 +86,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 
 const props = defineProps({
   taskId: {
@@ -144,7 +145,7 @@ const updateEstimate = async () => {
   updatingEstimate.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/tasks/${props.taskId}/estimate`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/tasks/${props.taskId}/estimate`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -175,7 +176,7 @@ const logTime = async () => {
   loggingTime.value = true
   try {
     const PORT = import.meta.env.VITE_API_PORT
-    const response = await fetch(`${PORT}/api/tasks/${props.taskId}/log-time`, {
+    const response = await fetchWithTokenRefresh(`${PORT}/api/tasks/${props.taskId}/log-time`, {
       method: 'POST',
       credentials: 'include',
       headers: {

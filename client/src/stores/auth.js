@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { fetchWithTokenRefresh } from '../scripts/apiClient.js'
 import { useComponentCache } from '../composables/useComponentCache.js'
 
 const isClient = typeof window !== 'undefined'
@@ -60,7 +61,7 @@ export const useAuthStore = defineStore('auth', {
     async refreshAccessToken() {
       try {
         console.log('Attempting to refresh access token...')
-        const response = await fetch(`${PORT}/api/auth/tokens/access`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/auth/tokens/access`, {
           method: 'GET',
           credentials: 'include',
         })
@@ -96,7 +97,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async getUserByAccessToken(retryCount = 0) {
       try {
-        const response = await fetch(`${PORT}/api/users`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/users`, {
           method: 'GET',
           credentials: 'include',
         })
@@ -149,7 +150,7 @@ export const useAuthStore = defineStore('auth', {
           return { success: true, message: 'Already logged out' }
         }
 
-        const response = await fetch(`${PORT}/api/sessions/me`, {
+        const response = await fetchWithTokenRefresh(`${PORT}/api/sessions/me`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
