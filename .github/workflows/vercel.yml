@@ -9,15 +9,16 @@ on:
       - server/**
   workflow_dispatch:
     inputs:
-      target:
-        description: 'Select component to deploy'
-        required: true
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - frontend
-          - backend
+      frontend:
+        description: 'Deploy Frontend'
+        required: false
+        default: true
+        type: boolean
+      backend:
+        description: 'Deploy Backend'
+        required: false
+        default: true
+        type: boolean
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -46,9 +47,9 @@ jobs:
     if: |
       always() &&
       !cancelled() &&
-      !failed() &&
+      !failure() &&
       (
-        (github.event_name == 'workflow_dispatch' && (inputs.target == 'all' || inputs.target == 'frontend')) ||
+        (github.event_name == 'workflow_dispatch' && inputs.frontend == true) ||
         (github.event_name == 'push' && needs.changes.outputs.client == 'true')
       )
     runs-on: ubuntu-latest
@@ -73,9 +74,9 @@ jobs:
     if: |
       always() &&
       !cancelled() &&
-      !failed() &&
+      !failure() &&
       (
-        (github.event_name == 'workflow_dispatch' && (inputs.target == 'all' || inputs.target == 'backend')) ||
+        (github.event_name == 'workflow_dispatch' && inputs.backend == true) ||
         (github.event_name == 'push' && needs.changes.outputs.server == 'true')
       )
     runs-on: ubuntu-latest
