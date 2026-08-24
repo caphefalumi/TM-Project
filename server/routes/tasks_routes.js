@@ -2,6 +2,7 @@ import express from 'express'
 import TasksController from '../controllers/tasksController.js'
 import { authenticateAccessToken } from '../middleware/authMiddleware.js'
 import { requirePermission } from '../middleware/roleMiddleware.js'
+import { invalidateCache } from '../middleware/cacheMiddleware.js'
 
 const {
   addTaskToUsers,
@@ -19,8 +20,8 @@ const {
 } = TasksController
 const router = express.Router()
 
-router.post('/create', authenticateAccessToken, requirePermission('MANAGE_TASKS'), addTaskToUsers)
-router.post('/submit', authenticateAccessToken, requirePermission('SUBMIT_TASKS'), submitATask)
+router.post('/create', authenticateAccessToken, requirePermission('MANAGE_TASKS'), invalidateCache('cache:team::teamId:*'), addTaskToUsers)
+router.post('/submit', authenticateAccessToken, requirePermission('SUBMIT_TASKS'), invalidateCache('cache:team::teamId:*'), submitATask)
 router.get(
   '/submission/:teamId/:taskId',
   authenticateAccessToken,
