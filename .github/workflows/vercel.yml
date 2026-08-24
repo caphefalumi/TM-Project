@@ -7,6 +7,17 @@ on:
     paths:
       - client/**
       - server/**
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Select component to deploy'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - frontend
+          - backend
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -22,6 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
+        if: github.event_name == 'push'
         with:
           filters: |
             client:
@@ -31,7 +43,14 @@ jobs:
 
   deploy-client:
     needs: changes
-    if: needs.changes.outputs.client == 'true'
+    if: |
+      always() &&
+      !cancelled() &&
+      !failed() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (inputs.target == 'all' || inputs.target == 'frontend')) ||
+        (github.event_name == 'push' && needs.changes.outputs.client == 'true')
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +70,14 @@ jobs:
 
   deploy-server:
     needs: changes
-    if: needs.changes.outputs.server == 'true'
+    if: |
+      always() &&
+      !cancelled() &&
+      !failed() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (inputs.target == 'all' || inputs.target == 'backend')) ||
+        (github.event_name == 'push' && needs.changes.outputs.server == 'true')
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
