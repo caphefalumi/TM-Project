@@ -1,16 +1,16 @@
 import dotenv from 'dotenv'
 dotenv.config({ quiet: true })
 import express from 'express'
-import routes from './routes/router.ts'
-import connectDB from './config/db.ts'
-import { initRedis } from './config/redis.ts'
+import routes from './routes/router.js'
+import connectDB from './config/db.js'
+import { initRedis } from './config/redis.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import ExpressMongoSanitize from 'express-mongo-sanitize'
-import { initTokenCleanup } from './scripts/tokenCleanup.ts'
+import { initTokenCleanup } from './scripts/tokenCleanup.js'
 import requestIp from 'request-ip'
 import path from 'path'
-import { csrfProtection, getCsrfToken } from './middleware/csrfMiddleware.ts'
+import { csrfProtection, getCsrfToken } from './middleware/csrfMiddleware.js'
 
 const app = express()
 app.use(requestIp.mw())

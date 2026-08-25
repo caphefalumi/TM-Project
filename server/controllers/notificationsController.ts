@@ -1,6 +1,6 @@
-import { Notifications, NotificationPreferences } from '../models/Notifications.ts'
-import Account from '../models/Account.ts'
-import { getUserNotificationPreferences } from '../scripts/notificationsService.ts'
+import { Notifications, NotificationPreferences } from '../models/Notifications.js'
+import Account from '../models/Account.js'
+import { getUserNotificationPreferences } from '../scripts/notificationsService.js'
 
 /**
  * Get notifications for a user

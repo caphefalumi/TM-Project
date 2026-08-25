@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-import TeamsController from './teamsController.ts'
-import Account from '../models/Account.ts'
-import Mailer from '../scripts/mailer.ts'
-import RefreshTokenManager from '../scripts/refreshTokenManager.ts'
-import Tasks from '../models/Tasks.ts'
+import TeamsController from './teamsController.js'
+import Account from '../models/Account.js'
+import Mailer from '../scripts/mailer.js'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
+import Tasks from '../models/Tasks.js'
 const { addTeamPro } = TeamsController
 
 import dotenv from 'dotenv'

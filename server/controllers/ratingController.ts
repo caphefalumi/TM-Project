@@ -1,4 +1,4 @@
-import Rating from '../models/Rating.ts'
+import Rating from '../models/Rating.js'
 
 export const createOrUpdateRating = async (req, res) => {
   const { userId, message, issue, featureRating, perfRating, uiRating } = req.body

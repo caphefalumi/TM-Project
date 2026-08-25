@@ -3,11 +3,11 @@ import {
   createAnnouncementCommentedNotification,
   createCommentRepliedNotification,
   createTeamAnnouncementCreatedNotification,
-} from '../scripts/notificationsService.ts'
+} from '../scripts/notificationsService.js'
 
-import Teams from '../models/Teams.ts'
-import Announcements from '../models/Announcements.ts'
-import UsersOfTeam from '../models/UsersOfTeam.ts'
+import Teams from '../models/Teams.js'
+import Announcements from '../models/Announcements.js'
+import UsersOfTeam from '../models/UsersOfTeam.js'
 
 const getAnnouncementsOfTeam = async (req, res) => {
   // Get all announcements of a team

@@ -1,9 +1,9 @@
 import express from 'express'
-import TeamsController from '../controllers/teamsController.ts'
-import AnnouncementsController from '../controllers/announcementsController.ts'
-import TasksController from '../controllers/tasksController.ts'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
-import { requirePermission, requireAdmin } from '../middleware/roleMiddleware.ts'
+import TeamsController from '../controllers/teamsController.js'
+import AnnouncementsController from '../controllers/announcementsController.js'
+import TasksController from '../controllers/tasksController.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import { requirePermission, requireAdmin } from '../middleware/roleMiddleware.js'
 import {
   addUsersToTeam,
   getUsersOfTeam,
@@ -11,20 +11,20 @@ import {
   changeUserRole,
   getUserPermissions,
   updateUserPermissions,
-} from '../controllers/usersController.ts'
+} from '../controllers/usersController.js'
 import {
   createRole,
   getRolesByTeam,
   updateRole,
   deleteRole,
   assignCustomRoleToUser,
-} from '../controllers/rolesController.ts'
+} from '../controllers/rolesController.js'
 import {
   cacheResponse,
   invalidateCache,
   userCacheKey,
   teamCacheKey,
-} from '../middleware/cacheMiddleware.ts'
+} from '../middleware/cacheMiddleware.js'
 
 const router = express.Router()
 const {

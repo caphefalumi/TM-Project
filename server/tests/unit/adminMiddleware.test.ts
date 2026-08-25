@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { checkAdminAccess } from '../../middleware/adminMiddleware.ts'
-import { mockNext, mockReq, mockRes } from '../helpers.ts'
+import { checkAdminAccess } from '../../middleware/adminMiddleware.js'
+import { mockNext, mockReq, mockRes } from '../helpers.js'
 
 describe('checkAdminAccess', () => {
   it('allows the global admin username', () => {

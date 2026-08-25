@@ -1,4 +1,4 @@
-import { cacheService } from '../services/cacheService.ts'
+import { cacheService } from '../services/cacheService.js'
 
 /**
  * Cache middleware factory for caching GET responses

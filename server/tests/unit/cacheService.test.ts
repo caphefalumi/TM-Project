@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { cacheService } from '../../services/cacheService.ts'
+import { cacheService } from '../../services/cacheService.js'
 
 describe('cacheService memory fallback', () => {
   beforeEach(async () => {

@@ -4,9 +4,9 @@ import {
   getComments,
   updateComment,
   deleteComment,
-} from '../controllers/commentsController.ts'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
-import { requirePermission } from '../middleware/roleMiddleware.ts'
+} from '../controllers/commentsController.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import { requirePermission } from '../middleware/roleMiddleware.js'
 
 const router = express.Router()
 

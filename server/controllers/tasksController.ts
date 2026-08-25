@@ -1,8 +1,8 @@
-import Teams from '../models/Teams.ts'
-import UsersOfTeam from '../models/UsersOfTeam.ts'
-import Tasks, { TaskSubmissions } from '../models/Tasks.ts'
-import Account from '../models/Account.ts'
-import TaskActivity from '../models/TaskActivity.ts'
+import Teams from '../models/Teams.js'
+import UsersOfTeam from '../models/UsersOfTeam.js'
+import Tasks, { TaskSubmissions } from '../models/Tasks.js'
+import Account from '../models/Account.js'
+import TaskActivity from '../models/TaskActivity.js'
 
 const getTasksOfAUser = async (req, res) => {
   // Get all tasks of a user across all teams
