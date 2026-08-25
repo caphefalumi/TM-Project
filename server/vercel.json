@@ -1,5 +1,6 @@
 {
   "version": 2,
   "installCommand": "npm install --legacy-peer-deps && npm run vercel-build",
+  "buildCommand": "npm run vercel-build",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }
