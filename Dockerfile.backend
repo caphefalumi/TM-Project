@@ -15,4 +15,4 @@ COPY server/ .
 EXPOSE 3000
 
 # Start server
-CMD ["bun", "app.js"]
+CMD ["bun", "src/app.ts"]

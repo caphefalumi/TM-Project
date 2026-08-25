@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { checkAdminAccess } from '../../middleware/adminMiddleware.js'
+import { checkAdminAccess } from '../../src/modules/admin/admin.middleware.js'
 import { mockNext, mockReq, mockRes } from '../helpers.js'
 
 describe('checkAdminAccess', () => {

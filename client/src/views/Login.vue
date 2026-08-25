@@ -321,20 +321,16 @@ const registerWithOAuth = async () => {
       }),
     })
 
-    if (!res.ok) {
-      error.value = res.error
+    const data = await res.json()
+    console.log('Data:', data)
+    if (res.ok && data.success) {
+      success.value = data.success
+      userId.value = data.userId
+      username.value = data.username
+      userEmail.value = data.email
+      sendToHomePage()
     } else {
-      const data = await res.json()
-      console.log('Data:', data)
-      if (data.success) {
-        success.value = data.success
-        userId.value = data.userId
-        username.value = data.username
-        userEmail.value = data.email
-        sendToHomePage()
-      } else if (data.error) {
-        error.value = data.error
-      }
+      error.value = data.error || 'Failed to create account. Please try again.'
     }
   } catch (err) {
     error.value = 'Network error'

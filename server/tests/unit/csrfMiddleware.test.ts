@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import Tokens from 'csrf'
-import { csrfProtection, getCsrfToken } from '../../middleware/csrfMiddleware.js'
+import { csrfProtection, getCsrfToken } from '../../src/shared/middleware/csrf.middleware.js'
 import { mockNext, mockReq, mockRes } from '../helpers.js'
 
 describe('csrfProtection', () => {
