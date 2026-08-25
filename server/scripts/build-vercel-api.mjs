@@ -11,7 +11,7 @@ import { writeFileSync } from 'node:fs'
  * makes the later build step fail with "File not found: api/index.ts".
  */
 const result = await Bun.build({
-  entrypoints: ['app.ts'],
+  entrypoints: ['src/app.ts'],
   target: 'node',
   format: 'esm',
   packages: 'external',
@@ -19,7 +19,7 @@ const result = await Bun.build({
 
 if (!result.success) {
   for (const log of result.logs) console.error(log)
-  throw new Error('Bun.build failed for app.ts')
+  throw new Error('Bun.build failed for src/app.ts')
 }
 
 await Bun.write('api/app.bundle.mjs', await result.outputs[0].text())

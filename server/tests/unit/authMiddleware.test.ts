@@ -7,7 +7,7 @@ vi.mock('jsonwebtoken', () => ({
 }))
 
 import jwt from 'jsonwebtoken'
-import { authenticateAccessToken } from '../../middleware/authMiddleware.js'
+import { authenticateAccessToken } from '../../src/shared/middleware/auth.middleware.js'
 import { mockNext, mockReq, mockRes } from '../helpers.js'
 
 describe('authenticateAccessToken', () => {

@@ -1,16 +1,16 @@
 import dotenv from 'dotenv'
 dotenv.config({ quiet: true })
 import express from 'express'
-import routes from './routes/router.js'
-import connectDB from './config/db.js'
-import { initRedis } from './config/redis.js'
+import routes from './shared/router.js'
+import connectDB from './shared/config/db.config.js'
+import { initRedis } from './shared/config/redis.config.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import ExpressMongoSanitize from 'express-mongo-sanitize'
-import { initTokenCleanup } from './scripts/tokenCleanup.js'
+import { initTokenCleanup } from './shared/jobs/token-cleanup.job.js'
 import requestIp from 'request-ip'
 import path from 'path'
-import { csrfProtection, getCsrfToken } from './middleware/csrfMiddleware.js'
+import { csrfProtection, getCsrfToken } from './shared/middleware/csrf.middleware.js'
 
 const app = express()
 app.use(requestIp.mw())
@@ -31,7 +31,6 @@ app.use(
 
 const isTestEnv = process.env.VITEST === 'true' || process.env.NODE_ENV === 'test'
 
-// Initialize database and Redis outside of tests
 if (!isTestEnv) {
   connectDB()
 }
@@ -55,7 +54,6 @@ app.use((req, _res, next) => {
 
   next()
 })
-// Increase payload size limit for image uploads
 app.use(express.json({ limit: '25mb' }))
 app.use(express.urlencoded({ limit: '25mb', extended: true }))
 app.use(cookieParser())
@@ -63,21 +61,17 @@ app.use(express.static('public'))
 
 app.get('/api/csrf-token', getCsrfToken)
 
-// Apply CSRF protection to all API routes
 app.use('/api', csrfProtection)
 app.use('/api', routes)
 
-// 404 handler for unmatched routes
 app.use((req, res) => {
   res.status(404).sendFile(path.join(process.cwd(), 'public', 'notfound.html'))
 })
 
 const PORT = process.env.PORT || 3000
 
-// Start token cleanup scheduler
 // initTokenCleanup()
 
-// Ensure Redis is connected before accepting requests
 if (!isTestEnv) {
   const redisReady = initRedis()
   redisReady.then(() => {
@@ -87,5 +81,4 @@ if (!isTestEnv) {
   })
 }
 
-// Export for Vercel
 export default app

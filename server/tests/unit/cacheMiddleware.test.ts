@@ -4,8 +4,8 @@ import {
   invalidateCache,
   teamCacheKey,
   userCacheKey,
-} from '../../middleware/cacheMiddleware.js'
-import { cacheService } from '../../services/cacheService.js'
+} from '../../src/shared/middleware/cache.middleware.js'
+import { cacheService } from '../../src/shared/services/cache.service.js'
 import { mockNext, mockReq, mockRes } from '../helpers.js'
 
 describe('cache key helpers', () => {

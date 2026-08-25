@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import jwt from 'jsonwebtoken'
-import { generateAccessToken, generateRefreshToken } from '../../services/tokenService.js'
+import { generateAccessToken, generateRefreshToken } from '../../src/modules/auth/token.service.js'
 
 const user = { userId: 'u1', username: 'ada', email: 'ada@example.com' }
 
