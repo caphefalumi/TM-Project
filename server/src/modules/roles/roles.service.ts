@@ -90,7 +90,7 @@ export const updateRole = async (
   }
 
   if (name) role.name = name
-  if (Array.isArray(permissions)) role.permissions = permissions
+  if (Array.isArray(permissions)) role.permissions = permissions as any
   if (icon) role.icon = icon
   if (color) role.color = color
   await role.save()

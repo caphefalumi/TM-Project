@@ -1,4 +1,3 @@
-import Role from './role.model.js'
 import UsersOfTeam from '../teams/team-membership.model.js'
 import { PERMISSIONS, ROLE_PERMISSIONS } from '../../shared/config/permissions.config.js'
 
@@ -35,8 +34,8 @@ export const getRoleDefaultPermissions = (roleIdentifier) => {
     ? roleIdentifier
     : getBaseRoleFromRoleType(roleIdentifier)
   const permissions = ROLE_PERMISSIONS[baseRole] || []
-  const permissionObject = {}
-  const allPermissions = new Set()
+  const permissionObject: Record<string, boolean> = {}
+  const allPermissions = new Set<string>()
 
   Object.values(ROLE_PERMISSIONS).forEach((rolePermissions) => {
     rolePermissions.forEach((permission) => allPermissions.add(permission))
@@ -53,8 +52,7 @@ export const getRoleDefaultPermissions = (roleIdentifier) => {
 
 export const getUserCustomPermissions = async (userId, teamId) => {
   try {
-    void Role
-    const userTeamRole = await UsersOfTeam.findOne({ userId, teamId }).populate('roleId')
+    const userTeamRole: any = await UsersOfTeam.findOne({ userId, teamId }).populate('roleId')
     if (!userTeamRole) {
       return null
     }
