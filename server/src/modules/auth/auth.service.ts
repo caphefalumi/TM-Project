@@ -7,6 +7,7 @@ import RefreshTokenManager from './session.service.js'
 import Teams from '../teams/team.model.js'
 import UsersOfTeam from '../teams/team-membership.model.js'
 import Tasks from '../tasks/task.model.js'
+import { ROLES } from '../roles/role.middleware.js'
 
 dotenv.config({ quiet: true })
 
@@ -92,7 +93,7 @@ export const createSampleTeamAndTasks = async (account) => {
       const membership = new UsersOfTeam({
         userId: account._id,
         teamId: team._id,
-        roleType: 'admin',
+        roleType: ROLES.ADMIN,
       })
       await membership.save()
     }
