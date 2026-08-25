@@ -1,0 +1,21 @@
+import { Router } from 'express'
+import NotificationsController from './notifications.controller.js'
+
+const router = Router()
+const {
+  getUserNotifications,
+  markNotificationsAsRead,
+  deleteNotifications,
+  getNotificationPreferences,
+  updateNotificationPreferences,
+  getNotificationStats,
+} = NotificationsController
+
+router.get('/:userId', getUserNotifications)
+router.delete('/:userId', deleteNotifications)
+router.get('/:userId/preferences', getNotificationPreferences)
+router.put('/:userId/preferences', updateNotificationPreferences)
+router.get('/:userId/stats', getNotificationStats)
+router.post('/:userId/mark-read', markNotificationsAsRead)
+
+export default router

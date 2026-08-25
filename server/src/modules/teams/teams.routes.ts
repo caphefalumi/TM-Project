@@ -6,6 +6,7 @@ import {
   userCacheKey,
   teamCacheKey,
 } from '../../shared/middleware/cache.middleware.js'
+import announcementsTeamRoutes from '../announcements/announcements.team.routes.js'
 import { requirePermission, requireAdmin } from '../roles/role.middleware.js'
 import {
   createRole,
@@ -14,6 +15,7 @@ import {
   deleteRole,
   assignCustomRoleToUser,
 } from '../roles/roles.controller.js'
+import tasksTeamRoutes from '../tasks/tasks.team.routes.js'
 import {
   addUsersToTeam,
   getUsersOfTeam,
@@ -87,6 +89,10 @@ router.get(
   cacheResponse(300, teamCacheKey),
   getUsersOfTeam,
 )
+
+// Nested task + announcement routes under /:teamId (mergeParams)
+router.use('/:teamId', tasksTeamRoutes)
+router.use('/:teamId', announcementsTeamRoutes)
 
 router.put(
   '/:teamId/members/:userId/role',
