@@ -20,29 +20,39 @@ const oAuthentication = async (req, res) => {
   if (!googleAccessToken) {
     return res.status(400).json({ message: 'No access token provided' })
   }
-  const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${googleAccessToken}` },
-  })
-  const googleUser = await response.json()
-
-  const { email } = googleUser
-
-  const existingUser = await Account.findOne({ email })
-  if (!existingUser) {
-    // No user --> require username for register
-    console.log('OAuth registration for new user with email:', email)
-
-    return res.status(202).json({ success: 'register' })
-  } else {
-    // Has user --> authorize
-    console.log('OAuth login for existing user:', existingUser.username)
-    return res.status(202).json({
-      success: 'login',
-      username: existingUser.username,
-      userId: existingUser._id.toString(),
-      email: existingUser.email,
+  try {
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${googleAccessToken}` },
     })
+    const googleUser = await response.json()
+
+    if (!response.ok || !googleUser.email) {
+      console.log('OAuth userinfo lookup failed:', googleUser)
+      return res.status(401).json({ error: 'Failed to verify Google account. Please try again.' })
+    }
+
+    const email = googleUser.email.toLowerCase()
+
+    const existingUser = await Account.findOne({ email })
+    if (!existingUser) {
+      // No user --> require username for register
+      console.log('OAuth registration for new user with email:', email)
+
+      return res.status(202).json({ success: 'register' })
+    } else {
+      // Has user --> authorize
+      console.log('OAuth login for existing user:', existingUser.username)
+      return res.status(202).json({
+        success: 'login',
+        username: existingUser.username,
+        userId: existingUser._id.toString(),
+        email: existingUser.email,
+      })
+    }
+  } catch (err) {
+    console.log('OAuth authentication error:', err)
+    return res.status(500).json({ error: 'Failed to process OAuth login. Please try again.' })
   }
 }
 
@@ -144,37 +154,44 @@ const oAuthenticationRegister = async (req, res) => {
   if (!token) {
     return res.status(400).json({ message: 'No access token provided' })
   }
-  const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  const googleUser = await response.json()
-
-  const { email } = googleUser
-  console.log('REGISTER EMAIL: ', email)
-  const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
-  if (existingUser) {
-    if (existingUser.username === username) {
-      return res.status(402).json({ error: 'Username already exists.' })
-    } else if (existingUser.email === email) {
-      // double check: If the email is created
-      // and the user is able to move on to the second phase: input username only
-      // --> Could be duplicated if we dont check email
-      return res.status(403).json({ error: 'Email already exists.' })
-    }
-  }
   try {
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const googleUser = await response.json()
+
+    if (!response.ok || !googleUser.email) {
+      console.log('OAuth userinfo lookup failed:', googleUser)
+      return res.status(401).json({ error: 'Failed to verify Google account. Please try again.' })
+    }
+
+    const email = googleUser.email.toLowerCase()
+    console.log('REGISTER EMAIL: ', email)
+    const existingUser = await Account.findOne({ $or: [{ username }, { email }] })
+    if (existingUser) {
+      if (existingUser.username === username) {
+        return res.status(402).json({ error: 'Username already exists.' })
+      } else if (existingUser.email === email) {
+        // double check: If the email is created
+        // and the user is able to move on to the second phase: input username only
+        // --> Could be duplicated if we dont check email
+        return res.status(403).json({ error: 'Email already exists.' })
+      }
+    }
+
     const account = new Account({ username, email, provider, emailVerified: true })
     await account.save()
     await createSampleTeamAndTasks(account)
-    res.status(201).json({
+    return res.status(201).json({
       success: 'Account created successfully. Sample team and tasks created.',
       userId: account._id.toString(),
       username: account.username,
       email: account.email,
     })
   } catch (err) {
-    res.status(405).json({ error: err })
+    console.log('OAuth registration error:', err)
+    return res.status(400).json({ error: err.message || 'Failed to create account. Please try again.' })
   }
 }
 
