@@ -1,16 +1,16 @@
 import express from 'express'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
 import {
   addRefreshToken,
   revokeRefreshToken,
   renewAccessToken,
-} from '../controllers/tokensController.ts'
+} from '../controllers/tokensController.js'
 import {
   getActiveTokens,
   getSecurityStatus,
   deleteTokenById,
   deleteOtherTokens,
-} from '../controllers/refreshTokenController.ts'
+} from '../controllers/refreshTokenController.js'
 
 const router = express.Router()
 

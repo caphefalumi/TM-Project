@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../services/gridfsService.ts', () => ({
+vi.mock('../../services/gridfsService.js', () => ({
   initGridFS: vi.fn(),
   createMulterGridFSStorage: () => ({
     _handleFile: (_req: unknown, file: { originalname: string }, cb: (error: Error | null, info?: object) => void) =>
@@ -13,24 +13,24 @@ vi.mock('../../services/gridfsService.ts', () => ({
   processBase64Image: vi.fn(),
 }))
 
-vi.mock('../../config/db.ts', () => ({
+vi.mock('../../config/db.js', () => ({
   default: vi.fn(),
 }))
 
-vi.mock('../../config/redis.ts', () => ({
+vi.mock('../../config/redis.js', () => ({
   initRedis: vi.fn(async () => null),
   isRedisReady: vi.fn(() => false),
   getRedisClient: vi.fn(),
   closeRedis: vi.fn(),
 }))
 
-vi.mock('../../middleware/rateLimiter.ts', () => ({
+vi.mock('../../middleware/rateLimiter.js', () => ({
   default: () => (_req: unknown, _res: unknown, next: () => void) => next(),
   createRateLimiter: () => (_req: unknown, _res: unknown, next: () => void) => next(),
 }))
 
 import request from 'supertest'
-import app from '../../app.ts'
+import app from '../../app.js'
 
 describe('API app integration', () => {
   it('issues a CSRF token from the real app', async () => {

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const isRedisReady = vi.fn()
 const getRedisClient = vi.fn()
 
-vi.mock('../../config/redis.ts', () => ({
+vi.mock('../../config/redis.js', () => ({
   isRedisReady: () => isRedisReady(),
   getRedisClient: () => getRedisClient(),
 }))
@@ -13,7 +13,7 @@ import {
   REDIS_READY_POLL_MS,
   resolveRedisClient,
   waitForRedisReady,
-} from '../../middleware/rateLimiter.ts'
+} from '../../middleware/rateLimiter.js'
 
 describe('createRateLimiter', () => {
   it('returns Express middleware', () => {

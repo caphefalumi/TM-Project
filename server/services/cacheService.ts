@@ -1,4 +1,4 @@
-import { getRedisClient, isRedisReady } from '../config/redis.ts'
+import { getRedisClient, isRedisReady } from '../config/redis.js'
 
 // In-memory fallback cache
 class MemoryCache {

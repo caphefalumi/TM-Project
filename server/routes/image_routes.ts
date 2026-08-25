@@ -6,8 +6,8 @@ import {
   getImageMetadata,
   processBase64Image,
   createMulterGridFSStorage,
-} from '../services/gridfsService.ts'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
+} from '../services/gridfsService.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
 
 const router = express.Router()
 

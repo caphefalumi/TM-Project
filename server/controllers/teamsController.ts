@@ -1,7 +1,7 @@
-import Teams from '../models/Teams.ts'
-import UsersOfTeam from '../models/UsersOfTeam.ts'
-import Tasks from '../models/Tasks.ts'
-import { ROLES, getBaseRoleFromRoleType, getRoleLabel } from '../middleware/roleMiddleware.ts'
+import Teams from '../models/Teams.js'
+import UsersOfTeam from '../models/UsersOfTeam.js'
+import Tasks from '../models/Tasks.js'
+import { ROLES, getBaseRoleFromRoleType, getRoleLabel } from '../middleware/roleMiddleware.js'
 
 const getCategories = async (req, res) => {
   // Returns an array of enum categories from the Teams schema

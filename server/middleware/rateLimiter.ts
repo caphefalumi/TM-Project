@@ -1,6 +1,6 @@
 import { rateLimit } from 'express-rate-limit'
 import { RedisStore } from 'rate-limit-redis'
-import { getRedisClient, isRedisReady } from '../config/redis.ts'
+import { getRedisClient, isRedisReady } from '../config/redis.js'
 
 export const REDIS_READY_POLL_MS = 50
 export const REDIS_READY_TIMEOUT_MS = Number(process.env.REDIS_READY_TIMEOUT_MS || 2000)

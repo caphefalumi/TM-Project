@@ -17,6 +17,9 @@ coverage
 playwright-report
 test-results
 blob-report
+server/api/index.js
+server/api/app.bundle.mjs
+server/api/app.bundle.mjs.map
 *.local
 .nuxt
 /cypress/videos/

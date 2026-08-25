@@ -7,9 +7,9 @@ import {
   deleteSprint,
   startSprint,
   completeSprint,
-} from '../controllers/sprintController.ts'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
-import { requirePermission } from '../middleware/roleMiddleware.ts'
+} from '../controllers/sprintController.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import { requirePermission } from '../middleware/roleMiddleware.js'
 
 const router = express.Router()
 

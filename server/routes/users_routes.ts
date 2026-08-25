@@ -1,12 +1,12 @@
 import express from 'express'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
 import {
   getAuthenticatedUser,
   getAllUsers,
   updateUserProfile,
   deleteUserAccount,
   verifyEmailChange,
-} from '../controllers/usersController.ts'
+} from '../controllers/usersController.js'
 
 const router = express.Router()
 

@@ -1,6 +1,6 @@
-import TaskComments from '../models/TaskComments.ts'
-import Tasks from '../models/Tasks.ts'
-import TaskActivity from '../models/TaskActivity.ts'
+import TaskComments from '../models/TaskComments.js'
+import Tasks from '../models/Tasks.js'
+import TaskActivity from '../models/TaskActivity.js'
 
 // Add a comment to a task
 const addComment = async (req, res) => {

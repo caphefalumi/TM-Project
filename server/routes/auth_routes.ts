@@ -1,8 +1,8 @@
 import express from 'express'
-import AuthenticationController from '../controllers/authController.ts'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
-import { renewAccessToken } from '../controllers/tokensController.ts'
-import createRateLimiter from '../middleware/rateLimiter.ts'
+import AuthenticationController from '../controllers/authController.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import { renewAccessToken } from '../controllers/tokensController.js'
+import createRateLimiter from '../middleware/rateLimiter.js'
 
 const router = express.Router()
 const {

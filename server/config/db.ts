@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { initGridFS } from '../services/gridfsService.ts'
+import { initGridFS } from '../services/gridfsService.js'
 
 const connectDB = async () => {
   try {

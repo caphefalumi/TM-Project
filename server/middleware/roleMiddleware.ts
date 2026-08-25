@@ -1,5 +1,5 @@
-import UsersOfTeam from '../models/UsersOfTeam.ts'
-import { PERMISSIONS, ROLE_PERMISSIONS } from '../config/permissions.ts'
+import UsersOfTeam from '../models/UsersOfTeam.js'
+import { PERMISSIONS, ROLE_PERMISSIONS } from '../config/permissions.js'
 
 export const ROLES = {
   ADMIN: 'admin',

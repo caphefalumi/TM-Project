@@ -4,8 +4,8 @@ import {
   getBaseRoleFromRoleType,
   getRoleLabel,
   getRoleDefaultPermissions,
-} from '../../middleware/roleMiddleware.ts'
-import { PERMISSIONS } from '../../config/permissions.ts'
+} from '../../middleware/roleMiddleware.js'
+import { PERMISSIONS } from '../../config/permissions.js'
 
 describe('role helpers', () => {
   it('maps role types onto base roles', () => {

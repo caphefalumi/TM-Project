@@ -1,8 +1,8 @@
 import express from 'express'
-import TasksController from '../controllers/tasksController.ts'
-import { authenticateAccessToken } from '../middleware/authMiddleware.ts'
-import { requirePermission } from '../middleware/roleMiddleware.ts'
-import { invalidateCache } from '../middleware/cacheMiddleware.ts'
+import TasksController from '../controllers/tasksController.js'
+import { authenticateAccessToken } from '../middleware/authMiddleware.js'
+import { requirePermission } from '../middleware/roleMiddleware.js'
+import { invalidateCache } from '../middleware/cacheMiddleware.js'
 
 const {
   addTaskToUsers,

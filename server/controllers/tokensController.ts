@@ -1,5 +1,5 @@
-import RefreshTokenManager from '../scripts/refreshTokenManager.ts'
-import { generateAccessToken, generateRefreshToken } from '../services/tokenService.ts'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
+import { generateAccessToken, generateRefreshToken } from '../services/tokenService.js'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'

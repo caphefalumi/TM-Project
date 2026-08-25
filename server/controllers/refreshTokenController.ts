@@ -1,4 +1,4 @@
-import RefreshTokenManager from '../scripts/refreshTokenManager.ts'
+import RefreshTokenManager from '../scripts/refreshTokenManager.js'
 
 export const getActiveTokens = async (req, res) => {
   try {

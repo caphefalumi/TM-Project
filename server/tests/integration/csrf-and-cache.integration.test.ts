@@ -3,9 +3,9 @@ import express from 'express'
 import request from 'supertest'
 import cookieParser from 'cookie-parser'
 import Tokens from 'csrf'
-import { csrfProtection, getCsrfToken } from '../../middleware/csrfMiddleware.ts'
-import { cacheResponse, invalidateCache } from '../../middleware/cacheMiddleware.ts'
-import { cacheService } from '../../services/cacheService.ts'
+import { csrfProtection, getCsrfToken } from '../../middleware/csrfMiddleware.js'
+import { cacheResponse, invalidateCache } from '../../middleware/cacheMiddleware.js'
+import { cacheService } from '../../services/cacheService.js'
 
 function createCsrfApp() {
   const app = express()
